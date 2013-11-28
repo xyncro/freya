@@ -176,7 +176,7 @@ type Environment =
         }
 
     /// Initializes a new Environment from parameters, adding defaults for optional response parameters.
-    new (requestMethod, requestScheme, requestPathBase, requestPath, requestQueryString, requestProtocol, requestHeaders, ?requestBody, ?responseStatusCode, ?responseHeaders, ?responseBody) as x =
+    new (requestMethod: string, requestScheme: string, requestPathBase: string, requestPath: string, requestQueryString: string, requestProtocol: string, requestHeaders, ?requestBody, ?responseHeaders, ?responseBody) as x =
         // TODO: Consider parsing the URI rather than requiring the pieces to be passed in explicitly.
         {
             inherit Dictionary<string, obj>(StringComparer.Ordinal)
