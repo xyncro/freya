@@ -184,17 +184,21 @@ type Environment =
             requestProtocol = unbox x.[Constants.requestProtocol]
             requestHeaders = unbox x.[Constants.requestHeaders]
             requestBody = unbox x.[Constants.requestBody]
-            responseStatusCode = if x.ContainsKey(Constants.responseStatusCode) then
-                                     enum<_> <| unbox<int> x.[Constants.responseStatusCode]
-                                 else HttpStatusCode.NotFound
+            responseStatusCode =
+                if x.ContainsKey(Constants.responseStatusCode) then
+                    enum<_> <| unbox<int> x.[Constants.responseStatusCode]
+                else
+                    x.Add(Constants.responseStatusCode, HttpStatusCode.OK)
+                    HttpStatusCode.OK
             responseHeaders = unbox x.[Constants.responseHeaders]
             responseBody = unbox x.[Constants.responseBody]
         }
         then do
             x.[Constants.responseReasonPhrase] <- string x.responseStatusCode
 
-    /// Initializes a new Environment from a request headers dictionary and body stream with default response headers and body.
-    new (requestMethod, requestScheme, requestPathBase, requestPath, requestQueryString, requestProtocol, requestHeaders, ?requestBody, ?responseBody) as x =
+    /// Initializes a new Environment from parameters, adding defaults for optional response parameters.
+    new (requestMethod, requestScheme, requestPathBase, requestPath, requestQueryString, requestProtocol, requestHeaders, ?requestBody, ?responseStatusCode, ?responseHeaders, ?responseBody) as x =
+        // TODO: Consider parsing the URI rather than requiring the pieces to be passed in explicitly.
         {
             inherit Dictionary<string, obj>(StringComparer.Ordinal)
             disposed = false
@@ -206,8 +210,8 @@ type Environment =
             requestProtocol = requestProtocol
             requestHeaders = requestHeaders
             requestBody = defaultArg requestBody Stream.Null
-            responseStatusCode = HttpStatusCode.NotFound
-            responseHeaders = new Dictionary<_,_>(HashIdentity.Structural)
+            responseStatusCode = defaultArg responseStatusCode HttpStatusCode.OK
+            responseHeaders = defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural))
             responseBody = defaultArg responseBody (new MemoryStream() :> Stream)
         }
         then do
@@ -229,6 +233,24 @@ type Environment =
         if environment.ContainsKey(key) then
             Some(environment.[key] :?> 'a)
         else None
+
+    /// Gets the HTTP method used in the current request.
+    member x.RequestMethod = x.requestMethod
+
+    /// Gets the scheme (e.g. "http" or "https") for the current request.
+    member x.RequestScheme = x.requestScheme
+
+    /// Gets the path corresponding to the "root" of the application.
+    member x.RequestPathBase = x.requestPathBase
+
+    /// Gets the path relative to the "root" of the application.
+    member x.RequestPath = x.requestPath
+
+    /// Gets the query string from the request URI.
+    member x.RequestQueryString = x.requestQueryString
+
+    /// Gets the HTTP protocol version for the request.
+    member x.RequestProtocol = x.requestProtocol
 
     /// Gets the request headers dictionary for the current request.
     member x.RequestHeaders = x.requestHeaders
