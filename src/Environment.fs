@@ -165,3 +165,15 @@ type Environment =
     interface IDisposable with
         /// Disposes this instance.
         member x.Dispose() = x.Dispose()
+
+/// Helper functions for working with an OWIN environment dictionary
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module Environment =
+    /// Returns an Environment from an IDictionary<string, obj>.
+    /// If the dictionary is already an Environment, then the instance is cast and returned
+    /// rather than mapped into a new instance.
+    [<CompiledName("ToEnvironment")>]
+    let toEnvironment (environment: IDictionary<string, obj>) =
+        match environment with
+        | :? Environment as e -> e
+        | _ as d -> new Environment(d)
