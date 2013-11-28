@@ -69,6 +69,22 @@ let initializingTests =
             test <@ env.RequestMethod = unbox env.[Constants.requestMethod] @>
     ]
 
+let environmentModuleTests =
+    let env =
+        new Environment(
+            requestMethod = "GET",
+            requestScheme = "http",
+            requestPathBase = "/",
+            requestPath = "",
+            requestQueryString = "",
+            requestProtocol = "HTTP/1.1",
+            requestHeaders = dict [| "Host", [|"example.org"|] |]
+        )
+    testList "When creating an Environment from an OWIN environment dictionary" [
+        testCase "should return the original Environment if it is of type Environment" <| fun _ ->
+            test <@ Environment.toEnvironment env = env @>
+    ]
+
 [<EntryPoint>]
 let main argv =
-    testList "Environment tests" [ initializingTests ] |> runParallel
+    testList "Environment tests" [ initializingTests; environmentModuleTests ] |> runParallel
