@@ -54,10 +54,14 @@ let initializingTests =
             test <@ env.ResponseHeaders.GetType() = typeof<System.Collections.Generic.Dictionary<string, string[]>> @>
         testCase "should set the owin.ResponseHeaders to an empty dictionary" <| fun _ ->
             test <@ env.[Constants.responseHeaders].GetType() = typeof<System.Collections.Generic.Dictionary<string, string[]>> @>
+        testCase "should ensure the cached response headers value and the dictionary value are the same reference" <| fun _ ->
+            test <@ obj.ReferenceEquals(env.ResponseHeaders, env.[Constants.responseHeaders]) @>
         testCase "should set the ResponseBody to a MemoryStream" <| fun _ ->
             test <@ env.ResponseBody.GetType() = typeof<System.IO.MemoryStream> @>
         testCase "should set the owin.ResponseBody to a MemoryStream" <| fun _ ->
             test <@ env.[Constants.responseBody].GetType() = typeof<System.IO.MemoryStream> @>
+        testCase "should ensure the cached response body value and the dictionary value are the same reference" <| fun _ ->
+            test <@ obj.ReferenceEquals(env.ResponseBody, env.[Constants.responseBody]) @>
     ]
 
 [<EntryPoint>]
