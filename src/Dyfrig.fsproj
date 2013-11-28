@@ -37,7 +37,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
-    <Compile Include="Dyfrig.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Environment.fs" />
+    <Compile Include="OwinApp.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
