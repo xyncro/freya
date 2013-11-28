@@ -7,11 +7,11 @@
     <owners>@authors@</owners>
     <language>en-US</language>
     <summary>@description@</summary>
-    <projectUrl>https://github.com/panesofglass/FSharp.Owin</projectUrl>
-    <licenseUrl>https://github.com/panesofglass/FSharp.Owin/raw/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/panesofglass/Dyfrig</projectUrl>
+    <licenseUrl>https://github.com/panesofglass/Dyfrig/raw/master/LICENSE.txt</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>@description@</description>
-    <tags>owin http fsharp</tags>
+    <tags>owin http fsharp dyfrig</tags>
     @dependencies@
   </metadata>
 </package>

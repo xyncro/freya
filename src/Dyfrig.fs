@@ -14,12 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //----------------------------------------------------------------------------
-namespace Owin
+namespace Dyfrig
 
 open System
 open System.Collections.Generic
 open System.IO
 open System.Linq
+open System.Net
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.FSharp.Core
@@ -153,31 +154,102 @@ module Constants =
         let [<Literal>] clientCloseDescription = "websocket.ClientCloseDescription"
 
 /// An Environment dictionary to store OWIN request and response values.
-type Environment(dictionary: IDictionary<_,_>) =
-    inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
-    let mutable disposed = false
+type Environment =
+    inherit Dictionary<string, obj>
+
+    val private requestMethod      : string
+    val private requestScheme      : string
+    val private requestPathBase    : string
+    val private requestPath        : string
+    val private requestQueryString : string
+    val private requestProtocol    : string
+    val private requestHeaders     : IDictionary<string, string[]>
+    val private requestBody        : Stream
+    val private responseHeaders    : IDictionary<string, string[]>
+    val private responseBody       : Stream
+
+    val mutable private responseStatusCode : HttpStatusCode
+    val mutable private disposed : bool
+
+    /// Initializes a new Environment from an existing, valid, OWIN environment dictionary.
+    new (dictionary: IDictionary<_,_>) as x =
+        {
+            inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
+            disposed = false
+            requestMethod = unbox x.[Constants.requestMethod]
+            requestScheme = unbox x.[Constants.requestScheme]
+            requestPathBase = unbox x.[Constants.requestPathBase]
+            requestPath = unbox x.[Constants.requestPath]
+            requestQueryString = unbox x.[Constants.requestQueryString]
+            requestProtocol = unbox x.[Constants.requestProtocol]
+            requestHeaders = unbox x.[Constants.requestHeaders]
+            requestBody = unbox x.[Constants.requestBody]
+            responseStatusCode = if x.ContainsKey(Constants.responseStatusCode) then
+                                     enum<_> <| unbox<int> x.[Constants.responseStatusCode]
+                                 else HttpStatusCode.NotFound
+            responseHeaders = unbox x.[Constants.responseHeaders]
+            responseBody = unbox x.[Constants.responseBody]
+        }
+        then do
+            x.[Constants.responseReasonPhrase] <- string x.responseStatusCode
+
+    /// Initializes a new Environment from a request headers dictionary and body stream with default response headers and body.
+    new (requestMethod, requestScheme, requestPathBase, requestPath, requestQueryString, requestProtocol, requestHeaders, ?requestBody, ?responseBody) as x =
+        {
+            inherit Dictionary<string, obj>(StringComparer.Ordinal)
+            disposed = false
+            requestMethod = requestMethod
+            requestScheme = requestScheme
+            requestPathBase = requestPathBase
+            requestPath = requestPath
+            requestQueryString = requestQueryString
+            requestProtocol = requestProtocol
+            requestHeaders = requestHeaders
+            requestBody = defaultArg requestBody Stream.Null
+            responseStatusCode = HttpStatusCode.NotFound
+            responseHeaders = new Dictionary<_,_>(HashIdentity.Structural)
+            responseBody = defaultArg responseBody (new MemoryStream() :> Stream)
+        }
+        then do
+            x.Add(Constants.requestMethod, x.requestMethod)
+            x.Add(Constants.requestScheme, x.requestScheme)
+            x.Add(Constants.requestPathBase, x.requestPathBase)
+            x.Add(Constants.requestPath, x.requestPath)
+            x.Add(Constants.requestQueryString, x.requestQueryString)
+            x.Add(Constants.requestProtocol, x.requestProtocol)
+            x.Add(Constants.requestHeaders, x.requestHeaders)
+            x.Add(Constants.requestBody, x.requestBody)
+            x.Add(Constants.responseStatusCode, int x.responseStatusCode)
+            x.Add(Constants.responseReasonPhrase, string x.responseStatusCode)
+            x.Add(Constants.responseHeaders, x.responseHeaders)
+            x.Add(Constants.responseBody, x.responseBody)
+
+    /// Gets a value with the specified key from the environment dictionary as the specified type 'a.
+    static member inline Get<'a> (environment: IDictionary<string, obj>, key: string) =
+        if environment.ContainsKey(key) then
+            Some(environment.[key] :?> 'a)
+        else None
 
     /// Gets the request headers dictionary for the current request.
-    abstract RequestHeaders : IDictionary<string, string[]>
-    default x.RequestHeaders = unbox x.[Constants.requestHeaders]
+    member x.RequestHeaders = x.requestHeaders
 
     /// Gets the request body for the current request.
-    abstract RequestBody : Stream
-    default x.RequestBody = unbox x.[Constants.requestBody]
+    member x.RequestBody = x.requestBody
 
     /// Gets the response status code for the current request.
     member x.ResponseStatusCode
-        with get() : int = unbox x.[Constants.responseStatusCode]
-        and set(v : int) = x.[Constants.responseStatusCode] <- v
+        with get() = x.responseStatusCode
+        and set(v) = x.responseStatusCode <- v
+                     x.[Constants.responseStatusCode] <- int v
+                     x.[Constants.responseReasonPhrase] <- string v
 
     /// Gets the response headers dictionary for the current response.
-    abstract ResponseHeaders : IDictionary<string, string[]>
-    default x.ResponseHeaders = unbox x.[Constants.responseHeaders]
+    member x.ResponseHeaders = x.responseHeaders
 
     /// Gets the response body stream.
-    abstract ResponseBody : Stream
-    default x.ResponseBody = unbox x.[Constants.responseBody]
+    member x.ResponseBody = x.responseBody
 
+    /// Overridable disposal implementation for this instance.
     abstract Dispose : bool -> unit
     default x.Dispose(disposing) =
         if disposing then
@@ -185,18 +257,23 @@ type Environment(dictionary: IDictionary<_,_>) =
             |> Seq.filter (fun x -> x <> Unchecked.defaultof<_>)
             |> Seq.iter (fun x -> try x.Dispose() with | _ -> ()) // TODO: Log any failed disposals.
 
+    /// Disposes this instance.
     member x.Dispose() =
-        if not disposed then
+        if not x.disposed then
             GC.SuppressFinalize(x)
             x.Dispose(true)
-            disposed <- true
+            x.disposed <- true
 
     interface IDisposable with
+        /// Disposes this instance.
         member x.Dispose() = x.Dispose()
 
-type WebApp = IDictionary<string, obj> -> Async<unit>
+/// OWIN App Delegate signature using F# Async.
+type OwinApp = IDictionary<string, obj> -> Async<unit>
 
+/// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module WebApp =
-    [<CompiledName("ToFunc")>]
-    let toAppDelegate (app: WebApp) = Func<_,_>(fun d -> Async.StartAsTask (app d) :> Task)
+module OwinApp =
+    /// Converts a F# Async-based OWIN App Delegate to a standard Func<_,Task> App Delegate.
+    [<CompiledName("ToAppDelegate")>]
+    let toAppDelegate (app: OwinApp) = Func<_,_>(fun d -> Async.StartAsTask (app d) :> Task)

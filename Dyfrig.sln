@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Owin", "src\FSharp.Owin.fsproj", "{36D091D6-791F-4D45-A81A-8D51E4822F57}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig", "src\Dyfrig.fsproj", "{36D091D6-791F-4D45-A81A-8D51E4822F57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

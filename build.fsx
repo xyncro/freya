@@ -21,14 +21,14 @@ open Fake.AssemblyInfoFile
 open Fake.MSBuild
 
 // properties
-let projectName = "FSharp.Owin"
+let projectName = "Dyfrig"
 let version = if isLocalBuild then "0.1." + System.DateTime.UtcNow.ToString("yMMdd") else buildVersion
 let projectSummary = "F# support for the Open Web Interface for .NET"
 let projectDescription = projectSummary
 let authors = ["Ryan Riley"]
 let mail = "ryan.riley@panesofglass.org"
-let homepage = "http://github.com/panesofglass/FSharp.Owin"
-let license = "http://github.com/panesofglass/FSharp.Owin/raw/master/LICENSE.txt"
+let homepage = "http://github.com/panesofglass/Dyfrig"
+let license = "http://github.com/panesofglass/Dyfrig/raw/master/LICENSE.txt"
 
 // directories
 let buildDir = __SOURCE_DIRECTORY__ @@ "build"
@@ -75,8 +75,8 @@ Target "CopyLicense" (fun _ ->
 )
 
 Target "CreateNuGet" (fun _ ->
-    [ buildDir @@ "FSharp.Owin.dll"
-      buildDir @@ "FSharp.Owin.pdb" ]
+    [ buildDir @@ "Dyfrig.dll"
+      buildDir @@ "Dyfrig.pdb" ]
         |> CopyTo nugetLib
 
     NuGet (fun p -> 
@@ -89,9 +89,9 @@ Target "CreateNuGet" (fun _ ->
                 ToolPath = nugetPath
                 AccessKey = getBuildParamOrDefault "nugetkey" ""
                 Publish = hasBuildParam "nugetKey" })
-        "FSharp.Owin.nuspec"
+        "Dyfrig.nuspec"
 
-    !! (nugetDir @@ sprintf "FSharp.Owin.%s.nupkg" version)
+    !! (nugetDir @@ sprintf "Dyfrig.%s.nupkg" version)
         |> CopyTo deployDir
 )
 
