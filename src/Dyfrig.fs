@@ -157,18 +157,11 @@ module Constants =
 type Environment =
     inherit Dictionary<string, obj>
 
-    val private requestMethod      : string
-    val private requestScheme      : string
-    val private requestPathBase    : string
-    val private requestPath        : string
-    val private requestQueryString : string
-    val private requestProtocol    : string
     val private requestHeaders     : IDictionary<string, string[]>
     val private requestBody        : Stream
     val private responseHeaders    : IDictionary<string, string[]>
     val private responseBody       : Stream
 
-    val mutable private responseStatusCode : HttpStatusCode
     val mutable private disposed : bool
 
     /// Initializes a new Environment from an existing, valid, OWIN environment dictionary.
@@ -176,25 +169,11 @@ type Environment =
         {
             inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
             disposed = false
-            requestMethod = unbox x.[Constants.requestMethod]
-            requestScheme = unbox x.[Constants.requestScheme]
-            requestPathBase = unbox x.[Constants.requestPathBase]
-            requestPath = unbox x.[Constants.requestPath]
-            requestQueryString = unbox x.[Constants.requestQueryString]
-            requestProtocol = unbox x.[Constants.requestProtocol]
             requestHeaders = unbox x.[Constants.requestHeaders]
             requestBody = unbox x.[Constants.requestBody]
-            responseStatusCode =
-                if x.ContainsKey(Constants.responseStatusCode) then
-                    enum<_> <| unbox<int> x.[Constants.responseStatusCode]
-                else
-                    x.Add(Constants.responseStatusCode, HttpStatusCode.OK)
-                    HttpStatusCode.OK
             responseHeaders = unbox x.[Constants.responseHeaders]
             responseBody = unbox x.[Constants.responseBody]
         }
-        then do
-            x.[Constants.responseReasonPhrase] <- string x.responseStatusCode
 
     /// Initializes a new Environment from parameters, adding defaults for optional response parameters.
     new (requestMethod, requestScheme, requestPathBase, requestPath, requestQueryString, requestProtocol, requestHeaders, ?requestBody, ?responseStatusCode, ?responseHeaders, ?responseBody) as x =
@@ -202,29 +181,20 @@ type Environment =
         {
             inherit Dictionary<string, obj>(StringComparer.Ordinal)
             disposed = false
-            requestMethod = requestMethod
-            requestScheme = requestScheme
-            requestPathBase = requestPathBase
-            requestPath = requestPath
-            requestQueryString = requestQueryString
-            requestProtocol = requestProtocol
             requestHeaders = requestHeaders
             requestBody = defaultArg requestBody Stream.Null
-            responseStatusCode = defaultArg responseStatusCode HttpStatusCode.OK
             responseHeaders = defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> IDictionary<_,_>)
             responseBody = defaultArg responseBody (new MemoryStream() :> Stream)
         }
         then do
-            x.Add(Constants.requestMethod, x.requestMethod)
-            x.Add(Constants.requestScheme, x.requestScheme)
-            x.Add(Constants.requestPathBase, x.requestPathBase)
-            x.Add(Constants.requestPath, x.requestPath)
-            x.Add(Constants.requestQueryString, x.requestQueryString)
-            x.Add(Constants.requestProtocol, x.requestProtocol)
+            x.Add(Constants.requestMethod, requestMethod)
+            x.Add(Constants.requestScheme, requestScheme)
+            x.Add(Constants.requestPathBase, requestPathBase)
+            x.Add(Constants.requestPath, requestPath)
+            x.Add(Constants.requestQueryString, requestQueryString)
+            x.Add(Constants.requestProtocol, requestProtocol)
             x.Add(Constants.requestHeaders, x.requestHeaders)
             x.Add(Constants.requestBody, x.requestBody)
-            x.Add(Constants.responseStatusCode, int x.responseStatusCode)
-            x.Add(Constants.responseReasonPhrase, string x.responseStatusCode)
             x.Add(Constants.responseHeaders, x.responseHeaders)
             x.Add(Constants.responseBody, x.responseBody)
 
@@ -235,22 +205,34 @@ type Environment =
         else None
 
     /// Gets the HTTP method used in the current request.
-    member x.RequestMethod = x.requestMethod
+    member x.RequestMethod
+        with get() : string = unbox x.[Constants.requestMethod]
+        and set(v : string) = x.[Constants.requestMethod] <- v
 
     /// Gets the scheme (e.g. "http" or "https") for the current request.
-    member x.RequestScheme = x.requestScheme
+    member x.RequestScheme
+        with get() : string = unbox x.[Constants.requestScheme]
+        and set(v : string) = x.[Constants.requestScheme] <- v
 
     /// Gets the path corresponding to the "root" of the application.
-    member x.RequestPathBase = x.requestPathBase
+    member x.RequestPathBase
+        with get() : string = unbox x.[Constants.requestPathBase]
+        and set(v : string) = x.[Constants.requestPathBase] <- v
 
     /// Gets the path relative to the "root" of the application.
-    member x.RequestPath = x.requestPath
+    member x.RequestPath
+        with get() : string = unbox x.[Constants.requestPath]
+        and set(v : string) = x.[Constants.requestPath] <- v
 
     /// Gets the query string from the request URI.
-    member x.RequestQueryString = x.requestQueryString
+    member x.RequestQueryString
+        with get() : string = unbox x.[Constants.requestQueryString]
+        and set(v : string) = x.[Constants.requestQueryString] <- v
 
     /// Gets the HTTP protocol version for the request.
-    member x.RequestProtocol = x.requestProtocol
+    member x.RequestProtocol
+        with get() : string = unbox x.[Constants.requestProtocol]
+        and set(v : string) = x.[Constants.requestProtocol] <- v
 
     /// Gets the request headers dictionary for the current request.
     member x.RequestHeaders = x.requestHeaders
@@ -260,10 +242,32 @@ type Environment =
 
     /// Gets the response status code for the current request.
     member x.ResponseStatusCode
-        with get() = x.responseStatusCode
-        and set(v) = x.responseStatusCode <- v
-                     x.[Constants.responseStatusCode] <- int v
-                     x.[Constants.responseReasonPhrase] <- string v
+        with get() : int =
+            if x.ContainsKey(Constants.responseStatusCode) then
+                unbox x.[Constants.responseStatusCode]
+            else 200 // Default for HTTP 200 OK
+        and set(v : int) = x.[Constants.responseStatusCode] <- v
+
+    /// Gets the response reason phrase for the current request.
+    member x.ResponseReasonPhrase
+        with get() : string =
+            if x.ContainsKey(Constants.responseReasonPhrase) then
+                unbox x.[Constants.responseReasonPhrase]
+            elif x.ContainsKey(Constants.responseStatusCode) then
+                unbox x.[Constants.responseStatusCode] |> enum<HttpStatusCode> |> string
+            else "OK" // Default for HTTP 200 OK
+        and set(v : string) = x.[Constants.responseReasonPhrase] <- v
+
+    /// Gets the response status code for the current request.
+    member x.ResponseProtocol
+        with get() : string option =
+            if x.ContainsKey(Constants.responseProtocol) then
+                Some(unbox x.[Constants.responseProtocol])
+            else None
+        and set(v : string option) =
+            match v with
+            | Some v -> x.[Constants.responseProtocol] <- v
+            | None -> x.Remove(Constants.responseProtocol) |> ignore
 
     /// Gets the response headers dictionary for the current response.
     member x.ResponseHeaders = x.responseHeaders

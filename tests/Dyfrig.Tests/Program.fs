@@ -44,12 +44,14 @@ let initializingTests =
             test <@ env.RequestBody = System.IO.Stream.Null @>
         testCase "should set the owin.RequestBody to Stream.Null" <| fun _ ->
             test <@ unbox env.[Constants.requestBody] = System.IO.Stream.Null @>
-        testCase "should set the ResponseStatusCode to HttpStatusCode.OK" <| fun _ ->
-            test <@ env.ResponseStatusCode = System.Net.HttpStatusCode.OK @>
+        testCase "should set the ResponseStatusCode to 200" <| fun _ ->
+            test <@ env.ResponseStatusCode = 200 @>
         testCase "should set the owin.ResponseStatusCode to 200" <| fun _ ->
-            test <@ unbox env.[Constants.responseStatusCode] = 200 @>
+            raises<System.Collections.Generic.KeyNotFoundException> <@ env.[Constants.responseStatusCode] @>
+        testCase "should set the ResponseReasonPhrase to OK" <| fun _ ->
+            test <@ unbox env.ResponseReasonPhrase = "OK" @>
         testCase "should set the owin.ResponseReasonPhrase to OK" <| fun _ ->
-            test <@ unbox env.[Constants.responseReasonPhrase] = "OK" @>
+            raises<System.Collections.Generic.KeyNotFoundException> <@ env.[Constants.responseReasonPhrase] @>
         testCase "should set the ResponseHeaders to an empty dictionary" <| fun _ ->
             test <@ env.ResponseHeaders.GetType() = typeof<System.Collections.Generic.Dictionary<string, string[]>> @>
         testCase "should set the owin.ResponseHeaders to an empty dictionary" <| fun _ ->
@@ -62,7 +64,11 @@ let initializingTests =
             test <@ env.[Constants.responseBody].GetType() = typeof<System.IO.MemoryStream> @>
         testCase "should ensure the cached response body value and the dictionary value are the same reference" <| fun _ ->
             test <@ obj.ReferenceEquals(env.ResponseBody, env.[Constants.responseBody]) @>
+        testCase "should set the RequestMethod to when owin.RequestMethod changes" <| fun _ ->
+            env.[Constants.requestMethod] <- "POST"
+            test <@ env.RequestMethod = unbox env.[Constants.requestMethod] @>
     ]
 
 [<EntryPoint>]
-let main argv = runParallel initializingTests
+let main argv =
+    testList "Environment tests" [ initializingTests ] |> runParallel
