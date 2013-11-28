@@ -211,7 +211,7 @@ type Environment =
             requestHeaders = requestHeaders
             requestBody = defaultArg requestBody Stream.Null
             responseStatusCode = defaultArg responseStatusCode HttpStatusCode.OK
-            responseHeaders = defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural))
+            responseHeaders = defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> IDictionary<_,_>)
             responseBody = defaultArg responseBody (new MemoryStream() :> Stream)
         }
         then do
