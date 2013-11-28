@@ -32,6 +32,7 @@ let license = "http://github.com/panesofglass/Dyfrig/raw/master/LICENSE.txt"
 
 // directories
 let buildDir = __SOURCE_DIRECTORY__ @@ "build"
+let testDir = __SOURCE_DIRECTORY__ @@ "test"
 let deployDir = __SOURCE_DIRECTORY__ @@ "deploy"
 let packagesDir = __SOURCE_DIRECTORY__ @@ "packages"
 let nugetDir = __SOURCE_DIRECTORY__ @@ "nuget"
@@ -47,10 +48,14 @@ let nugetPath = "./.nuget/nuget.exe"
 // files
 let appReferences =
     !! "src/**/*.fsproj"
+    
+let testReferences =
+    !! "tests/**/*.fsproj"
 
 // targets
 Target "Clean" (fun _ ->
     CleanDirs [buildDir
+               testDir
                docsDir
                deployDir
                nugetDir
@@ -68,6 +73,20 @@ Target "BuildApp" (fun _ ->
 
     MSBuildRelease buildDir "Build" appReferences
         |> Log "AppBuild-Output: "
+)
+
+Target "BuildTests" (fun _ ->
+    MSBuildDebug testDir "Build" testReferences
+        |> Log "TestBuild-Output: "
+)
+
+Target "Test" (fun _ ->
+    let errorCode =
+        let program = testDir @@ "Dyfrig.Tests.exe"
+        let p, a = if not isMono then program, null else "mono", program
+        asyncShellExec { defaultParams with Program = p; CommandLine = a }
+        |> Async.RunSynchronously
+    if errorCode <> 0 then failwith "Error in tests"
 )
 
 Target "CopyLicense" (fun _ ->
@@ -100,7 +119,8 @@ Target "Default" DoNothing
 
 // Build order
 "Clean"
-  ==> "BuildApp" <=> "CopyLicense"
+  ==> "BuildApp" <=> "CopyLicense" <=> "BuildTests"
+  ==> "Test"
   ==> "CreateNuGet"
   ==> "Deploy"
 
