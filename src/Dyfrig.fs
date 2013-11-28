@@ -157,10 +157,10 @@ module Constants =
 type Environment =
     inherit Dictionary<string, obj>
 
-    val private requestHeaders     : IDictionary<string, string[]>
-    val private requestBody        : Stream
-    val private responseHeaders    : IDictionary<string, string[]>
-    val private responseBody       : Stream
+    val private requestHeaders   : IDictionary<string, string[]>
+    val private requestBody      : Stream
+    val private responseHeaders  : IDictionary<string, string[]>
+    val private responseBody     : Stream
 
     val mutable private disposed : bool
 
