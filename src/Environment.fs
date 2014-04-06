@@ -37,14 +37,14 @@ type Environment =
     val mutable private disposed : bool
 
     /// Initializes a new Environment from an existing, valid, OWIN environment dictionary.
-    new (dictionary: IDictionary<_,_>) as x =
+    new (dictionary: IDictionary<_,_>) =        
         {
             inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
             disposed = false
-            requestHeaders = unbox x.[Constants.requestHeaders]
-            requestBody = unbox x.[Constants.requestBody]
-            responseHeaders = unbox x.[Constants.responseHeaders]
-            responseBody = unbox x.[Constants.responseBody]
+            requestHeaders = unbox dictionary.[Constants.requestHeaders]
+            requestBody = unbox dictionary.[Constants.requestBody]
+            responseHeaders = unbox dictionary.[Constants.responseHeaders]
+            responseBody = unbox dictionary.[Constants.responseBody]
         }
 
     /// Initializes a new Environment from parameters, adding defaults for optional response parameters.
