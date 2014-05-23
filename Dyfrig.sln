@@ -1,9 +1,51 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig", "src\Dyfrig.fsproj", "{36D091D6-791F-4D45-A81A-8D51E4822F57}"
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "Dyfrig", "src\Dyfrig.fsproj", "36D091D6-791F-4D45-A81A-8D51E4822F57"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Tests", "tests\Dyfrig.Tests\Dyfrig.Tests.fsproj", "{5F794EE5-7235-4B43-8F24-AD8662D18659}"
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "Dyfrig.Tests", "tests\Dyfrig.Tests\Dyfrig.Tests.fsproj", "5F794EE5-7235-4B43-8F24-AD8662D18659"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{94B68E75-535D-44D3-8F2E-FE477C175468}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B2686A32-382F-4191-860C-420C4478D60F}"
+	ProjectSection(SolutionItems) = preProject
+		docs\files\img\logo.png = docs\files\img\logo.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832}"
+	ProjectSection(SolutionItems) = preProject
+		docs\content\index.fsx = docs\content\index.fsx
+		docs\content\tutorial.fsx = docs\content\tutorial.fsx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{D432FD3F-8003-45A9-BEEF-247B274AE6BE}"
+	ProjectSection(SolutionItems) = preProject
+		docs\tools\generate.fsx = docs\tools\generate.fsx
+		docs\tools\packages.config = docs\tools\packages.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{B6C8349E-2659-428F-A551-C21561A56B5A}"
+	ProjectSection(SolutionItems) = preProject
+		docs\tools\templates\template.cshtml = docs\tools\templates\template.cshtml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E74AF9B-A986-4D48-9BA3-1C597AB6979D}"
+	ProjectSection(SolutionItems) = preProject
+		build.cmd = build.cmd
+		build.fsx = build.fsx
+		build.sh = build.sh
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{64546C15-34CF-4E2D-969A-CB8AAB939074}"
+	ProjectSection(SolutionItems) = preProject
+		nuget\Dyfrig.nuspec = nuget\Dyfrig.nuspec
+		nuget\publish.cmd = nuget\publish.cmd
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +61,16 @@ Global
 		{5F794EE5-7235-4B43-8F24-AD8662D18659}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F794EE5-7235-4B43-8F24-AD8662D18659}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F794EE5-7235-4B43-8F24-AD8662D18659}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{94B68E75-535D-44D3-8F2E-FE477C175468} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
+		{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
+		{D432FD3F-8003-45A9-BEEF-247B274AE6BE} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
+		{B2686A32-382F-4191-860C-420C4478D60F} = {94B68E75-535D-44D3-8F2E-FE477C175468}
+		{B6C8349E-2659-428F-A551-C21561A56B5A} = {D432FD3F-8003-45A9-BEEF-247B274AE6BE}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = src\Dyfrig.fsproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

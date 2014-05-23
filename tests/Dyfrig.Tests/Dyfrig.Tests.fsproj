@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>5f794ee5-7235-4b43-8f24-ad8662d18659</ProjectGuid>
+    <ProjectGuid>5F794EE5-7235-4B43-8F24-AD8662D18659</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dyfrig.Tests</RootNamespace>
     <AssemblyName>Dyfrig.Tests</AssemblyName>
@@ -13,6 +13,7 @@
     <Name>Dyfrig.Tests</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,10 +39,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fuchu">
-      <HintPath>..\..\packages\Fuchu.0.3.0.1\lib\net40-client\Fuchu.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -49,9 +46,11 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="Fuchu">
+      <HintPath>..\..\packages\Fuchu.0.4.0.0\lib\Fuchu.dll</HintPath>
+    </Reference>
     <Reference Include="Unquote">
       <HintPath>..\..\packages\Unquote.2.2.2\lib\net40\Unquote.dll</HintPath>
-      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -62,8 +61,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dyfrig.fsproj">
       <Name>Dyfrig</Name>
-      <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>
-      <Private>True</Private>
+      <Project>36D091D6-791F-4D45-A81A-8D51E4822F57</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
