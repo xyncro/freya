@@ -1,3 +1,4 @@
+
 #ignore thumbnails created by windows
 Thumbs.db
 #Ignore files build by Visual Studio
@@ -28,11 +29,7 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 build/
 deploy/
-docs/
-nuget/
-test/
+docs/tools/
 packages/
-*_Spliced.*
-*.vsp
-.build/
+test/
 *.userprefs
