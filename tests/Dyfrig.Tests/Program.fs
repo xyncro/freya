@@ -7,8 +7,8 @@ let initializingTests =
         new Environment(
             requestMethod = "GET",
             requestScheme = "http",
-            requestPathBase = "/",
-            requestPath = "",
+            requestPathBase = "",
+            requestPath = "/",
             requestQueryString = "",
             requestProtocol = "HTTP/1.1",
             requestHeaders = dict [| "Host", [|"example.org"|] |]
@@ -22,14 +22,14 @@ let initializingTests =
             test <@ env.RequestScheme = "http" @>
         testCase "should set the owin.RequestScheme to http" <| fun _ ->
             test <@ unbox env.[Constants.requestScheme] = "http" @>
-        testCase "should set the RequestPathBase to /" <| fun _ ->
-            test <@ env.RequestPathBase = "/" @>
-        testCase "should set the owin.RequestPathBase to /" <| fun _ ->
-            test <@ unbox env.[Constants.requestPathBase] = "/" @>
-        testCase "should set the RequestPath to \"\"" <| fun _ ->
-            test <@ env.RequestPath = "" @>
-        testCase "should set the owin.RequestPath to \"\"" <| fun _ ->
-            test <@ unbox env.[Constants.requestPath] = "" @>
+        testCase "should set the RequestPathBase to \"\"" <| fun _ ->
+            test <@ env.RequestPathBase = "" @>
+        testCase "should set the owin.RequestPathBase to \"\"" <| fun _ ->
+            test <@ unbox env.[Constants.requestPathBase] = "" @>
+        testCase "should set the RequestPath to /" <| fun _ ->
+            test <@ env.RequestPath = "/" @>
+        testCase "should set the owin.RequestPath to /" <| fun _ ->
+            test <@ unbox env.[Constants.requestPath] = "/" @>
         testCase "should set the RequestQueryString to \"\"" <| fun _ ->
             test <@ env.RequestQueryString = "" @>
         testCase "should set the owin.RequestQueryString to \"\"" <| fun _ ->
@@ -67,6 +67,8 @@ let initializingTests =
         testCase "should set the RequestMethod to when owin.RequestMethod changes" <| fun _ ->
             env.[Constants.requestMethod] <- "POST"
             test <@ env.RequestMethod = unbox env.[Constants.requestMethod] @>
+        testCase "should return http://example.org/ as from GetRequestUri()" <| fun _ ->
+            test <@ env.GetRequestUri() = Some "http://example.org/" @>
     ]
 
 let environmentModuleTests =
@@ -74,8 +76,8 @@ let environmentModuleTests =
         new Environment(
             requestMethod = "GET",
             requestScheme = "http",
-            requestPathBase = "/",
-            requestPath = "",
+            requestPathBase = "",
+            requestPath = "/",
             requestQueryString = "",
             requestProtocol = "HTTP/1.1",
             requestHeaders = dict [| "Host", [|"example.org"|] |]

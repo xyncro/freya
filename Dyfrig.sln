@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "Dyfrig", "src\Dyfrig.fsproj", "36D091D6-791F-4D45-A81A-8D51E4822F57"
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig", "src\Dyfrig.fsproj", "{36D091D6-791F-4D45-A81A-8D51E4822F57}"
 EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "Dyfrig.Tests", "tests\Dyfrig.Tests\Dyfrig.Tests.fsproj", "5F794EE5-7235-4B43-8F24-AD8662D18659"
 EndProject

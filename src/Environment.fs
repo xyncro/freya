@@ -105,10 +105,24 @@ type Environment =
     member x.RequestProtocol
         with get() : string = unbox x.[Constants.requestProtocol]
         and set(v : string) = x.[Constants.requestProtocol] <- v
-
+    
     /// Gets the request headers dictionary for the current request.
     member x.RequestHeaders = x.requestHeaders
 
+    /// Reconstructs the request URI from the component parts.
+    member x.GetRequestUri() =
+        if x.RequestHeaders.ContainsKey("Host") then
+            let uri =
+                x.RequestScheme + "://" +
+                (x.RequestHeaders.["Host"] |> Seq.head) +
+                x.RequestPathBase +
+                x.RequestPath
+                    
+            if String.IsNullOrEmpty x.RequestQueryString
+            then Some uri
+            else Some(uri + "?" + x.RequestQueryString)
+        else None
+ 
     /// Gets the request body for the current request.
     member x.RequestBody = x.requestBody
 
