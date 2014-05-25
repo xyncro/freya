@@ -114,7 +114,7 @@ type Environment =
         if x.RequestHeaders.ContainsKey("Host") then
             let uri =
                 x.RequestScheme + "://" +
-                (x.RequestHeaders.["Host"] |> Seq.head) +
+                (x.RequestHeaders.["Host"].[0]) +
                 x.RequestPathBase +
                 x.RequestPath
                     
