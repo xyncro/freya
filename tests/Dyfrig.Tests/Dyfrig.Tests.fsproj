@@ -44,16 +44,12 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Fuchu">
-      <HintPath>..\..\packages\Fuchu.0.3.0.1\lib\net40-client\Fuchu.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\packages\Fuchu.0.4.0.0\lib\Fuchu.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="Fuchu">
-      <HintPath>..\..\packages\Fuchu.0.4.0.0\lib\Fuchu.dll</HintPath>
-    </Reference>
     <Reference Include="Unquote">
       <HintPath>..\..\packages\Unquote.2.2.2\lib\net40\Unquote.dll</HintPath>
     </Reference>
@@ -64,9 +60,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Dyfrig.fsproj">
+    <ProjectReference Include="..\..\src\Dyfrig\Dyfrig.fsproj">
       <Name>Dyfrig</Name>
-      <Project>36D091D6-791F-4D45-A81A-8D51E4822F57</Project>
+      <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
