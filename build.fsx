@@ -2,16 +2,23 @@
 // FAKE build script 
 // --------------------------------------------------------------------------------------
 
-#r "packages/FAKE/tools/FakeLib.dll"
-#r "packages/FAKE/tools/NuGet.Core.dll"
-#load "packages/SourceLink.Fake/tools/SourceLink.Tfs.fsx"
+#I "packages/FAKE/tools"
+#r "FakeLib.dll"
+
+#if MONO
+#else
+#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
+#endif
+
 open System
 open System.IO
 open Fake 
 open Fake.AssemblyInfoFile
 open Fake.Git
 open Fake.ReleaseNotesHelper
-open SourceLink
+
+Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+let (!!) includes = (!! includes).SetBaseDirectory __SOURCE_DIRECTORY__
 
 // --------------------------------------------------------------------------------------
 // Provide project-specific details below
@@ -51,14 +58,18 @@ let testAssemblies = "bin/Dyfrig*Tests*exe"
 let gitHome = "git@github.com:fsprojects"
 // The name of the project on GitHub
 let gitName = "dyfrig"
+let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/fsprojects"
 
 // --------------------------------------------------------------------------------------
 // The rest of the file includes standard build steps 
 // --------------------------------------------------------------------------------------
 
 // Read additional information from the release notes document
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
+let isAppVeyorBuild = environVar "APPVEYOR" <> null
+let nugetVersion = 
+    if isAppVeyorBuild then sprintf "%s.%s" release.NugetVersion buildVersion
+    else release.NugetVersion
 
 // Generate assembly info files with the right version & up-to-date information
 Target "AssemblyInfo" (fun _ ->
@@ -69,6 +80,10 @@ Target "AssemblyInfo" (fun _ ->
         Attribute.Description summary
         Attribute.Version release.AssemblyVersion
         Attribute.FileVersion release.AssemblyVersion ] )
+
+Target "BuildVersion" (fun _ ->
+    Shell.Exec("appveyor", sprintf "UpdateBuild -Version \"%s\"" nugetVersion) |> ignore
+)
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
@@ -86,22 +101,17 @@ Target "CleanDocs" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
-Target "BuildNumber" (fun _ ->
-    use tb = getTfsBuild()
-    tb.Build.BuildNumber <- sprintf "Frank.%s.%s" release.AssemblyVersion tb.Build.BuildNumber
-    tb.Build.Save()
-)
-
 Target "Build" (fun _ ->
     !! ("*/**/" + projectFile + "*.*proj")
     |> MSBuildRelease "bin" "Rebuild"
     |> ignore
 )
 
+#if MONO
+Target "SourceLink" id
+#else
+open SourceLink
 Target "SourceLink" (fun _ ->
-    #if MONO
-    ()
-    #else
     use repo = new GitRepo(__SOURCE_DIRECTORY__)
     !! ("*/**/" + projectFile + "*.*proj")
     |> Seq.iter (fun f ->
@@ -110,11 +120,11 @@ Target "SourceLink" (fun _ ->
         let files = proj.Compiles -- "**/AssemblyInfo.fs"
         repo.VerifyChecksums files
         proj.VerifyPdbChecksums files
-        proj.CreateSrcSrv "https://raw.github.com/fsprojects/dyfrig/{0}/%var2%" repo.Revision (repo.Paths files)
+        proj.CreateSrcSrv (sprintf "%s/%s/{0}/%%var2%%" gitRaw gitName) repo.Revision (repo.Paths files)
         Pdbstr.exec proj.OutputFilePdb proj.OutputFilePdbSrcSrv
     )
-    #endif
 )
+#endif
 
 Target "CopyLicense" (fun _ ->
     [ "LICENSE.txt" ] |> CopyTo "bin"
@@ -137,7 +147,7 @@ Target "RunTests" (fun _ ->
 // Build a NuGet package
 
 Target "NuGet" (fun _ ->
-    let bin = if isTfsBuild then "../bin" else "bin"
+    let bin = "bin"
     Directory.CreateDirectory bin |> ignore
     NuGet (fun p -> 
         { p with   
@@ -145,12 +155,13 @@ Target "NuGet" (fun _ ->
             Project = project
             Summary = summary
             Description = description
-            Version = release.NugetVersion
+            Version = nugetVersion
             ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
             Tags = tags
             OutputPath = bin
             AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Publish = hasBuildParam "nugetkey" })
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [] })
         ("nuget/" + project + ".nuspec")
 )
 
@@ -184,14 +195,14 @@ Target "Release" DoNothing
 Target "All" DoNothing
 
 "Clean"
+  =?> ("BuildVersion", isAppVeyorBuild)
   ==> "RestorePackages"
-  =?> ("BuildNumber", isTfsBuild)
   ==> "AssemblyInfo"
   ==> "Build"
-  =?> ("SourceLink", isMono = false && hasBuildParam "skipSourceLink" = false)
+  =?> ("SourceLink", not isMono && not (hasBuildParam "skipSourceLink"))
   ==> "CopyLicense"
   ==> "RunTests"
-  ==> "NuGet"
+  =?> ("NuGet", not isMono)
   ==> "All"
 
 "All" 
