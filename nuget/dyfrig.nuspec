@@ -16,10 +16,7 @@
     <copyright>Copyright 2013-2014</copyright>
     <tags>@tags@</tags>
     @dependencies@
+    @references@
   </metadata>
-  <files>
-    <file src="..\bin\Dyfrig.dll" target="lib/net40" />
-    <file src="..\bin\Dyfrig.xml" target="lib/net40" />
-    <file src="..\bin\Dyfrig.pdb" target="lib/net40" />
-  </files>
+  @files@
 </package>

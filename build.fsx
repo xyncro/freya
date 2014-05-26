@@ -147,8 +147,6 @@ Target "RunTests" (fun _ ->
 // Build a NuGet package
 
 Target "NuGet" (fun _ ->
-    let bin = "bin"
-    Directory.CreateDirectory bin |> ignore
     NuGet (fun p -> 
         { p with   
             Authors = authors
@@ -158,10 +156,12 @@ Target "NuGet" (fun _ ->
             Version = nugetVersion
             ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
             Tags = tags
-            OutputPath = bin
+            OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = [] })
+            Files = [ (@"..\bin\Dyfrig.dll", Some "lib/net40", None)
+                      (@"..\bin\Dyfrig.xml", Some "lib/net40", None)
+                      (@"..\bin\Dyfrig.pdb", Some "lib/net40", None) ] })
         ("nuget/" + project + ".nuspec")
 )
 
