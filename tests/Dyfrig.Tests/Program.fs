@@ -67,6 +67,8 @@ let initializingTests =
         testCase "should set the RequestMethod to when owin.RequestMethod changes" <| fun _ ->
             env.[Constants.requestMethod] <- "POST"
             test <@ env.RequestMethod = unbox env.[Constants.requestMethod] @>
+        testCase "should return http://example.org/ as from GetBaseUri()" <| fun _ ->
+            test <@ env.GetBaseUri() = Some "http://example.org/" @>
         testCase "should return http://example.org/ as from GetRequestUri()" <| fun _ ->
             test <@ env.GetRequestUri() = Some "http://example.org/" @>
     ]

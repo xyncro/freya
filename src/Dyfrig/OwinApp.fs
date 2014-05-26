@@ -21,12 +21,22 @@ open System.Collections.Generic
 open System.Threading.Tasks
 open Microsoft.FSharp.Core
 
+/// OWIN environment dictionary
+type OwinEnv = IDictionary<string, obj>
+
+/// OWIN headers dictionary
+type OwinHeaders = IDictionary<string, string[]>
+
 /// OWIN App Delegate signature using F# Async.
-type OwinApp = IDictionary<string, obj> -> Async<unit>
+type OwinApp = OwinEnv -> Async<unit>
+
+/// OWIN AppFunc signature
+type OwinAppFunc = Func<OwinEnv, Task>
 
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinApp =
     /// Converts a F# Async-based OWIN App Delegate to a standard Func<_,Task> App Delegate.
     [<CompiledName("ToAppDelegate")>]
-    let toAppDelegate (app: OwinApp) = Func<_,_>(fun d -> Async.StartAsTask (app d) :> Task)
+    let toAppDelegate (app: OwinApp) : OwinAppFunc =
+        Func<_,_>(fun env -> Async.StartAsTask (app env) :> Task)

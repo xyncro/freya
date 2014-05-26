@@ -1,6 +1,6 @@
 ﻿//----------------------------------------------------------------------------
 //
-// Copyright (c) 2013 Ryan Riley (@panesofglass)
+// Copyright (c) 2013-2014 Ryan Riley (@panesofglass)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,15 +29,15 @@ open Microsoft.FSharp.Core
 type Environment =
     inherit Dictionary<string, obj>
 
-    val private requestHeaders   : IDictionary<string, string[]>
+    val private requestHeaders   : OwinHeaders
     val private requestBody      : Stream
-    val private responseHeaders  : IDictionary<string, string[]>
+    val private responseHeaders  : OwinHeaders
     val private responseBody     : Stream
 
     val mutable private disposed : bool
 
     /// Initializes a new Environment from an existing, valid, OWIN environment dictionary.
-    new (dictionary: IDictionary<_,_>) =        
+    new (dictionary: OwinEnv) =
         {
             inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
             disposed = false
@@ -71,7 +71,7 @@ type Environment =
             x.Add(Constants.responseBody, x.responseBody)
 
     /// Gets a value with the specified key from the environment dictionary as the specified type 'a.
-    static member inline Get<'a> (environment: IDictionary<string, obj>, key: string) =
+    static member inline Get<'a> (environment: OwinEnv, key: string) =
         if environment.ContainsKey(key) then
             Some(environment.[key] :?> 'a)
         else None
@@ -109,18 +109,24 @@ type Environment =
     /// Gets the request headers dictionary for the current request.
     member x.RequestHeaders = x.requestHeaders
 
+    /// Reconstructs the base request URI from the component parts.
+    member env.GetBaseUri() =
+        if env.RequestHeaders.ContainsKey("Host") then
+            env.RequestScheme + "://" +
+            (env.RequestHeaders.["Host"].[0]) +
+            if String.IsNullOrEmpty env.RequestPathBase then "/" else env.RequestPathBase
+            |> Some
+        else None
+
     /// Reconstructs the request URI from the component parts.
-    member x.GetRequestUri() =
-        if x.RequestHeaders.ContainsKey("Host") then
-            let uri =
-                x.RequestScheme + "://" +
-                (x.RequestHeaders.["Host"].[0]) +
-                x.RequestPathBase +
-                x.RequestPath
-                    
-            if String.IsNullOrEmpty x.RequestQueryString
-            then Some uri
-            else Some(uri + "?" + x.RequestQueryString)
+    member env.GetRequestUri() =
+        if env.RequestHeaders.ContainsKey("Host") then
+            env.RequestScheme + "://" +
+            (env.RequestHeaders.["Host"].[0]) +
+            env.RequestPathBase +
+            env.RequestPath +
+            if String.IsNullOrEmpty env.RequestQueryString then "" else "?" + env.RequestQueryString
+            |> Some
         else None
  
     /// Gets the request body for the current request.
@@ -183,11 +189,11 @@ type Environment =
 /// Helper functions for working with an OWIN environment dictionary
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Environment =
-    /// Returns an Environment from an IDictionary<string, obj>.
+    /// Returns an Environment from an `OwinEnv`.
     /// If the dictionary is already an Environment, then the instance is cast and returned
     /// rather than mapped into a new instance.
     [<CompiledName("ToEnvironment")>]
-    let toEnvironment (environment: IDictionary<string, obj>) =
+    let toEnvironment (environment: OwinEnv) =
         match environment with
         | :? Environment as e -> e
         | _ as d -> new Environment(d)
