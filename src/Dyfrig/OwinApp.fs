@@ -1,6 +1,6 @@
 ﻿//----------------------------------------------------------------------------
 //
-// Copyright (c) 2013 Ryan Riley (@panesofglass)
+// Copyright (c) 2013-2014 Ryan Riley (@panesofglass)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@ open Microsoft.FSharp.Core
 
 /// OWIN environment dictionary
 type OwinEnv = IDictionary<string, obj>
-
-/// OWIN headers dictionary
-type OwinHeaders = IDictionary<string, string[]>
 
 /// OWIN App Delegate signature using F# Async.
 type OwinApp = OwinEnv -> Async<unit>

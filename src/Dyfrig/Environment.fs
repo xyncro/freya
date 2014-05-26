@@ -25,6 +25,9 @@ open System.Threading
 open System.Threading.Tasks
 open Microsoft.FSharp.Core
 
+/// OWIN headers dictionary
+type OwinHeaders = IDictionary<string, string[]>
+
 /// An Environment dictionary to store OWIN request and response values.
 type Environment =
     inherit Dictionary<string, obj>
