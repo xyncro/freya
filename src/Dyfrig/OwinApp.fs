@@ -34,6 +34,6 @@ type OwinAppFunc = Func<OwinEnv, Task>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinApp =
     /// Converts a F# Async-based OWIN App Delegate to a standard Func<_,Task> App Delegate.
-    [<CompiledName("ToAppDelegate")>]
-    let toAppDelegate (app: OwinApp) : OwinAppFunc =
+    [<CompiledName("ToAppFunc")>]
+    let toAppFunc (app: OwinApp) : OwinAppFunc =
         Func<_,_>(fun env -> Async.StartAsTask (app env) :> Task)
