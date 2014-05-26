@@ -30,6 +30,8 @@ _ReSharper*/
 build/
 deploy/
 docs/tools/
+nuget/
 packages/
 test/
 *.userprefs
+AssemblyInfo.fs
