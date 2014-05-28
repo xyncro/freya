@@ -1,4 +1,8 @@
-﻿open Dyfrig
+﻿open System
+open System.IO
+open System.Net
+open System.Net.Http
+open Dyfrig
 open Fuchu
 open Swensen.Unquote
 
@@ -89,6 +93,48 @@ let environmentModuleTests =
             test <@ Environment.toEnvironment env = env @>
     ]
 
+let adapterTests =
+    let env =
+        new Environment(
+            requestMethod = "GET",
+            requestScheme = "http",
+            requestPathBase = "",
+            requestPath = "/",
+            requestQueryString = "",
+            requestProtocol = "HTTP/1.1",
+            requestHeaders = dict [| "Host", [|"example.org"|] |]
+        )
+    testList "When creating an OwinAppFunc from a System.Web.Http function" [
+        testCase "should create a new OwinAppFunc" <| fun _ ->
+            let f request = async {
+                let bytes = "Hello, world"B
+                let content = new ByteArrayContent(bytes)
+                content.Headers.ContentLength <- Nullable bytes.LongLength
+                content.Headers.ContentType <- Headers.MediaTypeHeaderValue("text/plain")
+                let response = new HttpResponseMessage(HttpStatusCode.OK, Content = content, RequestMessage = request)
+                return response
+            }
+
+            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp f
+
+            async {
+                do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
+                env.ResponseStatusCode =? 200
+                env.ResponseReasonPhrase =? "OK"
+                env.ResponseHeaders.Count =? 2
+                env.ResponseHeaders.["Content-Type"] =? [|"text/plain"|]
+                env.ResponseHeaders.["Content-Length"] =? [|"12"|]
+                // Test the response body
+                env.ResponseBody <>? null
+                env.ResponseBody.Position <- 0L
+                let body = Array.zeroCreate 12
+                let bytesRead = env.ResponseBody.Read(body, 0, int env.ResponseBody.Length)
+                bytesRead =? 12
+                body =? "Hello, world"B
+            } |> Async.RunSynchronously
+    ]
+    
+
 [<EntryPoint>]
 let main argv =
-    testList "Environment tests" [ initializingTests; environmentModuleTests ] |> runParallel
+    testList "Environment tests" [ initializingTests; environmentModuleTests; adapterTests ] |> runParallel

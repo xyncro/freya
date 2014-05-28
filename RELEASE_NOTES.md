@@ -1,3 +1,6 @@
+### New in 0.3.1 - (Released 2014/05/28)
+* Fixed bug in mapping System.Net.Http types.
+
 ### New in 0.3.0 - (Released 2014/05/27)
 * Added mapping to System.Net.Http types.
 

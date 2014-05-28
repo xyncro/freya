@@ -57,6 +57,7 @@
     <Compile Include="Constants.fs" />
     <Compile Include="OwinApp.fs" />
     <Compile Include="Environment.fs" />
+    <Compile Include="SystemNetHttpAdapter.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
