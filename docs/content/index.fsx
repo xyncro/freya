@@ -2,19 +2,11 @@
 // This block of code is omitted in the generated HTML documentation. Use 
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
-#r "Newtonsoft.Json.dll"
-#r "System.Net.Http.dll"
-#r "System.Net.Http.Formatting.dll"
-#r "System.Net.Http.WebRequest.dll"
-#r "System.Web.Http.dll"
-#r "FSharpx.Core.dll"
-#r "Frank.dll"
-open System.Net
-open System.Net.Http
-open Frank
+#r "Dyfrig.dll"
+open Dyfrig
 
 (**
-Frank
+Dyfrig
 ===================
 
 Documentation
@@ -23,25 +15,13 @@ Documentation
   <div class="span1"></div>
   <div class="span6">
     <div class="well well-small" id="nuget">
-      The Frank library can be <a href="https://nuget.org/packages/Frank">installed from NuGet</a>:
-      <pre>PM> Install-Package Frank</pre>
+      The Frank library can be <a href="https://nuget.org/packages/Dyfrig">installed from NuGet</a>:
+      <pre>PM> Install-Package Dyfrig</pre>
     </div>
   </div>
   <div class="span1"></div>
 </div>
 
-Example
--------
-
-This example demonstrates using a function defined in this library.
-
-*)
-
-let helloWorld request =
-    OK ignore <| Str "Hello, world!"
-    |> async.Return
-
-(**
 Samples & documentation
 -----------------------
 
@@ -60,9 +40,9 @@ The library is available under the Apache 2.0 license, which allows modification
 redistribution for both commercial and non-commercial purposes. For more information see the 
 [License file][license] in the GitHub repository. 
 
-  [content]: https://github.com/frank-fs/frank/tree/master/docs/content
-  [gh]: https://github.com/frank-fs/frank
-  [issues]: https://github.com/frank-fs/frank/issues
-  [readme]: https://github.com/frank-fs/frank/blob/master/README.md
-  [license]: https://github.com/frank-fs/frank/blob/master/LICENSE.txt
+  [content]: https://github.com/fsprojects/dyfrig/tree/master/docs/content
+  [gh]: https://github.com/fsprojects/dyfrig
+  [issues]: https://github.com/fsprojects/dyfrig/issues
+  [readme]: https://github.com/fsprojects/dyfrig/blob/master/README.md
+  [license]: https://github.com/fsprojects/dyfrig/blob/master/LICENSE.txt
 *)
