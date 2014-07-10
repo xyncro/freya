@@ -90,15 +90,15 @@ module SystemNetHttpAdapter =
         env.ResponseReasonPhrase <- response.ReasonPhrase
         // Copy response message headers
         for header in response.Headers do
-            env.ResponseHeaders.Add(header.Key, header.Value |> Seq.toArray)
+            env.ResponseHeaders.[header.Key] <- header.Value |> Seq.toArray
         async {
             if response.Content = null then
                 // Set the Content-Length header
-                env.ResponseHeaders.Add("Content-Length", [|"0"|])
+                env.ResponseHeaders.["Content-Length"] <- [|"0"|]
             else
                 // Copy response content headers
                 for header in response.Content.Headers do
-                    env.ResponseHeaders.Add(header.Key, header.Value |> Seq.toArray)
+                    env.ResponseHeaders.[header.Key] <- header.Value |> Seq.toArray
                 // Finally, write the response body content
                 // TODO: Handle the faulted state here.
                 do! response.Content.CopyToAsync(env.ResponseBody).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
