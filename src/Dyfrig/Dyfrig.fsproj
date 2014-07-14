@@ -64,6 +64,7 @@
     <Compile Include="OwinApp.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
+    <Compile Include="OwinRailway.fs" />
     <Compile Include="SystemNetHttpAdapter.fsi" />
     <Compile Include="SystemNetHttpAdapter.fs" />
     <None Include="packages.config" />

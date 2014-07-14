@@ -19,12 +19,11 @@ namespace Dyfrig
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
-open Microsoft.FSharp.Core
 
 /// OWIN environment dictionary
 type OwinEnv = IDictionary<string, obj>
 
-/// OWIN App Delegate signature using F# Async.
+/// OWIN AppFunc signature using F# Async
 type OwinApp = OwinEnv -> Async<unit>
 
 /// OWIN AppFunc signature
@@ -33,7 +32,7 @@ type OwinAppFunc = Func<OwinEnv, Task>
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinApp =
-    /// Converts a F# Async-based OWIN App Delegate to a standard Func<_,Task> App Delegate.
+    /// Converts a F# Async-based OWIN AppFunc to a standard Func<_,Task> AppFunc.
     [<CompiledName("ToAppFunc")>]
-    let toAppFunc (app: OwinApp) : OwinAppFunc =
-        Func<_,_>(fun env -> Async.StartAsTask (app env) :> Task)
+    let toAppFunc (app: OwinApp) =
+        OwinAppFunc(fun env -> Async.StartAsTask (app env) :> Task)
