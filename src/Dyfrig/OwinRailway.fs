@@ -25,7 +25,7 @@ module OwinRailway =
 
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
-    let fromRailway (app: OwinRailway) =
+    let fromRailway (exceptionHandler: OwinEnv -> exn -> Async<unit>) (app: OwinRailway) =
         let handler env = async {
             let env = Environment.toEnvironment env
             let! result = app env
@@ -39,11 +39,5 @@ module OwinRailway =
                     then env.[key] <- value
                 return ()
             | Choice2Of2 e ->
-                // TODO: inspect the type to determine the appropriate response
-                env.ResponseStatusCode <- 500
-                env.ResponseReasonPhrase <- "Internal Server Error"
-                let body = System.Text.Encoding.UTF8.GetBytes(e.ToString())
-                env.ResponseHeaders.["Content-Length"] <- [| body.Length.ToString() |]
-                env.ResponseHeaders.["Content-Type"] <- [| "text/plain" |]
-                do! env.ResponseBody.AsyncWrite(body) }
+                do! exceptionHandler env e }
         OwinAppFunc(fun env -> handler env |> Async.StartAsTask :> System.Threading.Tasks.Task)
