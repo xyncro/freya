@@ -1,10 +1,25 @@
-﻿namespace Dyfrig
+﻿//----------------------------------------------------------------------------
+//
+// Copyright (c) 2013-2014 Ryan Riley (@panesofglass)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//----------------------------------------------------------------------------
+namespace Dyfrig
 
 open System
 open System.Diagnostics.Contracts
 open System.IO
 
-/// `Stream` decorator to prevent `System.Net.Http` types from closing the provided `Stream` from the `Environment`.
 type ProtectedStream(innerStream: Stream) =
     inherit Stream()
     do if innerStream = null then raise (ArgumentNullException("innerStream"))
@@ -48,7 +63,6 @@ type ProtectedStream(innerStream: Stream) =
     override x.Write(buffer, offset, count) = raiseIfDisposed(); innerStream.Write(buffer, offset, count)
     override x.WriteByte(value) = raiseIfDisposed(); innerStream.WriteByte(value)
     
-/// Helper functions for working with an OWIN environment dictionary
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module SystemNetHttpAdapter =
 
@@ -57,11 +71,9 @@ module SystemNetHttpAdapter =
     open Dyfrig
     open Environment
 
-    /// Literal defintion for the `dyfrig.Environment` key.
-    [<Literal>]
-    let dyfrigEnvironment = "dyfrig.Environment"
+    [<CompiledName("DyfrigEnvironment")>]
+    let [<Literal>] dyfrigEnvironment = "dyfrig.Environment"
 
-    /// Converts the `OwinEnv` into an `HttpRequestMessage`.
     [<CompiledName("ToHttpRequestMesage")>]
     let toHttpRequestMessage (environment: OwinEnv) =
         let env = environment |> toEnvironment
@@ -77,7 +89,6 @@ module SystemNetHttpAdapter =
             Some request
         | None -> None
     
-    /// Invokes an `HttpResponseMessage` in an OWIN handler.
     [<CompiledName("InvokeHttpResponseMessage")>]
     let invokeHttpResponseMessage (response: HttpResponseMessage) =
         Contract.Requires(response.RequestMessage <> null)
@@ -104,7 +115,6 @@ module SystemNetHttpAdapter =
                 do! response.Content.CopyToAsync(env.ResponseBody).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
         }
 
-    /// Adapts a function of type `HttpRequestMessage -> Async<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromAsyncSystemNetHttp")>]
     let fromAsyncSystemNetHttp (f: HttpRequestMessage -> Async<HttpResponseMessage>) =
         OwinAppFunc(fun env ->
@@ -116,7 +126,6 @@ module SystemNetHttpAdapter =
             |> Async.StartAsTask
             :> Task)
 
-    /// Adapts a function of type `HttpRequestMessage -> Task<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromSystemNetHttp")>]
     let fromSystemNetHttp (f: HttpRequestMessage -> Task<HttpResponseMessage>) =
         OwinAppFunc(fun env ->
