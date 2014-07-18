@@ -17,7 +17,6 @@
 namespace Dyfrig
 
 open System
-open System.Diagnostics.Contracts
 open System.IO
 
 [<Sealed>]
@@ -92,10 +91,10 @@ module SystemNetHttpAdapter =
     
     [<CompiledName("InvokeHttpResponseMessage")>]
     let invokeHttpResponseMessage (response: HttpResponseMessage) =
-        Contract.Requires(response.RequestMessage <> null)
-        Contract.Requires(response.RequestMessage.Properties.ContainsKey(dyfrigEnvironment))
-        Contract.Requires(response.RequestMessage.Properties.[dyfrigEnvironment] <> null)
-        Contract.Requires((response.RequestMessage.Properties.[dyfrigEnvironment] |> unbox<Environment>).ResponseBody <> null)
+        assert(response.RequestMessage <> null)
+        assert(response.RequestMessage.Properties.ContainsKey(dyfrigEnvironment))
+        assert(response.RequestMessage.Properties.[dyfrigEnvironment] <> null)
+        assert((response.RequestMessage.Properties.[dyfrigEnvironment] |> unbox<Environment>).ResponseBody <> null)
 
         let env = response.RequestMessage.Properties.[dyfrigEnvironment] :?> Environment
         env.ResponseStatusCode <- int response.StatusCode
