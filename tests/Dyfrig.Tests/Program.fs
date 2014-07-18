@@ -133,8 +133,8 @@ let railwayTests =
                         let env = Environment.toEnvironment env
                         // update headers
                         let responseHeaders = new Dictionary<_,_>(env.ResponseHeaders, StringComparer.Ordinal) :> OwinHeaders
-                        responseHeaders.["Content-Type"] =? [|"text/plain"|]
-                        responseHeaders.["Content-Length"] =? [|"12"|]
+                        responseHeaders.["Content-Type"] <- [|"text/plain"|]
+                        responseHeaders.["Content-Length"] <- [|"12"|]
                         // Create response env'
                         let env' =
                             env.With("test", "value")
