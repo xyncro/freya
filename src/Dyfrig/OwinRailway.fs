@@ -23,6 +23,23 @@ type OwinRailway<'TIn, 'TOut, 'TFailure> = 'TIn -> Async<Choice<'TOut, 'TFailure
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinRailway =
 
+    let private copyStream bufferSize =
+        let buffer = Array.zeroCreate bufferSize
+        let rec moveTo (outs: System.IO.Stream) (ins: System.IO.Stream) = async {
+            let! bytes = ins.AsyncRead(buffer)
+            if bytes > 0 then
+                do! outs.AsyncWrite(buffer, 0, bytes)
+                return! moveTo outs ins
+        }
+        moveTo
+
+    type System.IO.Stream with
+        member x.AsyncCopyTo (out: System.IO.Stream, ?bufferSize) = async {   
+            let bufferSize = defaultArg bufferSize 1024
+            let copyTo = copyStream bufferSize
+            return! copyTo out x
+        }
+
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
     let fromRailway (exceptionHandler: Environment -> #exn -> Environment) (app: OwinRailway<OwinEnv, Environment, #exn>) =
@@ -44,7 +61,7 @@ module OwinRailway =
                     | :? System.IO.Stream as stream ->
                         let out = unbox<System.IO.Stream> env.[key]
                         // TODO: asynchronously copy to the out stream
-                        stream.CopyTo(out)
+                        do! stream.AsyncCopyTo(out)
                     | _ -> env.[key] <- value
         }
         OwinAppFunc(fun env -> handler env |> Async.StartAsTask :> System.Threading.Tasks.Task)
