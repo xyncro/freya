@@ -164,6 +164,11 @@ type Environment =
 
     member x.OwinVersion = x.owinVersion
 
+    member x.With(key: string, value: #obj) =
+        let env = new Environment(x)
+        env.[key] <- value
+        env
+
     abstract Dispose : bool -> unit
     default x.Dispose(disposing) =
         if disposing then

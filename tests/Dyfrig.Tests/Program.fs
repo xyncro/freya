@@ -90,7 +90,15 @@ let environmentModuleTests =
         )
     testList "When creating an Environment from an OWIN environment dictionary" [
         testCase "should return the original Environment if it is of type Environment" <| fun _ ->
-            test <@ Environment.toEnvironment env = env @>
+            Environment.toEnvironment env =? env
+        testCase "should return new instance when using immutable update With member" <| fun _ ->
+            let env' = env.With("test", "value")
+            test <@ not (obj.ReferenceEquals(env, env')) @>
+            test <@ not (env.ContainsKey("test")) @>
+            test <@ env'.ContainsKey("test") @>
+            unbox env'.["test"] =? "value"
+            test <@ env'.ContainsKey(Constants.requestMethod) @>
+            unbox env'.[Constants.requestMethod] =? "GET"
     ]
 
 let adapterTests =
@@ -106,7 +114,7 @@ let adapterTests =
         )
     testList "When creating an OwinAppFunc from a System.Web.Http function" [
         testCase "should create a new OwinAppFunc" <| fun _ ->
-            let f request = async {
+            let handler request = async {
                 let bytes = "Hello, world"B
                 let content = new ByteArrayContent(bytes)
                 content.Headers.ContentLength <- Nullable bytes.LongLength
@@ -115,7 +123,7 @@ let adapterTests =
                 return response
             }
 
-            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp f
+            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp handler
 
             async {
                 do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
@@ -137,4 +145,10 @@ let adapterTests =
 
 [<EntryPoint>]
 let main argv =
-    testList "Environment tests" [ initializingTests; environmentModuleTests; adapterTests ] |> runParallel
+    [
+        initializingTests
+        environmentModuleTests
+        adapterTests
+    ]
+    |> testList "Environment tests"
+    |> runParallel

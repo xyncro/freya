@@ -85,6 +85,10 @@ type Environment =
     /// Gets the current OWIN version.
     member OwinVersion : string with get
 
+    /// Immutable update to the `Environment` returning a new copy of the `Environment`
+    /// with the new or updated `key * value` pair.
+    member With : key:string * value:#obj -> Environment
+
     /// Overridable disposal implementation for this instance.
     abstract Dispose : bool -> unit
 
