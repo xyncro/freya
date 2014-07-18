@@ -1,4 +1,5 @@
 ﻿open System
+open System.Collections.Generic
 open System.IO
 open System.Net
 open System.Net.Http
@@ -17,6 +18,7 @@ let initializingTests =
             requestProtocol = "HTTP/1.1",
             requestHeaders = dict [| "Host", [|"example.org"|] |]
         )
+
     testList "Initializing a GET request for http://example.org/ using HTTP/1.1" [
         testCase "should set the RequestMethod to GET" <| fun _ ->
             test <@ env.RequestMethod = "GET" @>
@@ -88,6 +90,7 @@ let environmentModuleTests =
             requestProtocol = "HTTP/1.1",
             requestHeaders = dict [| "Host", [|"example.org"|] |]
         )
+
     testList "When creating an Environment from an OWIN environment dictionary" [
         testCase "should return the original Environment if it is of type Environment" <| fun _ ->
             Environment.toEnvironment env =? env
@@ -99,6 +102,66 @@ let environmentModuleTests =
             unbox env'.["test"] =? "value"
             test <@ env'.ContainsKey(Constants.requestMethod) @>
             unbox env'.[Constants.requestMethod] =? "GET"
+        testCase "should return new instance with updated, existing key" <| fun _ ->
+            let responseBody = new MemoryStream("Hello, world"B) :> System.IO.Stream
+            let env' = env.With(Constants.responseBody, responseBody)
+            test <@ not (obj.ReferenceEquals(env, env')) @>
+            test <@ env'.ContainsKey(Constants.responseBody) @>
+            let actual = env'.ResponseBody
+            test <@ obj.ReferenceEquals(actual, responseBody) @>
+    ]
+
+let railwayTests =
+    let env =
+        new Environment(
+            requestMethod = "GET",
+            requestScheme = "http",
+            requestPathBase = "",
+            requestPath = "/",
+            requestQueryString = "",
+            requestProtocol = "HTTP/1.1",
+            requestHeaders = dict [| "Host", [|"example.org"|] |]
+        )
+
+    testList "When creating an OwinAppFunc from an OwinRailway function" [
+        testCase "should create a new OwinAppFunc" <| fun _ ->
+            let railway : OwinRailway<OwinEnv, Environment, exn> =
+                fun env ->
+                    async {
+                        let env = Environment.toEnvironment env
+                        // update headers
+                        let responseHeaders = new Dictionary<_,_>(env.ResponseHeaders, StringComparer.Ordinal) :> OwinHeaders
+                        responseHeaders.["Content-Type"] =? [|"text/plain"|]
+                        responseHeaders.["Content-Length"] =? [|"12"|]
+                        // Create response env'
+                        let env' =
+                            env.With("test", "value")
+                               .With(Constants.responseHeaders, responseHeaders)
+                               .With(Constants.responseBody, new MemoryStream("Hello, world"B))
+                        return env'
+                    }
+                    |> Async.Catch
+
+            let app =
+                railway
+                |> OwinRailway.fromRailway (fun env exnHandler -> env.With(Constants.responseStatusCode, 500))
+
+            
+            async {
+                do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
+                env.ResponseStatusCode =? 200
+                env.ResponseReasonPhrase =? "OK"
+                env.ResponseHeaders.Count =? 2
+                env.ResponseHeaders.["Content-Type"] =? [|"text/plain"|]
+                env.ResponseHeaders.["Content-Length"] =? [|"12"|]
+                // Test the response body
+                env.ResponseBody <>? null
+                env.ResponseBody.Position <- 0L
+                let body = Array.zeroCreate 12
+                let bytesRead = env.ResponseBody.Read(body, 0, int env.ResponseBody.Length)
+                bytesRead =? 12
+                body =? "Hello, world"B
+            } |> Async.RunSynchronously
     ]
 
 let adapterTests =
@@ -112,6 +175,7 @@ let adapterTests =
             requestProtocol = "HTTP/1.1",
             requestHeaders = dict [| "Host", [|"example.org"|] |]
         )
+
     testList "When creating an OwinAppFunc from a System.Web.Http function" [
         testCase "should create a new OwinAppFunc" <| fun _ ->
             let handler request = async {
@@ -148,6 +212,7 @@ let main argv =
     [
         initializingTests
         environmentModuleTests
+        railwayTests
         adapterTests
     ]
     |> testList "Environment tests"

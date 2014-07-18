@@ -20,6 +20,7 @@ open System
 open System.Diagnostics.Contracts
 open System.IO
 
+[<Sealed>]
 type ProtectedStream(innerStream: Stream) =
     inherit Stream()
     do if innerStream = null then raise (ArgumentNullException("innerStream"))

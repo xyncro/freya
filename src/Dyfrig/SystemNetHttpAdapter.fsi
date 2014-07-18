@@ -17,10 +17,10 @@
 namespace Dyfrig
 
 /// `Stream` decorator to prevent `System.Net.Http` types from closing the provided `Stream` from the `Environment`.
-[<Class>]
+[<Sealed; Class>]
 type ProtectedStream =
     inherit System.IO.Stream
-    
+
 /// Helper functions for working with an OWIN environment dictionary
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module SystemNetHttpAdapter =
