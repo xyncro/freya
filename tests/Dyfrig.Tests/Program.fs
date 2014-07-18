@@ -103,12 +103,14 @@ let environmentModuleTests =
             test <@ env'.ContainsKey(Constants.requestMethod) @>
             unbox env'.[Constants.requestMethod] =? "GET"
         testCase "should return new instance with updated, existing key" <| fun _ ->
-            let responseBody = new MemoryStream("Hello, world"B) :> System.IO.Stream
-            let env' = env.With(Constants.responseBody, responseBody)
+            let responseBody = new MemoryStream("Hello, world"B)
+            let env' = env.With(Constants.responseBody, responseBody :> System.IO.Stream)
             test <@ not (obj.ReferenceEquals(env, env')) @>
+            test <@ not (obj.ReferenceEquals(env.ResponseBody, env'.ResponseBody)) @>
             test <@ env'.ContainsKey(Constants.responseBody) @>
-            let actual = env'.ResponseBody
-            test <@ obj.ReferenceEquals(actual, responseBody) @>
+            env'.ResponseBody.Length =? responseBody.Length
+            (env'.ResponseBody :?> MemoryStream).ToArray() =? responseBody.ToArray()
+            test <@ obj.ReferenceEquals(env'.ResponseBody, responseBody) @>
     ]
 
 let railwayTests =

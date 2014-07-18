@@ -30,38 +30,19 @@ type OwinHeaders = IDictionary<string, string[]>
 type Environment =
     inherit Dictionary<string, obj>
 
-    val private requestHeaders   : OwinHeaders
-    val private requestBody      : Stream
-    val private responseHeaders  : OwinHeaders
-    val private responseBody     : Stream
-    val private callCancelled    : CancellationToken
-    val private owinVersion      : string
-
     val mutable private disposed : bool
 
     new (dictionary: OwinEnv) =
         {
             inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
             disposed = false
-            requestHeaders = unbox dictionary.[Constants.requestHeaders]
-            requestBody = unbox dictionary.[Constants.requestBody]
-            responseHeaders = unbox dictionary.[Constants.responseHeaders]
-            responseBody = unbox dictionary.[Constants.responseBody]
-            callCancelled = unbox dictionary.[Constants.callCancelled]
-            owinVersion = unbox dictionary.[Constants.owinVersion]
         }
 
-    new (requestMethod: string, requestScheme: string, requestPathBase: string, requestPath: string, requestQueryString: string, requestProtocol: string, requestHeaders, ?requestBody, ?responseHeaders, ?responseBody, ?callCancelled) as x =
+    new (requestMethod: string, requestScheme: string, requestPathBase: string, requestPath: string, requestQueryString: string, requestProtocol: string, requestHeaders: OwinHeaders, ?requestBody, ?responseHeaders: OwinHeaders, ?responseBody, ?callCancelled) as x =
         // TODO: Consider parsing the URI rather than requiring the pieces to be passed in explicitly.
         {
             inherit Dictionary<string, obj>(StringComparer.Ordinal)
             disposed = false
-            requestHeaders = requestHeaders
-            requestBody = defaultArg requestBody Stream.Null
-            responseHeaders = defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> IDictionary<_,_>)
-            responseBody = defaultArg responseBody (new MemoryStream() :> Stream)
-            callCancelled = defaultArg callCancelled (let cts = new CancellationTokenSource() in cts.Token)
-            owinVersion = "1.0"
         }
         then do
             x.Add(Constants.requestMethod, requestMethod)
@@ -70,12 +51,12 @@ type Environment =
             x.Add(Constants.requestPath, requestPath)
             x.Add(Constants.requestQueryString, requestQueryString)
             x.Add(Constants.requestProtocol, requestProtocol)
-            x.Add(Constants.requestHeaders, x.requestHeaders)
-            x.Add(Constants.requestBody, x.requestBody)
-            x.Add(Constants.responseHeaders, x.responseHeaders)
-            x.Add(Constants.responseBody, x.responseBody)
-            x.Add(Constants.callCancelled, x.callCancelled)
-            x.Add(Constants.owinVersion, x.owinVersion)
+            x.Add(Constants.requestHeaders, requestHeaders)
+            x.Add(Constants.requestBody, defaultArg requestBody Stream.Null)
+            x.Add(Constants.responseHeaders, defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> OwinHeaders))
+            x.Add(Constants.responseBody, defaultArg responseBody (new MemoryStream() :> Stream))
+            x.Add(Constants.callCancelled, defaultArg callCancelled (let cts = new CancellationTokenSource() in cts.Token))
+            x.Add(Constants.owinVersion, "1.0")
 
     static member inline Get<'a> (environment: OwinEnv, key: string) =
         if environment.ContainsKey(key) then
@@ -106,27 +87,27 @@ type Environment =
         with get() : string = unbox x.[Constants.requestProtocol]
         and set(v : string) = x.[Constants.requestProtocol] <- v
     
-    member x.RequestHeaders = x.requestHeaders
+    member x.RequestHeaders = unbox<OwinHeaders> x.[Constants.requestHeaders]
 
-    member env.GetBaseUri() =
-        if env.RequestHeaders.ContainsKey("Host") then
-            env.RequestScheme + "://" +
-            (env.RequestHeaders.["Host"].[0]) +
-            if String.IsNullOrEmpty env.RequestPathBase then "/" else env.RequestPathBase
+    member x.GetBaseUri() =
+        if x.RequestHeaders.ContainsKey("Host") then
+            x.RequestScheme + "://" +
+            (x.RequestHeaders.["Host"].[0]) +
+            if String.IsNullOrEmpty x.RequestPathBase then "/" else x.RequestPathBase
             |> Some
         else None
 
-    member env.GetRequestUri() =
-        if env.RequestHeaders.ContainsKey("Host") then
-            env.RequestScheme + "://" +
-            (env.RequestHeaders.["Host"].[0]) +
-            env.RequestPathBase +
-            env.RequestPath +
-            if String.IsNullOrEmpty env.RequestQueryString then "" else "?" + env.RequestQueryString
+    member x.GetRequestUri() =
+        if x.RequestHeaders.ContainsKey("Host") then
+            x.RequestScheme + "://" +
+            (x.RequestHeaders.["Host"].[0]) +
+            x.RequestPathBase +
+            x.RequestPath +
+            if String.IsNullOrEmpty x.RequestQueryString then "" else "?" + x.RequestQueryString
             |> Some
         else None
  
-    member x.RequestBody = x.requestBody
+    member x.RequestBody = unbox<Stream> x.[Constants.requestBody]
 
     member x.ResponseStatusCode
         with get() : int =
@@ -154,15 +135,15 @@ type Environment =
             | Some v -> x.[Constants.responseProtocol] <- v
             | None -> x.Remove(Constants.responseProtocol) |> ignore
 
-    member x.ResponseHeaders = x.responseHeaders
+    member x.ResponseHeaders = unbox<OwinHeaders> x.[Constants.responseHeaders]
 
-    member x.ResponseBody = x.responseBody
+    member x.ResponseBody = unbox<Stream> x.[Constants.responseBody]
 
     member x.CallCancelled
         with get() : CancellationToken = unbox x.[Constants.callCancelled]
         and set(v : CancellationToken) = x.[Constants.callCancelled] <- v
 
-    member x.OwinVersion = x.owinVersion
+    member x.OwinVersion = unbox<string> x.[Constants.owinVersion]
 
     member x.With(key: string, value: #obj) =
         let env = new Environment(x)
