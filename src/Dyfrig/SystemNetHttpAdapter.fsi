@@ -35,8 +35,8 @@ module SystemNetHttpAdapter =
 
     /// Adapts a function of type `HttpRequestMessage -> Async<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromAsyncSystemNetHttp")>]
-    val fromAsyncSystemNetHttp : f:(System.Net.Http.HttpRequestMessage -> Async<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc
+    val fromAsyncSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> Async<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc
 
     /// Adapts a function of type `HttpRequestMessage -> Task<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromSystemNetHttp")>]
-    val fromSystemNetHttp : f:(System.Net.Http.HttpRequestMessage -> System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc
+    val fromSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc

@@ -116,22 +116,22 @@ module SystemNetHttpAdapter =
         }
 
     [<CompiledName("FromAsyncSystemNetHttp")>]
-    let fromAsyncSystemNetHttp (f: HttpRequestMessage -> Async<HttpResponseMessage>) =
+    let fromAsyncSystemNetHttp (handler: HttpRequestMessage -> Async<HttpResponseMessage>) =
         OwinAppFunc(fun env ->
             let request = env |> toHttpRequestMessage |> Option.get
             async {
-                let! response = f request
+                let! response = handler request
                 do! invokeHttpResponseMessage response
             }
             |> Async.StartAsTask
             :> Task)
 
     [<CompiledName("FromSystemNetHttp")>]
-    let fromSystemNetHttp (f: HttpRequestMessage -> Task<HttpResponseMessage>) =
+    let fromSystemNetHttp (handler: HttpRequestMessage -> Task<HttpResponseMessage>) =
         OwinAppFunc(fun env ->
             let request = env |> toHttpRequestMessage |> Option.get
             async {
-                let! response = f request |> Async.AwaitTask
+                let! response = handler request |> Async.AwaitTask
                 do! invokeHttpResponseMessage response
             }
             |> Async.StartAsTask
