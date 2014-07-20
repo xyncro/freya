@@ -90,13 +90,12 @@ module SystemNetHttpAdapter =
         | None -> None
     
     [<CompiledName("InvokeHttpResponseMessage")>]
-    let invokeHttpResponseMessage (response: HttpResponseMessage) =
+    let invokeHttpResponseMessage (environment: OwinEnv) (response: HttpResponseMessage) =
+        assert(environment <> null)
+        assert(response <> null)
         assert(response.RequestMessage <> null)
-        assert(response.RequestMessage.Properties.ContainsKey(dyfrigEnvironment))
-        assert(response.RequestMessage.Properties.[dyfrigEnvironment] <> null)
-        assert((response.RequestMessage.Properties.[dyfrigEnvironment] |> unbox<Environment>).ResponseBody <> null)
 
-        let env = response.RequestMessage.Properties.[dyfrigEnvironment] :?> Environment
+        let env = Environment.toEnvironment environment
         env.ResponseStatusCode <- int response.StatusCode
         env.ResponseReasonPhrase <- response.ReasonPhrase
         // Copy response message headers
@@ -121,7 +120,7 @@ module SystemNetHttpAdapter =
             let request = env |> toHttpRequestMessage |> Option.get
             async {
                 let! response = handler request
-                do! invokeHttpResponseMessage response
+                do! invokeHttpResponseMessage env response
             }
             |> Async.StartAsTask
             :> Task)
@@ -132,7 +131,7 @@ module SystemNetHttpAdapter =
             let request = env |> toHttpRequestMessage |> Option.get
             async {
                 let! response = handler request |> Async.AwaitTask
-                do! invokeHttpResponseMessage response
+                do! invokeHttpResponseMessage env response
             }
             |> Async.StartAsTask
             :> Task)

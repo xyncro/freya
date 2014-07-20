@@ -31,7 +31,7 @@ module SystemNetHttpAdapter =
     
     /// Invokes an `HttpResponseMessage` in an OWIN handler.
     [<CompiledName("InvokeHttpResponseMessage")>]
-    val invokeHttpResponseMessage : response:System.Net.Http.HttpResponseMessage -> Async<unit>
+    val invokeHttpResponseMessage : environment:OwinEnv -> response:System.Net.Http.HttpResponseMessage -> Async<unit>
 
     /// Adapts a function of type `HttpRequestMessage -> Async<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromAsyncSystemNetHttp")>]
