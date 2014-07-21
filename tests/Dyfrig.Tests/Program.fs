@@ -127,7 +127,7 @@ let railwayTests =
 
     testList "When creating an OwinAppFunc from an OwinRailway function" [
         testCase "should create a new OwinAppFunc" <| fun _ ->
-            let railway : OwinRailway<OwinEnv, Environment, exn> =
+            let railway : OwinEnv -> OwinRailway<Environment, exn> =
                 fun env ->
                     async {
                         let env = Environment.toEnvironment env

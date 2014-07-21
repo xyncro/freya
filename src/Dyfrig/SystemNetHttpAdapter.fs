@@ -62,10 +62,11 @@ type ProtectedStream(innerStream: Stream) =
     override x.SetLength(value) = raiseIfDisposed(); innerStream.SetLength(value)
     override x.Write(buffer, offset, count) = raiseIfDisposed(); innerStream.Write(buffer, offset, count)
     override x.WriteByte(value) = raiseIfDisposed(); innerStream.WriteByte(value)
-    
+
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module SystemNetHttpAdapter =
 
+    open System.Collections.Generic
     open System.Net.Http
     open System.Threading.Tasks
     open Dyfrig
@@ -74,19 +75,23 @@ module SystemNetHttpAdapter =
     [<CompiledName("DyfrigEnvironment")>]
     let [<Literal>] dyfrigEnvironment = "dyfrig.Environment"
 
+    let mapEnvToRequest (requestUri: string) (env: Environment) =
+        let content = new StreamContent(new ProtectedStream(env.RequestBody))
+        let request = new HttpRequestMessage(HttpMethod(env.RequestMethod), requestUri, Content = content)
+        for header in env.RequestHeaders.Keys do
+            request.Headers.TryAddWithoutValidation(header, env.RequestHeaders.[header]) |> ignore
+        request.Version <- Version(env.RequestProtocol.Substring(5))
+        request.Properties.Add(dyfrigEnvironment, box env)
+        // TODO: Add additional, common properties here.
+        request
+
     [<CompiledName("ToHttpRequestMesage")>]
     let toHttpRequestMessage (environment: OwinEnv) =
+        assert(environment <> null)
+
         let env = environment |> toEnvironment
         match env.GetRequestUri() with
-        | Some requestUri ->
-            let content = new StreamContent(new ProtectedStream(env.RequestBody))
-            let request = new HttpRequestMessage(HttpMethod(env.RequestMethod), requestUri, Content = content)
-            for header in env.RequestHeaders.Keys do
-                request.Headers.TryAddWithoutValidation(header, env.RequestHeaders.[header]) |> ignore
-            request.Version <- Version(env.RequestProtocol.Substring(5))
-            request.Properties.Add(dyfrigEnvironment, box env)
-            // TODO: Add additional, common properties here.
-            Some request
+        | Some requestUri -> Some (mapEnvToRequest requestUri env)
         | None -> None
     
     [<CompiledName("InvokeHttpResponseMessage")>]
@@ -95,7 +100,7 @@ module SystemNetHttpAdapter =
         assert(response <> null)
         assert(response.RequestMessage <> null)
 
-        let env = Environment.toEnvironment environment
+        let env = environment |> toEnvironment
         env.ResponseStatusCode <- int response.StatusCode
         env.ResponseReasonPhrase <- response.ReasonPhrase
         // Copy response message headers
@@ -135,3 +140,51 @@ module SystemNetHttpAdapter =
             }
             |> Async.StartAsTask
             :> Task)
+
+    [<CompiledName("ToHttpRequestRailway")>]
+    let toHttpRequestRailway (environment: OwinEnv) =
+        if environment = null
+        then Choice2Of2(nullArg "environment" "environment cannot be null" :> exn) |> async.Return
+        else
+        match toHttpRequestMessage environment with
+        | Some request -> Choice1Of2 request
+        | None -> Choice2Of2 (invalidArg "environment" "environment did not contain a complete request URI" :> exn)
+        |> async.Return
+
+    let mapResponseToEnv (environment: OwinEnv) (response: HttpResponseMessage) = async {
+        assert(environment <> null)
+        let env = environment |> toEnvironment
+
+        // Collect response headers.
+        let headers = Dictionary<string, string[]>(StringComparer.Ordinal)
+        for header in response.Headers do
+            headers.[header.Key] <- header.Value |> Seq.toArray
+
+        // Process response body.
+        let headers', outStream =
+            if response.Content = null then
+                headers.["Content-Length"] <- [|"0"|]
+                headers, async.Return Stream.Null
+            else
+                for header in response.Content.Headers do
+                    headers.[header.Key] <- header.Value |> Seq.toArray
+                let out = response.Content.ReadAsStreamAsync() |> Async.AwaitTask
+                headers, out
+
+        // Create return Environment.
+        let! body = outStream
+        let env' =
+            env.With(Constants.responseStatusCode, int response.StatusCode)
+               .With(Constants.responseReasonPhrase, response.ReasonPhrase)
+               .With(Constants.responseHeaders, headers)
+               .With(Constants.responseBody, body)
+        return env'
+    }
+
+    [<CompiledName("FromSystemNetHttpRailway")>]
+    let fromSystemNetRailway (exceptionHandler: Environment -> exn -> Environment) (handler: HttpRequestMessage -> OwinRailway<HttpResponseMessage, exn>) =
+        let app (env: OwinEnv) =
+            toHttpRequestRailway env
+            |> OwinRailway.bind handler
+            |> OwinRailway.mapAsync (mapResponseToEnv env)
+        OwinRailway.fromRailway exceptionHandler app
