@@ -61,7 +61,7 @@ module OwinRailway =
 
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
-    let fromRailway (exceptionHandler: Environment -> #exn -> Environment) (app: OwinEnv -> OwinRailway<Environment, exn>) =
+    let fromRailway (exceptionHandler: Environment -> exn -> Environment) (app: OwinEnv -> OwinRailway<Environment, exn>) =
         let handler env = async {
             let env = Environment.toEnvironment env
             let! result = app env
