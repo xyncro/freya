@@ -151,7 +151,8 @@ module SystemNetHttpAdapter =
         | None -> Choice2Of2 (invalidArg "environment" "environment did not contain a complete request URI" :> exn)
         |> async.Return
 
-    let mapResponseToEnv (environment: OwinEnv) (response: HttpResponseMessage) = async {
+    [<CompiledName("MapResponseToEnvironment")>]
+    let mapResponseToEnvironment (environment: OwinEnv) (response: HttpResponseMessage) = async {
         assert(environment <> null)
         let env = environment |> toEnvironment
 
@@ -180,11 +181,3 @@ module SystemNetHttpAdapter =
                .With(Constants.responseBody, body)
         return env'
     }
-
-    [<CompiledName("FromSystemNetHttpRailway")>]
-    let fromSystemNetRailway (exceptionHandler: Environment -> exn -> Environment) (handler: HttpRequestMessage -> OwinRailway<HttpResponseMessage, exn>) =
-        let app (env: OwinEnv) =
-            toHttpRequestRailway env
-            |> OwinRailway.bind handler
-            |> OwinRailway.mapAsync (mapResponseToEnv env)
-        OwinRailway.fromRailway exceptionHandler app

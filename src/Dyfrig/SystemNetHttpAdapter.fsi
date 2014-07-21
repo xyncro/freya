@@ -46,6 +46,6 @@ module SystemNetHttpAdapter =
     [<CompiledName("ToHttpRequestRailway")>]
     val toHttpRequestRailway : environment:OwinEnv -> OwinRailway<System.Net.Http.HttpRequestMessage, exn>
 
-    /// Adapts a handler expressed as an `OwinRailway` to an OWIN handler.
-    [<CompiledName("FromSystemNetHttpRailway")>]
-    val fromSystemNetRailway : exceptionHandler:(Environment -> exn -> Environment) -> handler:(System.Net.Http.HttpRequestMessage -> OwinRailway<System.Net.Http.HttpResponseMessage, exn>) -> OwinAppFunc
+    /// Maps an `HttpResponseMessage` to an `Environment`.
+    [<CompiledName("MapResponseToEnvironment")>]
+    val mapResponseToEnvironment : environment:OwinEnv -> response:System.Net.Http.HttpResponseMessage -> Async<Environment>
