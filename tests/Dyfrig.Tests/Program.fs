@@ -183,7 +183,7 @@ let adapterTests =
 
             let app =
                 SystemNetHttpAdapter.toHttpRequestRailway
-                >> OwinRailway.map (fun request -> request, 2)
+                >> OwinRailway.map (fun request -> request, 2) // Fake retrieval of a query string parameter
                 >> OwinRailway.map (fun (request, idParam) -> request, idParam * idParam)
                 >> OwinRailway.map (fun (request: HttpRequestMessage, result) ->
                     let buffer = Text.Encoding.ASCII.GetBytes(result.ToString())
