@@ -4,7 +4,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>36D091D6-791F-4D45-A81A-8D51E4822F57</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSharp.Owin</RootNamespace>
@@ -12,7 +11,6 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>Dyfrig</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-    <ProductVersion>12.0.0</ProductVersion>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -64,27 +62,26 @@
     <Compile Include="OwinApp.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
+    <Compile Include="OwinRailway.fsi" />
     <Compile Include="OwinRailway.fs" />
     <Compile Include="SystemNetHttpAdapter.fsi" />
     <Compile Include="SystemNetHttpAdapter.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http">
       <HintPath>..\..\packages\Microsoft.Net.Http.2.0.20710.0\lib\net40\System.Net.Http.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest">
       <HintPath>..\..\packages\Microsoft.Net.Http.2.0.20710.0\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

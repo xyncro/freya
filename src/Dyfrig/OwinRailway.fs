@@ -23,17 +23,17 @@ type OwinRailway<'TSuccess, 'TFailure> = Async<Choice<'TSuccess, 'TFailure>>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinRailway =
 
-    let bind (f: 'TIn -> OwinRailway<'TOut, 'TFailure>) (input: OwinRailway<'TIn, 'TFailure>) = async {
+    let bind f input = async {
         let! inbound = input
         match inbound with
         | Choice1Of2 success -> return! f success
         | Choice2Of2 e -> return Choice2Of2 e
     }
 
-    let map (f: 'TIn -> 'TOut) (input: OwinRailway<'TIn, 'TFailure>) =
+    let map f input =
         input |> bind (f >> Choice1Of2 >> async.Return)
 
-    let mapAsync (f: 'TIn -> Async<'TOut>) (input: OwinRailway<'TIn, 'TFailure>) = async {
+    let mapAsync f input = async {
         let! inbound = input
         match inbound with
         | Choice1Of2 success ->
@@ -61,7 +61,7 @@ module OwinRailway =
 
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
-    let fromRailway (exceptionHandler: Environment -> exn -> Environment) (app: OwinEnv -> OwinRailway<Environment, exn>) =
+    let fromRailway exceptionHandler (app: OwinEnv -> OwinRailway<Environment, exn>) =
         let handler env = async {
             let env = Environment.toEnvironment env
             let! result = app env
