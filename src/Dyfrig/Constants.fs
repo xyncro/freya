@@ -117,7 +117,7 @@ module Constants =
         [<CompiledName("CallCanceled")>]
         let [<Literal>] callCancelled = "opaque.CallCancelled"
 
-    // http://owin.org/extensions/owin-OpaqueStream-Extension-v0.3.0.htm
+    (* http://owin.org/extensions/owin-WebSocket-Extension-v0.4.0.htm *)
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
     module WebSocket =
         // 3.1. Startup
