@@ -1,3 +1,8 @@
+### New in 0.5.0 - (Released 2014/08/011)
+* Added OwinMonad (courtesy of [Andrew Cherry](https://github.com/kolektiv))
+* Breaking change: `OwinApp` module renamed to `OwinAppFunc` module with `fromOwinApp` and `fromOwinMonad` members
+* New dependency on [F#x](http://www.nuget.org/packages/FSharpx.Core/) `Async` and `Lens` modules
+
 ### New in 0.4.0 - (Released 2014/07/21)
 * Added OwinRailway programming model.
 
