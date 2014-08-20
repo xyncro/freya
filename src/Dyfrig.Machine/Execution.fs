@@ -22,11 +22,14 @@ and ExecutionNode =
     | Handler of Handler
 
 [<AutoOpen>]
-module internal Logic =
+module internal Lenses =
 
     let definitionLens =
         owinEnvLens "machine.definition"
         >--> isoBoxLens<Definition>
+
+[<AutoOpen>]
+module internal Logic =
 
     let private headerEquals h v =
         Option.map ((=) v) >> Option.getOrElse false <!> getPLM (Request.Header h)

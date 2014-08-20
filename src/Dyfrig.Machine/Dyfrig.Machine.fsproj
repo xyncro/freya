@@ -61,10 +61,9 @@
     <Compile Include="Constants.fs" />
     <Compile Include="Definition.fs" />
     <Compile Include="Defaults.fs" />
-    <Compile Include="Execution.fs" />
     <Compile Include="Expression.fs" />
+    <Compile Include="Execution.fs" />
     <Compile Include="Machine.fs" />
-    <Compile Include="Machine.Operations.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

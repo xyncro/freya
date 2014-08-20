@@ -32,7 +32,8 @@ module internal Defaults =
     // Decisions
 
     let defaultDecision (p: bool) = 
-        owin { return p }
+        owin { 
+            return p }
 
     // Handlers
 
