@@ -19,6 +19,7 @@ namespace Dyfrig
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
+open Aether
 open FSharpx
 open FSharpx.Async
 
@@ -86,17 +87,26 @@ module Monad =
     /// OWIN monad
     let owin = OwinMonadBuilder ()
 
-    /// Get a value from the OwinEnv using a lens
-    let get l : OwinMonad<_> = 
-        fun s -> async { return Lens.get s l, s }
+    /// Get a value from the OwinEnv using an Aether typed lens
+    let getLM l : OwinMonad<_> = 
+        fun s -> async { return getL l s, s }
 
-    /// Set a value in the OwinEnv using a lens
-    let set l v : OwinMonad<unit> =
-        fun s -> async { return (), Lens.set v s l }
+    let getPLM l : OwinMonad<_> = 
+        fun s -> async { return getPL l s, s }
 
-    /// Update a value in the OwinEnv using a lens
-    let update l f : OwinMonad<unit> =
-        fun s -> async { return (), Lens.update f l s }
+    /// Set a value in the OwinEnv using an Aether typed lens
+    let setLM l v : OwinMonad<unit> =
+        fun s -> async { return (), setL l v s }
+
+    let setPLM l v : OwinMonad<unit> =
+        fun s -> async { return (), setPL l v s }
+
+    /// Modify a value in the OwinEnv using an Aether typed lens
+    let modLM l f : OwinMonad<unit> =
+        fun s -> async { return (), modL l f s }
+
+    let modPLM l f : OwinMonad<unit> =
+        fun s -> async { return (), modPL l f s }
 
 /// OWIN monad functions
 module Owin =
@@ -139,16 +149,16 @@ module Operators =
     let inline (<!>) f m = Owin.map f m
 
     /// Right to left set value using lens
-    let inline (-->) v l = set l v
+    let inline (-->) v l = setLM l v
 
     /// Left to right set value using lens
-    let inline (<--) l v = set l v
+    let inline (<--) l v = setLM l v
 
     /// Right to left update value using lens
-    let inline (-!>) f l = update l f
+    let inline (-!>) f l = modLM l f
 
     /// Left to right update value using lens
-    let inline (<!-) l f = update l f
+    let inline (<!-) l f = modLM l f
 
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

@@ -59,16 +59,22 @@
   </Target>
   <ItemGroup>
     <Compile Include="Constants.fs" />
-    <Compile Include="OwinApp.fs" />
+    <Compile Include="Core.fs" />
+    <Compile Include="Http.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
     <Compile Include="OwinRailway.fsi" />
     <Compile Include="OwinRailway.fs" />
     <Compile Include="SystemNetHttpAdapter.fsi" />
     <Compile Include="SystemNetHttpAdapter.fs" />
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Aether">
+      <HintPath>..\..\packages\Aether.3.1.0\lib\net40\Aether.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FSharpx.Core">
       <HintPath>..\..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
       <Private>True</Private>

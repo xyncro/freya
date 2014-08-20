@@ -1,7 +1,8 @@
 ﻿namespace Dyfrig.Routing
 
 open FSharpx
-open FSharpx.Lens.Operators
+open Aether
+open Aether.Operators
 open Dyfrig
 open Dyfrig.Operators
 
@@ -19,9 +20,9 @@ module Types =
                   Key = ""
                   Recognizer = Ignore "" } }
 
-        static member root =
-            { Get = fun x -> x.Root
-              Set = fun r x -> { x with Root = r } }
+        static member rootLens =
+            (fun x -> x.Root), 
+            (fun r x -> { x with Root = r })
 
     and RoutingNode =
         { App: OwinMonad<bool> option
@@ -29,13 +30,13 @@ module Types =
           Key: string
           Recognizer: RoutingRecognizer }
 
-        static member app =
-            { Get = fun x -> x.App
-              Set = fun a x -> { x with App = a } }
+        static member appPLens =
+            (fun x -> x.App), 
+            (fun a x -> { x with App = Some a })
          
-        static member children =
-            { Get = fun x -> x.Children
-              Set = fun c x -> { x with Children = c } }
+        static member childrenLens =
+            (fun x -> x.Children), 
+            (fun c x -> { x with Children = c })
 
     and RoutingRecognizer =
         | Ignore of string
@@ -50,12 +51,12 @@ module Lenses =
 
     [<RequireQualifiedAccess>]
     module Routing =
-
-        let private opt = Lens.xmap (Option.get) (Some) Lens.id
         
-        let Values = key<Map<string, string>> "dyfrig.routingData" >>| opt
-        let Value key = Values >>| Lens.forMap key
+        let Values = 
+            owinEnvLens "dyfrig.routingData" >--> isoBoxLens<Map<string, string>>
 
+        let Value key = 
+            Values >-?> mapPLens key
 
 [<AutoOpen>]
 module Monad =
@@ -118,20 +119,20 @@ module Functions =
             match registration with
             | Registration (h :: t, app) ->
                 match List.tryFindIndex (fun x -> x.Key = h) root.Children with
-                | Some i -> 
-                    Lens.update 
+                | Some i ->
+                    modPL
+                        (RoutingNode.childrenLens >-?> listPLens i) 
                         (fun x -> add (Registration (t, app)) x) 
-                        (RoutingNode.children >>| Lens.forList i) 
                         root
                 | _ ->
-                    Lens.update 
+                    modL
+                        (RoutingNode.childrenLens) 
                         (fun x -> x @ [ add (Registration (t, app)) (node h) ])
-                        (RoutingNode.children) 
                         root
             | Registration (_, app) ->
-                Lens.set (Some app) root RoutingNode.app
+                setPL RoutingNode.appPLens app root
 
-        Lens.update (add (registration p app)) RoutingTrie.root trie
+        modL RoutingTrie.rootLens (add (registration p app)) trie
 
     // Search
 
@@ -165,7 +166,7 @@ module Functions =
         let trie = snd << routing <| RoutingTrie.empty
 
         owin {
-            let! path = get Request.Path
+            let! path = getLM Request.Path
 
             match search path trie with
             | Some (app, data) ->

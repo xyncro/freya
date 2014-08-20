@@ -1,4 +1,4 @@
-﻿namespace Dyfrig.Machine.Keys
+﻿namespace Dyfrig.Machine
 
 
 [<RequireQualifiedAccess>]

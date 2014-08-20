@@ -2,11 +2,11 @@
 
 open System
 open System.Globalization
+open Aether
+open Aether.Operators
 open FSharpx
 open FSharpx.Http
-open FSharpx.Lens.Operators
 open Dyfrig
-open Dyfrig.Machine.Keys
 open Dyfrig.Operators
 
 
@@ -17,60 +17,12 @@ module H = Handlers
 
 
 [<AutoOpen>]
-module Types =
-
-    // Machine Definition
-
-    type MachineDef =
-        { Actions: Map<string, Action>
-          Configuration: Map<string, obj>
-          Decisions: Map<string, Decision> 
-          Handlers: Map<string, Handler> }
-
-        static member empty =
-            { Actions = Map.empty
-              Configuration = Map.empty
-              Decisions = Map.empty
-              Handlers = Map.empty }
-
-        static member actions =
-            { Get = fun x -> x.Actions
-              Set = fun a x -> { x with Actions = a } }
-        
-        static member decisions =
-            { Get = fun x -> x.Decisions
-              Set = fun d x -> { x with Decisions = d } }
-
-        static member config =
-            { Get = fun x -> x.Configuration
-              Set = fun c x -> { x with Configuration = c } }
-
-        static member handlers =
-            { Get = fun x -> x.Handlers
-              Set = fun h x -> { x with Handlers = h } }
-
-    and Action = OwinMonad<unit>
-    and Decision = OwinMonad<bool>
-    and Handler = OwinMonad<byte []>
-
-    // Machine Execution
-
-    type internal MachineGraph =
-        Map<string, MachineNode>
-
-    and MachineNode =
-        | Action of Action * string       
-        | Decision of Decision * (string * string)
-        | Handler of Handler
-
-
-[<AutoOpen>]
 module Monad =
 
     // Monad Type
 
     type MachineMonad = 
-        MachineDef -> unit * MachineDef
+        Definition -> unit * Definition
 
     // Monad Builder
 
@@ -97,18 +49,11 @@ module Monad =
 
 
 [<AutoOpen>]
-module Lenses =
+module Lenses =  
 
-    let internal action k = MachineDef.actions >>| Lens.forMap k
-    let internal config k = MachineDef.config >>| Lens.forMap k
-    let internal decision k = MachineDef.decisions >>| Lens.forMap k
-    let internal handler k = MachineDef.handlers >>| Lens.forMap k    
-
-
-    [<RequireQualifiedAccess>]
-    module Machine =
-
-        let Definition = key<FrostResourceDef> "frost.resourceDefinition" >>| required 
+        let definitionLens =
+            owinEnvLens "machine.definition"
+            >--> isoBoxLens<Definition>
 
 
 [<RequireQualifiedAccess>]
@@ -116,10 +61,15 @@ module Accept =
 
     let private best configKey header defaults negotiation =
         owin {
-            let! x = (Option.map unbox >> Option.getOrElse defaults) <!> get (Machine.Definition >>| config configKey)
-            let! y = (Option.map (String.concat ",")) <!> get (Request.Header header)
+            let! x = getPLM (definitionLens >-?> Definition.configPLens configKey)
+            let! y = (Option.map (String.concat ",")) <!> getLM (Request.Header header)
+
+            let x' = 
+                x 
+                |> Option.map unbox
+                |> Option.getOrElse defaults
             
-            match x, y with
+            match x', y with
             | x, Some y -> return negotiation x y
             | h :: _, _ -> return Some (h, 1.)
             | _ -> return None }
@@ -138,13 +88,6 @@ module Accept =
 
 
 [<AutoOpen>]
-module internal Actions =
-
-    let defaultAction = 
-        owin { return () }
-
-
-[<AutoOpen>]
 module internal Decisions =
 
     let defaultTrue = 
@@ -157,12 +100,12 @@ module internal Decisions =
         Option.isSome <!> get (Request.Header h)
 
     let isMethod m =
-        (=) m <!> get Request.Method
+        (=) m <!> getLM Request.Method
 
     let methodIn c defaults =
         owin {
-            let! m = get Request.Method
-            let! s = Option.map unbox <!> get (Resource.Definition >>| config c)
+            let! m = getLM Request.Method
+            let! s = Option.map unbox <!> getPLM (definitionLens >-?> Definition.configPLens c)
 
             return Set.contains m (s |> Option.getOrElse (Set defaults)) }
 
@@ -196,17 +139,6 @@ module internal Decisions =
 
     let ifUnmodifiedSinceValidDate =
         validDate "If-Unmodified-Since"
-
-
-[<AutoOpen>]
-module internal Handlers =
-
-    let defaultHandler code phrase =
-        owin {
-            do! Response.StatusCode <-- Some code
-            do! Response.ReasonPhrase <-- Some phrase
-
-            return Array.empty }
 
 
 [<AutoOpen>]
@@ -307,7 +239,7 @@ module internal Graph =
           D.ValidEntityLength, defaultTrue, (D.MethodOptions, H.RequestEntityTooLarge) ]
 
     let private getOrElse l k a r =
-        Lens.get r (l k) |> Option.getOrElse a
+        getPL (l k) r |> Option.getOrElse a
 
     let private actionNodesOf x r =
         x |> List.map (fun (n, f, next) -> n, Action (getOrElse action n f r, next))
@@ -323,7 +255,7 @@ module internal Graph =
 
 
     let defOf (machine: MachineMonad) =
-        machine MachineDef.empty |> snd
+        machine Definition.empty |> snd
 
     let graphOf resource =
         [ actionNodesOf actions

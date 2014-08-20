@@ -58,13 +58,21 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <ItemGroup>
-    <Compile Include="Machine.Keys.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Definition.fs" />
+    <Compile Include="Defaults.fs" />
+    <Compile Include="Execution.fs" />
+    <Compile Include="Expression.fs" />
     <Compile Include="Machine.fs" />
     <Compile Include="Machine.Operations.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Aether">
+      <HintPath>..\..\packages\Aether.3.1.0\lib\net40\Aether.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FSharpx.Core">
       <HintPath>..\..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
       <Private>True</Private>
