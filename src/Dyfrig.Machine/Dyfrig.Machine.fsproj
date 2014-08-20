@@ -63,7 +63,6 @@
     <Compile Include="Expression.fs" />
     <Compile Include="Defaults.fs" />
     <Compile Include="Execution.fs" />
-    <Compile Include="Machine.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

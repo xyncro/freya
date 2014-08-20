@@ -13,20 +13,20 @@ module C = Config
 module D = Decisions
 module H = Handlers
 
-type ExecutionGraph =
-    Map<string, ExecutionNode>
+type Graph =
+    Map<string, Node>
 
-and ExecutionNode =
-    | Action of Machine.Action * string       
-    | Decision of Machine.Decision * (string * string)
-    | Handler of Machine.Handler
+and Node =
+    | Action of MachineAction * string       
+    | Decision of MachineDecision * (string * string)
+    | Handler of MachineHandler
 
 [<AutoOpen>]
 module internal Lenses =
 
     let definitionLens =
-        owinEnvLens "machine.definition"
-        >--> isoBoxLens<Definition>
+        owinEnvLens "dyfrig.machine.definition"
+        >--> isoBoxLens<MachineDefinition>
 
 [<AutoOpen>]
 module internal Logic =
@@ -77,6 +77,21 @@ module internal Logic =
         let ifUnmodifiedSinceValidDate =
             isValidDate "If-Unmodified-Since"
 
+        let ifNoneMatch =
+            defaultDecision true // IMPLEMENT
+
+        let ifETagMatchesIf =
+            defaultDecision true // IMPLEMENT
+
+        let ifETagMatchesIfNone =
+            defaultDecision true // IMPLEMENT
+
+        let ifModifiedSince =
+            defaultDecision true // IMPLEMENT
+            
+        let ifUnmodifiedSince =
+            defaultDecision true // IMPLEMENT
+
     [<AutoOpen>]
     module Method =
 
@@ -85,7 +100,7 @@ module internal Logic =
 
         let private getMethods key defaults =
             Option.getOrElse defaults
-            <!> getPLM (definitionLens >-?> Definition.configPLens<Set<Method>> key)
+            <!> getPLM (definitionLens >-?> MachineDefinition.configPLens<Set<Method>> key)
 
         let private isValidMethod key defaults =
             owin {
@@ -130,22 +145,34 @@ module internal Logic =
         let ifAcceptLanguageExists =
             headerExists "Accept-Language"
 
+        let ifCharsetAvailable =
+            defaultDecision true // IMPLEMENT
+
+        let ifEncodingAvailable =
+            defaultDecision true // IMPLEMENT
+
+        let ifLanguageAvailable =
+            defaultDecision true // IMPLEMENT
+
+        let ifMediaTypeAvailable =
+            defaultDecision true // IMPLEMENT
+
 [<AutoOpen>]
 module internal Construction =
 
-    let private maybe l (def: Definition) other =
-        getPL l def |> Option.getOrElse other
+    let private maybe l definition other =
+        getPL l definition |> Option.getOrElse other
 
-    let private actions def =
+    let private actions definition =
         [ A.Delete,                      defaultAction,              D.Deleted
           A.Patch,                       defaultAction,              D.RespondWithEntity
           A.Post,                        defaultAction,              D.PostRedirect
           A.Put,                         defaultAction,              D.Created ]
 
         |> List.map (fun (name, action, next) ->
-            name, Action (maybe (Definition.actionsPLens name) def action, next))
+            name, Action (maybe (MachineDefinition.actionsPLens name) definition action, next))
 
-    let private handlers def =
+    let private handlers definition =
         [ H.OK,                          defaultHandler 200 "OK"
           H.Created,                     defaultHandler 201 "Created"
           H.Options,                     defaultHandler 201 "Options"
@@ -175,7 +202,7 @@ module internal Construction =
           H.ServiceUnavailable,          defaultHandler 503 "Service Unavailable" ]
 
         |> List.map (fun (name, handler) ->
-            name, Handler (maybe (Definition.handlersPLens name) def handler))
+            name, Handler (maybe (MachineDefinition.handlersPLens name) definition handler))
     
     let private internalDecisions =
         [ D.AcceptCharsetExists,         ifAcceptCharsetExists,      (D.CharsetAvailable, D.AcceptEncodingExists)
@@ -184,10 +211,10 @@ module internal Construction =
           D.AcceptLanguageExists,        ifAcceptLanguageExists,     (D.LanguageAvailable, D.AcceptCharsetExists)
           D.IfMatchExists,               ifMatchExists,              (D.IfMatchStar, D.IfUnmodifiedSinceExists)
           D.IfMatchStar,                 ifMatchStar,                (D.IfUnmodifiedSinceExists, D.ETagMatchesIf)
-          D.IfMatchStarExistsForMissing, ifMatchExists,              (H.PreconditionFailed, D.MethodPut) // CHECK THIS
+          D.IfMatchStarExistsForMissing, ifMatchExists,              (H.PreconditionFailed, D.MethodPut)
           D.IfModifiedSinceExists,       ifModifiedSinceExists,      (D.IfModifiedSinceValidDate, D.MethodDelete)
           D.IfModifiedSinceValidDate,    ifModifiedSinceValidDate,   (D.ModifiedSince, D.MethodDelete)
-          D.IfNoneMatch,                 defaultDecision true,       (H.NotModified, H.PreconditionFailed) // replace
+          D.IfNoneMatch,                 ifNoneMatch,                (H.NotModified, H.PreconditionFailed)
           D.IfNoneMatchExists,           ifNoneMatchExists,          (D.IfNoneMatchStar, D.IfModifiedSinceExists)
           D.IfNoneMatchStar,             ifNoneMatchStar,            (D.IfNoneMatch, D.ETagMatchesIfNone)
           D.IfUnmodifiedSinceExists,     ifUnmodifiedSinceExists,    (D.IfUnmodifiedSinceValidDate, D.IfNoneMatchExists)
@@ -204,29 +231,29 @@ module internal Construction =
         |> List.map (fun (name, decision, next) ->
             name, Decision (decision, next))
 
-    let private publicDecisions =
+    let private publicDecisions definition =
         [ D.Allowed,                     defaultDecision true,       (D.ContentTypeValid, H.Forbidden)
           D.Authorized,                  defaultDecision true,       (D.Allowed, H.Unauthorized)
           D.CanPostToGone,               defaultDecision false,      (A.Post, H.Gone)
           D.CanPostToMissing,            defaultDecision true,       (A.Post, H.NotFound)
           D.CanPutToMissing,             defaultDecision true,       (D.Conflict, H.NotImplemented)
-          D.CharsetAvailable,            Option.isSome <!> Accept.Charset, (D.AcceptEncodingExists, H.NotAcceptable)
+          D.CharsetAvailable,            ifCharsetAvailable,         (D.AcceptEncodingExists, H.NotAcceptable)
           D.Conflict,                    defaultDecision false,      (H.Conflict, A.Put)
           D.ContentTypeKnown,            defaultDecision true,       (D.ValidEntityLength, H.UnsupportedMediaType)
           D.ContentTypeValid,            defaultDecision true,       (D.ContentTypeKnown, H.NotImplemented)
           D.Created,                     defaultDecision true,       (H.Created, D.RespondWithEntity)
           D.Deleted,                     defaultDecision true,       (D.RespondWithEntity, H.Accepted)
-          D.EncodingAvailable,           Option.isSome <!> Accept.Encoding, (D.Processable, H.NotAcceptable)
-          D.ETagMatchesIf,               defaultDecision true,       (D.IfUnmodifiedSinceExists, H.PreconditionFailed) // replace
-          D.ETagMatchesIfNone,           defaultDecision true,       (D.IfNoneMatch, D.IfModifiedSinceExists) // replace
+          D.EncodingAvailable,           ifEncodingAvailable,        (D.Processable, H.NotAcceptable)
+          D.ETagMatchesIf,               ifETagMatchesIf,            (D.IfUnmodifiedSinceExists, H.PreconditionFailed)
+          D.ETagMatchesIfNone,           ifETagMatchesIfNone,        (D.IfNoneMatch, D.IfModifiedSinceExists)
           D.Existed,                     defaultDecision false,      (D.MovedPermanently, D.PostToMissing)
           D.Exists,                      defaultDecision true,       (D.IfMatchExists, D.IfMatchStarExistsForMissing)
           D.MethodKnown,                 ifMethodKnown,              (D.UriTooLong, H.UnknownMethod)
-          D.LanguageAvailable,           Option.isSome <!> Accept.Language, (D.AcceptCharsetExists, H.NotAcceptable)
+          D.LanguageAvailable,           ifLanguageAvailable,        (D.AcceptCharsetExists, H.NotAcceptable)
           D.Malformed,                   defaultDecision false,      (H.Malformed, D.Authorized)
-          D.MediaTypeAvailable,          Option.isSome <!> Accept.MediaType, (D.AcceptLanguageExists, H.NotAcceptable)
+          D.MediaTypeAvailable,          ifMediaTypeAvailable,       (D.AcceptLanguageExists, H.NotAcceptable)
           D.MethodAllowed,               ifMethodAllowed,            (D.Malformed, H.MethodNotAllowed)
-          D.ModifiedSince,               defaultDecision true,       (D.MethodDelete, H.NotModified) // replace
+          D.ModifiedSince,               ifModifiedSince,            (D.MethodDelete, H.NotModified)
           D.MovedPermanently,            defaultDecision false,      (H.MovedPermanently, D.MovedTemporarily)
           D.MovedTemporarily,            defaultDecision false,      (H.MovedTemporarily, D.PostToGone)
           D.MultipleRepresentations,     defaultDecision false,      (H.MultipleRepresentations, H.OK)
@@ -235,8 +262,55 @@ module internal Construction =
           D.PutToDifferentUri,           defaultDecision false,      (H.MovedPermanently, D.CanPutToMissing)
           D.RespondWithEntity,           defaultDecision true,       (D.MultipleRepresentations, H.NoContent)
           D.ServiceAvailable,            defaultDecision true,       (D.MethodKnown, H.ServiceUnavailable)
-          D.UnmodifiedSince,             defaultDecision true,       (H.PreconditionFailed, D.IfNoneMatchExists) // replace
+          D.UnmodifiedSince,             ifUnmodifiedSince,          (H.PreconditionFailed, D.IfNoneMatchExists)
           D.UriTooLong,                  defaultDecision false,      (H.UriTooLong, D.MethodAllowed) 
           D.ValidEntityLength,           defaultDecision true,       (D.MethodOptions, H.RequestEntityTooLarge) ]
 
+        |> List.map (fun (name, decision, next) ->
+            name, Decision (maybe (MachineDefinition.decisionsPLens name) definition decision, next))
+
+    let construct definition =
+        [ actions definition
+          handlers definition
+          internalDecisions
+          publicDecisions definition ]
+        |> List.concat
+        |> Map.ofList
+
+[<AutoOpen>]
+module internal Execution =
+
+    let execute (graph: Graph) =
+        let rec execute node =
+            owin {
+                match Map.find node graph with
+                | Action (action, next) ->
+                    do! action
+                    printfn "action: %s" node
+                    return! execute next
+                | Decision (decision, choices) ->
+                    let! p = decision
+                    printfn "decision: %s = %b" node p
+                    return! execute ((p |> function | true -> fst | _ -> snd) choices)
+                | Handler handler ->
+                    printfn "handler: %s" node
+                    return! handler }
+
+        execute D.ServiceAvailable
+
+[<AutoOpen>]
+module Compilation =
     
+    let compileMachine (machine: MachineMonad) =
+        let definition = machine MachineDefinition.empty |> snd
+        let graph = construct definition
+
+        owin {
+            do! setLM definitionLens definition
+
+            let! body = execute graph
+
+            do! setPLM (Response.Header "Content-Length") [ string body.Length ]
+            do! modLM Response.Body (fun x -> x.Write (body, 0, body.Length); x)
+        
+            return true }

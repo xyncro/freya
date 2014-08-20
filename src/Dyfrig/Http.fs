@@ -1,6 +1,7 @@
 ﻿namespace Dyfrig
 
 open System.Collections.Generic
+open System.IO
 open Aether
 open Aether.Operators
 
@@ -100,6 +101,10 @@ module Lenses =
 [<RequireQualifiedAccess>]
 module Request =
 
+    let Body =
+        owinEnvLens Constants.requestBody
+        >--> isoBoxLens<Stream>
+
     let Header key =
         owinEnvLens Constants.requestHeaders
         >--> isoBoxLens<IDictionary<string, string []>>
@@ -126,6 +131,10 @@ module Request =
 
 [<RequireQualifiedAccess>]
 module Response =
+
+    let Body =
+        owinEnvLens Constants.responseBody
+        >--> isoBoxLens<Stream>
 
     let Header key =
         owinEnvLens Constants.responseHeaders
