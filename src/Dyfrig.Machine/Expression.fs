@@ -94,127 +94,6 @@ module ConfigurationOperations =
             x.Set (r, Definition.configPLens C.Modified, modified)
 
 [<AutoOpen>]
-module HandlerOperations =
-
-    type MachineMonadBuilder with
-
-        // 200
-
-        [<CustomOperation (H.OK, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleOk (r, f) = 
-            x.Set (r, Definition.handlersPLens H.OK, f)
-
-        [<CustomOperation (H.Created, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleCreated (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Created, f)
-
-        [<CustomOperation (H.Options, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleOptions (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Options, f)
-
-        [<CustomOperation (H.Accepted, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleAccepted (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Accepted, f)
-
-        [<CustomOperation (H.NoContent, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleNoContent (r, f) = 
-            x.Set (r, Definition.handlersPLens H.NoContent, f)
-
-        // 300
-
-        [<CustomOperation (H.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleMovedPermanently (r, f) = 
-            x.Set (r, Definition.handlersPLens H.MovedPermanently, f)
-
-        [<CustomOperation (H.SeeOther, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleSeeOther (r, f) = 
-            x.Set (r, Definition.handlersPLens H.SeeOther, f)
-
-        [<CustomOperation (H.NotModified, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleNotModified (r, f) = 
-            x.Set (r, Definition.handlersPLens H.NotModified, f)
-
-        [<CustomOperation (H.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleMovedTemporarily (r, f) = 
-            x.Set (r, Definition.handlersPLens H.MovedTemporarily, f)
-
-        [<CustomOperation (H.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleMultipleRepresentations (r, f) = 
-            x.Set (r, Definition.handlersPLens H.MultipleRepresentations, f)
-        
-        // 400
-
-        [<CustomOperation (H.Malformed, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleMalformed (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Malformed, f)
-
-        [<CustomOperation (H.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleUnauthorized (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Unauthorized, f)
-
-        [<CustomOperation (H.Forbidden, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleForbidden (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Forbidden, f)
-
-        [<CustomOperation (H.NotFound, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleNotFound (r, f) = 
-            x.Set (r, Definition.handlersPLens H.NotFound, f)
-
-        [<CustomOperation (H.MethodNotAllowed, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleMethodNotAllowed (r, f) = 
-            x.Set (r, Definition.handlersPLens H.MethodNotAllowed, f)
-
-        [<CustomOperation (H.NotAcceptable, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleNotAcceptable (r, f) = 
-            x.Set (r, Definition.handlersPLens H.NotAcceptable, f)
-
-        [<CustomOperation (H.Conflict, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleConflict (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Conflict, f)
-
-        [<CustomOperation (H.Gone, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleGone (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Gone, f)
-
-        [<CustomOperation (H.PreconditionFailed, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandlePreconditionFailed (r, f) = 
-            x.Set (r, Definition.handlersPLens H.PreconditionFailed, f)
-
-        [<CustomOperation (H.RequestEntityTooLarge, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleRequestEntityTooLarge (r, f) = 
-            x.Set (r, Definition.handlersPLens H.RequestEntityTooLarge, f)
-
-        [<CustomOperation (H.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleUriTooLong (r, f) = 
-            x.Set (r, Definition.handlersPLens H.UriTooLong, f)
-
-        [<CustomOperation (H.UnsupportedMediaType, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleUnsupportedMediaType (r, f) = 
-            x.Set (r, Definition.handlersPLens H.UnsupportedMediaType, f)
-
-        [<CustomOperation (H.UnprocessableEntity, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleUnprocessableEntity (r, f) = 
-            x.Set (r, Definition.handlersPLens H.UnprocessableEntity, f)
-
-        // 500
-
-        [<CustomOperation (H.Exception, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleException (r, f) = 
-            x.Set (r, Definition.handlersPLens H.Exception, f)
-
-        [<CustomOperation (H.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleNotImplemented (r, f) = 
-            x.Set (r, Definition.handlersPLens H.NotImplemented, f)
-
-        [<CustomOperation (H.UnknownMethod, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleUnknownMethod (r, f) = 
-            x.Set (r, Definition.handlersPLens H.UnknownMethod, f)
-    
-        [<CustomOperation (H.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
-        member x.HandleServiceUnavailable (r, f) = 
-            x.Set (r, Definition.handlersPLens H.ServiceUnavailable, f)
-
-[<AutoOpen>]
 module DecisionOperations =
 
     type MachineMonadBuilder with
@@ -348,6 +227,127 @@ module DecisionOperations =
             x.Set (r, Definition.decisionsPLens D.ValidEntityLength, f)
 
 [<AutoOpen>]
+module HandlerOperations =
+
+    type MachineMonadBuilder with
+
+        // 200
+
+        [<CustomOperation (H.OK, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleOk (r, f) = 
+            x.Set (r, Definition.handlersPLens H.OK, f)
+
+        [<CustomOperation (H.Created, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleCreated (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Created, f)
+
+        [<CustomOperation (H.Options, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleOptions (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Options, f)
+
+        [<CustomOperation (H.Accepted, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleAccepted (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Accepted, f)
+
+        [<CustomOperation (H.NoContent, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleNoContent (r, f) = 
+            x.Set (r, Definition.handlersPLens H.NoContent, f)
+
+        // 300
+
+        [<CustomOperation (H.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleMovedPermanently (r, f) = 
+            x.Set (r, Definition.handlersPLens H.MovedPermanently, f)
+
+        [<CustomOperation (H.SeeOther, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleSeeOther (r, f) = 
+            x.Set (r, Definition.handlersPLens H.SeeOther, f)
+
+        [<CustomOperation (H.NotModified, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleNotModified (r, f) = 
+            x.Set (r, Definition.handlersPLens H.NotModified, f)
+
+        [<CustomOperation (H.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleMovedTemporarily (r, f) = 
+            x.Set (r, Definition.handlersPLens H.MovedTemporarily, f)
+
+        [<CustomOperation (H.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleMultipleRepresentations (r, f) = 
+            x.Set (r, Definition.handlersPLens H.MultipleRepresentations, f)
+        
+        // 400
+
+        [<CustomOperation (H.Malformed, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleMalformed (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Malformed, f)
+
+        [<CustomOperation (H.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleUnauthorized (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Unauthorized, f)
+
+        [<CustomOperation (H.Forbidden, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleForbidden (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Forbidden, f)
+
+        [<CustomOperation (H.NotFound, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleNotFound (r, f) = 
+            x.Set (r, Definition.handlersPLens H.NotFound, f)
+
+        [<CustomOperation (H.MethodNotAllowed, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleMethodNotAllowed (r, f) = 
+            x.Set (r, Definition.handlersPLens H.MethodNotAllowed, f)
+
+        [<CustomOperation (H.NotAcceptable, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleNotAcceptable (r, f) = 
+            x.Set (r, Definition.handlersPLens H.NotAcceptable, f)
+
+        [<CustomOperation (H.Conflict, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleConflict (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Conflict, f)
+
+        [<CustomOperation (H.Gone, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleGone (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Gone, f)
+
+        [<CustomOperation (H.PreconditionFailed, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandlePreconditionFailed (r, f) = 
+            x.Set (r, Definition.handlersPLens H.PreconditionFailed, f)
+
+        [<CustomOperation (H.RequestEntityTooLarge, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleRequestEntityTooLarge (r, f) = 
+            x.Set (r, Definition.handlersPLens H.RequestEntityTooLarge, f)
+
+        [<CustomOperation (H.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleUriTooLong (r, f) = 
+            x.Set (r, Definition.handlersPLens H.UriTooLong, f)
+
+        [<CustomOperation (H.UnsupportedMediaType, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleUnsupportedMediaType (r, f) = 
+            x.Set (r, Definition.handlersPLens H.UnsupportedMediaType, f)
+
+        [<CustomOperation (H.UnprocessableEntity, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleUnprocessableEntity (r, f) = 
+            x.Set (r, Definition.handlersPLens H.UnprocessableEntity, f)
+
+        // 500
+
+        [<CustomOperation (H.Exception, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleException (r, f) = 
+            x.Set (r, Definition.handlersPLens H.Exception, f)
+
+        [<CustomOperation (H.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleNotImplemented (r, f) = 
+            x.Set (r, Definition.handlersPLens H.NotImplemented, f)
+
+        [<CustomOperation (H.UnknownMethod, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleUnknownMethod (r, f) = 
+            x.Set (r, Definition.handlersPLens H.UnknownMethod, f)
+    
+        [<CustomOperation (H.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
+        member x.HandleServiceUnavailable (r, f) = 
+            x.Set (r, Definition.handlersPLens H.ServiceUnavailable, f)
+
+[<AutoOpen>]
 module UtilityOperations =
 
     type MachineMonadBuilder with
@@ -355,7 +355,6 @@ module UtilityOperations =
         [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
         member x.Including (r, h) = 
             x.Combine (r, h)
-
 
 //[<AutoOpen>]
 //module RoutesOperations =
