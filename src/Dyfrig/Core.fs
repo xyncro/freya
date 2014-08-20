@@ -148,18 +148,6 @@ module Operators =
     /// Map of f over m
     let inline (<!>) f m = Owin.map f m
 
-    /// Right to left set value using lens
-    let inline (-->) v l = setLM l v
-
-    /// Left to right set value using lens
-    let inline (<--) l v = setLM l v
-
-    /// Right to left update value using lens
-    let inline (-!>) f l = modLM l f
-
-    /// Left to right update value using lens
-    let inline (<!-) l f = modLM l f
-
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =

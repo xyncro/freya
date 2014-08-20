@@ -59,10 +59,10 @@
   </Target>
   <ItemGroup>
     <Compile Include="Constants.fs" />
-    <Compile Include="Definition.fs" />
     <Compile Include="Expression.fs" />
     <Compile Include="Defaults.fs" />
     <Compile Include="Execution.fs" />
+    <Compile Include="Operations.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

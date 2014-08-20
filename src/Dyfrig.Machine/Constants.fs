@@ -11,7 +11,6 @@ module internal Actions =
     let [<Literal>] Post = prefix + "Post"
     let [<Literal>] Put = prefix + "Put"
 
-
 [<RequireQualifiedAccess>]
 module internal Config =
     
@@ -23,7 +22,6 @@ module internal Config =
     let [<Literal>] ETag = "eTag"
     let [<Literal>] KnownMethods = "knownMethods"
     let [<Literal>] Modified = "modified"
-
 
 [<RequireQualifiedAccess>]
 module internal Decisions =
@@ -88,7 +86,6 @@ module internal Decisions =
     let [<Literal>] PostToExisting = "postToExisting"
     let [<Literal>] PostToMissing = "postToMissing"
     let [<Literal>] PutToExisting = "putToExisting"
-
 
 [<RequireQualifiedAccess>]
 module internal Handlers =
