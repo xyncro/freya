@@ -4,6 +4,7 @@ open System
 open Aether
 open Aether.Operators
 open Dyfrig
+open Dyfrig.Http
 
 type Machine = 
     MachineDefinition -> unit * MachineDefinition
@@ -56,8 +57,7 @@ module Cache =
     
     let cache<'T> m =
         let lens =
-            owinEnvPLens (string (Guid.NewGuid ())) 
-            >?-> isoBoxLens<'T>
+            owinEnvPLens<'T> (string (Guid.NewGuid ()))
 
         owin {
             let! value = getPLM lens
@@ -81,7 +81,7 @@ module internal Lenses =
     let configPLens<'T> k =
         ((fun x -> x.Configuration), (fun c x -> { x with Configuration = c }))
         >-?> mapPLens k
-        >?-> isoBoxLens<'T>
+        >?-> isoLens unbox<'T> box
         
     let decisionsPLens k =
         ((fun x -> x.Decisions), (fun d x -> { x with Decisions = d }))
@@ -92,5 +92,4 @@ module internal Lenses =
         >-?> mapPLens k
 
     let definitionLens =
-        owinEnvLens "dyfrig.machine.definition"
-        >--> isoBoxLens<MachineDefinition>
+        owinEnvLens<MachineDefinition> "dyfrig.machine.definition"

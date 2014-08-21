@@ -1,6 +1,5 @@
 ﻿open Dyfrig
 open Dyfrig.Operators
-open Dyfrig.Operators.Lens
 open Dyfrig.Machine
 
 // Request
@@ -58,10 +57,10 @@ let files =
 // Pipes
 
 let poweredBy = 
-    Response.Header "X-PoweredBy" <?- [ "Dyfrig.Machine" ]
+    setPLM (Response.Header "X-PoweredBy") [ "Dyfrig.Machine" ]
 
 let version = 
-    Response.Header "X-Version" <?- [ "0.1" ]
+    setPLM (Response.Header "X-Version") [ "0.1" ]
 
 // Filters
 
@@ -74,9 +73,9 @@ let requireCommit =
         | GET, None ->
             let! path = path
 
-            do! Response.StatusCode <?- 302
-            do! Response.ReasonPhrase <?- "Moved Temporarily"
-            do! Response.Header "Location" <?- [ sprintf "%s?commit=%s" path "" ]
+            do! setPLM Response.StatusCode 302
+            do! setPLM Response.ReasonPhrase "Moved Temporarily"
+            do! setPLM (Response.Header "Location") [ sprintf "%s?commit=%s" path "" ]
 
             return false
         | _ -> 

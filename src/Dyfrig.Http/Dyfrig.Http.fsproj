@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ea130b5a-37b9-4842-b5d5-a245be710d82</ProjectGuid>
+    <ProjectGuid>319be959-12af-4322-a051-a0bf8cb15ec6</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Dyfrig.Machine</RootNamespace>
-    <AssemblyName>Dyfrig.Machine</AssemblyName>
+    <RootNamespace>Dyfrig.Http</RootNamespace>
+    <AssemblyName>Dyfrig.Http</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Dyfrig.Machine</Name>
+    <Name>Dyfrig.Http</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -23,7 +23,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Dyfrig.Machine.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Dyfrig.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,7 +32,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Dyfrig.Machine.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Dyfrig.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -58,26 +58,14 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <ItemGroup>
-    <Compile Include="Constants.fs" />
-    <Compile Include="Expression.fs" />
-    <Compile Include="Defaults.fs" />
-    <Compile Include="Logic.fs" />
-    <Compile Include="Execution.fs" />
-    <Compile Include="Operations.fs" />
-    <None Include="app.config" />
-    <None Include="packages.config" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Lenses.fs" />
+    <Content Include="app.config" />
+    <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Aether">
       <HintPath>..\..\packages\Aether.3.1.0\lib\net40\Aether.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.Core">
-      <HintPath>..\..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.Http">
-      <HintPath>..\..\packages\FSharpx.Http.1.8.41\lib\40\FSharpx.Http.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -87,11 +75,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Dyfrig.Http\Dyfrig.Http.fsproj">
-      <Name>Dyfrig.Http</Name>
-      <Project>{319be959-12af-4322-a051-a0bf8cb15ec6}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Dyfrig\Dyfrig.fsproj">
       <Name>Dyfrig</Name>
       <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>

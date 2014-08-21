@@ -3,6 +3,7 @@
 open Aether
 open Aether.Operators
 open Dyfrig
+open Dyfrig.Http
 
 type internal Trie =
     { Root: Node }

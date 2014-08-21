@@ -3,6 +3,7 @@
 open Aether
 open Aether.Operators
 open Dyfrig
+open Dyfrig.Http
 
 type Router = 
     Routes -> unit * Routes
@@ -41,8 +42,7 @@ module Expression =
 module Routing =
         
     let internal Values =
-        owinEnvLens "dyfrig.routingData"
-        >--> isoBoxLens<Map<string, string>> 
+        owinEnvLens<Map<string, string>> "dyfrig.routing.values"
 
     let Value key = 
         Values

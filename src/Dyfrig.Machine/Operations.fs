@@ -2,6 +2,7 @@
 
 open System
 open Dyfrig
+open Dyfrig.Http
 
 [<AutoOpen>]
 module Operations =

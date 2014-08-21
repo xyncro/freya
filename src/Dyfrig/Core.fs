@@ -112,7 +112,9 @@ module Monad =
 module Owin =
 
     let async f : OwinMonad<_> =
-        fun s -> async { return! flip tuple2 s <!> f }
+        fun s -> 
+            async { 
+                return! flip tuple2 s <!> f }
 
     let compose m f =
         fun x ->
@@ -147,12 +149,6 @@ module Operators =
 
     /// Map of f over m
     let inline (<!>) f m = Owin.map f m
-
-    module Lens =
-
-        let inline (<--) l v = setLM l v
-
-        let inline (<?-) l v = setPLM l v
 
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

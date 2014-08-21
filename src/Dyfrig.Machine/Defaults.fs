@@ -1,6 +1,7 @@
 ﻿namespace Dyfrig.Machine
 
 open Dyfrig
+open Dyfrig.Http
 
 [<AutoOpen>]
 module internal Defaults =

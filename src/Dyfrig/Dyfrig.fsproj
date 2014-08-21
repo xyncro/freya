@@ -60,7 +60,6 @@
   <ItemGroup>
     <Compile Include="Constants.fs" />
     <Compile Include="Core.fs" />
-    <Compile Include="Http.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
     <Compile Include="OwinRailway.fsi" />
