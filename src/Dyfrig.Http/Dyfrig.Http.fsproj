@@ -58,8 +58,7 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <ItemGroup>
-    <Compile Include="Types.fs" />
-    <Compile Include="Lenses.fs" />
+    <Compile Include="Http.fs" />
     <Content Include="app.config" />
     <Content Include="packages.config" />
   </ItemGroup>
@@ -75,9 +74,11 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Dyfrig\Dyfrig.fsproj">
-      <Name>Dyfrig</Name>
-      <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dyfrig.Core\Dyfrig.Core.fsproj">
+      <Name>Dyfrig.Core</Name>
+      <Project>{b407543c-6c1e-409a-b90c-908c21a9829e}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

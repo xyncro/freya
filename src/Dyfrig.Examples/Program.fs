@@ -1,5 +1,5 @@
-﻿open Dyfrig
-open Dyfrig.Operators
+﻿open Dyfrig.Core
+open Dyfrig.Core.Operators
 open Dyfrig.Machine
 
 // Request

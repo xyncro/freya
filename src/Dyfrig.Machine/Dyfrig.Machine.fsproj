@@ -58,12 +58,9 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <ItemGroup>
-    <Compile Include="Constants.fs" />
-    <Compile Include="Expression.fs" />
-    <Compile Include="Defaults.fs" />
-    <Compile Include="Logic.fs" />
-    <Compile Include="Execution.fs" />
-    <Compile Include="Operations.fs" />
+    <Compile Include="Machine.Constants.fs" />
+    <Compile Include="Machine.fs" />
+    <Compile Include="Machine.Operations.fs" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -87,14 +84,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Dyfrig.Core\Dyfrig.Core.fsproj">
+      <Name>Dyfrig.Core</Name>
+      <Project>{b407543c-6c1e-409a-b90c-908c21a9829e}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Dyfrig.Http\Dyfrig.Http.fsproj">
       <Name>Dyfrig.Http</Name>
       <Project>{319be959-12af-4322-a051-a0bf8cb15ec6}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Dyfrig\Dyfrig.fsproj">
-      <Name>Dyfrig</Name>
-      <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

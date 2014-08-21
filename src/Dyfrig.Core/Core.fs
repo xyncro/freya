@@ -14,11 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //----------------------------------------------------------------------------
-namespace Dyfrig
+namespace Dyfrig.Core
 
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
+
 
 /// OWIN environment dictionary
 type OwinEnv = IDictionary<string, obj>
@@ -28,6 +29,7 @@ type OwinApp = OwinEnv -> Async<unit>
 
 /// OWIN AppFunc signature
 type OwinAppFunc = Func<OwinEnv, Task>
+
 
 /// OWIN monad implementation
 [<AutoOpen>]
@@ -102,7 +104,9 @@ module Monad =
         fun s ->
             async { return (), f s }
 
+
 /// OWIN monad functions
+[<RequireQualifiedAccess>]
 module Owin =
 
     let async f : OwinMonad<_> =
@@ -127,6 +131,7 @@ module Owin =
             let! v = m
             return f v }
 
+
 /// OWIN operators
 module Operators =
 
@@ -144,6 +149,7 @@ module Operators =
 
     /// Map of f over m
     let inline (<!>) f m = Owin.map f m
+
 
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
