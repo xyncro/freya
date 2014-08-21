@@ -1,6 +1,5 @@
 ﻿namespace Dyfrig.Router
 
-open FSharpx
 open Aether
 open Aether.Operators
 open Dyfrig
@@ -86,7 +85,7 @@ module internal Construction =
 [<AutoOpen>]
 module internal Search =
 
-    let recognize r data value =
+    let private recognize r data value =
         match r with
         | Capture x -> true, Map.add x value data
         | Ignore x when x = value -> true, data

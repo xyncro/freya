@@ -31,13 +31,13 @@ and MachineHandler =
 
 type MachineBuilder () =
 
-    member x.Return _ : Machine =
+    member __.Return _ : Machine =
         fun definition -> (), definition
 
-    member x.ReturnFrom machine : Machine = 
+    member __.ReturnFrom machine : Machine = 
         machine
 
-    member x.Bind (m, k) : Machine = 
+    member __.Bind (m, k) : Machine = 
         m >> fun (result, definition) -> (k result) definition
 
     member x.Combine (m1, m2) : Machine = 

@@ -57,11 +57,11 @@ let files =
 
 // Pipes
 
-//let poweredBy = 
-//    Response.Header "X-PoweredBy" <?- [ "Dyfrig.Machine" ]
+let poweredBy = 
+    Response.Header "X-PoweredBy" <?- [ "Dyfrig.Machine" ]
 
-//let version = 
-//    Response.Header "X-Version" <?- [ "0.1" ]
+let version = 
+    Response.Header "X-Version" <?- [ "0.1" ]
 
 // Filters
 

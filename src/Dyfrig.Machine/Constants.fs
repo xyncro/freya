@@ -1,6 +1,5 @@
 ﻿namespace Dyfrig.Machine
 
-
 [<RequireQualifiedAccess>]
 module internal Actions =
 

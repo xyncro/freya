@@ -289,7 +289,7 @@ module internal Execution =
 [<AutoOpen>]
 module Compilation =
     
-    let compileMachine (machine: Machine) =
+    let compileMachine (machine: Machine) : OwinMonad<bool> =
         let definition = machine MachineDefinition.empty |> snd
         let graph = construct definition
 

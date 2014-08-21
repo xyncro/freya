@@ -17,13 +17,13 @@ and Route =
 
 type RouterBuilder () =
 
-    member x.Return v : Router = 
+    member __.Return v : Router = 
         fun r -> v, r
 
-    member x.ReturnFrom f : Router = 
+    member __.ReturnFrom f : Router = 
         f
 
-    member x.Bind (r, k) : Router = 
+    member __.Bind (r, k) : Router = 
         r >> fun (result, trie) -> (k result) trie
 
     member x.Combine (r1, r2) : Router = 

@@ -128,7 +128,7 @@ let railwayTests =
 
             let app =
                 railway
-                |> OwinRailway.fromRailway (fun env exnHandler -> env.With(Constants.responseStatusCode, 500))
+                |> OwinRailway.fromRailway (fun env _ -> env.With(Constants.responseStatusCode, 500))
             
             async {
                 do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
@@ -192,7 +192,7 @@ let adapterTests =
                     content.Headers.ContentLength <- Nullable buffer.LongLength
                     new HttpResponseMessage(Content = content, RequestMessage = request))
                 >> OwinRailway.mapAsync (SystemNetHttpAdapter.mapResponseToEnvironment env)
-                |> OwinRailway.fromRailway (fun env exnHandler -> env.With(Constants.responseStatusCode, 500))
+                |> OwinRailway.fromRailway (fun env _ -> env.With(Constants.responseStatusCode, 500))
             
             async {
                 do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
@@ -212,7 +212,7 @@ let adapterTests =
     ]
 
 [<EntryPoint>]
-let main argv =
+let main _ =
     [
         initializingTests
         environmentModuleTests

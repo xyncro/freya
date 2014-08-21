@@ -43,17 +43,17 @@ module Monad =
     /// OWIN monad builder
     type OwinMonadBuilder () =
 
-        member x.Return t : OwinMonad<_> = 
+        member __.Return t : OwinMonad<_> = 
             fun e -> async.Return (t, e)
 
-        member x.ReturnFrom f : OwinMonad<_> = 
+        member __.ReturnFrom f : OwinMonad<_> = 
             f
+        
+        member __.Bind (m: OwinMonad<_>, k: _ -> OwinMonad<_>) : OwinMonad<_> =
+            fun e -> m e >>= fun (result, e) -> (k result) e
 
         member x.Zero () : OwinMonad<unit> = 
             x.Return ()
-
-        member x.Bind (m: OwinMonad<_>, k: _ -> OwinMonad<_>) : OwinMonad<_> =
-            fun e -> m e >>= fun (result, e) -> (k result) e
 
         member x.Delay (f: unit -> OwinMonad<_>) : OwinMonad<'T> = 
             x.Bind (x.Return (), f)
@@ -61,10 +61,10 @@ module Monad =
         member x.Combine (m1: OwinMonad<_>, m2: OwinMonad<_>) : OwinMonad<_> = 
             x.Bind (m1, fun () -> m2)
 
-        member x.TryWith (body: OwinMonad<_>, handler: exn -> OwinMonad<_>) : OwinMonad<_> =
+        member __.TryWith (body: OwinMonad<_>, handler: exn -> OwinMonad<_>) : OwinMonad<_> =
             fun e -> try body e with ex -> handler ex e
 
-        member x.TryFinally (body: OwinMonad<_>, handler) : OwinMonad<_> =
+        member __.TryFinally (body: OwinMonad<_>, handler) : OwinMonad<_> =
             fun e -> try body e finally handler ()
 
         member x.Using (resource: #IDisposable, body: _ -> OwinMonad<_>) : OwinMonad<_> =
