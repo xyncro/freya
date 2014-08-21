@@ -84,6 +84,21 @@ module internal Http =
             headers.[k] <- List.toArray x
             headers)
 
+    let isoQueryLens : Lens<string, Map<string, string>> =
+        (fun q ->
+            match q with
+            | "" -> 
+                Map.empty
+            | s ->
+                s.Split [| '&' |]
+                |> Array.map (fun x -> x.Split [| '=' |])
+                |> Array.map (fun x -> x.[0], x.[1])
+                |> Map.ofArray),
+        (fun m _ ->
+            Map.toArray m
+            |> Array.map (fun x -> sprintf "%s=%s" (fst x) (snd x))
+            |> String.concat "&")
+
 [<AutoOpen>]
 module Lenses =
 
@@ -128,6 +143,12 @@ module Request =
         owinEnvLens Constants.requestScheme 
         >--> isoBoxLens<string>
         >--> isoSchemeLens
+
+    let Query key =
+        owinEnvLens Constants.requestQueryString
+        >--> isoBoxLens<string>
+        >--> isoQueryLens
+        >-?> mapPLens key
 
 [<RequireQualifiedAccess>]
 module Response =

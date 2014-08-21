@@ -148,6 +148,12 @@ module Operators =
     /// Map of f over m
     let inline (<!>) f m = Owin.map f m
 
+    module Lens =
+
+        let inline (<--) l v = setLM l v
+
+        let inline (<?-) l v = setPLM l v
+
 /// .NET language interop helpers
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =

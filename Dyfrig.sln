@@ -53,6 +53,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Routing", "src\Dyfri
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{EA130B5A-37B9-4842-B5D5-A245BE710D82}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Examples", "src\Dyfrig.Examples\Dyfrig.Examples.fsproj", "{D6AA9EB0-4C1A-4981-A9AB-4D67408AB7AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6AA9EB0-4C1A-4981-A9AB-4D67408AB7AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6AA9EB0-4C1A-4981-A9AB-4D67408AB7AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6AA9EB0-4C1A-4981-A9AB-4D67408AB7AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6AA9EB0-4C1A-4981-A9AB-4D67408AB7AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
 ﻿namespace Dyfrig.Machine
 
+open System
 open Aether
 open Aether.Operators
 open Dyfrig
@@ -30,7 +31,7 @@ and MachineHandler =
 
 type MachineBuilder () =
 
-    member x.Return () : Machine =
+    member x.Return _ : Machine =
         fun definition -> (), definition
 
     member x.ReturnFrom machine : Machine = 
@@ -49,6 +50,26 @@ type MachineBuilder () =
 module Expression =
 
     let machine = MachineBuilder ()
+
+[<AutoOpen>]
+module Cache =
+    
+    let cache<'T> m =
+        let lens =
+            owinEnvPLens (string (Guid.NewGuid ())) 
+            >?-> isoBoxLens<'T>
+
+        owin {
+            let! value = getPLM lens
+
+            match value with
+            | Some cached ->
+                return cached
+            | _ ->
+                let! created = m
+                do! setPLM lens created
+
+                return created }
 
 [<AutoOpen>]
 module internal Lenses =
