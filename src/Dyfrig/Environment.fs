@@ -21,6 +21,7 @@ open System.Collections.Generic
 open System.IO
 open System.Linq
 open System.Net
+open System.Security.Principal
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.FSharp.Core
@@ -108,6 +109,20 @@ type Environment =
         else None
  
     member x.RequestBody = unbox<Stream> x.[Constants.requestBody]
+
+    member x.RequestId
+        with get() : string option =
+            if x.ContainsKey(Constants.requestId) then
+                Some (unbox x.[Constants.requestId])
+            else None
+        and set(v: string option) = x.[Constants.requestId] <- v
+
+    member x.RequestUser
+        with get() : IPrincipal =
+            if x.ContainsKey(Constants.requestUser) then
+                unbox x.[Constants.requestUser]
+            else Unchecked.defaultof<_>
+        and set(v: IPrincipal) = x.[Constants.requestUser] <- v
 
     member x.ResponseStatusCode
         with get() : int =

@@ -19,8 +19,8 @@ namespace Dyfrig
 open Microsoft.FSharp.Core
 
 (**
- * OWIN 1.0.0
- * http://owin.org/spec/owin-1.0.0.html
+ * OWIN 1.1.0
+ * https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md
  *)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -42,6 +42,10 @@ module Constants =
     let [<Literal>] requestHeaders = "owin.RequestHeaders"
     [<CompiledName("RequestBody")>]
     let [<Literal>] requestBody = "owin.RequestBody"
+    [<CompiledName("RequestId")>]
+    let [<Literal>] requestId = "owin.RequestId"
+    [<CompiledName("RequestUser")>]
+    let [<Literal>] requestUser = "owin.RequestUser"
 
     (* 3.2.2 Response Data *)
     [<CompiledName("ResponseStatusCode")>]

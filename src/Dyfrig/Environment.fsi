@@ -34,22 +34,22 @@ type Environment =
     /// Gets a value with the specified key from the environment dictionary as the specified type 'a.
     static member inline Get<'a> : environment:OwinEnv * key: string -> 'a option
 
-    /// Gets the HTTP method used in the current request.
+    /// Gets or sets the HTTP method used in the current request.
     member RequestMethod : string with get, set
 
-    /// Gets the scheme (e.g. "http" or "https") for the current request.
+    /// Gets or sets the scheme (e.g. "http" or "https") for the current request.
     member RequestScheme : string with get, set
 
-    /// Gets the path corresponding to the "root" of the application.
+    /// Gets or sets the path corresponding to the "root" of the application.
     member RequestPathBase : string with get, set
 
-    /// Gets the path relative to the "root" of the application.
+    /// Gets or sets the path relative to the "root" of the application.
     member RequestPath : string with get, set
 
-    /// Gets the query string from the request URI.
+    /// Gets or sets the query string from the request URI.
     member RequestQueryString : string with get, set
 
-    /// Gets the HTTP protocol version for the request.
+    /// Gets or sets the HTTP protocol version for the request.
     member RequestProtocol : string with get, set
     
     /// Gets the request headers dictionary for the current request.
@@ -64,7 +64,14 @@ type Environment =
     /// Gets the request body for the current request.
     member RequestBody : System.IO.Stream with get
 
-    /// Gets the response status code for the current request.
+    /// Gets or sets the unique string representing the request.
+    member RequestId : string option with get, set
+
+    /// Gets or sets the `IPrincipal` instance representing the requesting user.
+    /// In a .NET 4.5 project, this MUST be a `ClaimsPrincipal`.
+    member RequestUser : System.Security.Principal.IPrincipal with get, set
+
+    /// Gets or sets the response status code for the current request.
     member ResponseStatusCode : int with get, set
 
     /// Gets the response reason phrase for the current request.
