@@ -32,11 +32,6 @@ module OwinRailway =
     /// Combine a two-track input with an asynchronous projection on the success track and ignore the failure track.
     val mapAsync : f:('TIn -> Async<'TOut>) -> input:OwinRailway<'TIn, 'TFailure> -> OwinRailway<'TOut, 'TFailure>
 
-    /// Extensions to the `System.IO.Stream` type.
-    type System.IO.Stream with
-        /// Asynchronously copy from the current `System.IO.Stream` to another `System.IO.Stream` using a fixed-size buffer.
-        member AsyncCopyTo : out:System.IO.Stream * ?bufferSize:int -> Async<unit>   
-
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
     val fromRailway : exceptionHandler:(Environment -> exn -> Environment) -> app:(OwinEnv -> OwinRailway<Environment, exn>) -> OwinAppFunc

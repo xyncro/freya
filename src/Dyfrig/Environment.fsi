@@ -19,6 +19,13 @@ namespace Dyfrig
 /// OWIN headers dictionary
 type OwinHeaders = System.Collections.Generic.IDictionary<string, string[]>
 
+/// Extensions to the `System.IO.Stream` class.
+module StreamEx =
+    /// Extensions to the `System.IO.Stream` type.
+    type System.IO.Stream with
+        /// Asynchronously copy from the current `System.IO.Stream` to another `System.IO.Stream` using a fixed-size buffer.
+        member AsyncCopyTo : out:System.IO.Stream * ?bufferSize:int -> Async<unit>   
+
 /// An Environment dictionary to store OWIN request and response values.
 [<Class>]
 type Environment =
@@ -110,3 +117,7 @@ module Environment =
     /// rather than mapped into a new instance.
     [<CompiledName("ToEnvironment")>]
     val toEnvironment : environment:OwinEnv -> Environment
+
+    /// Flushes the values from the `newEnv` to the `oldEnv`.
+    [<CompiledName("Flush")>]
+    val flush : oldEnv:OwinEnv -> newEnv:Environment -> Async<unit>

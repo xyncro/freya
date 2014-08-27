@@ -42,23 +42,6 @@ module OwinRailway =
         | Choice2Of2 e -> return Choice2Of2 e
     }
 
-    let private copyStream bufferSize =
-        let buffer = Array.zeroCreate bufferSize
-        let rec moveTo (outs: System.IO.Stream) (ins: System.IO.Stream) = async {
-            let! bytes = ins.AsyncRead(buffer)
-            if bytes > 0 then
-                do! outs.AsyncWrite(buffer, 0, bytes)
-                return! moveTo outs ins
-        }
-        moveTo
-
-    type System.IO.Stream with
-        member x.AsyncCopyTo (out: System.IO.Stream, ?bufferSize) = async {   
-            let bufferSize = defaultArg bufferSize 1024
-            let copyTo = copyStream bufferSize
-            return! copyTo out x
-        }
-
     /// Converts a F# Async-based railway-oriented OWIN AppFunc to a standard Func<_, Task> AppFunc.
     [<CompiledName("FromRailway")>]
     let fromRailway exceptionHandler (app: OwinEnv -> OwinRailway<Environment, exn>) =
@@ -69,18 +52,5 @@ module OwinRailway =
                 match result with
                 | Choice1Of2 env' -> env'
                 | Choice2Of2 e -> exceptionHandler env e
-
-            // If the handler mutated the environment, no more work is necessary.
-            if obj.ReferenceEquals(env, env') then () else
-            // Otherwise, copy the last dictionary back onto the original.
-            for KeyValue(key, value) in env' do
-                // TODO: What elements might we not want to copy? Are all safe to copy?
-                if env.ContainsKey(key) && env.[key] <> value then
-                    match value with
-                    | :? System.IO.Stream as stream ->
-                        let out = unbox<System.IO.Stream> env.[key]
-                        // TODO: asynchronously copy to the out stream
-                        do! stream.AsyncCopyTo(out)
-                    | _ -> env.[key] <- value
-        }
+            do! env' |> Environment.flush env }
         OwinAppFunc(fun env -> handler env |> Async.StartAsTask :> System.Threading.Tasks.Task)

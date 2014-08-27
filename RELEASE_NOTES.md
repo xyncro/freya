@@ -1,3 +1,9 @@
+### New in 0.6.0 - (Released 2014/08/27)
+* Added `Environment.flush` function to support pushing changes to an immutable `Environment` to the original `OwinEnv`.
+* Added additional properties to support upcoming [OWIN v1.1](https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md) keys:
+    * [`owin.RequestId`](https://github.com/owin/owin/issues/18)
+    * [`owin.RequestUser`](https://github.com/owin/owin/issues/9)
+
 ### New in 0.5.0 - (Released 2014/08/011)
 * Added OwinMonad (courtesy of [Andrew Cherry](https://github.com/kolektiv))
 * Breaking change: `OwinApp` module renamed to `OwinAppFunc` module with `fromOwinApp` and `fromOwinMonad` members
