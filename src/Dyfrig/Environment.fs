@@ -28,12 +28,30 @@ open Microsoft.FSharp.Core
 
 type OwinHeaders = IDictionary<string, string[]>
 
+module StreamEx =
+    let copyStream bufferSize =
+        let buffer = Array.zeroCreate bufferSize
+        let rec moveTo (outs: System.IO.Stream) (ins: System.IO.Stream) = async {
+            let! bytes = ins.AsyncRead(buffer)
+            if bytes > 0 then
+                do! outs.AsyncWrite(buffer, 0, bytes)
+                return! moveTo outs ins }
+        moveTo
+
+    type System.IO.Stream with
+        member x.AsyncCopyTo (out: System.IO.Stream, ?bufferSize) = async {
+            let bufferSize = defaultArg bufferSize 1024
+            let copyTo = copyStream bufferSize
+            return! copyTo out x }
+
+open StreamEx
+
 type Environment =
     inherit Dictionary<string, obj>
 
     val mutable private disposed : bool
 
-    new (dictionary: OwinEnv) =
+    new (dictionary: OwinEnv) as x =
         {
             inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
             disposed = false
@@ -57,7 +75,7 @@ type Environment =
             x.Add(Constants.responseHeaders, defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> OwinHeaders))
             x.Add(Constants.responseBody, defaultArg responseBody (new MemoryStream() :> Stream))
             x.Add(Constants.callCancelled, defaultArg callCancelled (let cts = new CancellationTokenSource() in cts.Token))
-            x.Add(Constants.owinVersion, "1.0")
+            x.Add(Constants.owinVersion, "1.1")
 
     static member inline Get<'a> (environment: OwinEnv, key: string) =
         if environment.ContainsKey(key) then
@@ -161,7 +179,9 @@ type Environment =
     member x.OwinVersion = unbox<string> x.[Constants.owinVersion]
 
     member x.With(key: string, value: #obj) =
+        // Copy the current environment to the new environment.
         let env = new Environment(x)
+        // Set the new value.
         env.[key] <- value
         env
 
@@ -189,3 +209,28 @@ module Environment =
         match environment with
         | :? Environment as e -> e
         | _ as d -> new Environment(d)
+
+    [<CompiledName("Flush")>]
+    let flush (oldEnv: OwinEnv) (newEnv: Environment) = async {
+        // If the original environment is the same as the current reference, nothing further is necessary.
+        if obj.ReferenceEquals(oldEnv, newEnv) then () else
+        // Otherwise, copy the last dictionary back onto the original.
+        for KeyValue(key, value) in newEnv do
+            // Add keys not present in the original.
+            if not (oldEnv.ContainsKey key) then
+                oldEnv.Add(key, value)
+            // Update existing keys if the value is different.
+            // TODO: What elements might we not want to copy? Are all safe to copy?
+            elif oldEnv.ContainsKey(key) && oldEnv.[key] <> value then
+                match value with
+                | :? System.IO.Stream as stream ->
+                    let out = unbox<System.IO.Stream> oldEnv.[key]
+                    // TODO: asynchronously copy to the out stream
+                    do! stream.AsyncCopyTo(out)
+                | :? OwinHeaders as headers ->
+                    let oldEnvHeaders : OwinHeaders = unbox oldEnv.[key]
+                    for KeyValue(k, v) in headers do
+                        oldEnvHeaders.[k] <- v
+                    // TODO: should remove any headers removed from the current instance
+                | _ -> oldEnv.[key] <- value }
+            // TODO: should remove any values not in the current instance
