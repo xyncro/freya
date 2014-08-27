@@ -59,6 +59,7 @@
   </Target>
   <ItemGroup>
     <Compile Include="Constants.fs" />
+    <Compile Include="OwinApp.fsi" />
     <Compile Include="OwinApp.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
