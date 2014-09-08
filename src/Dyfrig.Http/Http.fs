@@ -6,6 +6,7 @@ open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
+open FParsec
 
 
 type Method =
@@ -30,20 +31,299 @@ type Scheme =
 
 
 [<AutoOpen>]
+module Headers =
+
+    [<AutoOpen>]
+    module Request =
+
+        // Content Negotiation
+
+        (* Accept
+            Taken from RFC 7231, Section 5.3.2. Accept
+            [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+
+        type Accept =
+            { MediaRange: MediaRange
+              AcceptParameters: AcceptParameters option }
+
+        and MediaRange =
+            { Type: MediaType
+              SubType: MediaType
+              Parameters: Map<string, string> }
+
+        and MediaType =
+            | Named of string
+            | Any
+
+        and AcceptParameters =
+            { Weight: float
+              AcceptExtensions: Map<string, string option> }
+
+        (* Accept-Charset
+            Taken from RFC 7231, Section 5.3.3. Accept-Charset
+            [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+
+        type AcceptCharset =
+            { Charset: Charset
+              Weight: float option }
+
+        and Charset =
+            | Named of string
+            | Any
+
+
+[<AutoOpen>]
+module internal Parsers =
+
+    let parse p s =
+        match run p s with
+        | Success (x, _, _) -> Some x
+        | Failure (_, _, _) -> None
+
+
+    [<AutoOpen>]
+    module RFC_5234 =
+
+        [<AutoOpen>]
+        module Appendix_B_1 =
+
+            (* Core Rules
+               Taken from RFC 5234, Appendix B.1. Core Rules
+               [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
+
+            let CR = 
+                char 0x0d
+
+            let DQUOTE = 
+                char 0x22
+
+            let HTAB = 
+                char 0x09
+
+            let SP = 
+                char 0x20
+
+            let ALPHA = 
+                Set.unionMany 
+                    [ set (List.map char [0x41 .. 0x5a])
+                      set (List.map char [0x61 .. 0x7a]) ]
+
+            let DIGIT = 
+                set (List.map char [0x30 .. 0x39])
+
+            let VCHAR = 
+                set (List.map char [0x21 .. 0x7e])
+
+            let WSP = 
+                set [ SP; HTAB ]
+
+            let isALPHA c = 
+                Set.contains c ALPHA
+
+            let isDIGIT c = 
+                Set.contains c DIGIT
+
+            let isWSP c = 
+                Set.contains c WSP
+
+
+    [<AutoOpen>]
+    module RFC_7230 =
+
+        [<AutoOpen>]
+        module Section_3_2_3 =
+
+            (* Whitespace
+               Taken from RFC 7230, Section 3.2.3. Whitespace
+               [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
+        
+            let OWS = 
+                skipManySatisfy isWSP
+
+    //        let RWS = 
+    //            skipMany1Satisfy isWSP
+
+
+        [<AutoOpen>]
+        module Section_3_2_6 =
+
+            (* Field Value Components
+               Taken from RFC 7230, Section 3.2.6. Field Value Components
+               [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
+
+            let private nonDelimiters =
+                set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
+                      '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
+
+            let TCHAR = 
+                Set.unionMany 
+                    [ nonDelimiters
+                      ALPHA
+                      DIGIT ]
+
+            let isTCHAR c =
+                Set.contains c TCHAR
+
+            let token = 
+                many1Satisfy isTCHAR
+
+
+        [<AutoOpen>]
+        module Section_7 =
+
+            (* ABNF List Extension: #rule
+               Taken from RFC 7230, Section 7. ABNF List Extension: #rule
+               [http://tools.ietf.org/html/rfc7230#section-7] *)
+
+            let private infixHead s p =
+                (attempt p |>> Some) <|> (s >>% None)
+
+            let private infixTail s p =
+                many (OWS >>? s >>? OWS >>? opt p)
+
+            (* Note:
+               The infix and prefix parsers are designed to convey as accurately as possible the 
+               meaning of the ABNF #rule extension including the laxity of specification for backward 
+               compatibility. Whether they are a perfectly true representation is open to debate, 
+               but they should perform sensibly under normal conditions. *)
+
+            let infix s p = 
+                infixHead s p .>>. infixTail s p .>> OWS |>> fun (x, xs) ->  x :: xs |> List.choose id
+
+            let infix1 s p =
+                notEmpty (infix s p)
+
+            let prefix s p =
+                many (OWS >>? s >>? OWS >>? p)
+
+            let prefix1 s p =
+                notEmpty (prefix s p)
+
+
+    [<AutoOpen>]
+    module RFC_7231 =
+
+        [<AutoOpen>]
+        module Section_5_3_1 =
+
+            (* Quality Values
+               Taken from RFC 7231, Section 5.3.1. Quality Values
+               [http://tools.ietf.org/html/rfc7231#section-5.3.1] *)
+
+            let private valueOrDefault =
+                function
+                | Some x -> float (sprintf "0.%s" x)
+                | _ -> 0.
+
+            let private d3 =
+                 manyMinMaxSatisfy 0 3 isDIGIT .>> notFollowedBy (skipSatisfy isDIGIT)
+
+            let private isZero =
+                isAnyOf [ '0' ]
+
+            let private d03 =
+                skipManyMinMaxSatisfy 0 3 isZero .>> notFollowedBy (skipSatisfy isDIGIT)
+
+            let private qvalue =
+                choice
+                    [ skipChar '0' >>. opt (skipChar '.' >>. d3) |>> valueOrDefault
+                      skipChar '1' >>. optional (skipChar '.' >>. d03) >>% 1. ]
+
+            let weight =
+                skipChar ';' >>. OWS >>. skipStringCI "q=" >>. qvalue .>> OWS
+
+
+        [<AutoOpen>]
+        module Section_5_3_2 =
+        
+            (* Accept
+               Taken from RFC 7231, Section 5.3.2. Accept
+               [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+
+            // TODO: tokens are not the only values here, dquoted strings need implementing
+
+            let private acceptExtension =
+                token .>>. opt (skipChar '=' >>. token)
+
+            let private acceptExtensions =
+                prefix (skipChar ';') acceptExtension 
+                |>> Map.ofList
+
+            let private acceptParameters =
+                weight .>> OWS .>>. acceptExtensions 
+                |>> fun (weight, acceptExtensions) -> 
+                    { Weight = weight
+                      AcceptExtensions = acceptExtensions }
+
+            let private parameter =
+                notFollowedBy (OWS >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
+
+            let private parameters =
+                prefix (skipChar ';') parameter 
+                |>> Map.ofList
+
+            let private openRange = 
+                skipString "*/*"
+                |>> fun _ -> MediaType.Any, MediaType.Any
+
+            let private partialRange = 
+                token .>> skipString "/*"
+                |>> fun x -> MediaType.Named x, MediaType.Any
+
+            let private fullRange = 
+                token .>> skipChar '/' .>>. token
+                |>> fun (x, y) -> MediaType.Named x, MediaType.Named y
+
+            let private range = 
+                choice [
+                    attempt openRange
+                    attempt partialRange
+                    fullRange ]
+
+            let private mediaRange = 
+                range .>> OWS .>>. parameters
+                |>> fun ((t, st), parameters) ->
+                    { Type = t
+                      SubType = st
+                      Parameters = parameters } 
+
+            let accept = 
+                infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParameters)
+                |>> List.map (fun (mediaRange, acceptParameters) ->
+                    { MediaRange = mediaRange
+                      AcceptParameters = acceptParameters })
+
+
+        [<AutoOpen>]
+        module Section_5_3_3 =
+
+            (* Accept-Charset
+               Taken from RFC 7231, Section 5.3.3. Accept-Charset
+               [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+
+            let private openCharset =
+                skipChar '*'
+                |>> fun _ -> Charset.Any
+
+            let private namedCharset =
+                token
+                |>> fun s -> Charset.Named s
+
+            let private charset = 
+                choice [
+                    openCharset
+                    namedCharset ]
+
+            let acceptCharset =
+                infix1 (skipChar ',') (charset .>> OWS .>>. opt weight)
+                |>> List.map (fun (charset, weight) ->
+                    { Charset = charset
+                      Weight = weight })
+
+
+
+[<AutoOpen>]
 module internal Helpers =
-
-    // Headers
-
-    let headersFromDict k =
-        fun (headers: IDictionary<string, string []>) ->
-            match headers.TryGetValue k with
-            | true, v -> Some (List.ofArray v)
-            | _ -> None
-
-    let headersToDict k =
-        fun x (headers: IDictionary<string, string []>) ->
-            headers.[k] <- List.toArray x
-            headers
 
     // Method
 
@@ -127,9 +407,21 @@ module internal Helpers =
 [<AutoOpen>]
 module Lenses =
 
-    let internal isoHeaderPLens k : PLens<IDictionary<string, string []>, string list> =
-        (fun headers -> headersFromDict k headers),
-        (fun x headers -> headersToDict k x headers)
+    // Dictionary
+
+    let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
+        ((fun d -> d.[k]),
+         (fun v d -> d.[k] <- v; d))
+
+    let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
+        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
+         (fun v d -> d.[k] <- v; d))
+
+    let dictOptionLens k : Lens<IDictionary<'k,'v>, 'v option> =
+        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
+         (fun v d -> v |> function | Some v -> d.[k] <- v; d | _ -> d.Remove k |> ignore; d))
+
+    // Request
 
     let internal isoMethodLens : Lens<string, Method> =
         (fun s -> methodFromString s), 
@@ -147,61 +439,94 @@ module Lenses =
         (fun q -> queryFromString q),
         (fun m _ -> queryToString m)
 
-    let owinEnvLens<'T> k : Lens<OwinEnv, 'T> =
-        ((fun e -> e.[k]), (fun o e -> e.[k] <- o; e))
-        >--> isoLens unbox<'T> box
+    // Content Negotiation
 
-    let owinEnvPLens<'T> k : PLens<OwinEnv, 'T> =
-        ((fun e -> e.TryGetValue k |> function | true, v -> Some v | _ -> None), (fun o e -> e.[k] <- o; e))
-        >?-> isoLens unbox<'T> box
+    let internal isoAcceptPLens : PLens<string [] option, Accept list> =
+        ((fun s -> Option.bind (fun s -> parse accept (String.concat "," s)) s), 
+         (fun _ _ -> Some (Array.ofList [ "test" ])))
+
+    let internal isoAcceptCharsetPLens : PLens<string [] option, AcceptCharset list> =
+        ((fun s -> Option.bind (fun s -> parse acceptCharset (String.concat "," s)) s),
+         (fun _ _ -> Some (Array.ofList [ "test" ])))
 
 
 [<RequireQualifiedAccess>]
 module Request =
 
     let Body =
-        owinEnvLens<Stream> Constants.requestBody
+        dictLens Constants.requestBody
+        >--> isoLens unbox<Stream> box
 
     let Header key =
-        owinEnvLens<IDictionary<string, string []>> Constants.requestHeaders
-        >-?> isoHeaderPLens key
+        dictLens Constants.requestHeaders
+        >--> isoLens unbox<IDictionary<string, string []>> box
+        >--> dictOptionLens key
 
     let Method =
-        owinEnvLens<string> Constants.requestMethod
+        dictLens Constants.requestMethod
+        >--> isoLens unbox<string> box
         >--> isoMethodLens
 
     let Path =
-        owinEnvLens<string> Constants.requestPath
+        dictLens Constants.requestPath
+        >--> isoLens unbox<string> box
+
+    let PathBase =
+        dictLens Constants.requestPathBase
+        >--> isoLens unbox<string> box
 
     let Protocol =
-        owinEnvLens<string> Constants.requestProtocol
+        dictLens Constants.requestProtocol
+        >--> isoLens unbox<string> box
         >--> isoProtocolLens
 
     let Scheme = 
-        owinEnvLens<string> Constants.requestScheme 
+        dictLens Constants.requestScheme
+        >--> isoLens unbox<string> box
         >--> isoSchemeLens
 
     let Query key =
-        owinEnvLens<string> Constants.requestQueryString
+        dictLens Constants.requestQueryString
+        >--> isoLens unbox<string> box
         >--> isoQueryLens
         >-?> mapPLens key
+
+
+    [<RequireQualifiedAccess>]
+    module Headers =
+
+        let Accept =
+            dictLens Constants.requestHeaders
+            >--> isoLens unbox<IDictionary<string, string []>> box
+            >--> dictOptionLens "Accept"
+            >-?> isoAcceptPLens
+
+        let AcceptCharset =
+            dictLens Constants.requestHeaders
+            >--> isoLens unbox<IDictionary<string, string []>> box
+            >--> dictOptionLens "Accept-Charset"
+            >-?> isoAcceptCharsetPLens
 
 
 [<RequireQualifiedAccess>]
 module Response =
 
     let Body =
-        owinEnvLens<Stream> Constants.responseBody
+        dictLens Constants.responseBody
+        >--> isoLens unbox<Stream> box
 
     let Header key =
-        owinEnvLens<IDictionary<string, string []>> Constants.responseHeaders
-        >-?> isoHeaderPLens key
+        dictLens Constants.responseHeaders
+        >--> isoLens unbox<IDictionary<string, string []>> box
+        >--> dictOptionLens key
 
     let ReasonPhrase =
-        owinEnvPLens<string> Constants.responseReasonPhrase
+        dictPLens Constants.responseReasonPhrase
+        >?-> isoLens unbox<string> box
 
     let StatusCode =
-        owinEnvPLens<int> Constants.responseStatusCode
+        dictPLens Constants.responseStatusCode
+        >?-> isoLens unbox<int> box
 
 
 [<AutoOpen>]

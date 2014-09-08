@@ -66,7 +66,8 @@ module Cache =
     
     let cache<'T> m =
         let lens =
-            owinEnvPLens<'T> (string (Guid.NewGuid ()))
+            dictPLens (string (Guid.NewGuid ()))
+            >?-> isoLens unbox<'T> box
 
         owin {
             let! value = getPLM lens
@@ -85,24 +86,29 @@ module Cache =
 module internal Lenses =
 
     let actionsPLens k =
-        ((fun x -> x.Actions), (fun a x -> { x with Actions = a }))
+        ((fun x -> x.Actions), 
+         (fun a x -> { x with Actions = a }))
         >-?> mapPLens k
     
     let configPLens<'T> k =
-        ((fun x -> x.Configuration), (fun c x -> { x with Configuration = c }))
+        ((fun x -> x.Configuration), 
+         (fun c x -> { x with Configuration = c }))
         >-?> mapPLens k
         >?-> isoLens unbox<'T> box
         
     let decisionsPLens k =
-        ((fun x -> x.Decisions), (fun d x -> { x with Decisions = d }))
+        ((fun x -> x.Decisions), 
+         (fun d x -> { x with Decisions = d }))
         >-?> mapPLens k
 
     let handlersPLens k =
-        ((fun x -> x.Handlers), (fun h x -> { x with Handlers = h }))
+        ((fun x -> x.Handlers), 
+         (fun h x -> { x with Handlers = h }))
         >-?> mapPLens k
 
     let definitionLens =
-        owinEnvLens<MachineDefinition> "dyfrig.machine.definition"
+        dictLens "dyfrig.machine.definition"
+        >--> isoLens unbox<MachineDefinition> box
 
 
 [<AutoOpen>]
@@ -156,10 +162,10 @@ module internal Logic =
     module Headers =
 
         let headerEquals h v =
-            Option.map ((=) v) >> Option.getOrElse false <!> getPLM (Request.Header h)
+            Option.map ((=) v) >> Option.getOrElse false <!> getLM (Request.Header h)
 
         let headerExists h =
-            Option.isSome <!> getPLM (Request.Header h)
+            Option.isSome <!> getLM (Request.Header h)
 
 
     [<AutoOpen>]
@@ -172,9 +178,9 @@ module internal Logic =
 
         let private isValidDate header =
             owin {
-                let! header = getPLM (Request.Header header)
+                let! header = getLM (Request.Header header)
 
-                match header with
+                match header |> Option.map List.ofArray with
                 | Some (h :: _) -> return fst (tryParseDate h)
                 | _ -> return false }
 
@@ -191,10 +197,10 @@ module internal Logic =
             headerExists "If-Unmodified-Since"
 
         let ifMatchStar =
-            headerEquals "If-Match" [ "*" ]
+            headerEquals "If-Match" [| "*" |]
 
         let ifNoneMatchStar =
-            headerEquals "If-None-Match" [ "*" ]
+            headerEquals "If-None-Match" [| "*" |]
 
         let ifModifiedSinceValidDate =
             isValidDate "If-Modified-Since"
@@ -440,7 +446,7 @@ module Compilation =
 
             let! body = execute graph
 
-            do! setPLM (Response.Header "Content-Length") [ string body.Length ]
+            do! setLM (Response.Header "Content-Length")  (Some [| string body.Length |])
             do! modLM Response.Body (fun x -> x.Write (body, 0, body.Length); x)
         
             return true }

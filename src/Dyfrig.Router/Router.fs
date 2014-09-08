@@ -44,7 +44,8 @@ module Monad =
 module Route =
         
     let internal Values =
-        owinEnvLens<Map<string, string>> "dyfrig.routing.values"
+        dictLens "dyfrig.routing.values"
+        >--> isoLens unbox<Map<string, string>> box
 
     let Value key = 
         Values
