@@ -1,6 +1,5 @@
 ﻿namespace Dyfrig.Http.Tests
 
-open System.Collections.Generic
 open NUnit.Framework
 open Swensen.Unquote
 open Dyfrig.Core
@@ -12,33 +11,20 @@ module Data =
 
     let env () =
     
-        let env = Dictionary<string, obj> () :> IDictionary<string, obj>
+        let env = 
+            dict [
+                Constants.requestMethod, box "GET"
+                Constants.requestPath, box "/some/path"
+                Constants.requestPathBase, box ""
+                Constants.requestProtocol, box "HTTP/1.1"
+                Constants.requestQueryString, box "foo=bar&baz=boz"
+                Constants.requestScheme, box "http" ]
 
-        // Request
+        let requestHeaders = 
+            dict [
+                "Accept", [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |] ]
 
-        env.[Constants.requestMethod] <- "GET"
-        env.[Constants.requestPath] <- "/some/path"
-        env.[Constants.requestPathBase] <- ""
-        env.[Constants.requestProtocol] <- "HTTP/1.1"
-        env.[Constants.requestQueryString] <- "foo=bar&baz=boz"
-        env.[Constants.requestScheme] <- "http"
-
-        // Request Headers
-
-        let requestHeaders = Dictionary<string, string []> () :> IDictionary<string, string []>
-
-        requestHeaders.["Accept"] <- [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |]
-
-        env.[Constants.requestHeaders] <- requestHeaders
-        
-        // Response
-
-        // Response Headers
-
-        let responseHeaders = Dictionary<string, string []> () :> IDictionary<string, string []> 
-
-        env.[Constants.responseHeaders] <- responseHeaders
-        
+        env.[Constants.requestHeaders] <- requestHeaders       
         env
 
 

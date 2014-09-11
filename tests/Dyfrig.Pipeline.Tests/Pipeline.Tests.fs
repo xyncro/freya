@@ -1,9 +1,9 @@
 ﻿namespace Dyfrig.Pipeline.Tests
 
-open System.Collections.Generic
 open NUnit.Framework
 open Swensen.Unquote
 open Dyfrig.Core
+open Dyfrig.Core.Operators
 open Dyfrig.Pipeline
 open Dyfrig.Pipeline.Operators
 
@@ -12,61 +12,38 @@ open Dyfrig.Pipeline.Operators
 module Data =
 
     let env () =
-        let env = Dictionary<string, obj> () :> IDictionary<string, obj>
-        env.["o1"] <- false
-        env.["o2"] <- false
-        env
+        dict [
+            "o1", box false
+            "o2", box false ]
 
 
 [<AutoOpen>]
 module Helpers =
     
     let test f =
-        Async.RunSynchronously (f (env ())) |> snd
+        Async.RunSynchronously (f (env ()))
      
 
 module Composition =
 
     [<Test>]
-    let ``pipeline executes both monads`` () =
-        let o1 = modM (fun x -> x.["o1"] <- true; x)
-        let o2 = modM (fun x -> x.["o2"] <- true; x)
+    let ``pipeline executes both monads if first returns next`` () =
+        let o1 = modM (fun x -> x.["o1"] <- true; x) >>= next
+        let o2 = modM (fun x -> x.["o2"] <- true; x) >>= next
 
-        let env = test (o1 --> o2)
+        let choice, env = test (o1 >?= o2)
 
-        unbox env.["o1"] =? true
-        unbox env.["o2"] =? true
-
-    [<Test>]
-    let ``chain executes both monads if first returns continue`` () =
-        let o1 =
-            owin {
-                do! modM (fun x -> x.["o1"] <- true; x)
-                return Continue }
-
-        let o2 = 
-            owin {
-                do! modM (fun x -> x.["o2"] <- true; x)
-                return Continue }
-
-        let env = test (o1 -?> o2)
-
+        choice =? Next
         unbox env.["o1"] =? true
         unbox env.["o2"] =? true
 
     [<Test>]
     let ``chain executes only the first monad if first returns terminate`` () =
-        let o1 =
-            owin {
-                do! modM (fun x -> x.["o1"] <- true; x)
-                return Terminate }
+        let o1 = modM (fun x -> x.["o1"] <- true; x) >>= terminate
+        let o2 = modM (fun x -> x.["o2"] <- true; x) >>= next
 
-        let o2 = 
-            owin {
-                do! modM (fun x -> x.["o2"] <- true; x)
-                return Continue }
+        let choice, env = test (o1 >?= o2)
 
-        let env = test (o1 -?> o2)
-
+        choice =? Terminate
         unbox env.["o1"] =? true
         unbox env.["o2"] =? false
