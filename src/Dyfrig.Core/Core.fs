@@ -91,17 +91,17 @@ module Monad =
     let owin = OwinMonadBuilder ()
 
     /// Gets the current OwinEnv within an OWIN monad
-    let getM =
+    let getM : OwinMonad<OwinEnv> =
         fun s -> 
             async { return s, s }
 
     /// Sets the OwinEnv within an OWIN monad
-    let setM s =
+    let setM s : OwinMonad<unit> =
         fun _ ->
             async { return (), s }
 
     /// Modifies the current OwinEnv within an OWIN monad
-    let modM f =
+    let modM f : OwinMonad<unit> =
         fun s ->
             async { return (), f s }
 

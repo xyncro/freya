@@ -10,39 +10,43 @@ open Dyfrig.Http
 [<AutoOpen>]
 module Data =
 
-    let env = Dictionary<string, obj> () :> IDictionary<string, obj>
+    let env () =
+    
+        let env = Dictionary<string, obj> () :> IDictionary<string, obj>
 
-    // Request
+        // Request
 
-    env.[Constants.requestMethod] <- "GET"
-    env.[Constants.requestPath] <- "/some/path"
-    env.[Constants.requestPathBase] <- ""
-    env.[Constants.requestProtocol] <- "HTTP/1.1"
-    env.[Constants.requestQueryString] <- "foo=bar&baz=boz"
-    env.[Constants.requestScheme] <- "http"
+        env.[Constants.requestMethod] <- "GET"
+        env.[Constants.requestPath] <- "/some/path"
+        env.[Constants.requestPathBase] <- ""
+        env.[Constants.requestProtocol] <- "HTTP/1.1"
+        env.[Constants.requestQueryString] <- "foo=bar&baz=boz"
+        env.[Constants.requestScheme] <- "http"
 
-    // Request Headers
+        // Request Headers
 
-    let requestHeaders = Dictionary<string, string []> () :> IDictionary<string, string []>
+        let requestHeaders = Dictionary<string, string []> () :> IDictionary<string, string []>
 
-    requestHeaders.["Accept"] <- [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |]
+        requestHeaders.["Accept"] <- [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |]
 
-    env.[Constants.requestHeaders] <- requestHeaders
+        env.[Constants.requestHeaders] <- requestHeaders
         
-    // Response
+        // Response
 
-    // Response Headers
+        // Response Headers
 
-    let responseHeaders = Dictionary<string, string []> () :> IDictionary<string, string []> 
+        let responseHeaders = Dictionary<string, string []> () :> IDictionary<string, string []> 
 
-    env.[Constants.responseHeaders] <- responseHeaders
+        env.[Constants.responseHeaders] <- responseHeaders
+        
+        env
 
 
 [<AutoOpen>]
 module Helpers =
 
     let test f =
-        Async.RunSynchronously (f env) |> fst
+        Async.RunSynchronously (f (env ())) |> fst
 
 
 module Request =
