@@ -114,9 +114,8 @@ module internal Lenses =
 [<AutoOpen>]
 module internal Defaults =
 
-    let defaultAction = 
-        owin { 
-            return () }
+    let defaultAction =
+        owin { return () }
 
     let defaultAllowedMethods =
         Set.ofList
@@ -134,9 +133,8 @@ module internal Defaults =
               PUT
               TRACE ]
 
-    let defaultDecision (p: bool) = 
-        owin { 
-            return p }
+    let defaultDecision (decision: bool) = 
+        owin { return decision }
 
     let defaultHandler code phrase =
         owin {

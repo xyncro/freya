@@ -6,17 +6,17 @@ module Operations =
     [<AutoOpen>]
     module Registration =
 
-        type RouterMonadBuilder with
+        type RoutesMonadBuilder with
 
             [<CustomOperation ("register", MaintainsVariableSpaceUsingBind = true)>]
-            member x.Register (r, path, app) = 
-                x.Update (r, (fun x -> x @ [ { Methods = None; Path = path; App = app } ]))
+            member x.Register (r, meth, path, pipeline) =
+                x.Update (r, (fun x -> x @ [ { Method = meth; Path = path; Pipeline = pipeline } ]))
 
     
     [<AutoOpen>]
     module Utility =
 
-        type RouterMonadBuilder with
+        type RoutesMonadBuilder with
 
             [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
             member x.Including (r, routes) = 

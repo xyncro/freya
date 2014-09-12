@@ -69,6 +69,11 @@
       <Project>{319be959-12af-4322-a051-a0bf8cb15ec6}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Dyfrig.Pipeline\Dyfrig.Pipeline.fsproj">
+      <Name>Dyfrig.Pipeline</Name>
+      <Project>{e58c5890-b96f-447b-8414-0d04f9f77f62}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="Aether">
       <HintPath>..\..\packages\Aether.3.1.0\lib\net40\Aether.dll</HintPath>
       <Private>True</Private>

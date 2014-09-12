@@ -4,40 +4,45 @@ open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Http
+open Dyfrig.Pipeline
 
 
 [<AutoOpen>]
 module Monad =
 
-    type RouterMonad = 
+    type RoutesMonad = 
         Routes -> unit * Routes
 
     and Routes =
         Route list
 
     and Route =
-        { Methods: Method list option 
+        { Method: RouteMethod
           Path: string
-          App: OwinMonad<bool> }
+          Pipeline: Pipeline }
 
-    type RouterMonadBuilder () =
+    and RouteMethod =
+        | Any
+        | Methods of Method list 
 
-        member __.Return v : RouterMonad = 
+    type RoutesMonadBuilder () =
+
+        member __.Return v : RoutesMonad = 
             fun r -> v, r
 
-        member __.ReturnFrom f : RouterMonad = 
+        member __.ReturnFrom f : RoutesMonad = 
             f
 
-        member __.Bind (r, k) : RouterMonad = 
+        member __.Bind (r, k) : RoutesMonad = 
             r >> fun (result, trie) -> (k result) trie
 
-        member x.Combine (r1, r2) : RouterMonad = 
+        member x.Combine (r1, r2) : RoutesMonad = 
             x.Bind (r1, fun () -> r2)
 
         member internal x.Update (r, update) = 
             x.Bind ((fun res -> (), update res), fun _ -> x.ReturnFrom r)
 
-    let router = RouterMonadBuilder ()
+    let routes = RoutesMonadBuilder ()
 
 
 [<RequireQualifiedAccess>]
@@ -60,15 +65,15 @@ module internal Logic =
 
         static member empty =
             { Root =
-                { App = None
-                  Children = List.empty
+                { Children = List.empty
                   Key = ""
+                  Pipeline = None
                   Recognizer = Ignore "" } }
 
     and internal Node =
-        { App: OwinMonad<bool> option
-          Children: Node list
+        { Children: Node list
           Key: string
+          Pipeline: Pipeline option
           Recognizer: Recognizer }    
 
     and internal Recognizer =
@@ -76,19 +81,19 @@ module internal Logic =
         | Capture of string
 
     and internal Registration =
-        | Registration of string list * OwinMonad<bool>
-
-    let rootLens =
-        (fun x -> x.Root), 
-        (fun r x -> { x with Root = r })
-
-    let appPLens : PLens<Node, OwinMonad<bool>> =
-        (fun x -> x.App), 
-        (fun a x -> { x with App = Some a })
+        | Registration of string list * Pipeline
          
     let childrenLens =
         (fun x -> x.Children), 
         (fun c x -> { x with Children = c })
+
+    let pipelinePLens =
+        (fun x -> x.Pipeline), 
+        (fun p x -> { x with Node.Pipeline = Some p })
+
+    let rootLens =
+        (fun x -> x.Root), 
+        (fun r x -> { x with Root = r })
 
 
     [<AutoOpen>]
@@ -112,25 +117,27 @@ module internal Logic =
             | _ -> Ignore (key)
 
         let private node key =
-            { App = None
-              Children = List.empty
+            { Children = List.empty
               Key = key
+              Pipeline = None
               Recognizer = recognizer key }
 
-        let private add p app =
+        let private add p pipeline =
             let rec add registration root =
                 match registration with
                 | Registration (h :: t, app) ->
                     match List.tryFindIndex (fun x -> x.Key = h) root.Children with
-                    | Some i -> modPL (childrenLens >-?> listPLens i) (add (Registration (t, app))) root
-                    | _ -> modL childrenLens (fun x -> x @ [ add (Registration (t, app)) (node h) ]) root
-                | Registration (_, app) ->
-                    setPL appPLens app root
+                    | Some i -> 
+                        modPL (childrenLens >-?> listPLens i) (add (Registration (t, app))) root
+                    | _ -> 
+                        modL childrenLens (fun x -> x @ [ add (Registration (t, app)) (node h) ]) root
+                | Registration (_, pipeline) ->
+                    setPL pipelinePLens pipeline root
 
-            modL rootLens (add (registration p app))
+            modL rootLens (add (registration p pipeline))
 
         let construct (routes: Routes) =
-            List.fold (fun x route -> add route.Path route.App x) Trie.empty routes
+            List.fold (fun x route -> add route.Path route.Pipeline x) Trie.empty routes
 
 
 [<AutoOpen>]
@@ -156,7 +163,7 @@ module internal Routing =
                     | Some (child, map) -> traverse map t child
                     | _ -> None
             | _ -> 
-                root.App |> Option.map (fun x -> x, data)
+                root.Pipeline |> Option.map (fun x -> x, data)
 
         traverse Map.empty (path p) trie.Root
 
@@ -164,9 +171,11 @@ module internal Routing =
 [<AutoOpen>]
 module Compilation =
 
-    let compileRouter (router: RouterMonad) =
-        let routes = router List.empty |> snd
-        let trie = construct routes
+    let compileRoutes (routes: RoutesMonad) : Pipeline =
+        let trie = 
+            routes List.empty 
+            |> snd
+            |> construct
 
         owin {
             let! path = getLM Request.Path
@@ -176,4 +185,4 @@ module Compilation =
                 do! setLM Route.Values data
                 return! app
             | _ -> 
-                return true }
+                return Next }
