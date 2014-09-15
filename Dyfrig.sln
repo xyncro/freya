@@ -3,32 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{94B68E75-535D-44D3-8F2E-FE477C175468}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B2686A32-382F-4191-860C-420C4478D60F}"
-	ProjectSection(SolutionItems) = preProject
-		docs\files\img\logo.png = docs\files\img\logo.png
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832}"
-	ProjectSection(SolutionItems) = preProject
-		docs\content\index.fsx = docs\content\index.fsx
-		docs\content\tutorial.fsx = docs\content\tutorial.fsx
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{D432FD3F-8003-45A9-BEEF-247B274AE6BE}"
-	ProjectSection(SolutionItems) = preProject
-		docs\tools\generate.fsx = docs\tools\generate.fsx
-		docs\tools\packages.config = docs\tools\packages.config
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{B6C8349E-2659-428F-A551-C21561A56B5A}"
-	ProjectSection(SolutionItems) = preProject
-		docs\tools\templates\template.cshtml = docs\tools\templates\template.cshtml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{1E74AF9B-A986-4D48-9BA3-1C597AB6979D}"
 	ProjectSection(SolutionItems) = preProject
 		build.cmd = build.cmd
@@ -38,14 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{1E74
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{64546C15-34CF-4E2D-969A-CB8AAB939074}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\Dyfrig.nuspec = nuget\Dyfrig.nuspec
-		nuget\publish.cmd = nuget\publish.cmd
-	EndProjectSection
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{EA130B5A-37B9-4842-B5D5-A245BE710D82}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Http", "src\Dyfrig.Http\Dyfrig.Http.fsproj", "{319BE959-12AF-4322-A051-A0BF8CB15EC6}"
 EndProject
@@ -65,16 +31,29 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline", "src\Dyfr
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline.Tests", "tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj", "{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{17E3F5E5-0787-496E-B21A-A11A039B0DFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EEF87D0F-5FAF-465F-86CD-20E135081D20}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6E9365E2-0CD1-4F2F-968C-ED5E5E7A80A0}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{C5ABCD46-B313-4D8A-9DAE-0B4594624B56}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{EA130B5A-37B9-4842-B5D5-A245BE710D82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.Build.0 = Release|Any CPU
 		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -111,16 +90,25 @@ Global
 		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{94B68E75-535D-44D3-8F2E-FE477C175468} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{B2686A32-382F-4191-860C-420C4478D60F} = {94B68E75-535D-44D3-8F2E-FE477C175468}
-		{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{D432FD3F-8003-45A9-BEEF-247B274AE6BE} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{B6C8349E-2659-428F-A551-C21561A56B5A} = {D432FD3F-8003-45A9-BEEF-247B274AE6BE}
+		{319BE959-12AF-4322-A051-A0BF8CB15EC6} = {17E3F5E5-0787-496E-B21A-A11A039B0DFA}
+		{B407543C-6C1E-409A-B90C-908C21A9829E} = {17E3F5E5-0787-496E-B21A-A11A039B0DFA}
+		{0DD29B24-0D7F-4B80-A172-292137D4BD5A} = {EEF87D0F-5FAF-465F-86CD-20E135081D20}
+		{88673368-AFB7-4B6E-B74D-E5148C3D3279} = {EEF87D0F-5FAF-465F-86CD-20E135081D20}
+		{B6488751-6B7D-4284-ACFA-5DD56EA07AA3} = {EEF87D0F-5FAF-465F-86CD-20E135081D20}
+		{520BB73F-A641-4365-83E2-843D7D20D128} = {EEF87D0F-5FAF-465F-86CD-20E135081D20}
+		{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE} = {17E3F5E5-0787-496E-B21A-A11A039B0DFA}
+		{E58C5890-B96F-447B-8414-0D04F9F77F62} = {17E3F5E5-0787-496E-B21A-A11A039B0DFA}
+		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5} = {EEF87D0F-5FAF-465F-86CD-20E135081D20}
+		{EA130B5A-37B9-4842-B5D5-A245BE710D82} = {17E3F5E5-0787-496E-B21A-A11A039B0DFA}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = src\Dyfrig.fsproj
