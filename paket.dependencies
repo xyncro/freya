@@ -2,7 +2,6 @@ source "http://nuget.org/api/v2"
 
 nuget "Aether" "~> 3"
 nuget "FParsec" "~> 1.0"
-nuget "FSharpx.Core" "~> 1.8"
 
 nuget "FsUnit" "~> 1.3"
 nuget "Unquote" "~> 2.2"
