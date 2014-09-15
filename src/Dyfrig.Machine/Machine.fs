@@ -7,15 +7,7 @@ open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
-
-
-[<RequireQualifiedAccess>]
-module private Option =
-
-    let getOrElse def a =
-        match a with
-        | Some a -> a
-        | _ -> def
+open FSharpx
 
 
 [<AutoOpen>]
