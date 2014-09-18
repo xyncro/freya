@@ -453,39 +453,39 @@ module Lenses =
 [<RequireQualifiedAccess>]
 module Request =
 
-    let Body =
+    let body =
         dictLens Constants.requestBody
         >--> isoLens unbox<Stream> box
 
-    let Header key =
+    let header key =
         dictLens Constants.requestHeaders
         >--> isoLens unbox<IDictionary<string, string []>> box
         >--> dictOptionLens key
 
-    let Method =
+    let meth =
         dictLens Constants.requestMethod
         >--> isoLens unbox<string> box
         >--> isoMethodLens
 
-    let Path =
+    let path =
         dictLens Constants.requestPath
         >--> isoLens unbox<string> box
 
-    let PathBase =
+    let pathBase =
         dictLens Constants.requestPathBase
         >--> isoLens unbox<string> box
 
-    let Protocol =
+    let protocol =
         dictLens Constants.requestProtocol
         >--> isoLens unbox<string> box
         >--> isoProtocolLens
 
-    let Scheme = 
+    let scheme = 
         dictLens Constants.requestScheme
         >--> isoLens unbox<string> box
         >--> isoSchemeLens
 
-    let Query key =
+    let query key =
         dictLens Constants.requestQueryString
         >--> isoLens unbox<string> box
         >--> isoQueryLens
@@ -495,13 +495,13 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let Accept =
+        let accept =
             dictLens Constants.requestHeaders
             >--> isoLens unbox<IDictionary<string, string []>> box
             >--> dictOptionLens "Accept"
             >-?> isoAcceptPLens
 
-        let AcceptCharset =
+        let acceptCharset =
             dictLens Constants.requestHeaders
             >--> isoLens unbox<IDictionary<string, string []>> box
             >--> dictOptionLens "Accept-Charset"
@@ -511,20 +511,20 @@ module Request =
 [<RequireQualifiedAccess>]
 module Response =
 
-    let Body =
+    let body =
         dictLens Constants.responseBody
         >--> isoLens unbox<Stream> box
 
-    let Header key =
+    let header key =
         dictLens Constants.responseHeaders
         >--> isoLens unbox<IDictionary<string, string []>> box
         >--> dictOptionLens key
 
-    let ReasonPhrase =
+    let reasonPhrase =
         dictPLens Constants.responseReasonPhrase
         >?-> isoLens unbox<string> box
 
-    let StatusCode =
+    let statusCode =
         dictPLens Constants.responseStatusCode
         >?-> isoLens unbox<int> box
 

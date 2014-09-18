@@ -7,7 +7,15 @@ open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
-open FSharpx
+
+
+[<RequireQualifiedAccess>]
+module private Option =
+
+    let getOrElse def x =
+        match x with
+        | Some x -> x 
+        | _ -> def
 
 
 [<AutoOpen>]
@@ -138,8 +146,8 @@ module internal Defaults =
 
     let defaultHandler code phrase =
         owin {
-            do! setPLM Response.StatusCode code
-            do! setPLM Response.ReasonPhrase phrase
+            do! setPLM Response.statusCode code
+            do! setPLM Response.reasonPhrase phrase
 
             return Array.empty<byte> }
 
@@ -160,10 +168,10 @@ module internal Logic =
     module Headers =
 
         let headerEquals h v =
-            Option.map ((=) v) >> Option.getOrElse false <!> getLM (Request.Header h)
+            Option.map ((=) v) >> Option.getOrElse false <!> getLM (Request.header h)
 
         let headerExists h =
-            Option.isSome <!> getLM (Request.Header h)
+            Option.isSome <!> getLM (Request.header h)
 
 
     [<AutoOpen>]
@@ -176,7 +184,7 @@ module internal Logic =
 
         let private isValidDate header =
             owin {
-                let! header = getLM (Request.Header header)
+                let! header = getLM (Request.header header)
 
                 match header |> Option.map List.ofArray with
                 | Some (h :: _) -> return fst (tryParseDate h)
@@ -226,7 +234,7 @@ module internal Logic =
     module Method =
 
         let private isMethod meth =
-            (=) meth <!> getLM Request.Method
+            (=) meth <!> getLM Request.meth
 
         let private getMethods key defaults =
             Option.getOrElse defaults
@@ -234,7 +242,7 @@ module internal Logic =
 
         let private isValidMethod key defaults =
             owin {
-                let! m = getLM Request.Method
+                let! m = getLM Request.meth
                 let! ms = getMethods key defaults
 
                 return Set.contains m ms }
@@ -444,7 +452,7 @@ module Compilation =
 
             let! body = execute graph
 
-            do! setLM (Response.Header "Content-Length")  (Some [| string body.Length |])
-            do! modLM Response.Body (fun x -> x.Write (body, 0, body.Length); x)
+            do! setLM (Response.header "Content-Length")  (Some [| string body.Length |])
+            do! modLM Response.body (fun x -> x.Write (body, 0, body.Length); x)
         
             return true }

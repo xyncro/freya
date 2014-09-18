@@ -3,67 +3,48 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core", "src\Dyfrig.Core\Dyfrig.Core.fsproj", "{1AAE3D8F-196F-4868-88AB-47D860CF091F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{94B68E75-535D-44D3-8F2E-FE477C175468}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ABE59DEA-56DB-4354-9754-0E4074360A9B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B2686A32-382F-4191-860C-420C4478D60F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{87F63A63-9BE7-408B-937D-A4174FCE5734}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core.Tests", "tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj", "{46B6DE09-76D2-435C-8B7F-CAF3287029DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{291EFE25-4571-4F3D-A7A3-A900C66EBA62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "paket", "paket", "{432B863E-38B9-4D40-9A6B-1F5B2132D241}"
 	ProjectSection(SolutionItems) = preProject
-		docs\files\img\logo.png = docs\files\img\logo.png
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Http", "src\Dyfrig.Http\Dyfrig.Http.fsproj", "{EF160EBE-806E-4F88-81AC-B9488EDE1085}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Http.Tests", "tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj", "{D39640C6-2258-4571-830E-7028E19DB6BA}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline", "src\Dyfrig.Pipeline\Dyfrig.Pipeline.fsproj", "{6E725EBA-1A60-4F24-894C-1836631380DF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Router", "src\Dyfrig.Router\Dyfrig.Router.fsproj", "{23F496CA-50F7-4905-A89D-568D29331D1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", "{ECD01608-218F-4D0A-9737-BA7F7794C349}"
 	ProjectSection(SolutionItems) = preProject
-		docs\content\index.fsx = docs\content\index.fsx
-		docs\content\tutorial.fsx = docs\content\tutorial.fsx
+		tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj.paket.references = tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj.paket.references
+		src\Dyfrig.Http\Dyfrig.Http.fsproj.paket.references = src\Dyfrig.Http\Dyfrig.Http.fsproj.paket.references
+		tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references = tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references
+		src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references = src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references
+		tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references = tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references
+		src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references = src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{D432FD3F-8003-45A9-BEEF-247B274AE6BE}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{0A570763-69E7-4E5B-8640-A848A4E2239F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline.Tests", "tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj", "{9A64A4B2-7F04-4989-82D3-56B99FF918A8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{0F3A37FB-A877-42E8-9DEA-544A94863D75}"
 	ProjectSection(SolutionItems) = preProject
-		docs\tools\generate.fsx = docs\tools\generate.fsx
-		docs\tools\packages.config = docs\tools\packages.config
+		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{B6C8349E-2659-428F-A551-C21561A56B5A}"
-	ProjectSection(SolutionItems) = preProject
-		docs\tools\templates\template.cshtml = docs\tools\templates\template.cshtml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{1E74AF9B-A986-4D48-9BA3-1C597AB6979D}"
-	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
-		build.fsx = build.fsx
-		build.sh = build.sh
-		LICENSE.txt = LICENSE.txt
-		README.md = README.md
-		RELEASE_NOTES.md = RELEASE_NOTES.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{64546C15-34CF-4E2D-969A-CB8AAB939074}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\Dyfrig.nuspec = nuget\Dyfrig.nuspec
-		nuget\publish.cmd = nuget\publish.cmd
-	EndProjectSection
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{EA130B5A-37B9-4842-B5D5-A245BE710D82}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Http", "src\Dyfrig.Http\Dyfrig.Http.fsproj", "{319BE959-12AF-4322-A051-A0BF8CB15EC6}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core", "src\Dyfrig.Core\Dyfrig.Core.fsproj", "{B407543C-6C1E-409A-B90C-908C21A9829E}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core.Tests", "tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj", "{0DD29B24-0D7F-4B80-A172-292137D4BD5A}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Http.Tests", "tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj", "{88673368-AFB7-4B6E-B74D-E5148C3D3279}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine.Tests", "tests\Dyfrig.Machine.Tests\Dyfrig.Machine.Tests.fsproj", "{B6488751-6B7D-4284-ACFA-5DD56EA07AA3}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Router.Tests", "tests\Dyfrig.Router.Tests\Dyfrig.Router.Tests.fsproj", "{520BB73F-A641-4365-83E2-843D7D20D128}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Router", "src\Dyfrig.Router\Dyfrig.Router.fsproj", "{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline", "src\Dyfrig.Pipeline\Dyfrig.Pipeline.fsproj", "{E58C5890-B96F-447B-8414-0D04F9F77F62}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Pipeline.Tests", "tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj", "{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,58 +52,52 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA130B5A-37B9-4842-B5D5-A245BE710D82}.Release|Any CPU.Build.0 = Release|Any CPU
-		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{319BE959-12AF-4322-A051-A0BF8CB15EC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B407543C-6C1E-409A-B90C-908C21A9829E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B407543C-6C1E-409A-B90C-908C21A9829E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B407543C-6C1E-409A-B90C-908C21A9829E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B407543C-6C1E-409A-B90C-908C21A9829E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0DD29B24-0D7F-4B80-A172-292137D4BD5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0DD29B24-0D7F-4B80-A172-292137D4BD5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DD29B24-0D7F-4B80-A172-292137D4BD5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0DD29B24-0D7F-4B80-A172-292137D4BD5A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88673368-AFB7-4B6E-B74D-E5148C3D3279}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88673368-AFB7-4B6E-B74D-E5148C3D3279}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88673368-AFB7-4B6E-B74D-E5148C3D3279}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88673368-AFB7-4B6E-B74D-E5148C3D3279}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6488751-6B7D-4284-ACFA-5DD56EA07AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6488751-6B7D-4284-ACFA-5DD56EA07AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6488751-6B7D-4284-ACFA-5DD56EA07AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6488751-6B7D-4284-ACFA-5DD56EA07AA3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{520BB73F-A641-4365-83E2-843D7D20D128}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{520BB73F-A641-4365-83E2-843D7D20D128}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{520BB73F-A641-4365-83E2-843D7D20D128}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{520BB73F-A641-4365-83E2-843D7D20D128}.Release|Any CPU.Build.0 = Release|Any CPU
-		{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{932851E9-C6F1-4A4D-B40B-7F0B2696C5BE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E58C5890-B96F-447B-8414-0D04F9F77F62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E58C5890-B96F-447B-8414-0D04F9F77F62}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E58C5890-B96F-447B-8414-0D04F9F77F62}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E58C5890-B96F-447B-8414-0D04F9F77F62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F97F3EBB-8EE9-45CF-9AE0-66F911F357D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AAE3D8F-196F-4868-88AB-47D860CF091F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AAE3D8F-196F-4868-88AB-47D860CF091F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AAE3D8F-196F-4868-88AB-47D860CF091F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AAE3D8F-196F-4868-88AB-47D860CF091F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46B6DE09-76D2-435C-8B7F-CAF3287029DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46B6DE09-76D2-435C-8B7F-CAF3287029DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46B6DE09-76D2-435C-8B7F-CAF3287029DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46B6DE09-76D2-435C-8B7F-CAF3287029DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF160EBE-806E-4F88-81AC-B9488EDE1085}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF160EBE-806E-4F88-81AC-B9488EDE1085}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF160EBE-806E-4F88-81AC-B9488EDE1085}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF160EBE-806E-4F88-81AC-B9488EDE1085}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D39640C6-2258-4571-830E-7028E19DB6BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D39640C6-2258-4571-830E-7028E19DB6BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D39640C6-2258-4571-830E-7028E19DB6BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D39640C6-2258-4571-830E-7028E19DB6BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E725EBA-1A60-4F24-894C-1836631380DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E725EBA-1A60-4F24-894C-1836631380DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E725EBA-1A60-4F24-894C-1836631380DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E725EBA-1A60-4F24-894C-1836631380DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23F496CA-50F7-4905-A89D-568D29331D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23F496CA-50F7-4905-A89D-568D29331D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23F496CA-50F7-4905-A89D-568D29331D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23F496CA-50F7-4905-A89D-568D29331D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A570763-69E7-4E5B-8640-A848A4E2239F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A570763-69E7-4E5B-8640-A848A4E2239F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A570763-69E7-4E5B-8640-A848A4E2239F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A570763-69E7-4E5B-8640-A848A4E2239F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{94B68E75-535D-44D3-8F2E-FE477C175468} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{B2686A32-382F-4191-860C-420C4478D60F} = {94B68E75-535D-44D3-8F2E-FE477C175468}
-		{DE9D0AA6-51B7-40DC-B9D7-77F2601C3832} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{D432FD3F-8003-45A9-BEEF-247B274AE6BE} = {D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}
-		{B6C8349E-2659-428F-A551-C21561A56B5A} = {D432FD3F-8003-45A9-BEEF-247B274AE6BE}
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = src\Dyfrig.fsproj
+		{1AAE3D8F-196F-4868-88AB-47D860CF091F} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{46B6DE09-76D2-435C-8B7F-CAF3287029DD} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{432B863E-38B9-4D40-9A6B-1F5B2132D241} = {291EFE25-4571-4F3D-A7A3-A900C66EBA62}
+		{EF160EBE-806E-4F88-81AC-B9488EDE1085} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{D39640C6-2258-4571-830E-7028E19DB6BA} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{6E725EBA-1A60-4F24-894C-1836631380DF} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{23F496CA-50F7-4905-A89D-568D29331D1D} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{ECD01608-218F-4D0A-9737-BA7F7794C349} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
+		{0A570763-69E7-4E5B-8640-A848A4E2239F} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{9A64A4B2-7F04-4989-82D3-56B99FF918A8} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,7 @@
+NUGET
+  remote: http://nuget.org/api/v2
+  specs:
+    Aether (3.1.0)
+    FParsec (1.0.1)
+    NUnit (2.6.3)
+    Unquote (2.2.2)

@@ -1,5 +1,7 @@
 ﻿namespace Dyfrig.Pipeline.Tests
 
+open System
+open System.Collections.Generic
 open NUnit.Framework
 open Swensen.Unquote
 open Dyfrig.Core
@@ -11,17 +13,21 @@ open Dyfrig.Pipeline.Operators
 [<AutoOpen>]
 module Data =
 
-    let env () =
-        dict [
-            "o1", box false
-            "o2", box false ]
+    let env =
+
+        let data =
+            dict [
+                "o1", box false
+                "o2", box false ]
+
+        Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
 
 
 [<AutoOpen>]
 module Helpers =
     
     let test f =
-        Async.RunSynchronously (f (env ()))
+        Async.RunSynchronously (f env)
      
 
 module Composition =

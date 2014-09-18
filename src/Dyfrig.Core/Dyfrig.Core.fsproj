@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b407543c-6c1e-409a-b90c-908c21a9829e</ProjectGuid>
+    <ProjectGuid>1aae3d8f-196f-4868-88ab-47d860cf091f</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Dyfrig.Core</RootNamespace>
     <AssemblyName>Dyfrig.Core</AssemblyName>

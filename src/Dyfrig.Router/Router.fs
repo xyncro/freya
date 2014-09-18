@@ -178,7 +178,7 @@ module Compilation =
             |> construct
 
         owin {
-            let! path = getLM Request.Path
+            let! path = getLM Request.path
 
             match search path trie with
             | Some (app, data) ->

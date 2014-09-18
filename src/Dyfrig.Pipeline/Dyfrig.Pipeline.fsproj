@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>e58c5890-b96f-447b-8414-0d04f9f77f62</ProjectGuid>
+    <ProjectGuid>6e725eba-1a60-4f24-894c-1836631380df</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Dyfrig.Pipeline</RootNamespace>
     <AssemblyName>Dyfrig.Pipeline</AssemblyName>
@@ -42,14 +42,14 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Dyfrig.Core\Dyfrig.Core.fsproj">
-      <Name>Dyfrig.Core</Name>
-      <Project>{b407543c-6c1e-409a-b90c-908c21a9829e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
+    <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Pipeline.fs" />
+    <ProjectReference Include="..\Dyfrig.Core\Dyfrig.Core.fsproj">
+      <Name>Dyfrig.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
