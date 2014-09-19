@@ -3,6 +3,7 @@
 open Aether
 open Aether.Operators
 open Dyfrig.Core
+open Dyfrig.Core.Operators
 open Dyfrig.Http
 open Dyfrig.Pipeline
 
@@ -181,8 +182,5 @@ module Compilation =
             let! path = getLM Request.path
 
             match search path trie with
-            | Some (app, data) ->
-                do! setLM Route.Values data
-                return! app
-            | _ -> 
-                return Next }
+            | Some (app, data) -> return! setLM Route.Values data *> app
+            | _ -> return Proceed }

@@ -35,6 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", 
 		src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references = src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references
 		tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references = tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references
 		src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references = src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references
+		examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references = examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{0A570763-69E7-4E5B-8640-A848A4E2239F}"
@@ -45,6 +46,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{0F3A37
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E12DF794-FA72-4B5F-AE4B-36469B5C2E13}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Todo.Backend", "examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj", "{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +89,10 @@ Global
 		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A64A4B2-7F04-4989-82D3-56B99FF918A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,5 +108,6 @@ Global
 		{ECD01608-218F-4D0A-9737-BA7F7794C349} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
 		{0A570763-69E7-4E5B-8640-A848A4E2239F} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 		{9A64A4B2-7F04-4989-82D3-56B99FF918A8} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05} = {E12DF794-FA72-4B5F-AE4B-36469B5C2E13}
 	EndGlobalSection
 EndGlobal

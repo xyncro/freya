@@ -11,7 +11,7 @@ open Dyfrig.Http
 [<AutoOpen>]
 module Data =
 
-    let env =
+    let env () =
 
         let requestHeaders = 
             dict [
@@ -34,7 +34,7 @@ module Data =
 module Helpers =
 
     let test f =
-        Async.RunSynchronously (f env) |> fst
+        Async.RunSynchronously (f (env ())) |> fst
 
 
 module Request =

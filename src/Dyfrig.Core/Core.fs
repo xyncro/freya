@@ -23,133 +23,151 @@ open System.Threading.Tasks
 
 
 /// OWIN environment dictionary
-type OwinEnv = IDictionary<string, obj>
+type OwinEnv = 
+    IDictionary<string, obj>
 
 /// OWIN AppFunc signature using F# Async
-type OwinApp = OwinEnv -> Async<unit>
+type OwinApp = 
+    OwinEnv -> Async<unit>
 
 /// OWIN AppFunc signature
-type OwinAppFunc = Func<OwinEnv, Task>
+type OwinAppFunc = 
+    Func<OwinEnv, Task>
+
+
+[<RequireQualifiedAccess>]
+module internal Monadic =
+
+    let inline returnM builder x = 
+        (^M: (member Return: 'b -> 'c) (builder, x))
+
+    let inline bindM builder m f = 
+        (^M: (member Bind: 'd -> ('e -> 'c) -> 'c) (builder, m, f))
+
+    let inline liftM builder f m =
+        let inline ret x = returnM builder (f x)
+        bindM builder m ret
+
+    let inline applyM (builder1: ^M1) (builder2: ^M2) f m =
+        bindM builder1 f <| fun f' ->
+            bindM builder2 m <| fun m' ->
+                returnM builder2 (f' m')
 
 
 /// OWIN monad implementation
 [<AutoOpen>]
 module Monad =
 
-    /// OWIN monad signature
     type OwinMonad<'T> = 
         OwinEnv -> Async<'T * OwinEnv>
 
-    /// OWIN monad builder
     type OwinMonadBuilder () =
 
-        member __.Return t : OwinMonad<_> = 
-            fun e -> async.Return (t, e)
-
-        member __.ReturnFrom f : OwinMonad<_> = 
-            f
-        
-        member __.Bind (m: OwinMonad<_>, k: _ -> OwinMonad<_>) : OwinMonad<_> =
-            fun e -> 
-                async {
-                    let! result, e = m e
-                    return! (k result) e }
-
-        member x.Zero () : OwinMonad<unit> = 
-            x.Return ()
-
-        member x.Delay (f: unit -> OwinMonad<_>) : OwinMonad<'T> = 
-            x.Bind (x.Return (), f)
-
-        member x.Combine (m1: OwinMonad<_>, m2: OwinMonad<_>) : OwinMonad<_> = 
-            x.Bind (m1, fun () -> m2)
-
-        member __.TryWith (body: OwinMonad<_>, handler: exn -> OwinMonad<_>) : OwinMonad<_> =
-            fun e -> try body e with ex -> handler ex e
-
-        member __.TryFinally (body: OwinMonad<_>, handler) : OwinMonad<_> =
-            fun e -> try body e finally handler ()
-
-        member x.Using (resource: #IDisposable, body: _ -> OwinMonad<_>) : OwinMonad<_> =
-            x.TryFinally (body resource, fun () ->
-                match box resource with
-                | null -> ()
-                | _ -> resource.Dispose ())
-
-        member x.While (guard, body: OwinMonad<_>) : OwinMonad<unit> =
+        member __.Return (t) : OwinMonad<'T> = 
+            fun env -> 
+                async.Return (t, env)
+    
+        member __.ReturnFrom (m: OwinMonad<'T>) = 
+            m
+    
+        member __.Bind (m1: OwinMonad<'T>, m2: 'T -> OwinMonad<'U>) : OwinMonad<'U> = 
+            fun s -> 
+                async { 
+                    let! r, s = m1 s
+                    return! (m2 r) s }
+    
+        member this.Zero () = 
+            this.Return ()
+    
+        member this.Combine (m1: OwinMonad<unit>, m2: OwinMonad<'T>) : OwinMonad<'T> = 
+            this.Bind (m1, fun () -> m2)
+    
+        member __.TryWith (m: OwinMonad<'T>, handler: exn -> OwinMonad<'T>) : OwinMonad<'T> =
+            fun env ->
+                 try m env
+                 with e -> (handler e) env
+    
+        member __.TryFinally (m: OwinMonad<'T>, compensation) : OwinMonad<'T> =
+            fun env -> 
+                try m env
+                finally compensation()
+    
+        member this.Using (res: #IDisposable, body) =
+            this.TryFinally (body res, (fun () -> 
+                match res with 
+                | null -> () 
+                | disp -> disp.Dispose()))
+    
+        member this.Delay (f) = 
+            this.Bind (this.Return (), f)
+    
+        member this.While (guard, m) =
             match guard () with
-            | true -> x.Bind (body, fun () -> x.While (guard, body))
-            | _ -> x.Return ()
+            | true -> this.Bind (m, fun () -> this.While (guard, m))
+            | _ -> this.Zero ()
+        
+        member this.For (sequence: seq<_>, body) =
+            this.Using (sequence.GetEnumerator (), fun enum -> 
+                this.While (enum.MoveNext, this.Delay (fun () -> 
+                    body enum.Current)))
 
-        member x.For (s: seq<_>, body: _ -> OwinMonad<_>) : OwinMonad<unit> =
-            x.Using (s.GetEnumerator (),
-                (fun enum ->
-                    x.While (enum.MoveNext, x.Delay (fun () ->
-                        body enum.Current))))
+    /// OWIN Monad
+    let owin = new OwinMonadBuilder ()
 
-    /// OWIN monad
-    let owin = OwinMonadBuilder ()
 
+[<AutoOpen>]
+module Functions =
+    
     /// Gets the current OwinEnv within an OWIN monad
     let getM : OwinMonad<OwinEnv> =
-        fun s -> 
-            async { return s, s }
+        fun env -> 
+            async { return env, env }
 
     /// Sets the OwinEnv within an OWIN monad
-    let setM s : OwinMonad<unit> =
-        fun _ ->
-            async { return (), s }
+    let setM env : OwinMonad<unit> =
+        fun _ -> 
+            async { return (), env }
 
     /// Modifies the current OwinEnv within an OWIN monad
     let modM f : OwinMonad<unit> =
-        fun s ->
-            async { return (), f s }
+        fun env -> 
+            async { return (), f env }
 
 
-/// OWIN monad functions
-[<RequireQualifiedAccess>]
-module Owin =
-
-    let async f : OwinMonad<_> =
-        fun s -> 
-            async {
-                let! v = f
-                return v, s }
-
-    let compose m f =
-        fun x ->
-            owin {
-                let! v = m x
-                return! f v }
-
-    let composeSeq m f =
-        owin {
-            let! v = m
-            return! f v }
-
-    let map f m =
-        owin {
-            let! v = m
-            return f v }
-
-
-/// OWIN operators
 module Operators =
 
-    /// Left to right composition
-    let inline (>>=) m f = Owin.composeSeq m f
+    let inline returnM x =
+        Monadic.returnM owin x
 
-    /// Right to left composition
-    let inline (=<<) f m = Owin.composeSeq m f
+    let inline (>>=) m1 m2 =
+        Monadic.bindM owin m1 m2
 
-    /// Left to right Kleisli composition
-    let inline (>=>) m f = Owin.compose m f
+    let inline (=<<) m1 m2 =
+        Monadic.bindM owin m2 m1
 
-    /// Right to left Kleisli composition
-    let inline (<=<) f m = Owin.compose m f
+    let inline (<*>) f m =
+        Monadic.applyM owin owin f m
 
-    /// Map of f over m
-    let inline (<!>) f m = Owin.map f m
+    let inline (<!>) f m =
+        Monadic.liftM owin f m
+        
+    let inline lift2 f m1 m2 =
+        returnM f <*> m1 <*> m2 
+
+    let inline ( *>) m1 m2 =
+        lift2 (fun _ x -> x) m1 m2
+
+    let inline ( <*) m1 m2 =
+        lift2 (fun x _ -> x) m1 m2
+
+    let inline (>>.) m f =
+        Monadic.bindM owin m (fun _ -> f)
+
+    let inline (>=>) m1 m2 =
+        fun x -> m1 x >>= m2
+
+    let inline (<=<) m1 m2 =
+        fun x -> m2 x >>= m1
 
 
 /// .NET language interop helpers
