@@ -8,8 +8,8 @@ module Operations =
 
         type RoutesMonadBuilder with
 
-            [<CustomOperation ("register", MaintainsVariableSpaceUsingBind = true)>]
-            member x.Register (r, meth, path, pipeline) =
+            [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
+            member x.Route (r, meth, path, pipeline) =
                 x.Update (r, (fun x -> x @ [ { Method = meth; Path = path; Pipeline = pipeline } ]))
 
     

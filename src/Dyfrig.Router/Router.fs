@@ -51,7 +51,7 @@ module Route =
         
     let internal Values =
         dictLens "dyfrig.routing.values"
-        >--> isoLens unbox<Map<string, string>> box
+        <--> boxIso<Map<string, string>>
 
     let Value key = 
         Values
@@ -170,9 +170,9 @@ module internal Routing =
 
 
 [<AutoOpen>]
-module Compilation =
+module Reification =
 
-    let compileRoutes (routes: RoutesMonad) : Pipeline =
+    let reifyRoutes (routes: RoutesMonad) : Pipeline =
         let trie = 
             routes List.empty 
             |> snd
@@ -183,4 +183,4 @@ module Compilation =
 
             match search path trie with
             | Some (app, data) -> return! setLM Route.Values data *> app
-            | _ -> return Proceed }
+            | _ -> return Next }

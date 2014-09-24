@@ -51,6 +51,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E1
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Todo.Backend", "examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj", "{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140-D2FF-4C67-BD08-8C0081221263}"
+	ProjectSection(SolutionItems) = preProject
+		build.cmd = build.cmd
+		build.fsx = build.fsx
+		build.sh = build.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -109,5 +116,6 @@ Global
 		{0A570763-69E7-4E5B-8640-A848A4E2239F} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 		{9A64A4B2-7F04-4989-82D3-56B99FF918A8} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05} = {E12DF794-FA72-4B5F-AE4B-36469B5C2E13}
+		{4B77A140-D2FF-4C67-BD08-8C0081221263} = {291EFE25-4571-4F3D-A7A3-A900C66EBA62}
 	EndGlobalSection
 EndGlobal

@@ -35,25 +35,6 @@ type OwinAppFunc =
     Func<OwinEnv, Task>
 
 
-[<RequireQualifiedAccess>]
-module internal Monadic =
-
-    let inline returnM builder x = 
-        (^M: (member Return: 'b -> 'c) (builder, x))
-
-    let inline bindM builder m f = 
-        (^M: (member Bind: 'd -> ('e -> 'c) -> 'c) (builder, m, f))
-
-    let inline liftM builder f m =
-        let inline ret x = returnM builder (f x)
-        bindM builder m ret
-
-    let inline applyM (builder1: ^M1) (builder2: ^M2) f m =
-        bindM builder1 f <| fun f' ->
-            bindM builder2 m <| fun m' ->
-                returnM builder2 (f' m')
-
-
 /// OWIN monad implementation
 [<AutoOpen>]
 module Monad =
@@ -113,25 +94,37 @@ module Monad =
 
     /// OWIN Monad
     let owin = new OwinMonadBuilder ()
-
-
-[<AutoOpen>]
-module Functions =
     
     /// Gets the current OwinEnv within an OWIN monad
     let getM : OwinMonad<OwinEnv> =
-        fun env -> 
-            async { return env, env }
+        fun env -> async { return env, env }
 
     /// Sets the OwinEnv within an OWIN monad
     let setM env : OwinMonad<unit> =
-        fun _ -> 
-            async { return (), env }
+        fun _ -> async { return (), env }
 
     /// Modifies the current OwinEnv within an OWIN monad
     let modM f : OwinMonad<unit> =
-        fun env -> 
-            async { return (), f env }
+        fun env -> async { return (), f env }
+
+
+[<RequireQualifiedAccess>]
+module internal Monadic =
+
+    let inline returnM builder x = 
+        (^M: (member Return: 'b -> 'c) (builder, x))
+
+    let inline bindM builder m f = 
+        (^M: (member Bind: 'd -> ('e -> 'c) -> 'c) (builder, m, f))
+
+    let inline liftM builder f m =
+        let inline ret x = returnM builder (f x)
+        bindM builder m ret
+
+    let inline applyM (builder1: ^M1) (builder2: ^M2) f m =
+        bindM builder1 f <| fun f' ->
+            bindM builder2 m <| fun m' ->
+                returnM builder2 (f' m')
 
 
 module Operators =
@@ -171,7 +164,8 @@ module Operators =
 
 
 /// .NET language interop helpers
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
 
     /// Converts a F# Async-based OWIN AppFunc to a standard Func<_,Task> AppFunc.

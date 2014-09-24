@@ -6,7 +6,6 @@ open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
-open FParsec
 
 
 type Method =
@@ -74,6 +73,9 @@ module Headers =
 
 [<AutoOpen>]
 module internal Parsers =
+
+    open FParsec
+
 
     let parse p s =
         match run p s with
@@ -407,88 +409,93 @@ module internal Helpers =
 [<AutoOpen>]
 module Lenses =
 
+    // Boxing
+
+    let boxIso<'T> : Iso<obj,'T> =
+        ((unbox<'T>), box)
+
     // Dictionary
 
     let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
-        ((fun d -> d.[k]),
-         (fun v d -> d.[k] <- v; d))
+        (fun d -> d.[k]),
+        (fun v d -> d.[k] <- v; d)
 
     let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
-        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-         (fun v d -> d.[k] <- v; d))
+        (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
+        (fun v d -> d.[k] <- v; d)
 
-    let dictOptionLens k : Lens<IDictionary<'k,'v>, 'v option> =
-        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-         (fun v d -> v |> function | Some v -> d.[k] <- v; d | _ -> d.Remove k |> ignore; d))
+//    let dictOptionLens k : Lens<IDictionary<'k,'v>, 'v option> =
+//        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
+//         (fun v d -> v |> function | Some v -> d.[k] <- v; d | _ -> d.Remove k |> ignore; d))
 
     // Request
 
-    let internal isoMethodLens : Lens<string, Method> =
+    let internal methodIso : Iso<string, Method> =
         (fun s -> methodFromString s), 
-        (fun m _ -> methodToString m)
+        (fun m -> methodToString m)
 
-    let internal isoProtocolLens : Lens<string, Protocol> =
+    let internal protocolIso : Iso<string, Protocol> =
         (fun s -> protocolFromString s), 
-        (fun p _ -> protocolToString p)
+        (fun p -> protocolToString p)
 
-    let internal isoSchemeLens : Lens<string, Scheme> =
+    let internal schemeIso : Iso<string, Scheme> =
         (fun s -> schemeFromString s), 
-        (fun s _ -> schemeToString s)
+        (fun s -> schemeToString s)
 
-    let internal isoQueryLens : Lens<string, Map<string, string>> =
+    let internal queryIso : Iso<string, Map<string, string>> =
         (fun q -> queryFromString q),
-        (fun m _ -> queryToString m)
+        (fun m -> queryToString m)
 
     // Content Negotiation
 
-    let internal isoAcceptPLens : PLens<string [] option, Accept list> =
-        ((fun s -> Option.bind (fun s -> parse accept (String.concat "," s)) s), 
-         (fun _ _ -> Some (Array.ofList [ "test" ])))
+    let internal acceptPIso : PIso<string [], Accept list> =
+        (fun s -> parse accept (String.concat "," s)), 
+        (fun _ -> Array.ofList [ "test" ])
 
-    let internal isoAcceptCharsetPLens : PLens<string [] option, AcceptCharset list> =
-        ((fun s -> Option.bind (fun s -> parse acceptCharset (String.concat "," s)) s),
-         (fun _ _ -> Some (Array.ofList [ "test" ])))
+    let internal acceptCharsetPIso : PIso<string [], AcceptCharset list> =
+        (fun s -> parse acceptCharset (String.concat "," s)),
+        (fun _ -> Array.ofList [ "test" ])
 
 
 [<RequireQualifiedAccess>]
 module Request =
 
     let body =
-        dictLens Constants.requestBody
-        >--> isoLens unbox<Stream> box
+             dictLens Constants.requestBody
+        <--> boxIso<Stream>
 
     let header key =
-        dictLens Constants.requestHeaders
-        >--> isoLens unbox<IDictionary<string, string []>> box
-        >--> dictOptionLens key
+             dictLens Constants.requestHeaders
+        <--> boxIso<IDictionary<string, string []>>
+        >-?> dictPLens key
 
-    let meth =
-        dictLens Constants.requestMethod
-        >--> isoLens unbox<string> box
-        >--> isoMethodLens
+    let meth = 
+             dictLens Constants.requestMethod
+        <--> boxIso<string>
+        <--> methodIso
 
-    let path =
-        dictLens Constants.requestPath
-        >--> isoLens unbox<string> box
+    let path = 
+             dictLens Constants.requestPath
+        <--> boxIso<string>
 
     let pathBase =
-        dictLens Constants.requestPathBase
-        >--> isoLens unbox<string> box
+             dictLens Constants.requestPathBase
+        <--> boxIso<string>
 
     let protocol =
-        dictLens Constants.requestProtocol
-        >--> isoLens unbox<string> box
-        >--> isoProtocolLens
+             dictLens Constants.requestProtocol
+        <--> boxIso<string>
+        <--> protocolIso
 
     let scheme = 
-        dictLens Constants.requestScheme
-        >--> isoLens unbox<string> box
-        >--> isoSchemeLens
+             dictLens Constants.requestScheme
+        <--> boxIso<string>
+        <--> schemeIso
 
     let query key =
-        dictLens Constants.requestQueryString
-        >--> isoLens unbox<string> box
-        >--> isoQueryLens
+             dictLens Constants.requestQueryString
+        <--> boxIso<string>
+        <--> queryIso
         >-?> mapPLens key
 
 
@@ -496,37 +503,37 @@ module Request =
     module Headers =
 
         let accept =
-            dictLens Constants.requestHeaders
-            >--> isoLens unbox<IDictionary<string, string []>> box
-            >--> dictOptionLens "Accept"
-            >-?> isoAcceptPLens
+                 dictLens Constants.requestHeaders
+            <--> boxIso<IDictionary<string, string []>>
+            >-?> dictPLens "Accept"
+            <??> acceptPIso
 
         let acceptCharset =
-            dictLens Constants.requestHeaders
-            >--> isoLens unbox<IDictionary<string, string []>> box
-            >--> dictOptionLens "Accept-Charset"
-            >-?> isoAcceptCharsetPLens
+                 dictLens Constants.requestHeaders
+            <--> boxIso<IDictionary<string, string []>>
+            >-?> dictPLens "Accept-Charset"
+            <??> acceptCharsetPIso
 
 
 [<RequireQualifiedAccess>]
 module Response =
 
     let body =
-        dictLens Constants.responseBody
-        >--> isoLens unbox<Stream> box
+             dictLens Constants.responseBody
+        <--> boxIso<Stream>
 
     let header key =
-        dictLens Constants.responseHeaders
-        >--> isoLens unbox<IDictionary<string, string []>> box
-        >--> dictOptionLens key
+             dictLens Constants.responseHeaders
+        <--> boxIso<IDictionary<string, string []>>
+        >-?> dictPLens key
 
     let reasonPhrase =
-        dictPLens Constants.responseReasonPhrase
-        >?-> isoLens unbox<string> box
+             dictPLens Constants.responseReasonPhrase
+        <?-> boxIso<string>
 
     let statusCode =
-        dictPLens Constants.responseStatusCode
-        >?-> isoLens unbox<int> box
+             dictPLens Constants.responseStatusCode
+        <?-> boxIso<int>
 
 
 [<AutoOpen>]

@@ -11,7 +11,7 @@ module Operations =
     [<AutoOpen>]
     module Actions =
 
-        type MachineBuilder with
+        type MachineMonadBuilder with
 
             [<CustomOperation (Actions.Delete, MaintainsVariableSpaceUsingBind = true)>]
             member x.DoDelete (r, f) = 
@@ -33,7 +33,7 @@ module Operations =
     [<AutoOpen>]
     module Configuration =
 
-        type MachineBuilder with
+        type MachineMonadBuilder with
 
             [<CustomOperation (Config.AllowedMethods, MaintainsVariableSpaceUsingBind = true)>]
             member x.AllowedMethods (r, methods: Method list) = 
@@ -71,7 +71,7 @@ module Operations =
     [<AutoOpen>]
     module Decisons =
 
-        type MachineBuilder with
+        type MachineMonadBuilder with
 
             [<CustomOperation (Decisions.Allowed, MaintainsVariableSpaceUsingBind = true)>]
             member x.Allowed (r, f) = 
@@ -205,7 +205,7 @@ module Operations =
     [<AutoOpen>]
     module Handlers =
 
-        type MachineBuilder with
+        type MachineMonadBuilder with
 
             // 200
 
@@ -213,13 +213,13 @@ module Operations =
             member x.HandleOk (r, f) = 
                 x.Set (r, handlersPLens Handlers.OK, f)
 
-            [<CustomOperation (Handlers.Created, MaintainsVariableSpaceUsingBind = true)>]
-            member x.HandleCreated (r, f) = 
-                x.Set (r, handlersPLens Handlers.Created, f)
-
             [<CustomOperation (Handlers.Options, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleOptions (r, f) = 
                 x.Set (r, handlersPLens Handlers.Options, f)
+
+            [<CustomOperation (Handlers.Created, MaintainsVariableSpaceUsingBind = true)>]
+            member x.HandleCreated (r, f) = 
+                x.Set (r, handlersPLens Handlers.Created, f)
 
             [<CustomOperation (Handlers.Accepted, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleAccepted (r, f) = 
@@ -327,7 +327,7 @@ module Operations =
     [<AutoOpen>]
     module Utility =
 
-        type MachineBuilder with
+        type MachineMonadBuilder with
     
             [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
             member x.Including (r, h) = 

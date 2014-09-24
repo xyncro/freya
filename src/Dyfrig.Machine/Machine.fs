@@ -7,6 +7,7 @@ open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
+open Dyfrig.Pipeline
 
 
 [<RequireQualifiedAccess>]
@@ -46,27 +47,27 @@ module Definition =
 [<AutoOpen>]
 module Monad =
 
-    type Machine = 
+    type MachineMonad = 
         MachineDefinition -> unit * MachineDefinition
 
-    type MachineBuilder () =
+    type MachineMonadBuilder () =
 
-        member __.Return _ : Machine =
+        member __.Return _ : MachineMonad =
             fun definition -> (), definition
 
-        member __.ReturnFrom machine : Machine = 
+        member __.ReturnFrom machine : MachineMonad = 
             machine
 
-        member __.Bind (m, k) : Machine = 
+        member __.Bind (m, k) : MachineMonad = 
             m >> fun (result, definition) -> (k result) definition
 
-        member x.Combine (m1, m2) : Machine = 
+        member x.Combine (m1, m2) : MachineMonad = 
             x.Bind (m1, fun () -> m2)
 
         member internal x.Set (r, lens, value) = 
             x.Bind ((fun res -> (), setPL lens value res), fun _ -> x.ReturnFrom r)
 
-    let machine = MachineBuilder ()
+    let machine = MachineMonadBuilder ()
 
 
 [<AutoOpen>]
@@ -74,8 +75,8 @@ module Cache =
     
     let cache<'T> m =
         let lens =
-            dictPLens (string (Guid.NewGuid ()))
-            >?-> isoLens unbox<'T> box
+                 dictPLens (string (Guid.NewGuid ()))
+            <?-> boxIso<'T>
 
         owin {
             let! value = getPLM lens
@@ -94,29 +95,25 @@ module Cache =
 module internal Lenses =
 
     let actionsPLens k =
-        ((fun x -> x.Actions), 
-         (fun a x -> { x with Actions = a }))
+             ((fun x -> x.Actions), (fun a x -> { x with Actions = a }))
         >-?> mapPLens k
     
     let configPLens<'T> k =
-        ((fun x -> x.Configuration), 
-         (fun c x -> { x with Configuration = c }))
+             ((fun x -> x.Configuration), (fun c x -> { x with Configuration = c }))
         >-?> mapPLens k
-        >?-> isoLens unbox<'T> box
+        <?-> boxIso<'T>
         
     let decisionsPLens k =
-        ((fun x -> x.Decisions), 
-         (fun d x -> { x with Decisions = d }))
+             ((fun x -> x.Decisions), (fun d x -> { x with Decisions = d }))
         >-?> mapPLens k
 
     let handlersPLens k =
-        ((fun x -> x.Handlers), 
-         (fun h x -> { x with Handlers = h }))
+             ((fun x -> x.Handlers), (fun h x -> { x with Handlers = h }))
         >-?> mapPLens k
 
     let definitionLens =
-        dictLens "dyfrig.machine.definition"
-        >--> isoLens unbox<MachineDefinition> box
+             dictLens "dyfrig.machine.definition"
+        <--> boxIso<MachineDefinition>
 
 
 [<AutoOpen>]
@@ -168,10 +165,10 @@ module internal Logic =
     module Headers =
 
         let headerEquals h v =
-            Option.map ((=) v) >> Option.getOrElse false <!> getLM (Request.header h)
+            Option.map ((=) v) >> Option.getOrElse false <!> getPLM (Request.header h)
 
         let headerExists h =
-            Option.isSome <!> getLM (Request.header h)
+            Option.isSome <!> getPLM (Request.header h)
 
 
     [<AutoOpen>]
@@ -184,9 +181,9 @@ module internal Logic =
 
         let private isValidDate header =
             owin {
-                let! header = getLM (Request.header header)
+                let! header = Option.map List.ofArray <!> getPLM (Request.header header)
 
-                match header |> Option.map List.ofArray with
+                match header with
                 | Some (h :: _) -> return fst (tryParseDate h)
                 | _ -> return false }
 
@@ -236,9 +233,8 @@ module internal Logic =
         let private isMethod meth =
             (=) meth <!> getLM Request.meth
 
-        let private getMethods key defaults =
-            Option.getOrElse defaults
-            <!> getPLM (definitionLens >-?> configPLens<Set<Method>> key)
+        let private getMethods k d =
+            Option.getOrElse d <!> getPLM (definitionLens >-?> configPLens<Set<Method>> k)
 
         let private isValidMethod key defaults =
             owin {
@@ -379,8 +375,8 @@ module internal Construction =
 
     let private handlers definition =
         [ Handlers.OK,                           defaultHandler 200 "OK"
-          Handlers.Created,                      defaultHandler 201 "Created"
-          Handlers.Options,                      defaultHandler 201 "Options"
+          Handlers.Options,                      defaultHandler 200 "Options"
+          Handlers.Created,                      defaultHandler 201 "Created"          
           Handlers.Accepted,                     defaultHandler 202 "Accepted"
           Handlers.NoContent,                    defaultHandler 204 "No Content"
           Handlers.MovedPermanently,             defaultHandler 301 "Moved Permanently"
@@ -441,9 +437,9 @@ module internal Execution =
 
 
 [<AutoOpen>]
-module Compilation =
+module Reification =
     
-    let compileMachine (machine: Machine) : OwinMonad<bool> =
+    let reifyMachine (machine: MachineMonad) : Pipeline =
         let definition = machine MachineDefinition.empty |> snd
         let graph = construct definition
 
@@ -452,7 +448,7 @@ module Compilation =
 
             let! body = execute graph
 
-            do! setLM (Response.header "Content-Length")  (Some [| string body.Length |])
+            do! setPLM (Response.header "Content-Length") [| string body.Length |]
             do! modLM Response.body (fun x -> x.Write (body, 0, body.Length); x)
         
-            return true }
+            return Halt }

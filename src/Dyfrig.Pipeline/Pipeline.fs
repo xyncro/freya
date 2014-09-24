@@ -7,17 +7,17 @@ type Pipeline =
     OwinMonad<PipelineChoice>
 
 and PipelineChoice =
-    | Proceed
+    | Next
     | Halt
 
 
 [<AutoOpen>]
 module Return =
 
-    let proceed _ : Pipeline =
-        owin { return Proceed }
+    let next : Pipeline =
+        owin { return Next }
 
-    let halt _ : Pipeline =
+    let halt : Pipeline =
         owin { return Halt }
 
 
@@ -29,7 +29,7 @@ module Composition =
             let! pc = p1
 
             match pc with
-            | Proceed -> return! p2
+            | Next -> return! p2
             | _ -> return Halt }
 
 
