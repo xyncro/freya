@@ -10,15 +10,6 @@ open Dyfrig.Http
 open Dyfrig.Pipeline
 
 
-[<RequireQualifiedAccess>]
-module private Option =
-
-    let getOrElse def x =
-        match x with
-        | Some x -> x 
-        | _ -> def
-
-
 [<AutoOpen>]
 module Definition =
 
@@ -182,7 +173,7 @@ module internal Logic =
     module Headers =
 
         let headerEquals h v =
-            Option.map ((=) v) >> Option.getOrElse false <!> getPLM (Request.header h)
+            Option.map ((=) v) >> (fun x -> defaultArg x false) <!> getPLM (Request.header h)
 
         let headerExists h =
             Option.isSome <!> getPLM (Request.header h)
@@ -251,7 +242,7 @@ module internal Logic =
             (=) meth <!> getLM Request.meth
 
         let private getMethods k d =
-            Option.getOrElse d <!> getPLM (definitionLens >-?> configurationPLens<Set<Method>> k)
+            (fun x -> defaultArg x d) <!> getPLM (definitionLens >-?> configurationPLens<Set<Method>> k)
 
         let private isValidMethod key defaults =
             owin {
