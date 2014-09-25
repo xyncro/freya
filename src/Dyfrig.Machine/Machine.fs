@@ -43,6 +43,9 @@ module Definition =
     and MachineHandler = 
         OwinMonad<byte []>
 
+    and MachineOperation =
+        OwinMonad<unit>
+
 
 [<AutoOpen>]
 module Monad =
@@ -144,6 +147,12 @@ module internal Defaults =
 
     // Decisions
 
+    let defaultTrue =
+        owin { return true }
+
+    let defaultFalse =
+        owin { return false }
+
     let defaultDecision (decision: bool) = 
         owin { return decision }
 
@@ -168,14 +177,6 @@ module internal Defaults =
 
 [<AutoOpen>]
 module internal Logic =
-
-    type Graph =
-        Map<string, Node>
-
-    and Node =
-        | Action of MachineAction * string       
-        | Decision of MachineDecision * (string * string)
-        | Handler of MachineHandler
 
 
     [<AutoOpen>]
@@ -311,144 +312,616 @@ module internal Logic =
 
 
 [<AutoOpen>]
-module internal Construction =
-
-    let private unless l definition otherwise =
-        getPL l definition |> Option.getOrElse otherwise
-
-    let private actions definition =
-        [ Actions.Delete,                        defaultAction,                Decisions.Deleted
-          Actions.Patch,                         defaultAction,                Decisions.RespondWithEntity
-          Actions.Post,                          defaultAction,                Decisions.PostRedirect
-          Actions.Put,                           defaultAction,                Decisions.Created ]
-
-        |> List.map (fun (name, action, next) ->
-            name, Action (unless (actionsPLens name) definition action, next))
-    
-    let private decisionsInternal =
-        [ Decisions.AcceptCharsetExists,         ifAcceptCharsetExists,        (Decisions.CharsetAvailable, Decisions.AcceptEncodingExists)
-          Decisions.AcceptEncodingExists,        ifAcceptEncodingExists,       (Decisions.EncodingAvailable, Decisions.Processable)
-          Decisions.AcceptExists,                ifAcceptExists,               (Decisions.MediaTypeAvailable, Decisions.AcceptLanguageExists)
-          Decisions.AcceptLanguageExists,        ifAcceptLanguageExists,       (Decisions.LanguageAvailable, Decisions.AcceptCharsetExists)
-          Decisions.IfMatchExists,               ifMatchExists,                (Decisions.IfMatchStar, Decisions.IfUnmodifiedSinceExists)
-          Decisions.IfMatchStar,                 ifMatchStar,                  (Decisions.IfUnmodifiedSinceExists, Decisions.ETagMatchesIf)
-          Decisions.IfMatchStarExistsForMissing, ifMatchExists,                (Handlers.PreconditionFailed, Decisions.MethodPut)
-          Decisions.IfModifiedSinceExists,       ifModifiedSinceExists,        (Decisions.IfModifiedSinceValidDate, Decisions.MethodDelete)
-          Decisions.IfModifiedSinceValidDate,    ifModifiedSinceValidDate,     (Decisions.ModifiedSince, Decisions.MethodDelete)
-          Decisions.IfNoneMatch,                 ifNoneMatch,                  (Handlers.NotModified, Handlers.PreconditionFailed)
-          Decisions.IfNoneMatchExists,           ifNoneMatchExists,            (Decisions.IfNoneMatchStar, Decisions.IfModifiedSinceExists)
-          Decisions.IfNoneMatchStar,             ifNoneMatchStar,              (Decisions.IfNoneMatch, Decisions.ETagMatchesIfNone)
-          Decisions.IfUnmodifiedSinceExists,     ifUnmodifiedSinceExists,      (Decisions.IfUnmodifiedSinceValidDate, Decisions.IfNoneMatchExists)
-          Decisions.IfUnmodifiedSinceValidDate,  ifUnmodifiedSinceValidDate,   (Decisions.UnmodifiedSince, Decisions.IfNoneMatchExists)
-          Decisions.MethodDelete,                ifMethodDelete,               (Actions.Delete, Decisions.MethodPatch)
-          Decisions.MethodOptions,               ifMethodOptions,              (Handlers.Options, Decisions.AcceptExists)
-          Decisions.MethodPatch,                 ifMethodPatch,                (Actions.Patch, Decisions.PostToExisting)
-          Decisions.MethodPut,                   ifMethodPut,                  (Decisions.PutToDifferentUri, Decisions.Existed)
-          Decisions.PostToGone,                  ifMethodPost,                 (Decisions.CanPostToGone, Handlers.Gone)
-          Decisions.PostToExisting,              ifMethodPost,                 (Actions.Post, Decisions.PutToExisting)
-          Decisions.PostToMissing,               ifMethodPost,                 (Decisions.CanPostToMissing, Handlers.NotFound)
-          Decisions.PutToExisting,               ifMethodPost,                 (Decisions.Conflict, Decisions.MultipleRepresentations) ]
-
-        |> List.map (fun (name, decision, next) ->
-            name, Decision (decision, next))
-
-    let private decisionsPublic definition =
-        [ Decisions.Allowed,                     defaultDecision true,         (Decisions.ContentTypeValid, Handlers.Forbidden)
-          Decisions.Authorized,                  defaultDecision true,         (Decisions.Allowed, Handlers.Unauthorized)
-          Decisions.CanPostToGone,               defaultDecision false,        (Actions.Post, Handlers.Gone)
-          Decisions.CanPostToMissing,            defaultDecision true,         (Actions.Post, Handlers.NotFound)
-          Decisions.CanPutToMissing,             defaultDecision true,         (Decisions.Conflict, Handlers.NotImplemented)
-          Decisions.CharsetAvailable,            ifCharsetAvailable,           (Decisions.AcceptEncodingExists, Handlers.NotAcceptable)
-          Decisions.Conflict,                    defaultDecision false,        (Handlers.Conflict, Actions.Put)
-          Decisions.ContentTypeKnown,            defaultDecision true,         (Decisions.ValidEntityLength, Handlers.UnsupportedMediaType)
-          Decisions.ContentTypeValid,            defaultDecision true,         (Decisions.ContentTypeKnown, Handlers.NotImplemented)
-          Decisions.Created,                     defaultDecision true,         (Handlers.Created, Decisions.RespondWithEntity)
-          Decisions.Deleted,                     defaultDecision true,         (Decisions.RespondWithEntity, Handlers.Accepted)
-          Decisions.EncodingAvailable,           ifEncodingAvailable,          (Decisions.Processable, Handlers.NotAcceptable)
-          Decisions.ETagMatchesIf,               ifETagMatchesIf,              (Decisions.IfUnmodifiedSinceExists, Handlers.PreconditionFailed)
-          Decisions.ETagMatchesIfNone,           ifETagMatchesIfNone,          (Decisions.IfNoneMatch, Decisions.IfModifiedSinceExists)
-          Decisions.Existed,                     defaultDecision false,        (Decisions.MovedPermanently, Decisions.PostToMissing)
-          Decisions.Exists,                      defaultDecision true,         (Decisions.IfMatchExists, Decisions.IfMatchStarExistsForMissing)
-          Decisions.MethodKnown,                 ifMethodKnown,                (Decisions.UriTooLong, Handlers.UnknownMethod)
-          Decisions.LanguageAvailable,           ifLanguageAvailable,          (Decisions.AcceptCharsetExists, Handlers.NotAcceptable)
-          Decisions.Malformed,                   defaultDecision false,        (Handlers.Malformed, Decisions.Authorized)
-          Decisions.MediaTypeAvailable,          ifMediaTypeAvailable,         (Decisions.AcceptLanguageExists, Handlers.NotAcceptable)
-          Decisions.MethodAllowed,               ifMethodAllowed,              (Decisions.Malformed, Handlers.MethodNotAllowed)
-          Decisions.ModifiedSince,               ifModifiedSince,              (Decisions.MethodDelete, Handlers.NotModified)
-          Decisions.MovedPermanently,            defaultDecision false,        (Handlers.MovedPermanently, Decisions.MovedTemporarily)
-          Decisions.MovedTemporarily,            defaultDecision false,        (Handlers.MovedTemporarily, Decisions.PostToGone)
-          Decisions.MultipleRepresentations,     defaultDecision false,        (Handlers.MultipleRepresentations, Handlers.OK)
-          Decisions.PostRedirect,                defaultDecision false,        (Handlers.SeeOther, Decisions.Created)
-          Decisions.Processable,                 defaultDecision true,         (Decisions.Exists, Handlers.UnprocessableEntity)
-          Decisions.PutToDifferentUri,           defaultDecision false,        (Handlers.MovedPermanently, Decisions.CanPutToMissing)
-          Decisions.RespondWithEntity,           defaultDecision true,         (Decisions.MultipleRepresentations, Handlers.NoContent)
-          Decisions.ServiceAvailable,            defaultDecision true,         (Decisions.MethodKnown, Handlers.ServiceUnavailable)
-          Decisions.UnmodifiedSince,             ifUnmodifiedSince,            (Handlers.PreconditionFailed, Decisions.IfNoneMatchExists)
-          Decisions.UriTooLong,                  defaultDecision false,        (Handlers.UriTooLong, Decisions.MethodAllowed) 
-          Decisions.ValidEntityLength,           defaultDecision true,         (Decisions.MethodOptions, Handlers.RequestEntityTooLarge) ]
-
-        |> List.map (fun (name, decision, next) ->
-            name, Decision (unless (decisionsPLens name) definition decision, next))
-
-    let private handlers definition =
-        [ Handlers.OK,                           defaultHandler 200 "OK"
-          Handlers.Options,                      defaultOptions
-          Handlers.Created,                      defaultHandler 201 "Created"          
-          Handlers.Accepted,                     defaultHandler 202 "Accepted"
-          Handlers.NoContent,                    defaultHandler 204 "No Content"
-          Handlers.MovedPermanently,             defaultHandler 301 "Moved Permanently"
-          Handlers.SeeOther,                     defaultHandler 303 "See Other"
-          Handlers.NotModified,                  defaultHandler 304 "Not Modified"
-          Handlers.MovedTemporarily,             defaultHandler 307 "Moved Temporarily"
-          Handlers.MultipleRepresentations,      defaultHandler 310 "Multiple Representations"
-          Handlers.Malformed,                    defaultHandler 400 "Bad Request"
-          Handlers.Unauthorized,                 defaultHandler 401 "Unauthorized"
-          Handlers.Forbidden,                    defaultHandler 403 "Forbidden"
-          Handlers.NotFound,                     defaultHandler 404 "Not Found"
-          Handlers.MethodNotAllowed,             defaultHandler 405 "Method Not Allowed"
-          Handlers.NotAcceptable,                defaultHandler 406 "Not Acceptable"
-          Handlers.Conflict,                     defaultHandler 409 "Conflict"
-          Handlers.Gone,                         defaultHandler 410 "Gone"
-          Handlers.PreconditionFailed,           defaultHandler 412 "Precondition Failed"
-          Handlers.RequestEntityTooLarge,        defaultHandler 413 "Request Entity Too Large"
-          Handlers.UriTooLong,                   defaultHandler 414 "URI Too Long"
-          Handlers.UnsupportedMediaType,         defaultHandler 415 "Unsupported Media Type"
-          Handlers.UnprocessableEntity,          defaultHandler 422 "Unprocessable Entity"
-          Handlers.Exception,                    defaultHandler 500 "Internal Server Error"
-          Handlers.NotImplemented,               defaultHandler 501 "Not Implemented"
-          Handlers.UnknownMethod,                defaultHandler 501 "Unknown Method"
-          Handlers.ServiceUnavailable,           defaultHandler 503 "Service Unavailable" ] 
-        
-        |> List.map (fun (name, handler) ->
-            name, Handler (unless (handlersPLens name) definition handler))
-
-    let construct definition =
-        [ actions definition
-          decisionsInternal
-          decisionsPublic definition
-          handlers definition ]
-        |> List.concat
-        |> Map.ofList
-
-
-[<AutoOpen>]
 module internal Execution =
+
+    type Graph =
+        Map<string, Node>
+
+    and Node =
+        | Action of ActionNode
+        | Decision of DecisionNode
+        | Handler of HandlerNode
+    
+    and ActionNode =
+        { Metadata: Metadata
+          Action: MachineAction
+          OnNext: string }           
+
+    and DecisionNode =
+        { Metadata: Metadata
+          Decision: MachineDecision
+          OnTrue: string
+          OnFalse: string }
+
+    and HandlerNode =
+        { Metadata: Metadata
+          Handler: MachineHandler }
+
+    and Metadata =
+        { Name: string
+          AllowOverride: bool }
+
+    let executionNodes =
+        [ // Actions
+
+          Action { Metadata =
+                     { Name = Actions.Delete
+                       AllowOverride = true }
+                   Action = defaultAction
+                   OnNext = Decisions.Deleted }
+                   
+          Action { Metadata =
+                     { Name = Actions.Patch
+                       AllowOverride = true }
+                   Action = defaultAction
+                   OnNext = Decisions.RespondWithEntity }
+
+          Action { Metadata =
+                     { Name = Actions.Post
+                       AllowOverride = true }
+                   Action = defaultAction
+                   OnNext = Decisions.PostRedirect }
+
+          Action { Metadata =
+                     { Name = Actions.Put
+                       AllowOverride = true }
+                   Action = defaultAction
+                   OnNext = Decisions.Created }
+
+          // Decisions (Allow Override = false)
+
+          Decision { Metadata =
+                       { Name = Decisions.AcceptCharsetExists
+                         AllowOverride = false }
+                     Decision = ifAcceptCharsetExists
+                     OnTrue = Decisions.CharsetAvailable
+                     OnFalse = Decisions.AcceptEncodingExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.AcceptEncodingExists
+                         AllowOverride = false }
+                     Decision = ifAcceptEncodingExists
+                     OnTrue = Decisions.EncodingAvailable
+                     OnFalse = Decisions.Processable }
+
+          Decision { Metadata =
+                       { Name = Decisions.AcceptExists 
+                         AllowOverride = false }
+                     Decision = ifAcceptExists
+                     OnTrue = Decisions.MediaTypeAvailable
+                     OnFalse = Decisions.AcceptLanguageExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.AcceptLanguageExists 
+                         AllowOverride = false }
+                     Decision = ifAcceptLanguageExists
+                     OnTrue = Decisions.LanguageAvailable
+                     OnFalse = Decisions.AcceptCharsetExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfMatchExists 
+                         AllowOverride = false }
+                     Decision = ifMatchExists
+                     OnTrue = Decisions.IfMatchStar
+                     OnFalse = Decisions.IfUnmodifiedSinceExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfMatchStar 
+                         AllowOverride = false }
+                     Decision = ifMatchStar
+                     OnTrue = Decisions.IfUnmodifiedSinceExists
+                     OnFalse = Decisions.ETagMatchesIf }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfMatchStarExistsForMissing 
+                         AllowOverride = false }
+                     Decision = ifMatchExists
+                     OnTrue = Handlers.PreconditionFailed
+                     OnFalse = Decisions.MethodPut }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfModifiedSinceExists 
+                         AllowOverride = false }
+                     Decision = ifModifiedSinceExists
+                     OnTrue = Decisions.IfModifiedSinceValidDate
+                     OnFalse = Decisions.MethodDelete }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfModifiedSinceValidDate 
+                         AllowOverride = false }
+                     Decision = ifModifiedSinceValidDate
+                     OnTrue = Decisions.ModifiedSince
+                     OnFalse = Decisions.MethodDelete }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfNoneMatch 
+                         AllowOverride = false }
+                     Decision = ifNoneMatch
+                     OnTrue = Handlers.NotModified
+                     OnFalse = Handlers.PreconditionFailed }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfNoneMatchExists 
+                         AllowOverride = false }
+                     Decision = ifNoneMatchExists
+                     OnTrue = Decisions.IfNoneMatchStar
+                     OnFalse = Decisions.IfModifiedSinceExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfNoneMatchStar 
+                         AllowOverride = false }
+                     Decision = ifNoneMatchStar
+                     OnTrue = Decisions.IfNoneMatch
+                     OnFalse = Decisions.ETagMatchesIfNone }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfUnmodifiedSinceExists 
+                         AllowOverride = false }
+                     Decision = ifUnmodifiedSinceExists
+                     OnTrue = Decisions.IfUnmodifiedSinceValidDate
+                     OnFalse = Decisions.IfNoneMatchExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.IfUnmodifiedSinceValidDate 
+                         AllowOverride = false }
+                     Decision = ifUnmodifiedSinceValidDate
+                     OnTrue = Decisions.UnmodifiedSince
+                     OnFalse = Decisions.IfNoneMatchExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.MethodDelete 
+                         AllowOverride = false }
+                     Decision = ifMethodDelete
+                     OnTrue = Actions.Delete
+                     OnFalse = Decisions.MethodPatch }
+
+          Decision { Metadata =
+                       { Name = Decisions.MethodOptions 
+                         AllowOverride = false }
+                     Decision = ifMethodOptions
+                     OnTrue = Handlers.Options
+                     OnFalse = Decisions.AcceptExists }
+
+          Decision { Metadata =
+                       { Name = Decisions.MethodPatch 
+                         AllowOverride = false }
+                     Decision = ifMethodPatch
+                     OnTrue = Actions.Patch
+                     OnFalse = Decisions.PostToExisting }
+
+          Decision { Metadata =
+                       { Name = Decisions.MethodPut 
+                         AllowOverride = false }
+                     Decision = ifMethodPut
+                     OnTrue = Decisions.PutToDifferentUri
+                     OnFalse = Decisions.Existed }
+
+          Decision { Metadata =
+                       { Name = Decisions.PostToGone 
+                         AllowOverride = false }
+                     Decision = ifMethodPost
+                     OnTrue = Decisions.CanPostToGone
+                     OnFalse = Handlers.Gone }
+
+          Decision { Metadata =
+                       { Name = Decisions.PostToExisting 
+                         AllowOverride = false }
+                     Decision = ifMethodPost
+                     OnTrue = Actions.Post
+                     OnFalse = Decisions.PutToExisting }
+
+          Decision { Metadata =
+                       { Name = Decisions.PostToMissing 
+                         AllowOverride = false }
+                     Decision = ifMethodPost
+                     OnTrue = Decisions.CanPostToMissing
+                     OnFalse = Handlers.NotFound }
+
+          Decision { Metadata =
+                       { Name = Decisions.PutToExisting 
+                         AllowOverride = false }
+                     Decision = ifMethodPost
+                     OnTrue = Decisions.Conflict
+                     OnFalse = Decisions.MultipleRepresentations }
+
+          // Decisions (Allow Override = true)
+
+          Decision { Metadata =
+                       { Name = Decisions.Allowed
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.ContentTypeValid
+                     OnFalse = Handlers.Forbidden }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Authorized
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.Allowed
+                     OnFalse = Handlers.Unauthorized }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.CanPostToGone
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Actions.Post
+                     OnFalse = Handlers.Gone }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.CanPostToMissing
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Actions.Post
+                     OnFalse = Handlers.NotFound }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.CanPutToMissing
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.Conflict
+                     OnFalse = Handlers.NotImplemented }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.CharsetAvailable
+                         AllowOverride = true }
+                     Decision = ifCharsetAvailable
+                     OnTrue = Decisions.AcceptEncodingExists
+                     OnFalse = Handlers.NotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Conflict
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.Conflict
+                     OnFalse = Actions.Put }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ContentTypeKnown
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.ValidEntityLength
+                     OnFalse = Handlers.UnsupportedMediaType }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ContentTypeValid
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.ContentTypeKnown
+                     OnFalse = Handlers.NotImplemented }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Created
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Handlers.Created
+                     OnFalse = Decisions.RespondWithEntity }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Deleted
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.RespondWithEntity
+                     OnFalse = Handlers.Accepted }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.EncodingAvailable
+                         AllowOverride = true }
+                     Decision = ifEncodingAvailable
+                     OnTrue = Decisions.Processable
+                     OnFalse = Handlers.NotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ETagMatchesIf
+                         AllowOverride = true }
+                     Decision = ifETagMatchesIf
+                     OnTrue = Decisions.IfUnmodifiedSinceExists
+                     OnFalse = Handlers.PreconditionFailed }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ETagMatchesIfNone
+                         AllowOverride = true }
+                     Decision = ifETagMatchesIfNone
+                     OnTrue = Decisions.IfNoneMatch
+                     OnFalse = Decisions.IfModifiedSinceExists }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Existed
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Decisions.MovedPermanently
+                     OnFalse = Decisions.PostToMissing }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Exists
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.IfMatchExists
+                     OnFalse = Decisions.IfMatchStarExistsForMissing }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MethodKnown
+                         AllowOverride = true }
+                     Decision = ifMethodKnown
+                     OnTrue = Decisions.UriTooLong
+                     OnFalse = Handlers.UnknownMethod }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.LanguageAvailable
+                         AllowOverride = true }
+                     Decision = ifLanguageAvailable
+                     OnTrue = Decisions.AcceptCharsetExists
+                     OnFalse = Handlers.NotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Malformed
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.Malformed
+                     OnFalse = Decisions.Authorized }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MediaTypeAvailable
+                         AllowOverride = true }
+                     Decision = ifMediaTypeAvailable
+                     OnTrue = Decisions.AcceptLanguageExists
+                     OnFalse = Handlers.NotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MethodAllowed
+                         AllowOverride = true }
+                     Decision = ifMethodAllowed
+                     OnTrue = Decisions.Malformed
+                     OnFalse = Handlers.MethodNotAllowed }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ModifiedSince
+                         AllowOverride = true }
+                     Decision = ifModifiedSince
+                     OnTrue = Decisions.MethodDelete
+                     OnFalse = Handlers.NotModified }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MovedPermanently
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.MovedPermanently
+                     OnFalse = Decisions.MovedTemporarily }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MovedTemporarily
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.MovedTemporarily
+                     OnFalse = Decisions.PostToGone }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.MultipleRepresentations
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.MultipleRepresentations
+                     OnFalse = Handlers.OK }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.PostRedirect
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.SeeOther
+                     OnFalse = Decisions.Created }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.Processable
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.Exists
+                     OnFalse = Handlers.UnprocessableEntity }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.PutToDifferentUri
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.MovedPermanently
+                     OnFalse = Decisions.CanPutToMissing }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.RespondWithEntity
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.MultipleRepresentations
+                     OnFalse = Handlers.NoContent }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.ServiceAvailable
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.MethodKnown
+                     OnFalse = Handlers.ServiceUnavailable }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.UnmodifiedSince
+                         AllowOverride = true }
+                     Decision = ifUnmodifiedSince
+                     OnTrue = Handlers.PreconditionFailed
+                     OnFalse = Decisions.IfNoneMatchExists }
+                      
+          Decision { Metadata =
+                       { Name = Decisions.UriTooLong
+                         AllowOverride = true }
+                     Decision = defaultFalse
+                     OnTrue = Handlers.UriTooLong
+                     OnFalse = Decisions.MethodAllowed }
+
+          Decision { Metadata =
+                       { Name = Decisions.ValidEntityLength
+                         AllowOverride = true }
+                     Decision = defaultTrue
+                     OnTrue = Decisions.MethodOptions
+                     OnFalse = Handlers.RequestEntityTooLarge }
+
+          // Handlers
+                     
+          Handler { Metadata =
+                      { Name = Handlers.OK
+                        AllowOverride = true }
+                    Handler = defaultHandler 200 "OK" }
+                    
+          Handler { Metadata =
+                      { Name = Handlers.Options
+                        AllowOverride = true }
+                    Handler = defaultOptions }
+
+          Handler { Metadata =
+                      { Name = Handlers.Created
+                        AllowOverride = true }
+                    Handler = defaultHandler 201 "Created" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Accepted
+                        AllowOverride = true }
+                    Handler = defaultHandler 202 "Accepted" }
+
+          Handler { Metadata =
+                      { Name = Handlers.NoContent
+                        AllowOverride = true }
+                    Handler = defaultHandler 204 "No Content" }
+
+          Handler { Metadata =
+                      { Name = Handlers.MovedPermanently
+                        AllowOverride = true }
+                    Handler = defaultHandler 301 "Moved Permanently" }
+
+          Handler { Metadata =
+                      { Name = Handlers.SeeOther
+                        AllowOverride = true }
+                    Handler = defaultHandler 303 "See Other" }
+
+          Handler { Metadata =
+                      { Name = Handlers.NotModified
+                        AllowOverride = true }
+                    Handler = defaultHandler 304 "Not Modified" }
+
+          Handler { Metadata =
+                      { Name = Handlers.MovedTemporarily
+                        AllowOverride = true }
+                    Handler = defaultHandler 307 "Moved Temporarily" }
+
+          Handler { Metadata =
+                      { Name = Handlers.MultipleRepresentations
+                        AllowOverride = true }
+                    Handler = defaultHandler 310 "Multiple Representations" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Malformed
+                        AllowOverride = true }
+                    Handler = defaultHandler 400 "Bad Request" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Unauthorized
+                        AllowOverride = true }
+                    Handler = defaultHandler 401 "Unauthorized" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Forbidden
+                        AllowOverride = true }
+                    Handler = defaultHandler 403 "Forbidden" }
+
+          Handler { Metadata =
+                      { Name = Handlers.NotFound
+                        AllowOverride = true }
+                    Handler = defaultHandler 404 "Not Found" }
+
+          Handler { Metadata =
+                      { Name = Handlers.MethodNotAllowed
+                        AllowOverride = true }
+                    Handler = defaultHandler 405 "Method Not Allowed" }
+
+          Handler { Metadata =
+                      { Name = Handlers.NotAcceptable
+                        AllowOverride = true }
+                    Handler = defaultHandler 406 "Not Acceptable" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Conflict
+                        AllowOverride = true }
+                    Handler = defaultHandler 409 "Conflict" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Gone
+                        AllowOverride = true }
+                    Handler = defaultHandler 410 "Gone" }
+
+          Handler { Metadata =
+                      { Name = Handlers.PreconditionFailed
+                        AllowOverride = true }
+                    Handler = defaultHandler 412 "Precondition Failed" }
+
+          Handler { Metadata =
+                      { Name = Handlers.RequestEntityTooLarge
+                        AllowOverride = true }
+                    Handler = defaultHandler 413 "Request Entity Too Large" }
+
+          Handler { Metadata =
+                      { Name = Handlers.UriTooLong
+                        AllowOverride = true }
+                    Handler = defaultHandler 414 "URI Too Long" }
+
+          Handler { Metadata =
+                      { Name = Handlers.UnsupportedMediaType
+                        AllowOverride = true }
+                    Handler = defaultHandler 415 "Unsupported Media Type" }
+
+          Handler { Metadata =
+                      { Name = Handlers.UnprocessableEntity
+                        AllowOverride = true }
+                    Handler = defaultHandler 422 "Unprocessable Entity" }
+
+          Handler { Metadata =
+                      { Name = Handlers.Exception
+                        AllowOverride = true }
+                    Handler = defaultHandler 500 "Internal Server Error" }
+
+          Handler { Metadata =
+                      { Name = Handlers.NotImplemented
+                        AllowOverride = true }
+                    Handler = defaultHandler 501 "Not Implemented" }
+
+          Handler { Metadata =
+                      { Name = Handlers.UnknownMethod
+                        AllowOverride = true }
+                    Handler = defaultHandler 501 "Unknown Method" }
+
+          Handler { Metadata =
+                      { Name = Handlers.ServiceUnavailable
+                        AllowOverride = true }
+                    Handler = defaultHandler 503 "Service Unavailable" } ]
+
+    let construct () =
+        executionNodes
+        |> List.map (fun node ->
+            match node with
+            | Action action ->
+                action.Metadata.Name, Action action
+            | Decision decision ->
+                decision.Metadata.Name, Decision decision
+            | Handler handler ->
+                handler.Metadata.Name, Handler handler)
+        |> Map.ofList
 
     let execute (graph: Graph) =
         let rec traverse from =
             owin {
                 match Map.find from graph with
-                | Action (action, next) ->
-                    do! action
+                | Action action ->
+                    do! action.Action
                     printfn "action: %s" from
-                    return! traverse next
-                | Decision (decision, choices) ->
-                    let! p = decision
+                    return! traverse action.OnNext
+                | Decision decision ->
+                    let! p = decision.Decision
+                    let next = p |> function | true -> decision.OnTrue | _ -> decision.OnFalse
                     printfn "decision: %s = %b" from p
-                    return! traverse ((p |> function | true -> fst | _ -> snd) choices)
+                    return! traverse next
                 | Handler handler ->
                     printfn "handler: %s" from
-                    return! handler }
+                    return! handler.Handler }
 
         traverse Decisions.ServiceAvailable
 
@@ -458,7 +931,7 @@ module Reification =
     
     let reifyMachine (machine: MachineMonad) : Pipeline =
         let definition = machine MachineDefinition.empty |> snd
-        let graph = construct definition
+        let graph = construct () // definition
 
         owin {
             do! setLM definitionLens definition
