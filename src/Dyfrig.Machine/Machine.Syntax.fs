@@ -6,7 +6,7 @@ open Dyfrig.Http
 
 
 [<AutoOpen>]
-module Operations =
+module Syntax =
 
     [<AutoOpen>]
     module Actions =

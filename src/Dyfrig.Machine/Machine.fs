@@ -13,6 +13,18 @@ open Dyfrig.Pipeline
 [<AutoOpen>]
 module Definition =
 
+    type MachineAction = 
+        OwinMonad<unit>
+
+    type MachineDecision = 
+        OwinMonad<bool>
+
+    type MachineHandler = 
+        OwinMonad<byte []>
+
+    type MachineOperation =
+        OwinMonad<unit>
+
     type MachineDefinition =
         Map<string, MachineOverride>
 
@@ -21,15 +33,6 @@ module Definition =
         | Configuration of obj
         | Decision of MachineDecision
         | Handler of MachineHandler
-
-    and MachineAction = 
-        OwinMonad<unit>
-
-    and MachineDecision = 
-        OwinMonad<bool>
-
-    and MachineHandler = 
-        OwinMonad<byte []>
 
 
 [<AutoOpen>]
@@ -137,32 +140,26 @@ module internal Defaults =
 
     // Decisions
 
-    let defaultTrue =
-        owin { return true }
-
-    let defaultFalse =
-        owin { return false }
-
     let defaultDecision (decision: bool) = 
         owin { return decision }
 
     // Handlers
 
-    let defaultHandler code phrase =
+    let defaultHandler =
         owin {
-            do! setPLM Response.statusCode code
-            do! setPLM Response.reasonPhrase phrase
-
             return Array.empty<byte> }
+
+    // Operations
+
+    let defaultOperation statusCode reasonPhrase =
+           setPLM Response.statusCode statusCode
+        *> setPLM Response.reasonPhrase reasonPhrase
 
     let defaultOptions =
-        owin {
-            do! setPLM Response.statusCode 200
-            do! setPLM Response.reasonPhrase "Options"
-            do! setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
-            do! setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
-
-            return Array.empty<byte> }
+           setPLM Response.statusCode 200
+        *> setPLM Response.reasonPhrase "Options"
+        *> setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
+        *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
 
 
 [<AutoOpen>]
@@ -311,23 +308,29 @@ module internal Execution =
         | Action of ActionNode
         | Decision of DecisionNode
         | Handler of HandlerNode
+        | Operation of OperationNode
     
     and ActionNode =
         { Metadata: Metadata
           Override: Override
           Action: MachineAction
-          OnNext: string }
+          Next: string }
     and DecisionNode =
         { Metadata: Metadata
           Override: Override
           Decision: MachineDecision
-          OnTrue: string
-          OnFalse: string }
+          True: string
+          False: string }
 
     and HandlerNode =
         { Metadata: Metadata
           Override: Override
           Handler: MachineHandler }
+
+    and OperationNode =
+        { Metadata: Metadata
+          Operation: MachineOperation
+          Next: string }
 
     and Metadata =
         { Name: string
@@ -339,7 +342,7 @@ module internal Execution =
 
     let private nodes =
         [ 
-        
+
           // Actions
 
           Action { Metadata =
@@ -349,7 +352,7 @@ module internal Execution =
                      { AllowOverride = true
                        Overridden = false }
                    Action = defaultAction
-                   OnNext = Decisions.Deleted }
+                   Next = Decisions.Deleted }
 
           Action { Metadata =
                      { Name = Actions.Patch
@@ -358,7 +361,7 @@ module internal Execution =
                      { AllowOverride = true
                        Overridden = false }
                    Action = defaultAction
-                   OnNext = Decisions.RespondWithEntity }
+                   Next = Decisions.RespondWithEntity }
 
           Action { Metadata =
                      { Name = Actions.Post
@@ -367,7 +370,7 @@ module internal Execution =
                      { AllowOverride = true
                        Overridden = false }
                    Action = defaultAction
-                   OnNext = Decisions.PostRedirect }
+                   Next = Decisions.PostRedirect }
 
           Action { Metadata =
                      { Name = Actions.Put
@@ -376,7 +379,7 @@ module internal Execution =
                      { AllowOverride = true
                        Overridden = false }
                    Action = defaultAction
-                   OnNext = Decisions.Created }
+                   Next = Decisions.Created }
 
           // Decisions (Allow Override = false)
 
@@ -387,8 +390,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifAcceptCharsetExists
-                     OnTrue = Decisions.CharsetAvailable
-                     OnFalse = Decisions.AcceptEncodingExists }
+                     True = Decisions.CharsetAvailable
+                     False = Decisions.AcceptEncodingExists }
 
           Decision { Metadata =
                        { Name = Decisions.AcceptEncodingExists
@@ -397,8 +400,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifAcceptEncodingExists
-                     OnTrue = Decisions.EncodingAvailable
-                     OnFalse = Decisions.Processable }
+                     True = Decisions.EncodingAvailable
+                     False = Decisions.Processable }
 
           Decision { Metadata =
                        { Name = Decisions.AcceptExists 
@@ -407,8 +410,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifAcceptExists
-                     OnTrue = Decisions.MediaTypeAvailable
-                     OnFalse = Decisions.AcceptLanguageExists }
+                     True = Decisions.MediaTypeAvailable
+                     False = Decisions.AcceptLanguageExists }
 
           Decision { Metadata =
                        { Name = Decisions.AcceptLanguageExists 
@@ -417,8 +420,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifAcceptLanguageExists
-                     OnTrue = Decisions.LanguageAvailable
-                     OnFalse = Decisions.AcceptCharsetExists }
+                     True = Decisions.LanguageAvailable
+                     False = Decisions.AcceptCharsetExists }
 
           Decision { Metadata =
                        { Name = Decisions.IfMatchExists 
@@ -427,8 +430,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMatchExists
-                     OnTrue = Decisions.IfMatchStar
-                     OnFalse = Decisions.IfUnmodifiedSinceExists }
+                     True = Decisions.IfMatchStar
+                     False = Decisions.IfUnmodifiedSinceExists }
 
           Decision { Metadata =
                        { Name = Decisions.IfMatchStar 
@@ -437,8 +440,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMatchStar
-                     OnTrue = Decisions.IfUnmodifiedSinceExists
-                     OnFalse = Decisions.ETagMatchesIf }
+                     True = Decisions.IfUnmodifiedSinceExists
+                     False = Decisions.ETagMatchesIf }
 
           Decision { Metadata =
                        { Name = Decisions.IfMatchStarExistsForMissing 
@@ -447,8 +450,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMatchExists
-                     OnTrue = Handlers.PreconditionFailed
-                     OnFalse = Decisions.MethodPut }
+                     True = Operations.PrePreconditionFailed
+                     False = Decisions.MethodPut }
 
           Decision { Metadata =
                        { Name = Decisions.IfModifiedSinceExists 
@@ -457,8 +460,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifModifiedSinceExists
-                     OnTrue = Decisions.IfModifiedSinceValidDate
-                     OnFalse = Decisions.MethodDelete }
+                     True = Decisions.IfModifiedSinceValidDate
+                     False = Decisions.MethodDelete }
 
           Decision { Metadata =
                        { Name = Decisions.IfModifiedSinceValidDate 
@@ -467,8 +470,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifModifiedSinceValidDate
-                     OnTrue = Decisions.ModifiedSince
-                     OnFalse = Decisions.MethodDelete }
+                     True = Decisions.ModifiedSince
+                     False = Decisions.MethodDelete }
 
           Decision { Metadata =
                        { Name = Decisions.IfNoneMatch 
@@ -477,8 +480,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifNoneMatch
-                     OnTrue = Handlers.NotModified
-                     OnFalse = Handlers.PreconditionFailed }
+                     True = Operations.PreNotModified
+                     False = Operations.PrePreconditionFailed }
 
           Decision { Metadata =
                        { Name = Decisions.IfNoneMatchExists 
@@ -487,8 +490,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifNoneMatchExists
-                     OnTrue = Decisions.IfNoneMatchStar
-                     OnFalse = Decisions.IfModifiedSinceExists }
+                     True = Decisions.IfNoneMatchStar
+                     False = Decisions.IfModifiedSinceExists }
 
           Decision { Metadata =
                        { Name = Decisions.IfNoneMatchStar 
@@ -497,8 +500,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifNoneMatchStar
-                     OnTrue = Decisions.IfNoneMatch
-                     OnFalse = Decisions.ETagMatchesIfNone }
+                     True = Decisions.IfNoneMatch
+                     False = Decisions.ETagMatchesIfNone }
 
           Decision { Metadata =
                        { Name = Decisions.IfUnmodifiedSinceExists 
@@ -507,8 +510,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifUnmodifiedSinceExists
-                     OnTrue = Decisions.IfUnmodifiedSinceValidDate
-                     OnFalse = Decisions.IfNoneMatchExists }
+                     True = Decisions.IfUnmodifiedSinceValidDate
+                     False = Decisions.IfNoneMatchExists }
 
           Decision { Metadata =
                        { Name = Decisions.IfUnmodifiedSinceValidDate 
@@ -517,8 +520,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifUnmodifiedSinceValidDate
-                     OnTrue = Decisions.UnmodifiedSince
-                     OnFalse = Decisions.IfNoneMatchExists }
+                     True = Decisions.UnmodifiedSince
+                     False = Decisions.IfNoneMatchExists }
 
           Decision { Metadata =
                        { Name = Decisions.MethodDelete 
@@ -527,8 +530,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodDelete
-                     OnTrue = Actions.Delete
-                     OnFalse = Decisions.MethodPatch }
+                     True = Actions.Delete
+                     False = Decisions.MethodPatch }
 
           Decision { Metadata =
                        { Name = Decisions.MethodOptions 
@@ -537,8 +540,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodOptions
-                     OnTrue = Handlers.Options
-                     OnFalse = Decisions.AcceptExists }
+                     True = Operations.PreOptions
+                     False = Decisions.AcceptExists }
 
           Decision { Metadata =
                        { Name = Decisions.MethodPatch 
@@ -547,8 +550,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPatch
-                     OnTrue = Actions.Patch
-                     OnFalse = Decisions.PostToExisting }
+                     True = Actions.Patch
+                     False = Decisions.PostToExisting }
 
           Decision { Metadata =
                        { Name = Decisions.MethodPut 
@@ -557,8 +560,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPut
-                     OnTrue = Decisions.PutToDifferentUri
-                     OnFalse = Decisions.Existed }
+                     True = Decisions.PutToDifferentUri
+                     False = Decisions.Existed }
 
           Decision { Metadata =
                        { Name = Decisions.PostToGone 
@@ -567,8 +570,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPost
-                     OnTrue = Decisions.CanPostToGone
-                     OnFalse = Handlers.Gone }
+                     True = Decisions.CanPostToGone
+                     False = Operations.PreGone }
 
           Decision { Metadata =
                        { Name = Decisions.PostToExisting 
@@ -577,8 +580,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPost
-                     OnTrue = Actions.Post
-                     OnFalse = Decisions.PutToExisting }
+                     True = Actions.Post
+                     False = Decisions.PutToExisting }
 
           Decision { Metadata =
                        { Name = Decisions.PostToMissing 
@@ -587,8 +590,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPost
-                     OnTrue = Decisions.CanPostToMissing
-                     OnFalse = Handlers.NotFound }
+                     True = Decisions.CanPostToMissing
+                     False = Operations.PreNotFound }
 
           Decision { Metadata =
                        { Name = Decisions.PutToExisting 
@@ -597,8 +600,8 @@ module internal Execution =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifMethodPost
-                     OnTrue = Decisions.Conflict
-                     OnFalse = Decisions.MultipleRepresentations }
+                     True = Decisions.Conflict
+                     False = Decisions.MultipleRepresentations }
 
           // Decisions (Allow Override = true)
 
@@ -608,9 +611,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.ContentTypeValid
-                     OnFalse = Handlers.Forbidden }
+                     Decision = defaultDecision true
+                     True = Decisions.ContentTypeValid
+                     False = Operations.PreForbidden }
                       
           Decision { Metadata =
                        { Name = Decisions.Authorized
@@ -618,9 +621,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.Allowed
-                     OnFalse = Handlers.Unauthorized }
+                     Decision = defaultDecision true
+                     True = Decisions.Allowed
+                     False = Operations.PreUnauthorized }
                       
           Decision { Metadata =
                        { Name = Decisions.CanPostToGone
@@ -628,9 +631,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Actions.Post
-                     OnFalse = Handlers.Gone }
+                     Decision = defaultDecision false
+                     True = Actions.Post
+                     False = Operations.PreGone }
                       
           Decision { Metadata =
                        { Name = Decisions.CanPostToMissing
@@ -638,9 +641,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Actions.Post
-                     OnFalse = Handlers.NotFound }
+                     Decision = defaultDecision true
+                     True = Actions.Post
+                     False = Operations.PreNotFound }
                       
           Decision { Metadata =
                        { Name = Decisions.CanPutToMissing
@@ -648,9 +651,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.Conflict
-                     OnFalse = Handlers.NotImplemented }
+                     Decision = defaultDecision true
+                     True = Decisions.Conflict
+                     False = Operations.PreNotImplemented }
                       
           Decision { Metadata =
                        { Name = Decisions.CharsetAvailable
@@ -659,8 +662,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifCharsetAvailable
-                     OnTrue = Decisions.AcceptEncodingExists
-                     OnFalse = Handlers.NotAcceptable }
+                     True = Decisions.AcceptEncodingExists
+                     False = Operations.PreNotAcceptable }
                       
           Decision { Metadata =
                        { Name = Decisions.Conflict
@@ -668,9 +671,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.Conflict
-                     OnFalse = Actions.Put }
+                     Decision = defaultDecision false
+                     True = Operations.PreConflict
+                     False = Actions.Put }
                       
           Decision { Metadata =
                        { Name = Decisions.ContentTypeKnown
@@ -678,9 +681,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.ValidEntityLength
-                     OnFalse = Handlers.UnsupportedMediaType }
+                     Decision = defaultDecision true
+                     True = Decisions.ValidEntityLength
+                     False = Operations.PreUnsupportedMediaType }
                       
           Decision { Metadata =
                        { Name = Decisions.ContentTypeValid
@@ -688,9 +691,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.ContentTypeKnown
-                     OnFalse = Handlers.NotImplemented }
+                     Decision = defaultDecision true
+                     True = Decisions.ContentTypeKnown
+                     False = Operations.PreNotImplemented }
                       
           Decision { Metadata =
                        { Name = Decisions.Created
@@ -698,9 +701,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Handlers.Created
-                     OnFalse = Decisions.RespondWithEntity }
+                     Decision = defaultDecision true
+                     True = Operations.PreCreated
+                     False = Decisions.RespondWithEntity }
                       
           Decision { Metadata =
                        { Name = Decisions.Deleted
@@ -708,9 +711,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.RespondWithEntity
-                     OnFalse = Handlers.Accepted }
+                     Decision = defaultDecision true
+                     True = Decisions.RespondWithEntity
+                     False = Operations.PreAccepted }
                       
           Decision { Metadata =
                        { Name = Decisions.EncodingAvailable
@@ -719,8 +722,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifEncodingAvailable
-                     OnTrue = Decisions.Processable
-                     OnFalse = Handlers.NotAcceptable }
+                     True = Decisions.Processable
+                     False = Operations.PreNotAcceptable }
                       
           Decision { Metadata =
                        { Name = Decisions.ETagMatchesIf
@@ -729,8 +732,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifETagMatchesIf
-                     OnTrue = Decisions.IfUnmodifiedSinceExists
-                     OnFalse = Handlers.PreconditionFailed }
+                     True = Decisions.IfUnmodifiedSinceExists
+                     False = Operations.PrePreconditionFailed }
                       
           Decision { Metadata =
                        { Name = Decisions.ETagMatchesIfNone
@@ -739,8 +742,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifETagMatchesIfNone
-                     OnTrue = Decisions.IfNoneMatch
-                     OnFalse = Decisions.IfModifiedSinceExists }
+                     True = Decisions.IfNoneMatch
+                     False = Decisions.IfModifiedSinceExists }
                       
           Decision { Metadata =
                        { Name = Decisions.Existed
@@ -748,9 +751,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Decisions.MovedPermanently
-                     OnFalse = Decisions.PostToMissing }
+                     Decision = defaultDecision false
+                     True = Decisions.MovedPermanently
+                     False = Decisions.PostToMissing }
                       
           Decision { Metadata =
                        { Name = Decisions.Exists
@@ -758,9 +761,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.IfMatchExists
-                     OnFalse = Decisions.IfMatchStarExistsForMissing }
+                     Decision = defaultDecision true
+                     True = Decisions.IfMatchExists
+                     False = Decisions.IfMatchStarExistsForMissing }
                       
           Decision { Metadata =
                        { Name = Decisions.MethodKnown
@@ -769,8 +772,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifMethodKnown
-                     OnTrue = Decisions.UriTooLong
-                     OnFalse = Handlers.UnknownMethod }
+                     True = Decisions.UriTooLong
+                     False = Operations.PreUnknownMethod }
                       
           Decision { Metadata =
                        { Name = Decisions.LanguageAvailable
@@ -779,8 +782,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifLanguageAvailable
-                     OnTrue = Decisions.AcceptCharsetExists
-                     OnFalse = Handlers.NotAcceptable }
+                     True = Decisions.AcceptCharsetExists
+                     False = Operations.PreNotAcceptable }
                       
           Decision { Metadata =
                        { Name = Decisions.Malformed
@@ -788,9 +791,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.Malformed
-                     OnFalse = Decisions.Authorized }
+                     Decision = defaultDecision false
+                     True = Operations.PreMalformed
+                     False = Decisions.Authorized }
                       
           Decision { Metadata =
                        { Name = Decisions.MediaTypeAvailable
@@ -799,8 +802,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifMediaTypeAvailable
-                     OnTrue = Decisions.AcceptLanguageExists
-                     OnFalse = Handlers.NotAcceptable }
+                     True = Decisions.AcceptLanguageExists
+                     False = Operations.PreNotAcceptable }
                       
           Decision { Metadata =
                        { Name = Decisions.MethodAllowed
@@ -809,8 +812,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifMethodAllowed
-                     OnTrue = Decisions.Malformed
-                     OnFalse = Handlers.MethodNotAllowed }
+                     True = Decisions.Malformed
+                     False = Operations.PreMethodNotAllowed }
                       
           Decision { Metadata =
                        { Name = Decisions.ModifiedSince
@@ -819,8 +822,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifModifiedSince
-                     OnTrue = Decisions.MethodDelete
-                     OnFalse = Handlers.NotModified }
+                     True = Decisions.MethodDelete
+                     False = Operations.PreNotModified }
                       
           Decision { Metadata =
                        { Name = Decisions.MovedPermanently
@@ -828,9 +831,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.MovedPermanently
-                     OnFalse = Decisions.MovedTemporarily }
+                     Decision = defaultDecision false
+                     True = Operations.PreMovedPermanently
+                     False = Decisions.MovedTemporarily }
                       
           Decision { Metadata =
                        { Name = Decisions.MovedTemporarily
@@ -838,9 +841,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.MovedTemporarily
-                     OnFalse = Decisions.PostToGone }
+                     Decision = defaultDecision false
+                     True = Operations.PreMovedTemporarily
+                     False = Decisions.PostToGone }
                       
           Decision { Metadata =
                        { Name = Decisions.MultipleRepresentations
@@ -848,9 +851,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.MultipleRepresentations
-                     OnFalse = Handlers.OK }
+                     Decision = defaultDecision false
+                     True = Operations.PreMultipleRepresentations
+                     False = Operations.PreOK }
                       
           Decision { Metadata =
                        { Name = Decisions.PostRedirect
@@ -858,9 +861,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.SeeOther
-                     OnFalse = Decisions.Created }
+                     Decision = defaultDecision false
+                     True = Operations.PreSeeOther
+                     False = Decisions.Created }
                       
           Decision { Metadata =
                        { Name = Decisions.Processable
@@ -868,9 +871,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.Exists
-                     OnFalse = Handlers.UnprocessableEntity }
+                     Decision = defaultDecision true
+                     True = Decisions.Exists
+                     False = Operations.PreUnprocessableEntity }
                       
           Decision { Metadata =
                        { Name = Decisions.PutToDifferentUri
@@ -878,9 +881,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.MovedPermanently
-                     OnFalse = Decisions.CanPutToMissing }
+                     Decision = defaultDecision false
+                     True = Operations.PreMovedPermanently
+                     False = Decisions.CanPutToMissing }
                       
           Decision { Metadata =
                        { Name = Decisions.RespondWithEntity
@@ -888,9 +891,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.MultipleRepresentations
-                     OnFalse = Handlers.NoContent }
+                     Decision = defaultDecision true
+                     True = Decisions.MultipleRepresentations
+                     False = Operations.PreNoContent }
                       
           Decision { Metadata =
                        { Name = Decisions.ServiceAvailable
@@ -898,9 +901,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.MethodKnown
-                     OnFalse = Handlers.ServiceUnavailable }
+                     Decision = defaultDecision true
+                     True = Decisions.MethodKnown
+                     False = Operations.PreServiceUnavailable }
                       
           Decision { Metadata =
                        { Name = Decisions.UnmodifiedSince
@@ -909,8 +912,8 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifUnmodifiedSince
-                     OnTrue = Handlers.PreconditionFailed
-                     OnFalse = Decisions.IfNoneMatchExists }
+                     True = Operations.PrePreconditionFailed
+                     False = Decisions.IfNoneMatchExists }
                       
           Decision { Metadata =
                        { Name = Decisions.UriTooLong
@@ -918,9 +921,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultFalse
-                     OnTrue = Handlers.UriTooLong
-                     OnFalse = Decisions.MethodAllowed }
+                     Decision = defaultDecision false
+                     True = Operations.PreUriTooLong
+                     False = Decisions.MethodAllowed }
 
           Decision { Metadata =
                        { Name = Decisions.ValidEntityLength
@@ -928,9 +931,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultTrue
-                     OnTrue = Decisions.MethodOptions
-                     OnFalse = Handlers.RequestEntityTooLarge }
+                     Decision = defaultDecision true
+                     True = Decisions.MethodOptions
+                     False = Operations.PreRequestEntityTooLarge }
 
           // Handlers
                      
@@ -940,7 +943,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 200 "OK" }
+                    Handler = defaultHandler }
                     
           Handler { Metadata =
                       { Name = Handlers.Options
@@ -948,7 +951,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultOptions }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Created
@@ -956,7 +959,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 201 "Created" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Accepted
@@ -964,7 +967,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 202 "Accepted" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.NoContent
@@ -972,7 +975,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 204 "No Content" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.MovedPermanently
@@ -980,7 +983,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 301 "Moved Permanently" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.SeeOther
@@ -988,7 +991,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 303 "See Other" }
+                    Handler = defaultHandler  }
 
           Handler { Metadata =
                       { Name = Handlers.NotModified
@@ -996,7 +999,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 304 "Not Modified" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.MovedTemporarily
@@ -1004,7 +1007,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 307 "Moved Temporarily" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.MultipleRepresentations
@@ -1012,7 +1015,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 310 "Multiple Representations" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Malformed
@@ -1020,7 +1023,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 400 "Bad Request" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Unauthorized
@@ -1028,7 +1031,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 401 "Unauthorized" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Forbidden
@@ -1036,7 +1039,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 403 "Forbidden" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.NotFound
@@ -1044,7 +1047,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 404 "Not Found" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.MethodNotAllowed
@@ -1052,7 +1055,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 405 "Method Not Allowed" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.NotAcceptable
@@ -1060,7 +1063,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 406 "Not Acceptable" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Conflict
@@ -1068,7 +1071,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 409 "Conflict" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Gone
@@ -1076,7 +1079,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 410 "Gone" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.PreconditionFailed
@@ -1084,7 +1087,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 412 "Precondition Failed" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.RequestEntityTooLarge
@@ -1092,7 +1095,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 413 "Request Entity Too Large" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.UriTooLong
@@ -1100,7 +1103,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 414 "URI Too Long" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.UnsupportedMediaType
@@ -1108,7 +1111,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 415 "Unsupported Media Type" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.UnprocessableEntity
@@ -1116,7 +1119,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 422 "Unprocessable Entity" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.Exception
@@ -1124,7 +1127,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 500 "Internal Server Error" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.NotImplemented
@@ -1132,7 +1135,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 501 "Not Implemented" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.UnknownMethod
@@ -1140,7 +1143,7 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 501 "Unknown Method" }
+                    Handler = defaultHandler }
 
           Handler { Metadata =
                       { Name = Handlers.ServiceUnavailable
@@ -1148,7 +1151,171 @@ module internal Execution =
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler 503 "Service Unavailable" } ]
+                    Handler = defaultHandler }
+                    
+          // Operations
+          
+          Operation { Metadata =
+                        { Name = Operations.PreOK
+                          Description = None }
+                      Operation = defaultOperation 200 "OK"
+                      Next = Handlers.OK }
+                    
+          Operation { Metadata =
+                       { Name = Operations.PreOptions
+                         Description = None }
+                      Operation = defaultOptions
+                      Next = Handlers.Options }
+
+          Operation { Metadata =
+                       { Name = Operations.PreCreated
+                         Description = None }
+                      Operation = defaultOperation 201 "Created"
+                      Next = Handlers.Created }
+
+          Operation { Metadata =
+                       { Name = Operations.PreAccepted
+                         Description = None }
+                      Operation = defaultOperation 202 "Accepted"
+                      Next = Handlers.Accepted }
+
+          Operation { Metadata =
+                       { Name = Operations.PreNoContent
+                         Description = None }
+                      Operation = defaultOperation 204 "No Content"
+                      Next = Handlers.NoContent }
+
+          Operation { Metadata =
+                       { Name = Operations.PreMovedPermanently
+                         Description = None }
+                      Operation = defaultOperation 301 "Moved Permanently"
+                      Next = Operations.PreMovedPermanently }
+
+          Operation { Metadata =
+                       { Name = Operations.PreSeeOther
+                         Description = None }
+                      Operation = defaultOperation 303 "See Other"
+                      Next = Handlers.SeeOther }
+
+          Operation { Metadata =
+                       { Name = Operations.PreNotModified
+                         Description = None }
+                      Operation = defaultOperation 304 "Not Modified"
+                      Next = Handlers.NotModified }
+
+          Operation { Metadata =
+                       { Name = Operations.PreMovedTemporarily
+                         Description = None }
+                      Operation = defaultOperation 307 "Moved Temporarily"
+                      Next = Handlers.MovedTemporarily }
+
+          Operation { Metadata =
+                       { Name = Operations.PreMultipleRepresentations
+                         Description = None }
+                      Operation = defaultOperation 310 "Multiple Representations"
+                      Next = Handlers.MultipleRepresentations }
+
+          Operation { Metadata =
+                       { Name = Operations.PreMalformed
+                         Description = None }
+                      Operation = defaultOperation 400 "Bad Request"
+                      Next = Handlers.Malformed }
+
+          Operation { Metadata =
+                       { Name = Operations.PreUnauthorized
+                         Description = None }
+                      Operation = defaultOperation 401 "Unauthorized"
+                      Next = Handlers.Unauthorized }
+
+          Operation { Metadata =
+                       { Name = Operations.PreForbidden
+                         Description = None }
+                      Operation = defaultOperation 403 "Forbidden"
+                      Next = Handlers.Forbidden }
+
+          Operation { Metadata =
+                       { Name = Operations.PreNotFound
+                         Description = None }
+                      Operation = defaultOperation 404 "Not Found"
+                      Next = Handlers.NotFound }
+
+          Operation { Metadata =
+                       { Name = Operations.PreMethodNotAllowed
+                         Description = None }
+                      Operation = defaultOperation 405 "Method Not Allowed"
+                      Next = Handlers.MethodNotAllowed }
+
+          Operation { Metadata =
+                       { Name = Operations.PreNotAcceptable
+                         Description = None }
+                      Operation = defaultOperation 406 "Not Acceptable"
+                      Next = Handlers.NotAcceptable }
+
+          Operation { Metadata =
+                       { Name = Operations.PreConflict
+                         Description = None }
+                      Operation = defaultOperation 409 "Conflict"
+                      Next = Handlers.Conflict }
+
+          Operation { Metadata =
+                       { Name = Operations.PreGone
+                         Description = None }
+                      Operation = defaultOperation 410 "Gone"
+                      Next = Handlers.Gone }
+
+          Operation { Metadata =
+                       { Name = Operations.PrePreconditionFailed
+                         Description = None }
+                      Operation = defaultOperation 412 "Precondition Failed"
+                      Next = Handlers.PreconditionFailed }
+
+          Operation { Metadata =
+                       { Name = Operations.PreRequestEntityTooLarge
+                         Description = None }
+                      Operation = defaultOperation 413 "Request Entity Too Large"
+                      Next = Handlers.RequestEntityTooLarge }
+
+          Operation { Metadata =
+                       { Name = Operations.PreUriTooLong
+                         Description = None }
+                      Operation = defaultOperation 414 "URI Too Long"
+                      Next = Handlers.UriTooLong }
+
+          Operation { Metadata =
+                       { Name = Operations.PreUnsupportedMediaType
+                         Description = None }
+                      Operation = defaultOperation 415 "Unsupported Media Type"
+                      Next = Handlers.UnsupportedMediaType }
+
+          Operation { Metadata =
+                       { Name = Operations.PreUnprocessableEntity
+                         Description = None }
+                      Operation = defaultOperation 422 "Unprocessable Entity"
+                      Next = Handlers.UnprocessableEntity }
+
+          Operation { Metadata =
+                       { Name = Operations.PreException
+                         Description = None }
+                      Operation = defaultOperation 500 "Internal Server Error"
+                      Next = Handlers.Exception }
+
+          Operation { Metadata =
+                       { Name = Operations.PreNotImplemented
+                         Description = None }
+                      Operation = defaultOperation 501 "Not Implemented"
+                      Next = Handlers.NotImplemented }
+
+          Operation { Metadata =
+                       { Name = Operations.PreUnknownMethod
+                         Description = None }
+                      Operation = defaultOperation 501 "Unknown Method"
+                      Next = Handlers.UnknownMethod }
+
+          Operation { Metadata =
+                       { Name = Operations.PreServiceUnavailable
+                         Description = None }
+                      Operation = defaultOperation 503 "Service Unavailable"
+                      Next = Handlers.ServiceUnavailable } ]
 
     let construct (definition: MachineDefinition) =
         nodes
@@ -1168,7 +1335,9 @@ module internal Execution =
                 x.Metadata.Name,
                 match x.Override.AllowOverride, getPL (handlerPLens x.Metadata.Name) definition with
                 | true, Some h -> Handler { x with Handler = h; Override = { x.Override with Overridden = true } }
-                | _ -> n)
+                | _ -> n
+            | Operation x ->
+                x.Metadata.Name, n)
         |> Map.ofList
 
     let execute (graph: Graph) =
@@ -1177,16 +1346,20 @@ module internal Execution =
                 match Map.find from graph with
                 | Action action ->
                     do! action.Action
-                    printfn "action: %s" from
-                    return! traverse action.OnNext
+                    printfn "action: %s" action.Metadata.Name
+                    return! traverse action.Next
                 | Decision decision ->
                     let! p = decision.Decision
-                    let next = p |> function | true -> decision.OnTrue | _ -> decision.OnFalse
+                    let next = p |> function | true -> decision.True | _ -> decision.False
                     printfn "decision: %s = %b" from p
                     return! traverse next
                 | Handler handler ->
-                    printfn "handler: %s" from
-                    return! handler.Handler }
+                    printfn "handler: %s" handler.Metadata.Name
+                    return! handler.Handler
+                | Operation operation ->
+                    do! operation.Operation
+                    printfn "operation: %s" operation.Metadata.Name
+                    return! traverse operation.Next }
 
         traverse Decisions.ServiceAvailable
 

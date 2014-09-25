@@ -1,7 +1,7 @@
 ﻿namespace Dyfrig.Router
 
 [<AutoOpen>]
-module Operations =
+module Syntax =
 
     [<AutoOpen>]
     module Registration =

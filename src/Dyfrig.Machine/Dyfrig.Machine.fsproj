@@ -58,7 +58,7 @@
   <ItemGroup>
     <Compile Include="Machine.Constants.fs" />
     <Compile Include="Machine.fs" />
-    <Compile Include="Machine.Operations.fs" />
+    <Compile Include="Machine.Syntax.fs" />
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>

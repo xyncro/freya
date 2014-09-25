@@ -57,7 +57,7 @@
   -->
   <ItemGroup>
     <Compile Include="Router.fs" />
-    <Compile Include="Router.Operations.fs" />
+    <Compile Include="Router.Syntax.fs" />
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>

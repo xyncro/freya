@@ -133,3 +133,48 @@ module internal Handlers =
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] UnknownMethod = prefix + "UnknownMethod"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
+
+
+[<RequireQualifiedAccess>]
+module internal Operations =
+
+    let [<Literal>] private prefix = "pre"
+
+    // 200
+
+    let [<Literal>] PreOK = prefix + "Ok"
+    let [<Literal>] PreCreated = prefix + "Created"
+    let [<Literal>] PreOptions = prefix + "Options"
+    let [<Literal>] PreAccepted = prefix + "Accepted"
+    let [<Literal>] PreNoContent = prefix + "NoContent"
+
+    // 300
+
+    let [<Literal>] PreMovedPermanently = prefix + "MovedPermanently"
+    let [<Literal>] PreSeeOther = prefix + "SeeOther"
+    let [<Literal>] PreNotModified = prefix + "NotModified"
+    let [<Literal>] PreMovedTemporarily = prefix + "MovedTemporarily"
+    let [<Literal>] PreMultipleRepresentations = prefix + "MultipleRepresentations"
+
+    // 400
+
+    let [<Literal>] PreMalformed = prefix + "Malformed"
+    let [<Literal>] PreUnauthorized = prefix + "Unauthorized"
+    let [<Literal>] PreForbidden = prefix + "Forbidden"
+    let [<Literal>] PreNotFound = prefix + "NotFound"
+    let [<Literal>] PreMethodNotAllowed = prefix + "MethodNotAllowed"
+    let [<Literal>] PreNotAcceptable = prefix + "NotAcceptable"
+    let [<Literal>] PreConflict = prefix + "Conflict"
+    let [<Literal>] PreGone = prefix + "Gone"
+    let [<Literal>] PrePreconditionFailed = prefix + "PreconditionFailed"
+    let [<Literal>] PreRequestEntityTooLarge = prefix + "RequestEntityTooLarge"
+    let [<Literal>] PreUriTooLong = prefix + "UriTooLong"
+    let [<Literal>] PreUnsupportedMediaType = prefix + "UnsupportedMediaType"
+    let [<Literal>] PreUnprocessableEntity = prefix + "UnprocessableEntity"
+
+    // 500
+
+    let [<Literal>] PreException = prefix + "Exception"
+    let [<Literal>] PreNotImplemented = prefix + "NotImplemented"
+    let [<Literal>] PreUnknownMethod = prefix + "UnknownMethod"
+    let [<Literal>] PreServiceUnavailable = prefix + "ServiceUnavailable"
