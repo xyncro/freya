@@ -1,5 +1,6 @@
 ﻿module Dyfrig.Todo.Backend.Storage
 
+open System.Text
 open Fleece
 open Fleece.Operators
 open FSharpPlus
@@ -16,8 +17,6 @@ type Todo =
           Title = title
           Complete = false }
 
-// JSON
-
     static member ToJSON (x: Todo) =
         jobj [
             "title" .= x.Title ]
@@ -27,28 +26,49 @@ type Todo =
         | JObject o -> Todo.Create <!> (o .@ "title")
         | _ -> Failure ("")
 
+// Serialization
+
+let inline serialize x =
+    toJSON x
+    |> string 
+    |> Encoding.UTF8.GetBytes
+
 // Data Operations
 
-type TodoOperation =
+type private Operation =
     | Add of Todo
+    | Clear of AsyncReplyChannel<unit>
     | Get of int * AsyncReplyChannel<Todo option>
+    | GetAll of AsyncReplyChannel<Todo list>
 
-let todoStore = MailboxProcessor.Start (fun mailbox ->
+let private store = MailboxProcessor.Start (fun mailbox ->
     let rec loop storage =
         async {
-            let! todoOperation = mailbox.Receive ()
+            let! operation = mailbox.Receive ()
 
-            match todoOperation with
+            match operation with
             | Add (todo) -> 
                 return! loop (todo :: storage)
-            | Get (index, chan) ->
-                chan.Reply (List.tryFind (fun x -> x.Index = index) storage)
+            | Clear (c) ->
+                c.Reply ()
+                return! loop []
+            | Get (index, c) ->
+                c.Reply (List.tryFind (fun x -> x.Index = index) storage)
+                return! loop storage
+            | GetAll (c) ->
+                c.Reply (storage)
                 return! loop storage }
                 
     loop [])
 
 let add todo =
-    todoStore.Post (Add todo)
+    store.Post (Add todo)
+
+let clear () =
+    store.PostAndAsyncReply (fun c -> Clear (c))
 
 let get index =
-    todoStore.PostAndAsyncReply (fun chan -> Get (index, chan))
+    store.PostAndAsyncReply (fun c -> Get (index, c))
+
+let getAll () =
+    store.PostAndAsyncReply (fun c -> GetAll (c))

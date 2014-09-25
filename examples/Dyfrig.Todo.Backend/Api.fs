@@ -4,15 +4,39 @@ open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
 open Dyfrig.Machine
-open Dyfrig.Pipeline
-open Dyfrig.Pipeline.Operators
 open Dyfrig.Router
+open Dyfrig.Todo.Backend.Storage
+
+// Machine Functions
+
+let clearTodos =
+    liftAsync (clear ())
+
+let createTodo =
+    owin {
+        return () }
+
+let createdTodo =
+    owin {
+        return Array.empty }
+
+let getTodos =
+    serialize <!> liftAsync (getAll ())
+
+let todoProcessable =
+    owin {
+        return true }
 
 // Resources
 
 let todos =
     machine {
-        allowedMethods [ OPTIONS ] } |> reifyMachine
+        allowedMethods [ DELETE; GET; OPTIONS; POST ]
+        doDelete clearTodos
+        doPost createTodo
+        handleCreated createdTodo
+        handleOk getTodos
+        processable todoProcessable } |> reifyMachine
 
 let todo =
     machine {
@@ -25,21 +49,8 @@ let api =
         route Any "/" todos
         route Any "/:id" todo } |> reifyRoutes
 
-// CORS
-
-let cors =
-       setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
-    *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
-    *> next
-
-// Pipeline
-
-let app =
-        cors 
-    >?= api
-
 // Katana
 
 type TodoBackend () =
     member __.Configuration () =
-        OwinAppFunc.fromOwinMonad (app)
+        OwinAppFunc.fromOwinMonad (api)

@@ -119,8 +119,12 @@ module internal Lenses =
 [<AutoOpen>]
 module internal Defaults =
 
+    // Actions
+
     let defaultAction =
         owin { return () }
+
+    // Configuration
 
     let defaultAllowedMethods =
         Set.ofList
@@ -138,13 +142,26 @@ module internal Defaults =
               PUT
               TRACE ]
 
+    // Decisions
+
     let defaultDecision (decision: bool) = 
         owin { return decision }
+
+    // Handlers
 
     let defaultHandler code phrase =
         owin {
             do! setPLM Response.statusCode code
             do! setPLM Response.reasonPhrase phrase
+
+            return Array.empty<byte> }
+
+    let defaultOptions =
+        owin {
+            do! setPLM Response.statusCode 200
+            do! setPLM Response.reasonPhrase "Options"
+            do! setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
+            do! setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
 
             return Array.empty<byte> }
 
@@ -375,7 +392,7 @@ module internal Construction =
 
     let private handlers definition =
         [ Handlers.OK,                           defaultHandler 200 "OK"
-          Handlers.Options,                      defaultHandler 200 "Options"
+          Handlers.Options,                      defaultOptions
           Handlers.Created,                      defaultHandler 201 "Created"          
           Handlers.Accepted,                     defaultHandler 202 "Accepted"
           Handlers.NoContent,                    defaultHandler 204 "No Content"

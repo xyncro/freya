@@ -143,6 +143,13 @@ module Operators =
 
     let inline (<!>) f m =
         Monadic.liftM owin f m
+
+    let inline liftAsync f =
+        owin { 
+            return! (fun env -> 
+                async { 
+                    let! v = f
+                    return v, env }) }
         
     let inline lift2 f m1 m2 =
         returnM f <*> m1 <*> m2 
