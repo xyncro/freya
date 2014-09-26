@@ -113,14 +113,14 @@ module internal Lenses =
 
 
 [<AutoOpen>]
-module internal Defaults =
-
-    // Actions
+module internal Actions =
 
     let defaultAction =
         owin { return () }
 
-    // Configuration
+
+[<AutoOpen>]
+module internal Configuration =
 
     let defaultAllowedMethods =
         Set.ofList
@@ -138,23 +138,31 @@ module internal Defaults =
               PUT
               TRACE ]
 
-    // Decisions
+
+[<AutoOpen>]
+module internal Decisions =
 
     let defaultDecision (decision: bool) = 
         owin { return decision }
 
-    // Handlers
+
+[<AutoOpen>]
+module internal Handlers =
 
     let defaultHandler =
         owin {
             return Array.empty<byte> }
 
-    // Operations
+
+[<AutoOpen>]
+module internal Operations =
 
     let defaultOperation statusCode reasonPhrase =
            setPLM Response.statusCode statusCode
         *> setPLM Response.reasonPhrase reasonPhrase
 
+    // TODO: Make this inspect available methods, origins, etc. properly.
+    // TODO: Break allowed origin in to an earlier operation
     let defaultOptions =
            setPLM Response.statusCode 200
         *> setPLM Response.reasonPhrase "Options"

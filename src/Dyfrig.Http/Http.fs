@@ -2,6 +2,7 @@
 
 open System.Collections.Generic
 open System.IO
+open System.Globalization
 open Aether
 open Aether.Operators
 open Dyfrig.Core
@@ -69,6 +70,27 @@ module Headers =
         and Charset =
             | Named of string
             | Any
+
+        (* Accept-Encoding
+            Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+            [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+
+        type AcceptEncoding =
+            { Encoding: Encoding
+              Weight: float option }
+
+        and Encoding =
+            | Named of string
+            | Identity
+            | Any
+
+        (* Accept-Language
+            Taken from RFC 7231, Section 5.3.5. Accept-Language
+            [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+
+        type AcceptLanguage =
+            { Language: CultureInfo
+              Weight: float option }
 
 
 [<AutoOpen>]
@@ -323,6 +345,62 @@ module internal Parsers =
                       Weight = weight })
 
 
+        [<AutoOpen>]
+        module Section_5_3_4 =
+
+            (* Accept-Encoding
+               Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+               [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+
+            let private openEncoding =
+                skipChar '*'
+                |>> fun _ -> Encoding.Any
+
+            let private identityEncoding =
+                skipStringCI "identity"
+                |>> fun _ -> Encoding.Identity
+
+            let private namedEncoding =
+                token
+                |>> fun s -> Encoding.Named s
+
+            let private encoding =
+                choice [
+                    openEncoding
+                    identityEncoding
+                    namedEncoding ]
+
+            let acceptEncoding =
+                infix (skipChar ',') (encoding .>> OWS .>>. opt weight)
+                |>> List.map (fun (encoding, weight) ->
+                    { Encoding = encoding
+                      Weight = weight })
+
+        [<AutoOpen>]
+        module Section_5_3_5 =
+
+            (* Accept-Language
+               Taken from RFC 7231, Section 5.3.5. Accept-Language
+               [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+
+            (* Note: Language range taken as the Basic Language Range
+               definition from RFC 4647, Section 3.1.3.1 *)
+
+            let private languageRangeComponent =
+                manyMinMaxSatisfy 1 8 isALPHA
+
+            let private languageRange =
+                languageRangeComponent .>>. opt (skipChar '-' >>. languageRangeComponent)
+                |>> function 
+                    | range, Some sub -> CultureInfo (sprintf "%s-%s" range sub)
+                    | range, _ -> CultureInfo (range)
+
+            let acceptLanguage =
+                infix (skipChar ',') (languageRange .>> OWS .>>. opt weight)
+                |>> List.map (fun (languageRange, weight) ->
+                    { Language = languageRange
+                      Weight = weight })
+
 
 [<AutoOpen>]
 module internal Helpers =
@@ -424,10 +502,6 @@ module Lenses =
         (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
         (fun v d -> d.[k] <- v; d)
 
-//    let dictOptionLens k : Lens<IDictionary<'k,'v>, 'v option> =
-//        ((fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-//         (fun v d -> v |> function | Some v -> d.[k] <- v; d | _ -> d.Remove k |> ignore; d))
-
     // Request
 
     let internal methodIso : Iso<string, Method> =
@@ -454,6 +528,14 @@ module Lenses =
 
     let internal acceptCharsetPIso : PIso<string [], AcceptCharset list> =
         (fun s -> parse acceptCharset (String.concat "," s)),
+        (fun _ -> Array.ofList [ "test" ])
+
+    let internal acceptEncodingPIso : PIso<string [], AcceptEncoding list> =
+        (fun s -> parse acceptEncoding (String.concat "," s)),
+        (fun _ -> Array.ofList [ "test" ])
+
+    let internal acceptLanguagePIso : PIso<string [], AcceptLanguage list> =
+        (fun s -> parse acceptLanguage (String.concat "," s)),
         (fun _ -> Array.ofList [ "test" ])
 
 
@@ -502,17 +584,23 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
+        // Content Negotiation
+
         let accept =
-                 dictLens Constants.requestHeaders
-            <--> boxIso<IDictionary<string, string []>>
-            >-?> dictPLens "Accept"
+                 header "Accept"
             <??> acceptPIso
 
         let acceptCharset =
-                 dictLens Constants.requestHeaders
-            <--> boxIso<IDictionary<string, string []>>
-            >-?> dictPLens "Accept-Charset"
+                 header "Accept-Charset"
             <??> acceptCharsetPIso
+
+        let acceptEncoding =
+                 header "Accept-Encoding"
+            <??> acceptEncodingPIso
+
+        let acceptLanguage =
+                 header "Accept-Language"
+            <??> acceptLanguagePIso
 
 
 [<RequireQualifiedAccess>]
