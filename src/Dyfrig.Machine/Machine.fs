@@ -185,31 +185,7 @@ module internal Logic =
 
 
     [<AutoOpen>]
-    module Conditional =
-
-        let ifMatchExists =
-            existsP Request.Headers.ifMatch
-
-        let ifNoneMatchExists =
-            existsP Request.Headers.ifNoneMatch
-
-        let ifModifiedSinceExists =
-            existsP Request.Headers.ifModifiedSince
-
-        let ifUnmodifiedSinceExists =
-            existsP Request.Headers.ifUnmodifiedSince
-
-        let ifMatchStar =
-            equalsP Request.Headers.ifMatch IfMatch.Any
-
-        let ifNoneMatchStar =
-            equalsP Request.Headers.ifNoneMatch IfNoneMatch.Any
-
-        let ifModifiedSinceValidDate =
-            validP Request.Headers.ifModifiedSince ((<) DateTime.UtcNow)
-
-        let ifUnmodifiedSinceValidDate =
-            validP Request.Headers.ifUnmodifiedSince ((<) DateTime.UtcNow)
+    module Conditional =                        
 
         let ifNoneMatch =
             defaultDecision true // IMPLEMENT
@@ -246,36 +222,9 @@ module internal Logic =
         let ifMethodKnown =
             isValidMethod Config.KnownMethods defaultKnownMethods
 
-        let ifMethodDelete =
-            equals Request.meth DELETE
-
-        let ifMethodOptions =
-            equals Request.meth OPTIONS
-
-        let ifMethodPatch =
-            equals Request.meth PATCH
-
-        let ifMethodPost =
-            equals Request.meth POST
-
-        let ifMethodPut =
-            equals Request.meth PUT
-
 
     [<AutoOpen>]
     module Negotiation =
-
-        let ifAcceptExists =
-            existsP Request.Headers.accept
-
-        let ifAcceptCharsetExists =
-            existsP Request.Headers.acceptCharset
-
-        let ifAcceptEncodingExists =
-            existsP Request.Headers.acceptEncoding
-
-        let ifAcceptLanguageExists =
-            existsP Request.Headers.acceptLanguage
 
         let ifCharsetAvailable =
             defaultDecision true // IMPLEMENT
@@ -381,7 +330,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifAcceptCharsetExists
+                     Decision = existsP Request.Headers.acceptCharset
                      True = Decisions.CharsetAvailable
                      False = Decisions.AcceptEncodingExists }
 
@@ -391,7 +340,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifAcceptEncodingExists
+                     Decision = existsP Request.Headers.acceptEncoding
                      True = Decisions.EncodingAvailable
                      False = Decisions.Processable }
 
@@ -401,7 +350,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifAcceptExists
+                     Decision = existsP Request.Headers.accept
                      True = Decisions.MediaTypeAvailable
                      False = Decisions.AcceptLanguageExists }
 
@@ -411,7 +360,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifAcceptLanguageExists
+                     Decision = existsP Request.Headers.acceptLanguage
                      True = Decisions.LanguageAvailable
                      False = Decisions.AcceptCharsetExists }
 
@@ -421,7 +370,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMatchExists
+                     Decision = existsP Request.Headers.ifMatch
                      True = Decisions.IfMatchStar
                      False = Decisions.IfUnmodifiedSinceExists }
 
@@ -431,7 +380,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMatchStar
+                     Decision = equalsP Request.Headers.ifMatch IfMatch.Any
                      True = Decisions.IfUnmodifiedSinceExists
                      False = Decisions.ETagMatchesIf }
 
@@ -441,7 +390,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMatchExists
+                     Decision = existsP Request.Headers.ifMatch
                      True = Operations.PrePreconditionFailed
                      False = Decisions.MethodPut }
 
@@ -451,7 +400,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifModifiedSinceExists
+                     Decision = existsP Request.Headers.ifModifiedSince
                      True = Decisions.IfModifiedSinceValidDate
                      False = Decisions.MethodDelete }
 
@@ -461,7 +410,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifModifiedSinceValidDate
+                     Decision = validP Request.Headers.ifModifiedSince ((>) DateTime.UtcNow)
                      True = Decisions.ModifiedSince
                      False = Decisions.MethodDelete }
 
@@ -481,7 +430,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifNoneMatchExists
+                     Decision = existsP Request.Headers.ifNoneMatch
                      True = Decisions.IfNoneMatchStar
                      False = Decisions.IfModifiedSinceExists }
 
@@ -491,7 +440,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifNoneMatchStar
+                     Decision = equalsP Request.Headers.ifNoneMatch IfNoneMatch.Any
                      True = Decisions.IfNoneMatch
                      False = Decisions.ETagMatchesIfNone }
 
@@ -501,7 +450,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifUnmodifiedSinceExists
+                     Decision = existsP Request.Headers.ifUnmodifiedSince
                      True = Decisions.IfUnmodifiedSinceValidDate
                      False = Decisions.IfNoneMatchExists }
 
@@ -511,7 +460,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifUnmodifiedSinceValidDate
+                     Decision = validP Request.Headers.ifUnmodifiedSince ((>) DateTime.UtcNow)
                      True = Decisions.UnmodifiedSince
                      False = Decisions.IfNoneMatchExists }
 
@@ -521,7 +470,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodDelete
+                     Decision = equals Request.meth DELETE
                      True = Actions.Delete
                      False = Decisions.MethodPatch }
 
@@ -531,7 +480,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodOptions
+                     Decision = equals Request.meth OPTIONS
                      True = Operations.PreOptions
                      False = Decisions.AcceptExists }
 
@@ -541,7 +490,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPatch
+                     Decision = equals Request.meth PATCH
                      True = Actions.Patch
                      False = Decisions.PostToExisting }
 
@@ -551,7 +500,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPut
+                     Decision = equals Request.meth PUT
                      True = Decisions.PutToDifferentUri
                      False = Decisions.Existed }
 
@@ -561,7 +510,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPost
+                     Decision = equals Request.meth POST
                      True = Decisions.CanPostToGone
                      False = Operations.PreGone }
 
@@ -571,7 +520,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPost
+                     Decision = equals Request.meth POST
                      True = Actions.Post
                      False = Decisions.PutToExisting }
 
@@ -581,7 +530,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPost
+                     Decision = equals Request.meth POST
                      True = Decisions.CanPostToMissing
                      False = Operations.PreNotFound }
 
@@ -591,7 +540,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = ifMethodPost
+                     Decision = equals Request.meth POST
                      True = Decisions.Conflict
                      False = Decisions.MultipleRepresentations }
 
