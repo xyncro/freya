@@ -15,20 +15,22 @@ module Data =
 
         let requestHeaders = 
             dict [
-                "Accept", [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |]
-                "Accept-Charset", [| "iso-8859-5, unicode-1-1;q=0.8" |]
+                "Accept",          [| "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c" |]
+                "Accept-Charset",  [| "iso-8859-5, unicode-1-1;q=0.8" |]
                 "Accept-Encoding", [| "gzip;q=1.0, identity; q=0.5, *;q=0" |]
-                "Accept-Language", [| "da, en-gb;q=0.8, en;q=0.7" |] ]
+                "Accept-Language", [| "da, en-gb;q=0.8, en;q=0.7" |]
+                "If-Match",        [| "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\"" |]
+                "If-None-Match",   [| "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\"" |] ]
     
         let data = 
             dict [
-                Constants.requestHeaders, box requestHeaders
-                Constants.requestMethod, box "GET"
-                Constants.requestPath, box "/some/path"
-                Constants.requestPathBase, box ""
-                Constants.requestProtocol, box "HTTP/1.1"
+                Constants.requestHeaders,     box requestHeaders
+                Constants.requestMethod,      box "GET"
+                Constants.requestPath,        box "/some/path"
+                Constants.requestPathBase,    box ""
+                Constants.requestProtocol,    box "HTTP/1.1"
                 Constants.requestQueryString, box "foo=bar&baz=boz"
-                Constants.requestScheme, box "http" ]
+                Constants.requestScheme,      box "http" ]
         
         Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
 
@@ -129,3 +131,27 @@ module Request =
 
             x.Value.[2].Language.Name =? "en"
             x.Value.[2].Weight =? Some 0.7
+
+        // Conditionals
+
+        [<Test>]
+        let ``if-match header contains correct values`` () =
+            let x = test (getPLM Request.Headers.ifMatch)
+            let y = x |> function | Some (IfMatch.EntityTags x) -> Some x | _ -> None
+
+            y.IsSome =? true
+
+            y.Value.Length =? 3
+            y.Value.[0] =? "xyzzy"
+
+        [<Test>]
+        let ``if-none-match header contains correct values`` () =
+            let x = test (getPLM Request.Headers.ifNoneMatch)
+            let y = x |> function | Some (IfNoneMatch.EntityTags x) -> Some x | _ -> None
+
+            y.IsSome =? true
+
+            y.Value.Length =? 3
+            y.Value.[0] =? "xyzzy"
+            
+

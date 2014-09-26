@@ -1,7 +1,6 @@
 ﻿namespace Dyfrig.Machine
 
 open System
-open System.Globalization
 open Aether
 open Aether.Operators
 open Dyfrig.Core
@@ -150,8 +149,7 @@ module internal Decisions =
 module internal Handlers =
 
     let defaultHandler =
-        owin {
-            return Array.empty<byte> }
+        owin { return Array.empty<byte> }
 
 
 [<AutoOpen>]
@@ -173,56 +171,45 @@ module internal Operations =
 [<AutoOpen>]
 module internal Logic =
 
+    let equals l value =
+        (=) value <!> getLM l
 
-    [<AutoOpen>]
-    module Headers =
+    let equalsP l value =
+        (=) (Some value) <!> getPLM l
 
-        let headerEquals h v =
-            Option.map ((=) v) >> (fun x -> defaultArg x false) <!> getPLM (Request.header h)
+    let existsP l =
+        Option.isSome <!> getPLM l
 
-        let headerExists h =
-            Option.isSome <!> getPLM (Request.header h)
+    let validP l f =
+        (function | Some x -> f x | _ -> false) <!> getPLM l
 
 
     [<AutoOpen>]
     module Conditional =
 
-        let private tryParseDate d =
-            DateTime.TryParse 
-                (d, CultureInfo.InvariantCulture.DateTimeFormat, 
-                    DateTimeStyles.AdjustToUniversal)
-
-        let private isValidDate header =
-            owin {
-                let! header = Option.map List.ofArray <!> getPLM (Request.header header)
-
-                match header with
-                | Some (h :: _) -> return fst (tryParseDate h)
-                | _ -> return false }
-
         let ifMatchExists =
-            headerExists "If-Match"
+            existsP Request.Headers.ifMatch
 
         let ifNoneMatchExists =
-            headerExists "If-None-Match"
+            existsP Request.Headers.ifNoneMatch
 
         let ifModifiedSinceExists =
-            headerExists "If-Modified-Since"
+            existsP Request.Headers.ifModifiedSince
 
         let ifUnmodifiedSinceExists =
-            headerExists "If-Unmodified-Since"
+            existsP Request.Headers.ifUnmodifiedSince
 
         let ifMatchStar =
-            headerEquals "If-Match" [| "*" |]
+            equalsP Request.Headers.ifMatch IfMatch.Any
 
         let ifNoneMatchStar =
-            headerEquals "If-None-Match" [| "*" |]
+            equalsP Request.Headers.ifNoneMatch IfNoneMatch.Any
 
         let ifModifiedSinceValidDate =
-            isValidDate "If-Modified-Since"
+            validP Request.Headers.ifModifiedSince ((<) DateTime.UtcNow)
 
         let ifUnmodifiedSinceValidDate =
-            isValidDate "If-Unmodified-Since"
+            validP Request.Headers.ifUnmodifiedSince ((<) DateTime.UtcNow)
 
         let ifNoneMatch =
             defaultDecision true // IMPLEMENT
@@ -243,9 +230,6 @@ module internal Logic =
     [<AutoOpen>]
     module Method =
 
-        let private isMethod meth =
-            (=) meth <!> getLM Request.meth
-
         let private getMethods k d =
             (fun x -> defaultArg x d) <!> getPLM (definitionLens >-?> configurationPLens<Set<Method>> k)
 
@@ -263,35 +247,35 @@ module internal Logic =
             isValidMethod Config.KnownMethods defaultKnownMethods
 
         let ifMethodDelete =
-            isMethod DELETE
+            equals Request.meth DELETE
 
         let ifMethodOptions =
-            isMethod OPTIONS
+            equals Request.meth OPTIONS
 
         let ifMethodPatch =
-            isMethod PATCH
+            equals Request.meth PATCH
 
         let ifMethodPost =
-            isMethod POST
+            equals Request.meth POST
 
         let ifMethodPut =
-            isMethod PUT
+            equals Request.meth PUT
 
 
     [<AutoOpen>]
     module Negotiation =
 
         let ifAcceptExists =
-            headerExists "Accept"
+            existsP Request.Headers.accept
 
         let ifAcceptCharsetExists =
-            headerExists "Accept-Charset"
+            existsP Request.Headers.acceptCharset
 
         let ifAcceptEncodingExists =
-            headerExists "Accept-Encoding"
+            existsP Request.Headers.acceptEncoding
 
         let ifAcceptLanguageExists =
-            headerExists "Accept-Language"
+            existsP Request.Headers.acceptLanguage
 
         let ifCharsetAvailable =
             defaultDecision true // IMPLEMENT

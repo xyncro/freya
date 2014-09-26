@@ -1,5 +1,6 @@
 ﻿namespace Dyfrig.Http
 
+open System
 open System.Collections.Generic
 open System.IO
 open System.Globalization
@@ -91,6 +92,24 @@ module Headers =
         type AcceptLanguage =
             { Language: CultureInfo
               Weight: float option }
+
+        // Conditionals
+
+        (* If-Match
+               Taken from RFC 7232, Section 3.1, If-Match
+               [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+        type IfMatch =
+            | EntityTags of string list
+            | Any
+
+        (* If-None-Match
+           Taken from RFC 7232, Section 3.2, If-None-Match
+           [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+        type IfNoneMatch =
+            | EntityTags of string list
+            | Any
 
 
 [<AutoOpen>]
@@ -402,6 +421,43 @@ module internal Parsers =
                       Weight = weight })
 
 
+    [<AutoOpen>]
+    module RFC_7232 =
+
+        (* TODO: This is a naive formulation of an entity tag and does not
+           properly support the grammar, particularly weak references, which
+           should be implemented ASAP *)
+
+        let entityTag =
+            skipChar DQUOTE >>. token .>> skipChar DQUOTE
+
+
+        [<AutoOpen>]
+        module Section_3_1 =
+
+            (* If-Match
+               Taken from RFC 7232, Section 3.1, If-Match
+               [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+            let ifMatch =
+                choice [
+                    skipChar '*' |>> fun _ -> IfMatch.Any
+                    infix (skipChar ',') entityTag |>> fun x -> IfMatch.EntityTags x ]
+
+
+        [<AutoOpen>]
+        module Section_3_2 =
+
+            (* If-None-Match
+               Taken from RFC 7232, Section 3.2, If-None-Match
+               [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+            let ifNoneMatch =
+                choice [
+                    skipChar '*' |>> fun _ -> IfNoneMatch.Any
+                    infix (skipChar ',') entityTag |>> fun x -> IfNoneMatch.EntityTags x ]
+
+
 [<AutoOpen>]
 module internal Helpers =
 
@@ -483,6 +539,19 @@ module internal Helpers =
             |> Array.map (fun x -> sprintf "%s=%s" (fst x) (snd x))
             |> String.concat "&"
 
+    // DateTime 
+
+    let dateTimeFromString d =
+        let format = CultureInfo.InvariantCulture.DateTimeFormat
+        let adjustment = DateTimeStyles.AdjustToUniversal
+
+        match DateTime.TryParse (d, format, adjustment) with
+        | true, d -> Some d
+        | _ -> None
+
+    let dateTimeToString (d: DateTime) =
+        d.ToUniversalTime().ToString("r")
+
 
 [<AutoOpen>]
 module Lenses =
@@ -537,6 +606,22 @@ module Lenses =
     let internal acceptLanguagePIso : PIso<string [], AcceptLanguage list> =
         (fun s -> parse acceptLanguage (String.concat "," s)),
         (fun _ -> Array.ofList [ "test" ])
+
+    // Conditionals
+
+    let internal ifMatchPIso : PIso<string [], IfMatch> =
+        (fun s -> parse ifMatch (String.concat "," s)),
+        (fun _ -> [| "test" |])
+
+    let internal ifNoneMatchPIso : PIso<string [], IfNoneMatch> =
+        (fun s -> parse ifNoneMatch (String.concat "," s)),
+        (fun _ -> [| "test" |])
+
+    // DateTime
+
+    let dateTimePIso : PIso<string [], DateTime> =
+        (fun s -> dateTimeFromString (String.concat "" s)),
+        (fun d -> [| dateTimeToString d |])
 
 
 [<RequireQualifiedAccess>]
@@ -601,6 +686,24 @@ module Request =
         let acceptLanguage =
                  header "Accept-Language"
             <??> acceptLanguagePIso
+
+        // Conditionals
+
+        let ifMatch =
+                 header "If-Match"
+            <??> ifMatchPIso
+
+        let ifNoneMatch =
+                 header "If-None-Match"
+            <??> ifNoneMatchPIso
+
+        let ifModifiedSince =
+                 header "If-Modified-Since"
+            <??> dateTimePIso
+
+        let ifUnmodifiedSince =
+                 header "If-Unmodified-Since"
+            <??> dateTimePIso
 
 
 [<RequireQualifiedAccess>]
