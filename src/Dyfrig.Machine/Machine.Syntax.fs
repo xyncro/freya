@@ -37,35 +37,35 @@ module Syntax =
 
             [<CustomOperation (Config.AllowedMethods, MaintainsVariableSpaceUsingBind = true)>]
             member x.AllowedMethods (r, methods: Method list) = 
-                x.Set (r, configurationPLens Config.AllowedMethods, Set methods)
+                x.Set (r, configPLens Config.AllowedMethods, Set methods)
 
             [<CustomOperation (Config.AvailableCharsets, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableCharsets (r, charsets: string list) = 
-                x.Set (r, configurationPLens Config.AvailableCharsets, charsets)
+                x.Set (r, configPLens Config.AvailableCharsets, charsets)
 
             [<CustomOperation (Config.AvailableEncodings, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableEncodings (r, encodings: string list) = 
-                x.Set (r, configurationPLens Config.AvailableEncodings, encodings)
+                x.Set (r, configPLens Config.AvailableEncodings, encodings)
 
             [<CustomOperation (Config.AvailableLanguages, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableLanguages (r, languages: string list) = 
-                x.Set (r, configurationPLens Config.AvailableLanguages, languages)
+                x.Set (r, configPLens Config.AvailableLanguages, languages)
 
             [<CustomOperation (Config.AvailableMediaTypes, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableMediaTypes (r, mediaTypes: string list) =
-                x.Set (r, configurationPLens Config.AvailableMediaTypes, mediaTypes)
+                x.Set (r, configPLens Config.AvailableMediaTypes, mediaTypes)
 
             [<CustomOperation (Config.ETag, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETag (r, etag: OwinMonad<string>) = 
-                x.Set (r, configurationPLens Config.ETag, etag)
+                x.Set (r, configPLens Config.ETag, etag)
 
             [<CustomOperation (Config.KnownMethods, MaintainsVariableSpaceUsingBind = true)>]
             member x.KnownMethods (r, methods: Method list) = 
-                x.Set (r, configurationPLens Config.KnownMethods, Set methods)
+                x.Set (r, configPLens Config.KnownMethods, Set methods)
 
             [<CustomOperation (Config.Modified, MaintainsVariableSpaceUsingBind = true)>]
             member x.Modified (r, modified: OwinMonad<DateTime>) = 
-                x.Set (r, configurationPLens Config.Modified, modified)
+                x.Set (r, configPLens Config.Modified, modified)
 
 
     [<AutoOpen>]

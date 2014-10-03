@@ -9,6 +9,14 @@ open Dyfrig.Http
 open Dyfrig.Pipeline
 
 
+[<RequireQualifiedAccess>]
+module Option =
+
+    let getOrElse def =
+        function | Some x -> x
+                 | _ -> def
+
+
 [<AutoOpen>]
 module Definition =
 
@@ -32,6 +40,22 @@ module Definition =
         | Configuration of obj
         | Decision of MachineDecision
         | Handler of MachineHandler
+
+    let (|Action|) =
+        function | Action x -> Some x 
+                 | _ -> None
+
+    let (|Configuration|) =
+        function | Configuration x -> Some x 
+                 | _ -> None
+        
+    let (|Decision|) =
+        function | Decision x -> Some x
+                 | _ -> None
+
+    let (|Handler|) =
+        function | Handler x -> Some x
+                 | _ -> None
 
 
 [<AutoOpen>]
@@ -86,29 +110,25 @@ module internal Lenses =
 
     let actionPLens k =
              mapPLens k
-        <??> ((function | Action x -> Some x | _ -> None), 
-              (fun x -> Action x))
+        <??> ((|Action|), Action)
 
     
-    let configurationPLens<'T> k =
+    let configPLens<'T> k =
              mapPLens k
-        <??> ((function | Configuration x -> Some x | _ -> None), 
-              (fun x -> Configuration x))
+        <??> ((|Configuration|), Configuration)
         <?-> boxIso<'T>
         
     let decisionPLens k =
              mapPLens k
-        <??> ((function | Decision x -> Some x | _ -> None), 
-              (fun x -> Decision x))
+        <??> ((|Decision|), Decision)
 
     let handlerPLens k =
              mapPLens k
-        <??> ((function | Handler x -> Some x | _ -> None), 
-              (fun x -> Handler x))
+        <??> ((|Handler|), Handler)
 
-    let definitionLens =
-             dictLens "dyfrig.machine.definition"
-        <--> boxIso<MachineDefinition>
+    let defLens =
+             dictPLens "dyfrig.machine.definition"
+        <?-> boxIso<MachineDefinition>
 
 
 [<AutoOpen>]
@@ -161,6 +181,7 @@ module internal Operations =
 
     // TODO: Make this inspect available methods, origins, etc. properly.
     // TODO: Break allowed origin in to an earlier operation
+
     let defaultOptions =
            setPLM Response.statusCode 200
         *> setPLM Response.reasonPhrase "Options"
@@ -170,19 +191,6 @@ module internal Operations =
 
 [<AutoOpen>]
 module internal Logic =
-
-    let equals l value =
-        (=) value <!> getLM l
-
-    let equalsP l value =
-        (=) (Some value) <!> getPLM l
-
-    let existsP l =
-        Option.isSome <!> getPLM l
-
-    let validP l f =
-        (function | Some x -> f x | _ -> false) <!> getPLM l
-
 
     [<AutoOpen>]
     module Conditional =                        
@@ -201,26 +209,6 @@ module internal Logic =
             
         let ifUnmodifiedSince =
             defaultDecision true // IMPLEMENT
-
-
-    [<AutoOpen>]
-    module Method =
-
-        let private getMethods k d =
-            (fun x -> defaultArg x d) <!> getPLM (definitionLens >-?> configurationPLens<Set<Method>> k)
-
-        let private isValidMethod key defaults =
-            owin {
-                let! m = getLM Request.meth
-                let! ms = getMethods key defaults
-
-                return Set.contains m ms }
-
-        let ifMethodAllowed =
-            isValidMethod Config.AllowedMethods defaultAllowedMethods
-
-        let ifMethodKnown =
-            isValidMethod Config.KnownMethods defaultKnownMethods
 
 
     [<AutoOpen>]
@@ -330,7 +318,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.acceptCharset
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptCharset
                      True = Decisions.CharsetAvailable
                      False = Decisions.AcceptEncodingExists }
 
@@ -340,7 +328,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.acceptEncoding
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptEncoding
                      True = Decisions.EncodingAvailable
                      False = Decisions.Processable }
 
@@ -350,7 +338,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.accept
+                     Decision = Option.isSome <!> getPLM Request.Headers.accept
                      True = Decisions.MediaTypeAvailable
                      False = Decisions.AcceptLanguageExists }
 
@@ -360,7 +348,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.acceptLanguage
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptLanguage
                      True = Decisions.LanguageAvailable
                      False = Decisions.AcceptCharsetExists }
 
@@ -370,7 +358,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.ifMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
                      True = Decisions.IfMatchStar
                      False = Decisions.IfUnmodifiedSinceExists }
 
@@ -380,7 +368,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equalsP Request.Headers.ifMatch IfMatch.Any
+                     Decision = (=) (Some IfMatch.Any) <!> getPLM Request.Headers.ifMatch
                      True = Decisions.IfUnmodifiedSinceExists
                      False = Decisions.ETagMatchesIf }
 
@@ -390,7 +378,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.ifMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
                      True = Operations.PrePreconditionFailed
                      False = Decisions.MethodPut }
 
@@ -400,7 +388,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.ifModifiedSince
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifModifiedSince
                      True = Decisions.IfModifiedSinceValidDate
                      False = Decisions.MethodDelete }
 
@@ -410,7 +398,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = validP Request.Headers.ifModifiedSince ((>) DateTime.UtcNow)
+                     Decision = 
+                            Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false 
+                        <!> getPLM Request.Headers.ifModifiedSince
                      True = Decisions.ModifiedSince
                      False = Decisions.MethodDelete }
 
@@ -430,7 +420,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.ifNoneMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifNoneMatch
                      True = Decisions.IfNoneMatchStar
                      False = Decisions.IfModifiedSinceExists }
 
@@ -440,7 +430,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equalsP Request.Headers.ifNoneMatch IfNoneMatch.Any
+                     Decision = (=) (Some IfNoneMatch.Any) <!> getPLM Request.Headers.ifNoneMatch 
                      True = Decisions.IfNoneMatch
                      False = Decisions.ETagMatchesIfNone }
 
@@ -450,7 +440,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = existsP Request.Headers.ifUnmodifiedSince
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifUnmodifiedSince
                      True = Decisions.IfUnmodifiedSinceValidDate
                      False = Decisions.IfNoneMatchExists }
 
@@ -460,7 +450,9 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = validP Request.Headers.ifUnmodifiedSince ((>) DateTime.UtcNow)
+                     Decision = 
+                            Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false
+                        <!> getPLM Request.Headers.ifUnmodifiedSince 
                      True = Decisions.UnmodifiedSince
                      False = Decisions.IfNoneMatchExists }
 
@@ -470,7 +462,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth DELETE
+                     Decision = (=) DELETE <!> getLM Request.meth
                      True = Actions.Delete
                      False = Decisions.MethodPatch }
 
@@ -480,7 +472,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth OPTIONS
+                     Decision = (=) OPTIONS <!> getLM Request.meth
                      True = Operations.PreOptions
                      False = Decisions.AcceptExists }
 
@@ -490,7 +482,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth PATCH
+                     Decision = (=) PATCH <!> getLM Request.meth
                      True = Actions.Patch
                      False = Decisions.PostToExisting }
 
@@ -500,7 +492,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth PUT
+                     Decision = (=) PUT <!> getLM Request.meth
                      True = Decisions.PutToDifferentUri
                      False = Decisions.Existed }
 
@@ -510,7 +502,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth POST
+                     Decision = (=) POST <!> getLM Request.meth
                      True = Decisions.CanPostToGone
                      False = Operations.PreGone }
 
@@ -520,7 +512,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth POST
+                     Decision = (=) POST <!> getLM Request.meth
                      True = Actions.Post
                      False = Decisions.PutToExisting }
 
@@ -530,7 +522,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth POST
+                     Decision = (=) POST <!> getLM Request.meth
                      True = Decisions.CanPostToMissing
                      False = Operations.PreNotFound }
 
@@ -540,7 +532,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = equals Request.meth POST
+                     Decision = (=) PUT <!> getLM Request.meth
                      True = Decisions.Conflict
                      False = Decisions.MultipleRepresentations }
 
@@ -712,7 +704,11 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = ifMethodKnown
+                     Decision = 
+                            Set.contains 
+                        <!> getLM Request.meth 
+                        <*> (    Option.getOrElse defaultKnownMethods 
+                             <!> getPLM (defLens >??> configPLens Config.KnownMethods))
                      True = Decisions.UriTooLong
                      False = Operations.PreUnknownMethod }
                       
@@ -752,7 +748,11 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = ifMethodAllowed
+                     Decision = 
+                            Set.contains 
+                        <!> getLM Request.meth 
+                        <*> (    Option.getOrElse defaultAllowedMethods 
+                             <!> getPLM (defLens >??> configPLens Config.AllowedMethods))
                      True = Decisions.Malformed
                      False = Operations.PreMethodNotAllowed }
                       
@@ -1287,15 +1287,15 @@ module internal Execution =
                 match Map.find from graph with
                 | Action action ->
                     do! action.Action
-                    printfn "action: %s" action.Metadata.Name
+                    printfn "action: %s (overriden? %b)" action.Metadata.Name action.Override.Overridden
                     return! traverse action.Next
                 | Decision decision ->
                     let! p = decision.Decision
                     let next = p |> function | true -> decision.True | _ -> decision.False
-                    printfn "decision: %s = %b" from p
+                    printfn "decision: %s = %b (overriden? %b)" from p decision.Override.Overridden
                     return! traverse next
                 | Handler handler ->
-                    printfn "handler: %s" handler.Metadata.Name
+                    printfn "handler: %s (overriden? %b)" handler.Metadata.Name handler.Override.Overridden
                     return! handler.Handler
                 | Operation operation ->
                     do! operation.Operation
@@ -1313,7 +1313,7 @@ module Reification =
         let graph = construct definition
 
         owin {
-            do! setLM definitionLens definition
+            do! setPLM defLens definition
 
             let! body = execute graph
 
