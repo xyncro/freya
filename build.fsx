@@ -49,7 +49,7 @@ let tags = "F# fsharp web http owin"
 let solutionFile = "Dyfrig.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "bin/Dyfrig*Tests*exe"
+let testAssemblies = "tests/**/bin/Release/*Tests*exe"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
@@ -67,6 +67,7 @@ Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let (!!) includes = (!! includes).SetBaseDirectory __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 let isAppVeyorBuild = environVar "APPVEYOR" <> null
+let nugetVersion =
     if isAppVeyorBuild then
         let versionParts = release.NugetVersion.Split([|'-'|])
         let version = versionParts.[0]
@@ -107,7 +108,7 @@ Target "CleanDocs" (fun _ ->
 // Build library & test project
 
 Target "Build" (fun _ ->
-    !! ("*/**/" + projectFile + "*.*proj")
+    !! solutionFile
     |> MSBuildRelease "" "Rebuild"
     |> ignore
 )
@@ -223,7 +224,6 @@ Target "All" DoNothing
 
 "Clean"
   =?> ("BuildVersion", isAppVeyorBuild)
-  ==> "CopyLicense"
   ==> "AssemblyInfo"
   ==> "Build"
   ==> "RunTests"
