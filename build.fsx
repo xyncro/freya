@@ -170,7 +170,7 @@ Target "NuGet" (fun _ ->
             OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = ["Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http" |> RequireExactly]
+            Dependencies = ["Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http"]
             Files = [ (@"..\bin\Dyfrig.dll", Some "lib/net40", None)
                       (@"..\bin\Dyfrig.xml", Some "lib/net40", None)
                       (@"..\bin\Dyfrig.pdb", Some "lib/net40", None) ] })
