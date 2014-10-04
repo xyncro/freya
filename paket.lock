@@ -1,0 +1,15 @@
+NUGET
+  remote: http://nuget.org/api/v2
+  specs:
+    FSharp.Formatting (2.2.11-beta)
+      Microsoft.AspNet.Razor (>= 2.0.30506.0)
+      RazorEngine (>= 3.3.0)
+    FSharpx.Core (1.8.41)
+    Fuchu (0.4.0.0)
+    Microsoft.AspNet.Razor (2.0.30506.0)
+    Microsoft.Net.Http (2.0.20710.0)
+    NuGet.CommandLine (2.8.2)
+    NUnit.Runners (2.6.3)
+    RazorEngine (3.3.0)
+      Microsoft.AspNet.Razor (>= 2.0.30506.0)
+    Unquote (2.2.2)
