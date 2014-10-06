@@ -16,7 +16,7 @@ module Constants =
 
 
     [<RequireQualifiedAccess>]
-    module internal Config =
+    module internal Configuration =
     
         let [<Literal>] AllowedMethods = "allowedMethods"
         let [<Literal>] AvailableCharsets = "availableCharsets"

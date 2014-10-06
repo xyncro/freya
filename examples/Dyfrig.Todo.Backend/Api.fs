@@ -21,7 +21,7 @@ let createdTodo =
         return Array.empty }
 
 let getTodos =
-    serialize <!> liftAsync (getAll ())
+    toJSON <!> liftAsync (getAll ())
 
 let todoProcessable =
     owin {

@@ -31,38 +31,73 @@ type Scheme =
     | Custom of string
 
 
+[<RequireQualifiedAccess>]
+module private Option =
+
+    let getOrElse def =
+        function | Some x -> x
+                 | _ -> def
+
+
 [<AutoOpen>]
 module Headers =
 
     [<AutoOpen>]
     module Request =
 
-        // Content Negotiation
-
         (* Accept
-            Taken from RFC 7231, Section 5.3.2. Accept
-            [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+
+           Taken from RFC 7231, Section 5.3.2. Accept
+           [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
         type Accept =
-            { MediaRange: MediaRange
-              AcceptParameters: AcceptParameters option }
+            { MediaType: MediaRange
+              MediaTypeParameters: Map<string, string>
+              ExtensionParameters: Map<string, string option>
+              Weight: float option }
 
         and MediaRange =
-            { Type: MediaType
-              SubType: MediaType
-              Parameters: Map<string, string> }
+            | Closed of MediaType * MediaSubType
+            | Partial of MediaType
+            | Open
 
         and MediaType =
-            | Named of string
-            | Any
+            | MediaType of string
 
-        and AcceptParameters =
-            { Weight: float
-              AcceptExtensions: Map<string, string option> }
+        and MediaSubType =
+            | MediaSubType of string
+
+        // Negotiation
+
+        let private matchAccept (x: MediaType * MediaSubType) (y: MediaRange) =
+            match x, y with
+            | (MediaType t, MediaSubType s), MediaRange.Closed (MediaType t', MediaSubType s') 
+                when String.Equals (t, t', StringComparison.OrdinalIgnoreCase) 
+                && String.Equals (s, s', StringComparison.OrdinalIgnoreCase) -> true, 3
+            | (MediaType t, _), MediaRange.Partial (MediaType t') 
+                when String.Equals (t, t', StringComparison.OrdinalIgnoreCase) -> true, 2
+            | (_, _), MediaRange.Open -> true, 1
+            | _ -> false, 0
+
+        let negotiateAccept (available: (MediaType * MediaSubType) list) (requested: Accept list) =
+            requested
+            |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
+            |> List.rev
+            |> List.tryPick (fun r ->
+                let available =
+                    available 
+                    |> List.map (fun a -> a, matchAccept a r.MediaType)
+                    |> List.filter (fun (_, (m, _)) -> m)
+                    
+                match available with
+                | [] -> None
+                | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
+            |> Option.map (fun (_, (selected, _)) -> selected)
 
         (* Accept-Charset
-            Taken from RFC 7231, Section 5.3.3. Accept-Charset
-            [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+
+           Taken from RFC 7231, Section 5.3.3. Accept-Charset
+           [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
         type AcceptCharset =
             { Charset: Charset
@@ -73,8 +108,9 @@ module Headers =
             | Any
 
         (* Accept-Encoding
-            Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-            [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+
+           Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+           [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
         type AcceptEncoding =
             { Encoding: Encoding
@@ -86,8 +122,9 @@ module Headers =
             | Any
 
         (* Accept-Language
-            Taken from RFC 7231, Section 5.3.5. Accept-Language
-            [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+
+           Taken from RFC 7231, Section 5.3.5. Accept-Language
+           [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
         type AcceptLanguage =
             { Language: CultureInfo
@@ -96,14 +133,16 @@ module Headers =
         // Conditionals
 
         (* If-Match
-               Taken from RFC 7232, Section 3.1, If-Match
-               [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+           Taken from RFC 7232, Section 3.1, If-Match
+           [http://tools.ietf.org/html/rfc7232#section-3.1] *)
 
         type IfMatch =
             | EntityTags of string list
             | Any
 
         (* If-None-Match
+
            Taken from RFC 7232, Section 3.2, If-None-Match
            [http://tools.ietf.org/html/rfc7232#section-3.2] *)
 
@@ -131,6 +170,7 @@ module internal Parsers =
         module Appendix_B_1 =
 
             (* Core Rules
+
                Taken from RFC 5234, Appendix B.1. Core Rules
                [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
@@ -177,6 +217,7 @@ module internal Parsers =
         module Section_3_2_3 =
 
             (* Whitespace
+
                Taken from RFC 7230, Section 3.2.3. Whitespace
                [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
         
@@ -191,6 +232,7 @@ module internal Parsers =
         module Section_3_2_6 =
 
             (* Field Value Components
+
                Taken from RFC 7230, Section 3.2.6. Field Value Components
                [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
 
@@ -215,6 +257,7 @@ module internal Parsers =
         module Section_7 =
 
             (* ABNF List Extension: #rule
+
                Taken from RFC 7230, Section 7. ABNF List Extension: #rule
                [http://tools.ietf.org/html/rfc7230#section-7] *)
 
@@ -250,6 +293,7 @@ module internal Parsers =
         module Section_5_3_1 =
 
             (* Quality Values
+
                Taken from RFC 7231, Section 5.3.1. Quality Values
                [http://tools.ietf.org/html/rfc7231#section-5.3.1] *)
 
@@ -280,6 +324,7 @@ module internal Parsers =
         module Section_5_3_2 =
         
             (* Accept
+
                Taken from RFC 7231, Section 5.3.2. Accept
                [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
@@ -293,10 +338,7 @@ module internal Parsers =
                 |>> Map.ofList
 
             let private acceptParameters =
-                weight .>> OWS .>>. acceptExtensions 
-                |>> fun (weight, acceptExtensions) -> 
-                    { Weight = weight
-                      AcceptExtensions = acceptExtensions }
+                weight .>> OWS .>>. acceptExtensions
 
             let private parameter =
                 notFollowedBy (OWS >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
@@ -307,15 +349,15 @@ module internal Parsers =
 
             let private openRange = 
                 skipString "*/*"
-                |>> fun _ -> MediaType.Any, MediaType.Any
+                |>> fun _ -> MediaRange.Open
 
             let private partialRange = 
                 token .>> skipString "/*"
-                |>> fun x -> MediaType.Named x, MediaType.Any
+                |>> fun x -> MediaRange.Partial (MediaType x)
 
             let private fullRange = 
                 token .>> skipChar '/' .>>. token
-                |>> fun (x, y) -> MediaType.Named x, MediaType.Named y
+                |>> fun (x, y) -> MediaRange.Closed (MediaType x, MediaSubType y)
 
             let private range = 
                 choice [
@@ -325,22 +367,21 @@ module internal Parsers =
 
             let private mediaRange = 
                 range .>> OWS .>>. parameters
-                |>> fun ((t, st), parameters) ->
-                    { Type = t
-                      SubType = st
-                      Parameters = parameters } 
 
             let accept = 
                 infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParameters)
-                |>> List.map (fun (mediaRange, acceptParameters) ->
-                    { MediaRange = mediaRange
-                      AcceptParameters = acceptParameters })
+                |>> List.map (fun ((mediaRange, parameters), acceptParameters) ->
+                    { MediaType = mediaRange
+                      MediaTypeParameters = parameters
+                      Weight = acceptParameters |> Option.map fst
+                      ExtensionParameters = acceptParameters |> Option.map snd |> Option.getOrElse Map.empty })
 
 
         [<AutoOpen>]
         module Section_5_3_3 =
 
             (* Accept-Charset
+
                Taken from RFC 7231, Section 5.3.3. Accept-Charset
                [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
@@ -368,6 +409,7 @@ module internal Parsers =
         module Section_5_3_4 =
 
             (* Accept-Encoding
+
                Taken from RFC 7231, Section 5.3.4. Accept-Encoding
                [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
@@ -399,6 +441,7 @@ module internal Parsers =
         module Section_5_3_5 =
 
             (* Accept-Language
+
                Taken from RFC 7231, Section 5.3.5. Accept-Language
                [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
@@ -436,6 +479,7 @@ module internal Parsers =
         module Section_3_1 =
 
             (* If-Match
+
                Taken from RFC 7232, Section 3.1, If-Match
                [http://tools.ietf.org/html/rfc7232#section-3.1] *)
 
@@ -449,6 +493,7 @@ module internal Parsers =
         module Section_3_2 =
 
             (* If-None-Match
+
                Taken from RFC 7232, Section 3.2, If-None-Match
                [http://tools.ietf.org/html/rfc7232#section-3.2] *)
 
@@ -521,6 +566,9 @@ module internal Helpers =
             | Custom x -> x
 
     // Query
+
+    (* TODO: This approach to query strings is probably overly naive and should
+       be replaced ASAP *)
 
     let queryFromString =
         fun q ->

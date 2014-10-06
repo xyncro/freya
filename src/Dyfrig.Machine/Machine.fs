@@ -10,7 +10,7 @@ open Dyfrig.Pipeline
 
 
 [<RequireQualifiedAccess>]
-module Option =
+module private Option =
 
     let getOrElse def =
         function | Some x -> x
@@ -19,6 +19,12 @@ module Option =
 
 [<AutoOpen>]
 module Definition =
+
+    (* Signatures
+        
+       Common monadic signatures for the building blocks of Machine
+       Definitions. Represent functions that the user of Machine should implement
+       when overriding the defaults. *)
 
     type MachineAction = 
         OwinMonad<unit>
@@ -32,6 +38,12 @@ module Definition =
     type MachineOperation =
         OwinMonad<unit>
 
+    (* Definition
+        
+       A Definition of a Machine, encoded as the defaults to override
+       and the functions (given the previously defined Signatures) provided
+       to override them. *)
+
     type MachineDefinition =
         Map<string, MachineOverride>
 
@@ -41,25 +53,36 @@ module Definition =
         | Decision of MachineDecision
         | Handler of MachineHandler
 
-    let (|Action|) =
+    (* Patterns
+        
+       Active patterns for discriminating between varying kinds of 
+       Override within a Machine Definition. *)
+
+    let internal (|Action|) =
         function | Action x -> Some x 
                  | _ -> None
 
-    let (|Configuration|) =
+    let internal (|Configuration|) =
         function | Configuration x -> Some x 
                  | _ -> None
         
-    let (|Decision|) =
+    let internal (|Decision|) =
         function | Decision x -> Some x
                  | _ -> None
 
-    let (|Handler|) =
+    let internal (|Handler|) =
         function | Handler x -> Some x
                  | _ -> None
 
 
 [<AutoOpen>]
 module Monad =
+
+    (* Monad
+        
+       The monad to give Machine the declarative computation
+       expression syntax for defining Machine Definitions. Specific strongly typed
+       custom operations are defined in Machine.Syntax. *)
 
     type MachineMonad = 
         MachineDefinition -> unit * MachineDefinition
@@ -108,12 +131,18 @@ module Cache =
 [<AutoOpen>]
 module internal Lenses =
 
+    (* Lenses
+        
+       Partial lenses (Aether based - see https://github.com/xyncro/aether) 
+       in to the Machine Definition, or to the Machine Definition within an 
+       OWIN monad (Dyfrig.Core). *)
+
     let actionPLens k =
              mapPLens k
         <??> ((|Action|), Action)
 
     
-    let configPLens<'T> k =
+    let configurationPLens<'T> k =
              mapPLens k
         <??> ((|Configuration|), Configuration)
         <?-> boxIso<'T>
@@ -126,25 +155,35 @@ module internal Lenses =
              mapPLens k
         <??> ((|Handler|), Handler)
 
-    let defLens =
+    let definitionPLens =
              dictPLens "dyfrig.machine.definition"
         <?-> boxIso<MachineDefinition>
 
 
 [<AutoOpen>]
-module internal Actions =
+module internal Defaults =
+
+    (* Actions
+
+       The overridable default Action (called on active methods such as
+       DELETE, POST, etc. By default the action is no-op, as a safe default. *)
 
     let defaultAction =
         owin { return () }
 
+    (* Configuration
 
-[<AutoOpen>]
-module internal Configuration =
+       Overridable configuration properties. These should be overridden
+       according to the resource design. Some of these properties such
+       as defaultAvailableMediaTypes should almost always be overridden. *)
 
     let defaultAllowedMethods =
         Set.ofList
             [ GET
               HEAD ]
+
+    let defaultAvailableMediaTypes =
+        List.empty<MediaType * MediaSubType>
 
     let defaultKnownMethods =
         Set.ofList 
@@ -157,23 +196,24 @@ module internal Configuration =
               PUT
               TRACE ]
 
+    (* Decisions
 
-[<AutoOpen>]
-module internal Decisions =
+       A configurable default decision handler to be overridden by
+       resource specific logic. *)
 
-    let defaultDecision (decision: bool) = 
+    let defaultDecision (decision: bool) =
         owin { return decision }
 
+    (* Handlers
 
-[<AutoOpen>]
-module internal Handlers =
+       A default handler which returns only an empty response, and which should
+       be overridden according to the resource design and the methods, etc.
+       handled. *)
 
     let defaultHandler =
         owin { return Array.empty<byte> }
 
-
-[<AutoOpen>]
-module internal Operations =
+    // Operations
 
     let defaultOperation statusCode reasonPhrase =
            setPLM Response.statusCode statusCode
@@ -223,9 +263,6 @@ module internal Logic =
         let ifLanguageAvailable =
             defaultDecision true // IMPLEMENT
 
-        let ifMediaTypeAvailable =
-            defaultDecision true // IMPLEMENT
-
 
 [<AutoOpen>]
 module internal Execution =
@@ -244,6 +281,7 @@ module internal Execution =
           Override: Override
           Action: MachineAction
           Next: string }
+
     and DecisionNode =
         { Metadata: Metadata
           Override: Override
@@ -708,7 +746,7 @@ module internal Execution =
                             Set.contains 
                         <!> getLM Request.meth 
                         <*> (    Option.getOrElse defaultKnownMethods 
-                             <!> getPLM (defLens >??> configPLens Config.KnownMethods))
+                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.KnownMethods))
                      True = Decisions.UriTooLong
                      False = Operations.PreUnknownMethod }
                       
@@ -738,7 +776,11 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = ifMediaTypeAvailable
+                     Decision =
+                            (fun available requested -> Option.isSome (negotiateAccept available requested))
+                        <!> (    Option.getOrElse defaultAvailableMediaTypes 
+                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.AvailableMediaTypes))
+                        <*> (Option.get <!> getPLM Request.Headers.accept)
                      True = Decisions.AcceptLanguageExists
                      False = Operations.PreNotAcceptable }
                       
@@ -752,7 +794,7 @@ module internal Execution =
                             Set.contains 
                         <!> getLM Request.meth 
                         <*> (    Option.getOrElse defaultAllowedMethods 
-                             <!> getPLM (defLens >??> configPLens Config.AllowedMethods))
+                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.AllowedMethods))
                      True = Decisions.Malformed
                      False = Operations.PreMethodNotAllowed }
                       
@@ -1313,7 +1355,7 @@ module Reification =
         let graph = construct definition
 
         owin {
-            do! setPLM defLens definition
+            do! setPLM definitionPLens definition
 
             let! body = execute graph
 

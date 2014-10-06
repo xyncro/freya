@@ -28,7 +28,7 @@ type Todo =
 
 // Serialization
 
-let inline serialize x =
+let inline toJSON x =
     toJSON x
     |> string 
     |> Encoding.UTF8.GetBytes

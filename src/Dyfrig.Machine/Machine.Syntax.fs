@@ -35,37 +35,37 @@ module Syntax =
 
         type MachineMonadBuilder with
 
-            [<CustomOperation (Config.AllowedMethods, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.AllowedMethods, MaintainsVariableSpaceUsingBind = true)>]
             member x.AllowedMethods (r, methods: Method list) = 
-                x.Set (r, configPLens Config.AllowedMethods, Set methods)
+                x.Set (r, configurationPLens Configuration.AllowedMethods, Set methods)
 
-            [<CustomOperation (Config.AvailableCharsets, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.AvailableCharsets, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableCharsets (r, charsets: string list) = 
-                x.Set (r, configPLens Config.AvailableCharsets, charsets)
+                x.Set (r, configurationPLens Configuration.AvailableCharsets, charsets)
 
-            [<CustomOperation (Config.AvailableEncodings, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.AvailableEncodings, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableEncodings (r, encodings: string list) = 
-                x.Set (r, configPLens Config.AvailableEncodings, encodings)
+                x.Set (r, configurationPLens Configuration.AvailableEncodings, encodings)
 
-            [<CustomOperation (Config.AvailableLanguages, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.AvailableLanguages, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableLanguages (r, languages: string list) = 
-                x.Set (r, configPLens Config.AvailableLanguages, languages)
+                x.Set (r, configurationPLens Configuration.AvailableLanguages, languages)
 
-            [<CustomOperation (Config.AvailableMediaTypes, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableMediaTypes (r, mediaTypes: string list) =
-                x.Set (r, configPLens Config.AvailableMediaTypes, mediaTypes)
+            [<CustomOperation (Configuration.AvailableMediaTypes, MaintainsVariableSpaceUsingBind = true)>]
+            member x.AvailableMediaTypes (r, mediaTypes: (MediaType * MediaSubType) list) =
+                x.Set (r, configurationPLens Configuration.AvailableMediaTypes, mediaTypes)
 
-            [<CustomOperation (Config.ETag, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETag (r, etag: OwinMonad<string>) = 
-                x.Set (r, configPLens Config.ETag, etag)
+                x.Set (r, configurationPLens Configuration.ETag, etag)
 
-            [<CustomOperation (Config.KnownMethods, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.KnownMethods, MaintainsVariableSpaceUsingBind = true)>]
             member x.KnownMethods (r, methods: Method list) = 
-                x.Set (r, configPLens Config.KnownMethods, Set methods)
+                x.Set (r, configurationPLens Configuration.KnownMethods, Set methods)
 
-            [<CustomOperation (Config.Modified, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (Configuration.Modified, MaintainsVariableSpaceUsingBind = true)>]
             member x.Modified (r, modified: OwinMonad<DateTime>) = 
-                x.Set (r, configPLens Config.Modified, modified)
+                x.Set (r, configurationPLens Configuration.Modified, modified)
 
 
     [<AutoOpen>]

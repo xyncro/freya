@@ -82,10 +82,31 @@ module Request =
             x.IsSome =? true
             x.Value.Length =? 4
 
-            x.Value.[0].MediaRange.Type =? MediaType.Named "text"
-            x.Value.[0].MediaRange.SubType =? MediaType.Named "plain"
-            x.Value.[0].AcceptParameters.IsSome =? true
-            x.Value.[0].AcceptParameters.Value.Weight =? 0.5
+            x.Value.[0].MediaType =? MediaRange.Closed (MediaType "text", MediaSubType "plain")
+            x.Value.[0].Weight =? Some 0.5
+
+        [<Test>]
+        let ``negotiateAccept returns correct negotiated type/subtype pair`` () =
+            let available =
+                [ MediaType "text", MediaSubType "html"
+                  MediaType "application", MediaSubType "json"
+                  MediaType "text", MediaSubType "plain" ]
+
+            let requested =
+                [ { MediaType = MediaRange.Closed (MediaType "application", MediaSubType "json")
+                    MediaTypeParameters = Map.empty
+                    ExtensionParameters = Map.empty
+                    Weight = Some 0.8 }
+                  { MediaType = MediaRange.Closed (MediaType "text", MediaSubType "html")
+                    MediaTypeParameters = Map.empty
+                    ExtensionParameters = Map.empty
+                    Weight = Some 0.7 }
+                  { MediaType = MediaRange.Open
+                    MediaTypeParameters = Map.empty
+                    ExtensionParameters = Map.empty
+                    Weight = Some 0.5 } ]
+
+            negotiateAccept available requested =? Some (MediaType "application", MediaSubType "json")
 
         [<Test>]
         let ``accept-charset header contains correct values`` () =
