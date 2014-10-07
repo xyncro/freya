@@ -1,12 +1,20 @@
 ﻿namespace Dyfrig.Machine
 
 open System
+open System.Globalization
 open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
 open Dyfrig.Pipeline
+
+
+module A = Actions
+module C = Configuration
+module D = Decisions
+module H = Handlers
+module O = Operations
 
 
 [<RequireQualifiedAccess>]
@@ -142,7 +150,7 @@ module internal Lenses =
         <??> ((|Action|), Action)
 
     
-    let configurationPLens<'T> k =
+    let configPLens<'T> k =
              mapPLens k
         <??> ((|Configuration|), Configuration)
         <?-> boxIso<'T>
@@ -155,7 +163,7 @@ module internal Lenses =
              mapPLens k
         <??> ((|Handler|), Handler)
 
-    let definitionPLens =
+    let defPLens =
              dictPLens "dyfrig.machine.definition"
         <?-> boxIso<MachineDefinition>
 
@@ -168,24 +176,33 @@ module internal Defaults =
        The overridable default Action (called on active methods such as
        DELETE, POST, etc. By default the action is no-op, as a safe default. *)
 
-    let defaultAction =
+    let action =
         owin { return () }
 
     (* Configuration
 
        Overridable configuration properties. These should be overridden
        according to the resource design. Some of these properties such
-       as defaultAvailableMediaTypes should almost always be overridden. *)
+       as mediaTypesAvailable should almost always be overridden. *)
 
-    let defaultAllowedMethods =
+    let charsetsAvailable =
+        [ NamedCharset "iso-8859-1" ]
+
+    let encodingsAvailable =
+        List.empty<NamedEncoding>
+
+    let languagesAvailable =
+        List.empty<CultureInfo>
+
+    let mediaTypesAvailable =
+        List.empty<MediaType * MediaSubType>
+        
+    let methodsAllowed =
         Set.ofList
             [ GET
               HEAD ]
 
-    let defaultAvailableMediaTypes =
-        List.empty<MediaType * MediaSubType>
-
-    let defaultKnownMethods =
+    let methodsKnown =
         Set.ofList 
             [ DELETE
               HEAD
@@ -201,7 +218,7 @@ module internal Defaults =
        A configurable default decision handler to be overridden by
        resource specific logic. *)
 
-    let defaultDecision (decision: bool) =
+    let decision (decision: bool) =
         owin { return decision }
 
     (* Handlers
@@ -210,7 +227,7 @@ module internal Defaults =
        be overridden according to the resource design and the methods, etc.
        handled. *)
 
-    let defaultHandler =
+    let handler =
         owin { return Array.empty<byte> }
 
     (* Operations
@@ -218,15 +235,15 @@ module internal Defaults =
        Default operations to ensure a basic correct status code and response, 
        plus specialized handlers for specific operations within the resource execution. *)
 
-    let defaultOperation statusCode reasonPhrase =
+    let operation statusCode reasonPhrase =
            setPLM Response.statusCode statusCode
         *> setPLM Response.reasonPhrase reasonPhrase
 
     // TODO: Make this inspect available methods, origins, etc. properly.
     // TODO: Break allowed origin in to an earlier operation
 
-    let defaultOptions =
-           defaultOperation 200 "Options"
+    let options =
+           operation 200 "Options"
         *> setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
         *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
 
@@ -238,32 +255,19 @@ module internal Logic =
     module Conditional =                        
 
         let ifNoneMatch =
-            defaultDecision true // IMPLEMENT
+            decision true // IMPLEMENT
 
         let ifETagMatchesIf =
-            defaultDecision true // IMPLEMENT
+            decision true // IMPLEMENT
 
         let ifETagMatchesIfNone =
-            defaultDecision true // IMPLEMENT
+            decision true // IMPLEMENT
 
         let ifModifiedSince =
-            defaultDecision true // IMPLEMENT
+            decision true // IMPLEMENT
             
         let ifUnmodifiedSince =
-            defaultDecision true // IMPLEMENT
-
-
-    [<AutoOpen>]
-    module Negotiation =
-
-        let ifCharsetAvailable =
-            defaultDecision true // IMPLEMENT
-
-        let ifEncodingAvailable =
-            defaultDecision true // IMPLEMENT
-
-        let ifLanguageAvailable =
-            defaultDecision true // IMPLEMENT
+            decision true // IMPLEMENT
 
 
 [<AutoOpen>]
@@ -315,125 +319,125 @@ module internal Execution =
           // Actions
 
           Action { Metadata =
-                     { Name = Actions.Delete
+                     { Name = A.Delete
                        Description = None }
                    Override =
                      { AllowOverride = true
                        Overridden = false }
-                   Action = defaultAction
-                   Next = Decisions.Deleted }
+                   Action = action
+                   Next = D.ResourceDeleted }
 
           Action { Metadata =
-                     { Name = Actions.Patch
+                     { Name = A.Patch
                        Description = None }
                    Override =
                      { AllowOverride = true
                        Overridden = false }
-                   Action = defaultAction
-                   Next = Decisions.RespondWithEntity }
+                   Action = action
+                   Next = D.RespondWithEntity }
 
           Action { Metadata =
-                     { Name = Actions.Post
+                     { Name = A.Post
                        Description = None }
                    Override =
                      { AllowOverride = true
                        Overridden = false }
-                   Action = defaultAction
-                   Next = Decisions.PostRedirect }
+                   Action = action
+                   Next = D.PostRedirect }
 
           Action { Metadata =
-                     { Name = Actions.Put
+                     { Name = A.Put
                        Description = None }
                    Override =
                      { AllowOverride = true
                        Overridden = false }
-                   Action = defaultAction
-                   Next = Decisions.Created }
+                   Action = action
+                   Next = D.ResourceCreated }
 
           // Decisions (Allow Override = false)
 
           Decision { Metadata =
-                       { Name = Decisions.AcceptCharsetExists
-                         Description = None }
-                     Override =
-                       { AllowOverride = false
-                         Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Headers.acceptCharset
-                     True = Decisions.CharsetAvailable
-                     False = Decisions.AcceptEncodingExists }
-
-          Decision { Metadata =
-                       { Name = Decisions.AcceptEncodingExists
-                         Description = None }
-                     Override =
-                       { AllowOverride = false
-                         Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Headers.acceptEncoding
-                     True = Decisions.EncodingAvailable
-                     False = Decisions.Processable }
-
-          Decision { Metadata =
-                       { Name = Decisions.AcceptExists 
+                       { Name = D.RequestAcceptExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.accept
-                     True = Decisions.MediaTypeAvailable
-                     False = Decisions.AcceptLanguageExists }
+                     True = D.MediaTypeNegotiable
+                     False = D.RequestAcceptLanguageExists }
+                     
+          Decision { Metadata =
+                       { Name = D.RequestAcceptCharsetExists
+                         Description = None }
+                     Override =
+                       { AllowOverride = false
+                         Overridden = false }
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptCharset
+                     True = D.CharsetNegotiable
+                     False = D.RequestAcceptEncodingExists }
 
           Decision { Metadata =
-                       { Name = Decisions.AcceptLanguageExists 
+                       { Name = D.RequestAcceptEncodingExists
+                         Description = None }
+                     Override =
+                       { AllowOverride = false
+                         Overridden = false }
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptEncoding
+                     True = D.EncodingNegotiable
+                     False = D.RequestProcessable }
+
+          Decision { Metadata =
+                       { Name = D.RequestAcceptLanguageExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.acceptLanguage
-                     True = Decisions.LanguageAvailable
-                     False = Decisions.AcceptCharsetExists }
+                     True = D.LanguageNegotiable
+                     False = D.RequestAcceptCharsetExists }
 
           Decision { Metadata =
-                       { Name = Decisions.IfMatchExists 
+                       { Name = D.RequestIfMatchExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
-                     True = Decisions.IfMatchStar
-                     False = Decisions.IfUnmodifiedSinceExists }
+                     True = D.RequestIfMatchStar
+                     False = D.IfUnmodifiedSinceExists }
 
           Decision { Metadata =
-                       { Name = Decisions.IfMatchStar 
+                       { Name = D.RequestIfMatchStar 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) (Some IfMatch.Any) <!> getPLM Request.Headers.ifMatch
-                     True = Decisions.IfUnmodifiedSinceExists
-                     False = Decisions.ETagMatchesIf }
+                     True = D.IfUnmodifiedSinceExists
+                     False = D.ResourceETagMatchesIf }
 
           Decision { Metadata =
-                       { Name = Decisions.IfMatchStarExistsForMissing 
+                       { Name = D.RequestIfMatchExistsForMissing 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
-                     True = Operations.PrePreconditionFailed
-                     False = Decisions.MethodPut }
+                     True = O.PrePreconditionFailed
+                     False = D.MethodPut }
 
           Decision { Metadata =
-                       { Name = Decisions.IfModifiedSinceExists 
+                       { Name = D.RequestIfModifiedSinceExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.ifModifiedSince
-                     True = Decisions.IfModifiedSinceValidDate
-                     False = Decisions.MethodDelete }
+                     True = D.RequestIfModifiedSinceValidDate
+                     False = D.MethodDelete }
 
           Decision { Metadata =
-                       { Name = Decisions.IfModifiedSinceValidDate 
+                       { Name = D.RequestIfModifiedSinceValidDate 
                          Description = None }
                      Override =
                        { AllowOverride = false
@@ -441,51 +445,51 @@ module internal Execution =
                      Decision = 
                             Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false 
                         <!> getPLM Request.Headers.ifModifiedSince
-                     True = Decisions.ModifiedSince
-                     False = Decisions.MethodDelete }
+                     True = D.ResourceModifiedSince
+                     False = D.MethodDelete }
 
           Decision { Metadata =
-                       { Name = Decisions.IfNoneMatch 
+                       { Name = D.IfNoneMatch 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = ifNoneMatch
-                     True = Operations.PreNotModified
-                     False = Operations.PrePreconditionFailed }
+                     True = O.PreNotModified
+                     False = O.PrePreconditionFailed }
 
           Decision { Metadata =
-                       { Name = Decisions.IfNoneMatchExists 
+                       { Name = D.IfNoneMatchExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.ifNoneMatch
-                     True = Decisions.IfNoneMatchStar
-                     False = Decisions.IfModifiedSinceExists }
+                     True = D.IfNoneMatchStar
+                     False = D.RequestIfModifiedSinceExists }
 
           Decision { Metadata =
-                       { Name = Decisions.IfNoneMatchStar 
+                       { Name = D.IfNoneMatchStar 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) (Some IfNoneMatch.Any) <!> getPLM Request.Headers.ifNoneMatch 
-                     True = Decisions.IfNoneMatch
-                     False = Decisions.ETagMatchesIfNone }
+                     True = D.IfNoneMatch
+                     False = D.ResourceETagMatchesIfNone }
 
           Decision { Metadata =
-                       { Name = Decisions.IfUnmodifiedSinceExists 
+                       { Name = D.IfUnmodifiedSinceExists 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = Option.isSome <!> getPLM Request.Headers.ifUnmodifiedSince
-                     True = Decisions.IfUnmodifiedSinceValidDate
-                     False = Decisions.IfNoneMatchExists }
+                     True = D.IfUnmodifiedSinceValidDate
+                     False = D.IfNoneMatchExists }
 
           Decision { Metadata =
-                       { Name = Decisions.IfUnmodifiedSinceValidDate 
+                       { Name = D.IfUnmodifiedSinceValidDate 
                          Description = None }
                      Override =
                        { AllowOverride = false
@@ -493,814 +497,820 @@ module internal Execution =
                      Decision = 
                             Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false
                         <!> getPLM Request.Headers.ifUnmodifiedSince 
-                     True = Decisions.UnmodifiedSince
-                     False = Decisions.IfNoneMatchExists }
+                     True = D.ResourceUnmodifiedSince
+                     False = D.IfNoneMatchExists }
 
           Decision { Metadata =
-                       { Name = Decisions.MethodDelete 
+                       { Name = D.MethodDelete 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) DELETE <!> getLM Request.meth
-                     True = Actions.Delete
-                     False = Decisions.MethodPatch }
+                     True = A.Delete
+                     False = D.MethodPatch }
 
           Decision { Metadata =
-                       { Name = Decisions.MethodOptions 
+                       { Name = D.MethodOptions 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) OPTIONS <!> getLM Request.meth
-                     True = Operations.PreOptions
-                     False = Decisions.AcceptExists }
+                     True = O.PreOptions
+                     False = D.RequestAcceptExists }
 
           Decision { Metadata =
-                       { Name = Decisions.MethodPatch 
+                       { Name = D.MethodPatch 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) PATCH <!> getLM Request.meth
-                     True = Actions.Patch
-                     False = Decisions.PostToExisting }
+                     True = A.Patch
+                     False = D.PostToExisting }
 
           Decision { Metadata =
-                       { Name = Decisions.MethodPut 
+                       { Name = D.MethodPut 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) PUT <!> getLM Request.meth
-                     True = Decisions.PutToDifferentUri
-                     False = Decisions.Existed }
+                     True = D.PutToDifferentUri
+                     False = D.ResourceExisted }
 
           Decision { Metadata =
-                       { Name = Decisions.PostToGone 
+                       { Name = D.PostToGone 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) POST <!> getLM Request.meth
-                     True = Decisions.CanPostToGone
-                     False = Operations.PreGone }
+                     True = D.CanPostToGone
+                     False = O.PreGone }
 
           Decision { Metadata =
-                       { Name = Decisions.PostToExisting 
+                       { Name = D.PostToExisting 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) POST <!> getLM Request.meth
-                     True = Actions.Post
-                     False = Decisions.PutToExisting }
+                     True = A.Post
+                     False = D.PutToExisting }
 
           Decision { Metadata =
-                       { Name = Decisions.PostToMissing 
+                       { Name = D.PostToMissing 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) POST <!> getLM Request.meth
-                     True = Decisions.CanPostToMissing
-                     False = Operations.PreNotFound }
+                     True = D.CanPostToMissing
+                     False = O.PreNotFound }
 
           Decision { Metadata =
-                       { Name = Decisions.PutToExisting 
+                       { Name = D.PutToExisting 
                          Description = None }
                      Override =
                        { AllowOverride = false
                          Overridden = false }
                      Decision = (=) PUT <!> getLM Request.meth
-                     True = Decisions.Conflict
-                     False = Decisions.MultipleRepresentations }
+                     True = D.ResourceConflicts
+                     False = D.ResourceHasMultipleRepresentations }
 
           // Decisions (Allow Override = true)
 
           Decision { Metadata =
-                       { Name = Decisions.Allowed
+                       { Name = D.RequestAllowed
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.ContentTypeValid
-                     False = Operations.PreForbidden }
+                     Decision = decision true
+                     True = D.RequestContentTypeValid
+                     False = O.PreForbidden }
                       
           Decision { Metadata =
-                       { Name = Decisions.Authorized
+                       { Name = D.RequestAuthorized
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.Allowed
-                     False = Operations.PreUnauthorized }
+                     Decision = decision true
+                     True = D.RequestAllowed
+                     False = O.PreUnauthorized }
                       
           Decision { Metadata =
-                       { Name = Decisions.CanPostToGone
+                       { Name = D.CanPostToGone
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Actions.Post
-                     False = Operations.PreGone }
+                     Decision = decision false
+                     True = A.Post
+                     False = O.PreGone }
                       
           Decision { Metadata =
-                       { Name = Decisions.CanPostToMissing
+                       { Name = D.CanPostToMissing
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Actions.Post
-                     False = Operations.PreNotFound }
+                     Decision = decision true
+                     True = A.Post
+                     False = O.PreNotFound }
                       
           Decision { Metadata =
-                       { Name = Decisions.CanPutToMissing
+                       { Name = D.CanPutToMissing
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.Conflict
-                     False = Operations.PreNotImplemented }
+                     Decision = decision true
+                     True = D.ResourceConflicts
+                     False = O.PreNotImplemented }
                       
           Decision { Metadata =
-                       { Name = Decisions.CharsetAvailable
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = ifCharsetAvailable
-                     True = Decisions.AcceptEncodingExists
-                     False = Operations.PreNotAcceptable }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Conflict
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreConflict
-                     False = Actions.Put }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.ContentTypeKnown
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.ValidEntityLength
-                     False = Operations.PreUnsupportedMediaType }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.ContentTypeValid
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.ContentTypeKnown
-                     False = Operations.PreNotImplemented }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Created
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision true
-                     True = Operations.PreCreated
-                     False = Decisions.RespondWithEntity }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Deleted
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.RespondWithEntity
-                     False = Operations.PreAccepted }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.EncodingAvailable
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = ifEncodingAvailable
-                     True = Decisions.Processable
-                     False = Operations.PreNotAcceptable }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.ETagMatchesIf
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = ifETagMatchesIf
-                     True = Decisions.IfUnmodifiedSinceExists
-                     False = Operations.PrePreconditionFailed }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.ETagMatchesIfNone
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = ifETagMatchesIfNone
-                     True = Decisions.IfNoneMatch
-                     False = Decisions.IfModifiedSinceExists }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Existed
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision false
-                     True = Decisions.MovedPermanently
-                     False = Decisions.PostToMissing }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Exists
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.IfMatchExists
-                     False = Decisions.IfMatchStarExistsForMissing }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.MethodKnown
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = 
-                            Set.contains 
-                        <!> getLM Request.meth 
-                        <*> (    Option.getOrElse defaultKnownMethods 
-                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.KnownMethods))
-                     True = Decisions.UriTooLong
-                     False = Operations.PreUnknownMethod }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.LanguageAvailable
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = ifLanguageAvailable
-                     True = Decisions.AcceptCharsetExists
-                     False = Operations.PreNotAcceptable }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.Malformed
-                         Description = None }
-                     Override =
-                       { AllowOverride = true
-                         Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreMalformed
-                     False = Decisions.Authorized }
-                      
-          Decision { Metadata =
-                       { Name = Decisions.MediaTypeAvailable
+                       { Name = D.CharsetNegotiable
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
                      Decision =
-                            (fun available requested -> Option.isSome (negotiateAccept available requested))
-                        <!> (    Option.getOrElse defaultAvailableMediaTypes 
-                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.AvailableMediaTypes))
-                        <*> (Option.get <!> getPLM Request.Headers.accept)
-                     True = Decisions.AcceptLanguageExists
-                     False = Operations.PreNotAcceptable }
+                             (fun a r -> Option.isSome (negotiateCharset a r))
+                         <!> (Option.getOrElse charsetsAvailable <!> getPLM (defPLens >??> configPLens C.CharsetsAvailable))
+                         <*> (Option.get <!> getPLM Request.Headers.acceptCharset)
+                     True = D.RequestAcceptEncodingExists
+                     False = O.PreNotAcceptable }
                       
           Decision { Metadata =
-                       { Name = Decisions.MethodAllowed
+                       { Name = D.ResourceConflicts
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision false
+                     True = O.PreConflict
+                     False = A.Put }
+                      
+          Decision { Metadata =
+                       { Name = D.RequestContentTypeKnown
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision true
+                     True = D.RequestEntityLengthValid
+                     False = O.PreUnsupportedMediaType }
+                      
+          Decision { Metadata =
+                       { Name = D.RequestContentTypeValid
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision true
+                     True = D.RequestContentTypeKnown
+                     False = O.PreNotImplemented }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceCreated
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision true
+                     True = O.PreCreated
+                     False = D.RespondWithEntity }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceDeleted
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision true
+                     True = D.RespondWithEntity
+                     False = O.PreAccepted }
+                      
+          Decision { Metadata =
+                       { Name = D.EncodingNegotiable
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision =
+                             (fun a r -> Option.isSome (negotiateEncoding a r))
+                         <!> (Option.getOrElse encodingsAvailable <!> getPLM (defPLens >??> configPLens C.EncodingsAvailable))
+                         <*> (Option.get <!> getPLM Request.Headers.acceptEncoding)
+                     True = D.RequestProcessable
+                     False = O.PreNotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceETagMatchesIf
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = ifETagMatchesIf
+                     True = D.IfUnmodifiedSinceExists
+                     False = O.PrePreconditionFailed }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceETagMatchesIfNone
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = ifETagMatchesIfNone
+                     True = D.IfNoneMatch
+                     False = D.RequestIfModifiedSinceExists }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceExisted
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision false
+                     True = D.ResourceMovedPermanently
+                     False = D.PostToMissing }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceExists
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision true
+                     True = D.RequestIfMatchExists
+                     False = D.RequestIfMatchExistsForMissing }
+                      
+          Decision { Metadata =
+                       { Name = D.MethodKnown
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = 
-                            Set.contains 
-                        <!> getLM Request.meth 
-                        <*> (    Option.getOrElse defaultAllowedMethods 
-                             <!> getPLM (definitionPLens >??> configurationPLens Configuration.AllowedMethods))
-                     True = Decisions.Malformed
-                     False = Operations.PreMethodNotAllowed }
+                             Set.contains 
+                         <!> getLM Request.meth 
+                         <*> (Option.getOrElse methodsKnown <!> getPLM (defPLens >??> configPLens C.MethodsKnown))
+                     True = D.RequestUriTooLong
+                     False = O.PreUnknownMethod }
                       
           Decision { Metadata =
-                       { Name = Decisions.ModifiedSince
+                       { Name = D.LanguageNegotiable
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision =
+                             (fun a r -> Option.isSome (negotiateLanguage a r))
+                         <!> (Option.getOrElse languagesAvailable <!> getPLM (defPLens >??> configPLens C.LanguagesAvailable))
+                         <*> (Option.get <!> getPLM Request.Headers.acceptLanguage)
+                     True = D.RequestAcceptCharsetExists
+                     False = O.PreNotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = D.RequestMalformed
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = decision false
+                     True = O.PreMalformed
+                     False = D.RequestAuthorized }
+                      
+          Decision { Metadata =
+                       { Name = D.MediaTypeNegotiable
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision =
+                            (fun a r -> Option.isSome (negotiateAccept a r))
+                        <!> (Option.getOrElse mediaTypesAvailable <!> getPLM (defPLens >??> configPLens C.MediaTypesAvailable))
+                        <*> (Option.get <!> getPLM Request.Headers.accept)
+                     True = D.RequestAcceptLanguageExists
+                     False = O.PreNotAcceptable }
+                      
+          Decision { Metadata =
+                       { Name = D.MethodAllowed
+                         Description = None }
+                     Override =
+                       { AllowOverride = true
+                         Overridden = false }
+                     Decision = 
+                             Set.contains 
+                         <!> getLM Request.meth 
+                         <*> (Option.getOrElse methodsAllowed <!> getPLM (defPLens >??> configPLens C.MethodsAllowed))
+                     True = D.RequestMalformed
+                     False = O.PreMethodNotAllowed }
+                      
+          Decision { Metadata =
+                       { Name = D.ResourceModifiedSince
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifModifiedSince
-                     True = Decisions.MethodDelete
-                     False = Operations.PreNotModified }
+                     True = D.MethodDelete
+                     False = O.PreNotModified }
                       
           Decision { Metadata =
-                       { Name = Decisions.MovedPermanently
+                       { Name = D.ResourceMovedPermanently
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreMovedPermanently
-                     False = Decisions.MovedTemporarily }
+                     Decision = decision false
+                     True = O.PreMovedPermanently
+                     False = D.ResourceMovedTemporarily }
                       
           Decision { Metadata =
-                       { Name = Decisions.MovedTemporarily
+                       { Name = D.ResourceMovedTemporarily
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreMovedTemporarily
-                     False = Decisions.PostToGone }
+                     Decision = decision false
+                     True = O.PreMovedTemporarily
+                     False = D.PostToGone }
                       
           Decision { Metadata =
-                       { Name = Decisions.MultipleRepresentations
+                       { Name = D.ResourceHasMultipleRepresentations
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreMultipleRepresentations
-                     False = Operations.PreOK }
+                     Decision = decision false
+                     True = O.PreMultipleRepresentations
+                     False = O.PreOK }
                       
           Decision { Metadata =
-                       { Name = Decisions.PostRedirect
+                       { Name = D.PostRedirect
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreSeeOther
-                     False = Decisions.Created }
+                     Decision = decision false
+                     True = O.PreSeeOther
+                     False = D.ResourceCreated }
                       
           Decision { Metadata =
-                       { Name = Decisions.Processable
+                       { Name = D.RequestProcessable
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.Exists
-                     False = Operations.PreUnprocessableEntity }
+                     Decision = decision true
+                     True = D.ResourceExists
+                     False = O.PreUnprocessableEntity }
                       
           Decision { Metadata =
-                       { Name = Decisions.PutToDifferentUri
+                       { Name = D.PutToDifferentUri
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreMovedPermanently
-                     False = Decisions.CanPutToMissing }
+                     Decision = decision false
+                     True = O.PreMovedPermanently
+                     False = D.CanPutToMissing }
                       
           Decision { Metadata =
-                       { Name = Decisions.RespondWithEntity
+                       { Name = D.RespondWithEntity
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.MultipleRepresentations
-                     False = Operations.PreNoContent }
+                     Decision = decision true
+                     True = D.ResourceHasMultipleRepresentations
+                     False = O.PreNoContent }
                       
           Decision { Metadata =
-                       { Name = Decisions.ServiceAvailable
+                       { Name = D.ServiceAvailable
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.MethodKnown
-                     False = Operations.PreServiceUnavailable }
+                     Decision = decision true
+                     True = D.MethodKnown
+                     False = O.PreServiceUnavailable }
                       
           Decision { Metadata =
-                       { Name = Decisions.UnmodifiedSince
+                       { Name = D.ResourceUnmodifiedSince
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
                      Decision = ifUnmodifiedSince
-                     True = Operations.PrePreconditionFailed
-                     False = Decisions.IfNoneMatchExists }
+                     True = O.PrePreconditionFailed
+                     False = D.IfNoneMatchExists }
                       
           Decision { Metadata =
-                       { Name = Decisions.UriTooLong
+                       { Name = D.RequestUriTooLong
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision false
-                     True = Operations.PreUriTooLong
-                     False = Decisions.MethodAllowed }
+                     Decision = decision false
+                     True = O.PreUriTooLong
+                     False = D.MethodAllowed }
 
           Decision { Metadata =
-                       { Name = Decisions.ValidEntityLength
+                       { Name = D.RequestEntityLengthValid
                          Description = None }
                      Override =
                        { AllowOverride = true
                          Overridden = false }
-                     Decision = defaultDecision true
-                     True = Decisions.MethodOptions
-                     False = Operations.PreRequestEntityTooLarge }
+                     Decision = decision true
+                     True = D.MethodOptions
+                     False = O.PreRequestEntityTooLarge }
 
           // Handlers
                      
           Handler { Metadata =
-                      { Name = Handlers.OK
+                      { Name = H.OK
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
                     
           Handler { Metadata =
-                      { Name = Handlers.Options
+                      { Name = H.Options
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Created
+                      { Name = H.Created
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Accepted
+                      { Name = H.Accepted
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.NoContent
+                      { Name = H.NoContent
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.MovedPermanently
+                      { Name = H.MovedPermanently
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.SeeOther
+                      { Name = H.SeeOther
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler  }
+                    Handler = handler  }
 
           Handler { Metadata =
-                      { Name = Handlers.NotModified
+                      { Name = H.NotModified
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.MovedTemporarily
+                      { Name = H.MovedTemporarily
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.MultipleRepresentations
+                      { Name = H.MultipleRepresentations
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Malformed
+                      { Name = H.Malformed
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Unauthorized
+                      { Name = H.Unauthorized
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Forbidden
+                      { Name = H.Forbidden
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.NotFound
+                      { Name = H.NotFound
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.MethodNotAllowed
+                      { Name = H.MethodNotAllowed
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.NotAcceptable
+                      { Name = H.NotAcceptable
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Conflict
+                      { Name = H.Conflict
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Gone
+                      { Name = H.Gone
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.PreconditionFailed
+                      { Name = H.PreconditionFailed
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.RequestEntityTooLarge
+                      { Name = H.RequestEntityTooLarge
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.UriTooLong
+                      { Name = H.UriTooLong
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.UnsupportedMediaType
+                      { Name = H.UnsupportedMediaType
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.UnprocessableEntity
+                      { Name = H.UnprocessableEntity
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.Exception
+                      { Name = H.Exception
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.NotImplemented
+                      { Name = H.NotImplemented
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.UnknownMethod
+                      { Name = H.UnknownMethod
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
 
           Handler { Metadata =
-                      { Name = Handlers.ServiceUnavailable
+                      { Name = H.ServiceUnavailable
                         Description = None }
                     Override =
                       { AllowOverride = true
                         Overridden = false }
-                    Handler = defaultHandler }
+                    Handler = handler }
                     
           // Operations
           
           Operation { Metadata =
-                        { Name = Operations.PreOK
+                        { Name = O.PreOK
                           Description = None }
-                      Operation = defaultOperation 200 "OK"
-                      Next = Handlers.OK }
+                      Operation = operation 200 "OK"
+                      Next = H.OK }
                     
           Operation { Metadata =
-                       { Name = Operations.PreOptions
+                       { Name = O.PreOptions
                          Description = None }
-                      Operation = defaultOptions
-                      Next = Handlers.Options }
+                      Operation = options
+                      Next = H.Options }
 
           Operation { Metadata =
-                       { Name = Operations.PreCreated
+                       { Name = O.PreCreated
                          Description = None }
-                      Operation = defaultOperation 201 "Created"
-                      Next = Handlers.Created }
+                      Operation = operation 201 "Created"
+                      Next = H.Created }
 
           Operation { Metadata =
-                       { Name = Operations.PreAccepted
+                       { Name = O.PreAccepted
                          Description = None }
-                      Operation = defaultOperation 202 "Accepted"
-                      Next = Handlers.Accepted }
+                      Operation = operation 202 "Accepted"
+                      Next = H.Accepted }
 
           Operation { Metadata =
-                       { Name = Operations.PreNoContent
+                       { Name = O.PreNoContent
                          Description = None }
-                      Operation = defaultOperation 204 "No Content"
-                      Next = Handlers.NoContent }
+                      Operation = operation 204 "No Content"
+                      Next = H.NoContent }
 
           Operation { Metadata =
-                       { Name = Operations.PreMovedPermanently
+                       { Name = O.PreMovedPermanently
                          Description = None }
-                      Operation = defaultOperation 301 "Moved Permanently"
-                      Next = Operations.PreMovedPermanently }
+                      Operation = operation 301 "Moved Permanently"
+                      Next = O.PreMovedPermanently }
 
           Operation { Metadata =
-                       { Name = Operations.PreSeeOther
+                       { Name = O.PreSeeOther
                          Description = None }
-                      Operation = defaultOperation 303 "See Other"
-                      Next = Handlers.SeeOther }
+                      Operation = operation 303 "See Other"
+                      Next = H.SeeOther }
 
           Operation { Metadata =
-                       { Name = Operations.PreNotModified
+                       { Name = O.PreNotModified
                          Description = None }
-                      Operation = defaultOperation 304 "Not Modified"
-                      Next = Handlers.NotModified }
+                      Operation = operation 304 "Not Modified"
+                      Next = H.NotModified }
 
           Operation { Metadata =
-                       { Name = Operations.PreMovedTemporarily
+                       { Name = O.PreMovedTemporarily
                          Description = None }
-                      Operation = defaultOperation 307 "Moved Temporarily"
-                      Next = Handlers.MovedTemporarily }
+                      Operation = operation 307 "Moved Temporarily"
+                      Next = H.MovedTemporarily }
 
           Operation { Metadata =
-                       { Name = Operations.PreMultipleRepresentations
+                       { Name = O.PreMultipleRepresentations
                          Description = None }
-                      Operation = defaultOperation 310 "Multiple Representations"
-                      Next = Handlers.MultipleRepresentations }
+                      Operation = operation 310 "Multiple Representations"
+                      Next = H.MultipleRepresentations }
 
           Operation { Metadata =
-                       { Name = Operations.PreMalformed
+                       { Name = O.PreMalformed
                          Description = None }
-                      Operation = defaultOperation 400 "Bad Request"
-                      Next = Handlers.Malformed }
+                      Operation = operation 400 "Bad Request"
+                      Next = H.Malformed }
 
           Operation { Metadata =
-                       { Name = Operations.PreUnauthorized
+                       { Name = O.PreUnauthorized
                          Description = None }
-                      Operation = defaultOperation 401 "Unauthorized"
-                      Next = Handlers.Unauthorized }
+                      Operation = operation 401 "Unauthorized"
+                      Next = H.Unauthorized }
 
           Operation { Metadata =
-                       { Name = Operations.PreForbidden
+                       { Name = O.PreForbidden
                          Description = None }
-                      Operation = defaultOperation 403 "Forbidden"
-                      Next = Handlers.Forbidden }
+                      Operation = operation 403 "Forbidden"
+                      Next = H.Forbidden }
 
           Operation { Metadata =
-                       { Name = Operations.PreNotFound
+                       { Name = O.PreNotFound
                          Description = None }
-                      Operation = defaultOperation 404 "Not Found"
-                      Next = Handlers.NotFound }
+                      Operation = operation 404 "Not Found"
+                      Next = H.NotFound }
 
           Operation { Metadata =
-                       { Name = Operations.PreMethodNotAllowed
+                       { Name = O.PreMethodNotAllowed
                          Description = None }
-                      Operation = defaultOperation 405 "Method Not Allowed"
-                      Next = Handlers.MethodNotAllowed }
+                      Operation = operation 405 "Method Not Allowed"
+                      Next = H.MethodNotAllowed }
 
           Operation { Metadata =
-                       { Name = Operations.PreNotAcceptable
+                       { Name = O.PreNotAcceptable
                          Description = None }
-                      Operation = defaultOperation 406 "Not Acceptable"
-                      Next = Handlers.NotAcceptable }
+                      Operation = operation 406 "Not Acceptable"
+                      Next = H.NotAcceptable }
 
           Operation { Metadata =
-                       { Name = Operations.PreConflict
+                       { Name = O.PreConflict
                          Description = None }
-                      Operation = defaultOperation 409 "Conflict"
-                      Next = Handlers.Conflict }
+                      Operation = operation 409 "Conflict"
+                      Next = H.Conflict }
 
           Operation { Metadata =
-                       { Name = Operations.PreGone
+                       { Name = O.PreGone
                          Description = None }
-                      Operation = defaultOperation 410 "Gone"
-                      Next = Handlers.Gone }
+                      Operation = operation 410 "Gone"
+                      Next = H.Gone }
 
           Operation { Metadata =
-                       { Name = Operations.PrePreconditionFailed
+                       { Name = O.PrePreconditionFailed
                          Description = None }
-                      Operation = defaultOperation 412 "Precondition Failed"
-                      Next = Handlers.PreconditionFailed }
+                      Operation = operation 412 "Precondition Failed"
+                      Next = H.PreconditionFailed }
 
           Operation { Metadata =
-                       { Name = Operations.PreRequestEntityTooLarge
+                       { Name = O.PreRequestEntityTooLarge
                          Description = None }
-                      Operation = defaultOperation 413 "Request Entity Too Large"
-                      Next = Handlers.RequestEntityTooLarge }
+                      Operation = operation 413 "Request Entity Too Large"
+                      Next = H.RequestEntityTooLarge }
 
           Operation { Metadata =
-                       { Name = Operations.PreUriTooLong
+                       { Name = O.PreUriTooLong
                          Description = None }
-                      Operation = defaultOperation 414 "URI Too Long"
-                      Next = Handlers.UriTooLong }
+                      Operation = operation 414 "URI Too Long"
+                      Next = H.UriTooLong }
 
           Operation { Metadata =
-                       { Name = Operations.PreUnsupportedMediaType
+                       { Name = O.PreUnsupportedMediaType
                          Description = None }
-                      Operation = defaultOperation 415 "Unsupported Media Type"
-                      Next = Handlers.UnsupportedMediaType }
+                      Operation = operation 415 "Unsupported Media Type"
+                      Next = H.UnsupportedMediaType }
 
           Operation { Metadata =
-                       { Name = Operations.PreUnprocessableEntity
+                       { Name = O.PreUnprocessableEntity
                          Description = None }
-                      Operation = defaultOperation 422 "Unprocessable Entity"
-                      Next = Handlers.UnprocessableEntity }
+                      Operation = operation 422 "Unprocessable Entity"
+                      Next = H.UnprocessableEntity }
 
           Operation { Metadata =
-                       { Name = Operations.PreException
+                       { Name = O.PreException
                          Description = None }
-                      Operation = defaultOperation 500 "Internal Server Error"
-                      Next = Handlers.Exception }
+                      Operation = operation 500 "Internal Server Error"
+                      Next = H.Exception }
 
           Operation { Metadata =
-                       { Name = Operations.PreNotImplemented
+                       { Name = O.PreNotImplemented
                          Description = None }
-                      Operation = defaultOperation 501 "Not Implemented"
-                      Next = Handlers.NotImplemented }
+                      Operation = operation 501 "Not Implemented"
+                      Next = H.NotImplemented }
 
           Operation { Metadata =
-                       { Name = Operations.PreUnknownMethod
+                       { Name = O.PreUnknownMethod
                          Description = None }
-                      Operation = defaultOperation 501 "Unknown Method"
-                      Next = Handlers.UnknownMethod }
+                      Operation = operation 501 "Unknown Method"
+                      Next = H.UnknownMethod }
 
           Operation { Metadata =
-                       { Name = Operations.PreServiceUnavailable
+                       { Name = O.PreServiceUnavailable
                          Description = None }
-                      Operation = defaultOperation 503 "Service Unavailable"
-                      Next = Handlers.ServiceUnavailable } ]
+                      Operation = operation 503 "Service Unavailable"
+                      Next = H.ServiceUnavailable } ]
 
     let construct (definition: MachineDefinition) =
         nodes
@@ -1346,7 +1356,7 @@ module internal Execution =
                     printfn "operation: %s" operation.Metadata.Name
                     return! traverse operation.Next }
 
-        traverse Decisions.ServiceAvailable
+        traverse D.ServiceAvailable
 
 
 [<AutoOpen>]
@@ -1357,7 +1367,7 @@ module Reification =
         let graph = construct definition
 
         owin {
-            do! setPLM definitionPLens definition
+            do! setPLM defPLens definition
 
             let! body = execute graph
 

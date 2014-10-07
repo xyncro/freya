@@ -5,6 +5,12 @@ open Dyfrig.Core
 open Dyfrig.Http
 
 
+module A = Actions
+module C = Configuration
+module D = Decisions
+module H = Handlers
+
+
 [<AutoOpen>]
 module Syntax =
 
@@ -13,21 +19,21 @@ module Syntax =
 
         type MachineMonadBuilder with
 
-            [<CustomOperation (Actions.Delete, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (A.Delete, MaintainsVariableSpaceUsingBind = true)>]
             member x.DoDelete (r, f) = 
-                x.Set (r, actionPLens Actions.Delete, f)
+                x.Set (r, actionPLens A.Delete, f)
 
-            [<CustomOperation (Actions.Patch, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (A.Patch, MaintainsVariableSpaceUsingBind = true)>]
             member x.DoPatch (r, f) = 
-                x.Set (r, actionPLens Actions.Patch, f)
+                x.Set (r, actionPLens A.Patch, f)
 
-            [<CustomOperation (Actions.Post, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (A.Post, MaintainsVariableSpaceUsingBind = true)>]
             member x.DoPost (r, f) = 
-                x.Set (r, actionPLens Actions.Post, f)
+                x.Set (r, actionPLens A.Post, f)
 
-            [<CustomOperation (Actions.Put, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (A.Put, MaintainsVariableSpaceUsingBind = true)>]
             member x.DoPut (r, f) = 
-                x.Set (r, actionPLens Actions.Put, f)
+                x.Set (r, actionPLens A.Put, f)
 
 
     [<AutoOpen>]
@@ -35,37 +41,37 @@ module Syntax =
 
         type MachineMonadBuilder with
 
-            [<CustomOperation (Configuration.AllowedMethods, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.MethodsAllowed, MaintainsVariableSpaceUsingBind = true)>]
             member x.AllowedMethods (r, methods: Method list) = 
-                x.Set (r, configurationPLens Configuration.AllowedMethods, Set methods)
+                x.Set (r, configPLens C.MethodsAllowed, Set methods)
 
-            [<CustomOperation (Configuration.AvailableCharsets, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.CharsetsAvailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableCharsets (r, charsets: string list) = 
-                x.Set (r, configurationPLens Configuration.AvailableCharsets, charsets)
+                x.Set (r, configPLens C.CharsetsAvailable, charsets)
 
-            [<CustomOperation (Configuration.AvailableEncodings, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.EncodingsAvailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableEncodings (r, encodings: string list) = 
-                x.Set (r, configurationPLens Configuration.AvailableEncodings, encodings)
+                x.Set (r, configPLens C.EncodingsAvailable, encodings)
 
-            [<CustomOperation (Configuration.AvailableLanguages, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.LanguagesAvailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableLanguages (r, languages: string list) = 
-                x.Set (r, configurationPLens Configuration.AvailableLanguages, languages)
+                x.Set (r, configPLens C.LanguagesAvailable, languages)
 
-            [<CustomOperation (Configuration.AvailableMediaTypes, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.MediaTypesAvailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.AvailableMediaTypes (r, mediaTypes: (MediaType * MediaSubType) list) =
-                x.Set (r, configurationPLens Configuration.AvailableMediaTypes, mediaTypes)
+                x.Set (r, configPLens C.MediaTypesAvailable, mediaTypes)
 
-            [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.ResourceETag, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETag (r, etag: OwinMonad<string>) = 
-                x.Set (r, configurationPLens Configuration.ETag, etag)
+                x.Set (r, configPLens C.ResourceETag, etag)
 
-            [<CustomOperation (Configuration.KnownMethods, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
             member x.KnownMethods (r, methods: Method list) = 
-                x.Set (r, configurationPLens Configuration.KnownMethods, Set methods)
+                x.Set (r, configPLens C.MethodsKnown, Set methods)
 
-            [<CustomOperation (Configuration.Modified, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (C.ResourceLastModified, MaintainsVariableSpaceUsingBind = true)>]
             member x.Modified (r, modified: OwinMonad<DateTime>) = 
-                x.Set (r, configurationPLens Configuration.Modified, modified)
+                x.Set (r, configPLens C.ResourceLastModified, modified)
 
 
     [<AutoOpen>]
@@ -73,133 +79,133 @@ module Syntax =
 
         type MachineMonadBuilder with
 
-            [<CustomOperation (Decisions.Allowed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestAllowed, MaintainsVariableSpaceUsingBind = true)>]
             member x.Allowed (r, f) = 
-                x.Set (r, decisionPLens Decisions.Allowed, f)
+                x.Set (r, decisionPLens D.RequestAllowed, f)
 
-            [<CustomOperation (Decisions.Authorized, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestAuthorized, MaintainsVariableSpaceUsingBind = true)>]
             member x.Authorized (r, f) = 
-                x.Set (r, decisionPLens Decisions.Authorized, f)
+                x.Set (r, decisionPLens D.RequestAuthorized, f)
 
-            [<CustomOperation (Decisions.CharsetAvailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.CharsetNegotiable, MaintainsVariableSpaceUsingBind = true)>]
             member x.CharsetAvailable (r, f) = 
-                x.Set (r, decisionPLens Decisions.CharsetAvailable, f)
+                x.Set (r, decisionPLens D.CharsetNegotiable, f)
 
-            [<CustomOperation (Decisions.CanPostToGone, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.CanPostToGone, MaintainsVariableSpaceUsingBind = true)>]
             member x.CanPostToGone (r, f) = 
-                x.Set (r, decisionPLens Decisions.CanPostToGone, f)
+                x.Set (r, decisionPLens D.CanPostToGone, f)
 
-            [<CustomOperation (Decisions.CanPostToMissing, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.CanPostToMissing, MaintainsVariableSpaceUsingBind = true)>]
             member x.CanPostToMissing (r, f) = 
-                x.Set (r, decisionPLens Decisions.CanPostToMissing, f)
+                x.Set (r, decisionPLens D.CanPostToMissing, f)
 
-            [<CustomOperation (Decisions.CanPutToMissing, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.CanPutToMissing, MaintainsVariableSpaceUsingBind = true)>]
             member x.CanPutToMissing (r, f) = 
-                x.Set (r, decisionPLens Decisions.CanPutToMissing, f)
+                x.Set (r, decisionPLens D.CanPutToMissing, f)
 
-            [<CustomOperation (Decisions.ContentTypeKnown, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestContentTypeKnown, MaintainsVariableSpaceUsingBind = true)>]
             member x.ContentTypeKnown (r, f) = 
-                x.Set (r, decisionPLens Decisions.ContentTypeKnown, f)
+                x.Set (r, decisionPLens D.RequestContentTypeKnown, f)
 
-            [<CustomOperation (Decisions.ContentTypeValid, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestContentTypeValid, MaintainsVariableSpaceUsingBind = true)>]
             member x.ContentTypeValid (r, f) = 
-                x.Set (r, decisionPLens Decisions.ContentTypeValid, f)
+                x.Set (r, decisionPLens D.RequestContentTypeValid, f)
 
-            [<CustomOperation (Decisions.Conflict, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceConflicts, MaintainsVariableSpaceUsingBind = true)>]
             member x.Conflict (r, f) = 
-                x.Set (r, decisionPLens Decisions.Conflict, f)
+                x.Set (r, decisionPLens D.ResourceConflicts, f)
 
-            [<CustomOperation (Decisions.Created, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceCreated, MaintainsVariableSpaceUsingBind = true)>]
             member x.Created (r, f) = 
-                x.Set (r, decisionPLens Decisions.Created, f)
+                x.Set (r, decisionPLens D.ResourceCreated, f)
 
-            [<CustomOperation (Decisions.Deleted, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceDeleted, MaintainsVariableSpaceUsingBind = true)>]
             member x.Deleted (r, f) = 
-                x.Set (r, decisionPLens Decisions.Deleted, f)
+                x.Set (r, decisionPLens D.ResourceDeleted, f)
 
-            [<CustomOperation (Decisions.EncodingAvailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.EncodingNegotiable, MaintainsVariableSpaceUsingBind = true)>]
             member x.EncodingAvailable (r, f) = 
-                x.Set (r, decisionPLens Decisions.EncodingAvailable, f)
+                x.Set (r, decisionPLens D.EncodingNegotiable, f)
 
-            [<CustomOperation (Decisions.ETagMatchesIf, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceETagMatchesIf, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETagMatchesIf (r, f) = 
-                x.Set (r, decisionPLens Decisions.ETagMatchesIf, f)
+                x.Set (r, decisionPLens D.ResourceETagMatchesIf, f)
 
-            [<CustomOperation (Decisions.ETagMatchesIfNone, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceETagMatchesIfNone, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETagMatchesIfNone (r, f) = 
-                x.Set (r, decisionPLens Decisions.ETagMatchesIfNone, f)
+                x.Set (r, decisionPLens D.ResourceETagMatchesIfNone, f)
 
-            [<CustomOperation (Decisions.Existed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceExisted, MaintainsVariableSpaceUsingBind = true)>]
             member x.Existed (r, f) = 
-                x.Set (r, decisionPLens Decisions.Existed, f)
+                x.Set (r, decisionPLens D.ResourceExisted, f)
 
-            [<CustomOperation (Decisions.Exists, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceExists, MaintainsVariableSpaceUsingBind = true)>]
             member x.Exists (r, f) = 
-                x.Set (r, decisionPLens Decisions.Exists, f)
+                x.Set (r, decisionPLens D.ResourceExists, f)
 
-            [<CustomOperation (Decisions.LanguageAvailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.LanguageNegotiable, MaintainsVariableSpaceUsingBind = true)>]
             member x.LanguageAvailable (r, f) = 
-                x.Set (r, decisionPLens Decisions.LanguageAvailable, f)
+                x.Set (r, decisionPLens D.LanguageNegotiable, f)
 
-            [<CustomOperation (Decisions.MethodAllowed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.MethodAllowed, MaintainsVariableSpaceUsingBind = true)>]
             member x.MethodAllowed (r, f) = 
-                x.Set (r, decisionPLens Decisions.MethodAllowed, f)
+                x.Set (r, decisionPLens D.MethodAllowed, f)
 
-            [<CustomOperation (Decisions.MethodKnown, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.MethodKnown, MaintainsVariableSpaceUsingBind = true)>]
             member x.MethodKnown (r, f) = 
-                x.Set (r, decisionPLens Decisions.MethodKnown, f)
+                x.Set (r, decisionPLens D.MethodKnown, f)
 
-            [<CustomOperation (Decisions.Malformed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestMalformed, MaintainsVariableSpaceUsingBind = true)>]
             member x.Malformed (r, f) = 
-                x.Set (r, decisionPLens Decisions.Malformed, f)
+                x.Set (r, decisionPLens D.RequestMalformed, f)
 
-            [<CustomOperation (Decisions.MediaTypeAvailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.MediaTypeNegotiable, MaintainsVariableSpaceUsingBind = true)>]
             member x.MediaTypeAvailable (r, f) = 
-                x.Set (r, decisionPLens Decisions.MediaTypeAvailable, f)
+                x.Set (r, decisionPLens D.MediaTypeNegotiable, f)
 
-            [<CustomOperation (Decisions.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceMovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
             member x.MovedPermanently (r, f) = 
-                x.Set (r, decisionPLens Decisions.MovedPermanently, f)
+                x.Set (r, decisionPLens D.ResourceMovedPermanently, f)
 
-            [<CustomOperation (Decisions.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceMovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
             member x.MovedTemporarily (r, f) = 
-                x.Set (r, decisionPLens Decisions.MovedTemporarily, f)
+                x.Set (r, decisionPLens D.ResourceMovedTemporarily, f)
 
-            [<CustomOperation (Decisions.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceHasMultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
             member x.MultipleRepresentations (r, f) = 
-                x.Set (r, decisionPLens Decisions.MultipleRepresentations, f)
+                x.Set (r, decisionPLens D.ResourceHasMultipleRepresentations, f)
 
-            [<CustomOperation (Decisions.PostRedirect, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.PostRedirect, MaintainsVariableSpaceUsingBind = true)>]
             member x.PostRedirect (r, f) = 
-                x.Set (r, decisionPLens Decisions.PostRedirect, f)
+                x.Set (r, decisionPLens D.PostRedirect, f)
 
-            [<CustomOperation (Decisions.Processable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestProcessable, MaintainsVariableSpaceUsingBind = true)>]
             member x.Processable (r, f) = 
-                x.Set (r, decisionPLens Decisions.Processable, f)
+                x.Set (r, decisionPLens D.RequestProcessable, f)
 
-            [<CustomOperation (Decisions.PutToDifferentUri, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.PutToDifferentUri, MaintainsVariableSpaceUsingBind = true)>]
             member x.PutToDifferentUri (r, f) = 
-                x.Set (r, decisionPLens Decisions.PutToDifferentUri, f)
+                x.Set (r, decisionPLens D.PutToDifferentUri, f)
 
-            [<CustomOperation (Decisions.RespondWithEntity, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RespondWithEntity, MaintainsVariableSpaceUsingBind = true)>]
             member x.RespondWithEntity (r, f) = 
-                x.Set (r, decisionPLens Decisions.RespondWithEntity, f)
+                x.Set (r, decisionPLens D.RespondWithEntity, f)
 
-            [<CustomOperation (Decisions.ServiceAvailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ServiceAvailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.ServiceAvailable (r, f) = 
-                x.Set (r, decisionPLens Decisions.ServiceAvailable, f)
+                x.Set (r, decisionPLens D.ServiceAvailable, f)
 
-            [<CustomOperation (Decisions.UnmodifiedSince, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.ResourceUnmodifiedSince, MaintainsVariableSpaceUsingBind = true)>]
             member x.UnmodifiedSince (r, f) = 
-                x.Set (r, decisionPLens Decisions.UnmodifiedSince, f)
+                x.Set (r, decisionPLens D.ResourceUnmodifiedSince, f)
 
-            [<CustomOperation (Decisions.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestUriTooLong, MaintainsVariableSpaceUsingBind = true)>]
             member x.UriTooLong (r, f) = 
-                x.Set (r, decisionPLens Decisions.UriTooLong, f)
+                x.Set (r, decisionPLens D.RequestUriTooLong, f)
 
-            [<CustomOperation (Decisions.ValidEntityLength, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (D.RequestEntityLengthValid, MaintainsVariableSpaceUsingBind = true)>]
             member x.ValidEntityLength (r, f) = 
-                x.Set (r, decisionPLens Decisions.ValidEntityLength, f)
+                x.Set (r, decisionPLens D.RequestEntityLengthValid, f)
 
     
     [<AutoOpen>]
@@ -209,119 +215,119 @@ module Syntax =
 
             // 200
 
-            [<CustomOperation (Handlers.OK, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.OK, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleOk (r, f) = 
-                x.Set (r, handlerPLens Handlers.OK, f)
+                x.Set (r, handlerPLens H.OK, f)
 
-            [<CustomOperation (Handlers.Options, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Options, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleOptions (r, f) = 
-                x.Set (r, handlerPLens Handlers.Options, f)
+                x.Set (r, handlerPLens H.Options, f)
 
-            [<CustomOperation (Handlers.Created, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Created, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleCreated (r, f) = 
-                x.Set (r, handlerPLens Handlers.Created, f)
+                x.Set (r, handlerPLens H.Created, f)
 
-            [<CustomOperation (Handlers.Accepted, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Accepted, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleAccepted (r, f) = 
-                x.Set (r, handlerPLens Handlers.Accepted, f)
+                x.Set (r, handlerPLens H.Accepted, f)
 
-            [<CustomOperation (Handlers.NoContent, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.NoContent, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleNoContent (r, f) = 
-                x.Set (r, handlerPLens Handlers.NoContent, f)
+                x.Set (r, handlerPLens H.NoContent, f)
 
             // 300
 
-            [<CustomOperation (Handlers.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleMovedPermanently (r, f) = 
-                x.Set (r, handlerPLens Handlers.MovedPermanently, f)
+                x.Set (r, handlerPLens H.MovedPermanently, f)
 
-            [<CustomOperation (Handlers.SeeOther, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.SeeOther, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleSeeOther (r, f) = 
-                x.Set (r, handlerPLens Handlers.SeeOther, f)
+                x.Set (r, handlerPLens H.SeeOther, f)
 
-            [<CustomOperation (Handlers.NotModified, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.NotModified, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleNotModified (r, f) = 
-                x.Set (r, handlerPLens Handlers.NotModified, f)
+                x.Set (r, handlerPLens H.NotModified, f)
 
-            [<CustomOperation (Handlers.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleMovedTemporarily (r, f) = 
-                x.Set (r, handlerPLens Handlers.MovedTemporarily, f)
+                x.Set (r, handlerPLens H.MovedTemporarily, f)
 
-            [<CustomOperation (Handlers.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleMultipleRepresentations (r, f) = 
-                x.Set (r, handlerPLens Handlers.MultipleRepresentations, f)
+                x.Set (r, handlerPLens H.MultipleRepresentations, f)
         
             // 400
 
-            [<CustomOperation (Handlers.Malformed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Malformed, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleMalformed (r, f) = 
-                x.Set (r, handlerPLens Handlers.Malformed, f)
+                x.Set (r, handlerPLens H.Malformed, f)
 
-            [<CustomOperation (Handlers.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleUnauthorized (r, f) = 
-                x.Set (r, handlerPLens Handlers.Unauthorized, f)
+                x.Set (r, handlerPLens H.Unauthorized, f)
 
-            [<CustomOperation (Handlers.Forbidden, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Forbidden, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleForbidden (r, f) = 
-                x.Set (r, handlerPLens Handlers.Forbidden, f)
+                x.Set (r, handlerPLens H.Forbidden, f)
 
-            [<CustomOperation (Handlers.NotFound, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.NotFound, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleNotFound (r, f) = 
-                x.Set (r, handlerPLens Handlers.NotFound, f)
+                x.Set (r, handlerPLens H.NotFound, f)
 
-            [<CustomOperation (Handlers.MethodNotAllowed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.MethodNotAllowed, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleMethodNotAllowed (r, f) = 
-                x.Set (r, handlerPLens Handlers.MethodNotAllowed, f)
+                x.Set (r, handlerPLens H.MethodNotAllowed, f)
 
-            [<CustomOperation (Handlers.NotAcceptable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.NotAcceptable, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleNotAcceptable (r, f) = 
-                x.Set (r, handlerPLens Handlers.NotAcceptable, f)
+                x.Set (r, handlerPLens H.NotAcceptable, f)
 
-            [<CustomOperation (Handlers.Conflict, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Conflict, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleConflict (r, f) = 
-                x.Set (r, handlerPLens Handlers.Conflict, f)
+                x.Set (r, handlerPLens H.Conflict, f)
 
-            [<CustomOperation (Handlers.Gone, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Gone, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleGone (r, f) = 
-                x.Set (r, handlerPLens Handlers.Gone, f)
+                x.Set (r, handlerPLens H.Gone, f)
 
-            [<CustomOperation (Handlers.PreconditionFailed, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.PreconditionFailed, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandlePreconditionFailed (r, f) = 
-                x.Set (r, handlerPLens Handlers.PreconditionFailed, f)
+                x.Set (r, handlerPLens H.PreconditionFailed, f)
 
-            [<CustomOperation (Handlers.RequestEntityTooLarge, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.RequestEntityTooLarge, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleRequestEntityTooLarge (r, f) = 
-                x.Set (r, handlerPLens Handlers.RequestEntityTooLarge, f)
+                x.Set (r, handlerPLens H.RequestEntityTooLarge, f)
 
-            [<CustomOperation (Handlers.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleUriTooLong (r, f) = 
-                x.Set (r, handlerPLens Handlers.UriTooLong, f)
+                x.Set (r, handlerPLens H.UriTooLong, f)
 
-            [<CustomOperation (Handlers.UnsupportedMediaType, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.UnsupportedMediaType, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleUnsupportedMediaType (r, f) = 
-                x.Set (r, handlerPLens Handlers.UnsupportedMediaType, f)
+                x.Set (r, handlerPLens H.UnsupportedMediaType, f)
 
-            [<CustomOperation (Handlers.UnprocessableEntity, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.UnprocessableEntity, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleUnprocessableEntity (r, f) = 
-                x.Set (r, handlerPLens Handlers.UnprocessableEntity, f)
+                x.Set (r, handlerPLens H.UnprocessableEntity, f)
 
             // 500
 
-            [<CustomOperation (Handlers.Exception, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.Exception, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleException (r, f) = 
-                x.Set (r, handlerPLens Handlers.Exception, f)
+                x.Set (r, handlerPLens H.Exception, f)
 
-            [<CustomOperation (Handlers.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleNotImplemented (r, f) = 
-                x.Set (r, handlerPLens Handlers.NotImplemented, f)
+                x.Set (r, handlerPLens H.NotImplemented, f)
 
-            [<CustomOperation (Handlers.UnknownMethod, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.UnknownMethod, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleUnknownMethod (r, f) = 
-                x.Set (r, handlerPLens Handlers.UnknownMethod, f)
+                x.Set (r, handlerPLens H.UnknownMethod, f)
     
-            [<CustomOperation (Handlers.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
+            [<CustomOperation (H.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
             member x.HandleServiceUnavailable (r, f) = 
-                x.Set (r, handlerPLens Handlers.ServiceUnavailable, f)
+                x.Set (r, handlerPLens H.ServiceUnavailable, f)
 
 
     [<AutoOpen>]

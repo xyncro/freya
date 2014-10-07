@@ -104,8 +104,16 @@ module Headers =
               Weight: float option }
 
         and Charset =
-            | Named of string
+            | Named of NamedCharset
             | Any
+
+        and NamedCharset =
+            | NamedCharset of string
+
+        // Negotiation
+
+        let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
+            None
 
         (* Accept-Encoding
 
@@ -117,9 +125,17 @@ module Headers =
               Weight: float option }
 
         and Encoding =
-            | Named of string
+            | Named of NamedEncoding
             | Identity
             | Any
+
+        and NamedEncoding =
+            | NamedEncoding of string
+
+        // Negotiation
+
+        let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
+            None
 
         (* Accept-Language
 
@@ -129,6 +145,11 @@ module Headers =
         type AcceptLanguage =
             { Language: CultureInfo
               Weight: float option }
+
+        // Negotiation
+
+        let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
+            None
 
         // Conditionals
 
@@ -391,7 +412,7 @@ module internal Parsers =
 
             let private namedCharset =
                 token
-                |>> fun s -> Charset.Named s
+                |>> fun s -> Charset.Named (NamedCharset s)
 
             let private charset = 
                 choice [
@@ -423,7 +444,7 @@ module internal Parsers =
 
             let private namedEncoding =
                 token
-                |>> fun s -> Encoding.Named s
+                |>> fun s -> Encoding.Named (NamedEncoding s)
 
             let private encoding =
                 choice [

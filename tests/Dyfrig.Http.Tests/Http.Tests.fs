@@ -115,10 +115,10 @@ module Request =
             x.IsSome =? true
             x.Value.Length =? 2
 
-            x.Value.[0].Charset =? Charset.Named "iso-8859-5"
+            x.Value.[0].Charset =? Charset.Named (NamedCharset "iso-8859-5")
             x.Value.[0].Weight =? None
 
-            x.Value.[1].Charset =? Charset.Named "unicode-1-1"
+            x.Value.[1].Charset =? Charset.Named (NamedCharset "unicode-1-1")
             x.Value.[1].Weight =? Some 0.8
 
         [<Test>]
@@ -128,7 +128,7 @@ module Request =
             x.IsSome =? true
             x.Value.Length =? 3
 
-            x.Value.[0].Encoding =? Encoding.Named "gzip"
+            x.Value.[0].Encoding =? Encoding.Named (NamedEncoding "gzip")
             x.Value.[0].Weight =? Some 1.
 
             x.Value.[1].Encoding =? Encoding.Identity

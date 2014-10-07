@@ -17,76 +17,84 @@ module Constants =
 
     [<RequireQualifiedAccess>]
     module internal Configuration =
-    
-        let [<Literal>] AllowedMethods = "allowedMethods"
-        let [<Literal>] AvailableCharsets = "availableCharsets"
-        let [<Literal>] AvailableEncodings = "availableEncodings"
-        let [<Literal>] AvailableLanguages = "availableLanguages"
-        let [<Literal>] AvailableMediaTypes = "availableMediaTypes"
-        let [<Literal>] ETag = "eTag"
-        let [<Literal>] KnownMethods = "knownMethods"
-        let [<Literal>] Modified = "modified"
+                
+        let [<Literal>] CharsetsAvailable = "charsetsAvailable"
+        let [<Literal>] EncodingsAvailable = "encodingsAvailable"
+        let [<Literal>] MediaTypesAvailable = "mediaTypesAvailable"
+        let [<Literal>] MethodsAllowed = "methodsAllowed"
+        let [<Literal>] MethodsKnown = "methodsKnown"
+        let [<Literal>] LanguagesAvailable = "languagesAvailable"
+        let [<Literal>] ResourceETag = "resourceETag"
+        let [<Literal>] ResourceLastModified = "resourceLastModified"
 
 
     [<RequireQualifiedAccess>]
     module internal Decisions =
 
-        // Public
+        let [<Literal>] CharsetNegotiable = "charsetNegotiable"
+        let [<Literal>] EncodingNegotiable = "encodingNegotiable"
+        let [<Literal>] LanguageNegotiable = "languageNegotiable"
+        let [<Literal>] MediaTypeNegotiable = "mediaTypeNegotiable"
+        let [<Literal>] MethodAllowed = "methodAllowed"
+        let [<Literal>] MethodKnown = "methodKnown"
+        let [<Literal>] RequestAllowed = "requestAllowed"
+        let [<Literal>] RequestAuthorized = "requestAuthorized"
+        let [<Literal>] RequestContentTypeKnown = "requestContentTypeKnown"
+        let [<Literal>] RequestContentTypeValid = "requestContentTypeValid"
+        let [<Literal>] RequestEntityLengthValid = "requestEntityLengthValid"
+        let [<Literal>] RequestMalformed = "requestMalformed"
+        let [<Literal>] RequestProcessable = "requestProcessable"
+        let [<Literal>] RequestUriTooLong = "requestUriTooLong"
 
-        let [<Literal>] Allowed = "allowed"
-        let [<Literal>] Authorized = "authorized"
+        let [<Literal>] ResourceConflicts = "resourceConflicts"
+        let [<Literal>] ResourceCreated = "resourceCreated"
+        let [<Literal>] ResourceDeleted = "resourceDeleted"
+        let [<Literal>] ResourceETagMatchesIf = "resourceETagMatchesIf"
+        let [<Literal>] ResourceETagMatchesIfNone = "resourceETagMatchesIfNone"
+        let [<Literal>] ResourceExisted = "resourceExisted"
+        let [<Literal>] ResourceExists = "resourceExists"
+        let [<Literal>] ResourceHasMultipleRepresentations = "resourceHasMultipleRepresentations"
+        let [<Literal>] ResourceModifiedSince = "resourceModifiedSince"
+        let [<Literal>] ResourceMovedPermanently = "resourceMovedPermanently"
+        let [<Literal>] ResourceMovedTemporarily = "resourceMovedTemporarily"
+        let [<Literal>] ResourceUnmodifiedSince = "resourceUnmodifiedSince"
+
+        let [<Literal>] ServiceAvailable = "serviceAvailable"
+
+        // TODO - Renaming?
+
         let [<Literal>] CanPostToGone = "canPostToGone"
         let [<Literal>] CanPostToMissing = "canPostToMissing"
         let [<Literal>] CanPutToMissing = "canPutToMissing"
-        let [<Literal>] CharsetAvailable = "charsetAvailable"
-        let [<Literal>] Conflict = "conflict"
-        let [<Literal>] ContentTypeKnown = "contentTypeKnown"
-        let [<Literal>] ContentTypeValid = "contentTypeValid"
-        let [<Literal>] Created = "created"
-        let [<Literal>] Deleted = "deleted"
-        let [<Literal>] EncodingAvailable = "encodingAvailable"
-        let [<Literal>] ETagMatchesIf = "eTagMatchesForIf"
-        let [<Literal>] ETagMatchesIfNone = "eTagMatchesForIfNone"
-        let [<Literal>] Existed = "existed"
-        let [<Literal>] Exists = "exists"
-        let [<Literal>] LanguageAvailable = "languageAvailable"
-        let [<Literal>] Malformed = "malformed"
-        let [<Literal>] MediaTypeAvailable = "mediaTypeAvailable"
-        let [<Literal>] MethodAllowed = "methodAllowed"
-        let [<Literal>] MethodKnown = "methodKnown"
-        let [<Literal>] ModifiedSince = "modifiedSince"
-        let [<Literal>] MovedPermanently = "movedPermanently"
-        let [<Literal>] MovedTemporarily = "movedTemporarily"
-        let [<Literal>] MultipleRepresentations = "multipleRepresentations"
         let [<Literal>] PostRedirect = "postRedirect"
-        let [<Literal>] Processable = "processable"
         let [<Literal>] PutToDifferentUri = "putToDifferentUri"
         let [<Literal>] RespondWithEntity = "respondWithEntity"
-        let [<Literal>] ServiceAvailable = "serviceAvailable"
-        let [<Literal>] UnmodifiedSince = "unmodifiedSince"
-        let [<Literal>] UriTooLong = "uriTooLong"
-        let [<Literal>] ValidEntityLength = "validEntityLength"
 
         // Internal
-    
-        let [<Literal>] AcceptCharsetExists = "acceptCharsetExists"
-        let [<Literal>] AcceptEncodingExists = "acceptEncodingExists"
-        let [<Literal>] AcceptExists = "acceptExists"
-        let [<Literal>] AcceptLanguageExists = "acceptLanguageExists"
-        let [<Literal>] IfMatchExists = "ifMatchExists"
-        let [<Literal>] IfMatchStar = "ifMatchStar"
-        let [<Literal>] IfMatchStarExistsForMissing = "ifMatchStarExistsForMissing"
-        let [<Literal>] IfModifiedSinceExists = "ifModifiedSinceExists"
-        let [<Literal>] IfModifiedSinceValidDate = "ifModifiedSinceValidDate"
+
+        let [<Literal>] RequestAcceptExists = "requestAcceptExists"
+        let [<Literal>] RequestAcceptCharsetExists = "requestAcceptCharsetExists"
+        let [<Literal>] RequestAcceptEncodingExists = "requestAcceptEncodingExists"
+        let [<Literal>] RequestAcceptLanguageExists = "requestAcceptLanguageExists"        
+        let [<Literal>] RequestIfMatchExists = "requestIfMatchExists"
+        let [<Literal>] RequestIfMatchStar = "requestIfMatchStar"
+        let [<Literal>] RequestIfMatchExistsForMissing = "requestIfMatchExistsForMissing"
+        let [<Literal>] RequestIfModifiedSinceExists = "requestIfModifiedSinceExists"
+        let [<Literal>] RequestIfModifiedSinceValidDate = "requestIfModifiedSinceValidDate"
+
+        // TODO - Renaming?
+
         let [<Literal>] IfNoneMatch = "ifNoneMatch"
         let [<Literal>] IfNoneMatchExists = "ifNoneMatchExists"
         let [<Literal>] IfNoneMatchStar = "ifNoneMatchStar"
         let [<Literal>] IfUnmodifiedSinceExists = "ifUnmodifiedSinceExists"
         let [<Literal>] IfUnmodifiedSinceValidDate = "ifUmodifiedSinceValidDate"
+
         let [<Literal>] MethodDelete = "methodDelete"
         let [<Literal>] MethodOptions = "methodOptions"
         let [<Literal>] MethodPatch = "methodPatch"
         let [<Literal>] MethodPut = "methodPut"
+
         let [<Literal>] PostToGone = "postToGone"
         let [<Literal>] PostToExisting = "postToExisting"
         let [<Literal>] PostToMissing = "postToMissing"

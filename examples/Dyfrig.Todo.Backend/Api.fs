@@ -31,12 +31,12 @@ let todoProcessable =
 
 let todos =
     machine {
-        allowedMethods [ DELETE; GET; OPTIONS; POST ]
+        methodsAllowed [ DELETE; GET; OPTIONS; POST ]
         doDelete clearTodos
         doPost createTodo
         handleCreated createdTodo
         handleOk getTodos
-        processable todoProcessable } |> reifyMachine
+        requestProcessable todoProcessable } |> reifyMachine
 
 let todo =
     machine {
