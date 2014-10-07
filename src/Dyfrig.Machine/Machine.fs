@@ -82,6 +82,33 @@ module Definition =
         function | Handler x -> Some x
                  | _ -> None
 
+    (* Lenses
+        
+       Partial lenses (Aether form - see https://github.com/xyncro/aether) 
+       to the Machine Definition within an OWIN monad (see Dyfrig.Core),
+       and to aspects of the machine definition. *)
+
+    let internal defPLens =
+             dictPLens "dyfrig.machine.definition"
+        <?-> boxIso<MachineDefinition>
+
+    let internal actionPLens k =
+             mapPLens k
+        <??> ((|Action|), Action)
+    
+    let internal configPLens<'T> k =
+             mapPLens k
+        <??> ((|Configuration|), Configuration)
+        <?-> boxIso<'T>
+        
+    let internal decisionPLens k =
+             mapPLens k
+        <??> ((|Decision|), Decision)
+
+    let internal handlerPLens k =
+             mapPLens k
+        <??> ((|Handler|), Handler)  
+
 
 [<AutoOpen>]
 module Monad =
@@ -134,38 +161,6 @@ module Cache =
                 do! setPLM lens created
 
                 return created }
-
-
-[<AutoOpen>]
-module internal Lenses =
-
-    (* Lenses
-        
-       Partial lenses (Aether based - see https://github.com/xyncro/aether) 
-       in to the Machine Definition, or to the Machine Definition within an 
-       OWIN monad (see Dyfrig.Core). *)
-
-    let actionPLens k =
-             mapPLens k
-        <??> ((|Action|), Action)
-
-    
-    let configPLens<'T> k =
-             mapPLens k
-        <??> ((|Configuration|), Configuration)
-        <?-> boxIso<'T>
-        
-    let decisionPLens k =
-             mapPLens k
-        <??> ((|Decision|), Decision)
-
-    let handlerPLens k =
-             mapPLens k
-        <??> ((|Handler|), Handler)
-
-    let defPLens =
-             dictPLens "dyfrig.machine.definition"
-        <?-> boxIso<MachineDefinition>
 
 
 [<AutoOpen>]
@@ -273,6 +268,14 @@ module internal Logic =
 [<AutoOpen>]
 module internal Execution =
 
+    (* Graph
+        
+       Execution runs as a graph of nodes of specific meaning,
+       Each node may (depending on type) run some kind of action and
+       then provide a way of indicating which node in the graph should
+       be invoked next (forming the essential characteristic of processing
+       requests as a statemachine).  *)
+
     type Graph =
         Map<string, Node>
 
@@ -281,12 +284,26 @@ module internal Execution =
         | Decision of DecisionNode
         | Handler of HandlerNode
         | Operation of OperationNode
+
+    (* Actions
+       
+       Action nodes execute some kind of "side-effecting" logical action
+       (i.e. in response to a DELETE, POST, etc. method which is generally
+       non-idempotent). They will generally need overriding if the resource
+       is going to support the associated method. *)
     
     and ActionNode =
         { Metadata: Metadata
           Override: Override
           Action: MachineAction
           Next: string }
+
+    (* Decisions
+        
+       Decision nodes are (or should be) side effect free and represent some
+       choice to be made (depending generally on the form of the request). The
+       decision returns a bool, which is then used to select which node to
+       invoke next. *)
 
     and DecisionNode =
         { Metadata: Metadata
@@ -295,15 +312,37 @@ module internal Execution =
           True: string
           False: string }
 
+    (* Handlers
+       
+       Handler nodes represent the function which will return some response
+       to the client. They are responsible for returning data in an appropriate
+       form to Dyfrig.Machine to be sent as part of the response. They always
+       represent the final node in a traversal of the execution graph,
+       so do not include any form of "next" node data. *)
+
     and HandlerNode =
         { Metadata: Metadata
           Override: Override
           Handler: MachineHandler }
 
+    (* Operations
+        
+       Operation nodes represent some consistent action (such as setting headers
+       or similar which must take place as part of the execution but does not need
+       to be overridden as it will always apply. They are most commonly seen before
+       Handler nodes, to make sure that correct header values are set (though the
+       handler could override them). *)
+
     and OperationNode =
         { Metadata: Metadata
           Operation: MachineOperation
           Next: string }
+
+    (* Metadata & Override
+       
+       Metadata and Override data is used to be able to provide sensible runtime
+       introspection and debugging capabilities,such as integration with future 
+       Dyfrig tracing/inspection tools. *)
 
     and Metadata =
         { Name: string
