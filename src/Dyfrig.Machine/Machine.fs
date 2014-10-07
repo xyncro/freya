@@ -81,8 +81,8 @@ module Monad =
     (* Monad
         
        The monad to give Machine the declarative computation
-       expression syntax for defining Machine Definitions. Specific strongly typed
-       custom operations are defined in Machine.Syntax. *)
+       expression syntax for specifying Machine Definitions. Specific strongly 
+       typed custom operations are defined in Machine.Syntax.fs. *)
 
     type MachineMonad = 
         MachineDefinition -> unit * MachineDefinition
@@ -135,7 +135,7 @@ module internal Lenses =
         
        Partial lenses (Aether based - see https://github.com/xyncro/aether) 
        in to the Machine Definition, or to the Machine Definition within an 
-       OWIN monad (Dyfrig.Core). *)
+       OWIN monad (see Dyfrig.Core). *)
 
     let actionPLens k =
              mapPLens k
@@ -213,7 +213,10 @@ module internal Defaults =
     let defaultHandler =
         owin { return Array.empty<byte> }
 
-    // Operations
+    (* Operations
+
+       Default operations to ensure a basic correct status code and response, 
+       plus specialized handlers for specific operations within the resource execution. *)
 
     let defaultOperation statusCode reasonPhrase =
            setPLM Response.statusCode statusCode
@@ -223,8 +226,7 @@ module internal Defaults =
     // TODO: Break allowed origin in to an earlier operation
 
     let defaultOptions =
-           setPLM Response.statusCode 200
-        *> setPLM Response.reasonPhrase "Options"
+           defaultOperation 200 "Options"
         *> setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
         *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
 
