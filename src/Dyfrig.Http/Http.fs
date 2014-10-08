@@ -9,36 +9,6 @@ open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 
-
-(* Method/Protocol/Scheme
-    
-   Types representing common properties of an HTTP request.
-   See [http://tools.ietf.org/html/rfc7231] for details. *)
-
-type Method =
-    | DELETE 
-    | HEAD 
-    | GET 
-    | OPTIONS 
-    | PATCH 
-    | POST 
-    | PUT 
-    | TRACE 
-    | Custom of string
-
-type Protocol =
-    | HTTP of float 
-    | Custom of string
-
-type Scheme =
-    | HTTP 
-    | HTTPS 
-    | Custom of string
-
-(* Headers
-
-   Types representing common HTTP headers. *)
-
 (* Content Negotiation
             
    Taken from RFC 7231, Section 5.3
@@ -140,6 +110,41 @@ type IfMatch =
 type IfNoneMatch =
     | EntityTags of EntityTag list
     | Any
+    
+(* Method
+    
+   Types representing the method of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
+
+type Method =
+    | DELETE 
+    | HEAD 
+    | GET 
+    | OPTIONS 
+    | PATCH 
+    | POST 
+    | PUT 
+    | TRACE 
+    | Custom of string
+
+(* Protocol
+    
+   Types representing the protocol of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
+
+type Protocol =
+    | HTTP of float 
+    | Custom of string
+
+(* Scheme
+    
+   Types representing the scheme of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
+
+type Scheme =
+    | HTTP 
+    | HTTPS 
+    | Custom of string
 
 
 [<RequireQualifiedAccess>]
@@ -223,7 +228,7 @@ module Negotiation =
 
 
 [<AutoOpen>]
-module internal Parsers =
+module internal Parsing =
 
     open FParsec
 
@@ -577,101 +582,186 @@ module internal Parsers =
 
 
 [<AutoOpen>]
-module internal Helpers =
+module internal Serialization =
 
-    // Method
+    
+    [<RequireQualifiedAccess>]
+    module Accept =
 
-    let methodFromString =
-        fun s -> 
-            match s with
-            | "DELETE" -> DELETE 
-            | "HEAD" -> HEAD 
-            | "GET" -> GET 
-            | "OPTIONS" -> OPTIONS
-            | "PATCH" -> PATCH 
-            | "POST" -> POST 
-            | "PUT" -> PUT 
-            | "TRACE" -> TRACE
-            | x -> Method.Custom x
+        let fromString =
+            parse accept
 
-    let methodToString =
-        fun m -> 
-            match m with
-            | DELETE -> "DELETE" 
-            | HEAD -> "HEAD" 
-            | GET -> "GET" 
-            | OPTIONS -> "OPTIONS"
-            | PATCH -> "PATCH" 
-            | POST -> "POST" 
-            | PUT -> "PUT"  
-            | TRACE -> "TRACE"
-            | Method.Custom x -> x
+        let toString _ =
+            ""
 
-    // Protocol
+        let iso =
+            fromString, toString
 
-    let protocolFromString =
-        fun s ->
-            match s with
-            | "HTTP/1.0" -> Protocol.HTTP 1.0 
-            | "HTTP/1.1" -> Protocol.HTTP 1.1 
-            | x -> Protocol.Custom x
-            
-    let protocolToString =
-        fun p ->
-            match p with
-            | Protocol.HTTP x -> sprintf "HTTP/%f" x 
-            | Protocol.Custom x -> x
 
-    // Scheme
-            
-    let schemeFromString =
-        fun s ->
-            match s with
-            | "http" -> HTTP 
-            | "https" -> HTTPS 
-            | x -> Custom x
-        
-    let schemeToString =    
-        fun s ->
-            match s with
-            | HTTP -> "http"
-            | HTTPS -> "https" 
-            | Custom x -> x
+    [<RequireQualifiedAccess>]
+    module AcceptCharset =
 
-    // Query
+        let fromString =
+            parse acceptCharset
 
-    (* TODO: This approach to query strings is probably overly naive and should
-       be replaced ASAP *)
+        let toString _ =
+            ""
 
-    let queryFromString =
-        fun q ->
-            match q with
-            | "" -> 
-                Map.empty
-            | s ->
-                s.Split [| '&' |]
-                |> Array.map (fun x -> x.Split [| '=' |])
-                |> Array.map (fun x -> x.[0], x.[1])
-                |> Map.ofArray
+        let iso =
+            fromString, toString
 
-    let queryToString =
-        fun m ->
-            Map.toArray m
-            |> Array.map (fun x -> sprintf "%s=%s" (fst x) (snd x))
-            |> String.concat "&"
 
-    // DateTime 
+    [<RequireQualifiedAccess>]
+    module AcceptEncoding =
 
-    let dateTimeFromString d =
-        let format = CultureInfo.InvariantCulture.DateTimeFormat
-        let adjustment = DateTimeStyles.AdjustToUniversal
+        let fromString =
+            parse acceptEncoding
 
-        match DateTime.TryParse (d, format, adjustment) with
-        | true, d -> Some d
-        | _ -> None
+        let toString _ =
+            ""
 
-    let dateTimeToString (d: DateTime) =
-        d.ToUniversalTime().ToString("r")
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module AcceptLanguage =
+
+        let fromString =
+            parse acceptLanguage
+
+        let toString _ =
+            ""
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module IfMatch =
+
+        let fromString =
+            parse ifMatch
+
+        let toString _ =
+            ""
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module IfNoneMatch =
+
+        let fromString =
+            parse ifNoneMatch
+
+        let toString _ =
+            ""
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module DateTime =
+
+        let fromString d =
+            let format = CultureInfo.InvariantCulture.DateTimeFormat
+            let adjustment = DateTimeStyles.AdjustToUniversal
+
+            match DateTime.TryParse (d, format, adjustment) with
+            | true, d -> Some d
+            | _ -> None
+
+        let toString (d: DateTime) =
+            d.ToUniversalTime().ToString("r")
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module Method =
+
+        let fromString =
+            function | "DELETE" -> DELETE 
+                     | "HEAD" -> HEAD 
+                     | "GET" -> GET 
+                     | "OPTIONS" -> OPTIONS
+                     | "PATCH" -> PATCH 
+                     | "POST" -> POST 
+                     | "PUT" -> PUT 
+                     | "TRACE" -> TRACE
+                     | x -> Method.Custom x        
+                     
+        let toString =
+            function | DELETE -> "DELETE" 
+                     | HEAD -> "HEAD" 
+                     | GET -> "GET" 
+                     | OPTIONS -> "OPTIONS"
+                     | PATCH -> "PATCH" 
+                     | POST -> "POST" 
+                     | PUT -> "PUT"  
+                     | TRACE -> "TRACE"
+                     | Method.Custom x -> x
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module Protocol =
+
+        let fromString =
+            function | "HTTP/1.0" -> Protocol.HTTP 1.0 
+                     | "HTTP/1.1" -> Protocol.HTTP 1.1 
+                     | x -> Protocol.Custom x
+
+        let toString =
+            function | Protocol.HTTP x -> sprintf "HTTP/%f" x 
+                     | Protocol.Custom x -> x
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module Scheme =
+
+        let fromString =
+            function | "http" -> HTTP 
+                     | "https" -> HTTPS 
+                     | x -> Scheme.Custom x
+
+        let toString =    
+            function | HTTP -> "http"
+                     | HTTPS -> "https" 
+                     | Scheme.Custom x -> x
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module Query =
+
+        let fromString =
+            function | "" -> Map.empty
+                     | s ->
+                         s.Split [| '&' |]
+                         |> Array.map (fun x -> x.Split [| '=' |])
+                         |> Array.map (fun x -> x.[0], x.[1])
+                         |> Map.ofArray
+
+        let toString =
+            fun m ->
+                Map.toArray m
+                |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+                |> String.concat "&"
+
+        let iso =
+            fromString, toString
 
 
 [<AutoOpen>]
@@ -680,7 +770,7 @@ module Lenses =
     // Boxing
 
     let boxIso<'T> : Iso<obj,'T> =
-        ((unbox<'T>), box)
+        unbox<'T>, box
 
     // Dictionary
 
@@ -692,57 +782,11 @@ module Lenses =
         (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
         (fun v d -> d.[k] <- v; d)
 
-    // Request
+    // Headers
 
-    let internal methodIso : Iso<string, Method> =
-        (fun s -> methodFromString s), 
-        (fun m -> methodToString m)
-
-    let internal protocolIso : Iso<string, Protocol> =
-        (fun s -> protocolFromString s), 
-        (fun p -> protocolToString p)
-
-    let internal schemeIso : Iso<string, Scheme> =
-        (fun s -> schemeFromString s), 
-        (fun s -> schemeToString s)
-
-    let internal queryIso : Iso<string, Map<string, string>> =
-        (fun q -> queryFromString q),
-        (fun m -> queryToString m)
-
-    // Content Negotiation
-
-    let internal acceptPIso : PIso<string [], Accept list> =
-        (fun s -> parse accept (String.concat "," s)), 
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptCharsetPIso : PIso<string [], AcceptCharset list> =
-        (fun s -> parse acceptCharset (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptEncodingPIso : PIso<string [], AcceptEncoding list> =
-        (fun s -> parse acceptEncoding (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptLanguagePIso : PIso<string [], AcceptLanguage list> =
-        (fun s -> parse acceptLanguage (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    // Conditionals
-
-    let internal ifMatchPIso : PIso<string [], IfMatch> =
-        (fun s -> parse ifMatch (String.concat "," s)),
-        (fun _ -> [| "test" |])
-
-    let internal ifNoneMatchPIso : PIso<string [], IfNoneMatch> =
-        (fun s -> parse ifNoneMatch (String.concat "," s)),
-        (fun _ -> [| "test" |])
-
-    // DateTime
-
-    let dateTimePIso : PIso<string [], DateTime> =
-        (fun s -> dateTimeFromString (String.concat "" s)),
-        (fun d -> [| dateTimeToString d |])
+    let internal headerIso : Iso<string [], string> =
+        (fun s -> String.concat "," s),
+        (fun s -> [| s |])
 
 
 [<RequireQualifiedAccess>]
@@ -760,7 +804,7 @@ module Request =
     let meth = 
              dictLens Constants.requestMethod
         <--> boxIso<string>
-        <--> methodIso
+        <--> Method.iso
 
     let path = 
              dictLens Constants.requestPath
@@ -770,20 +814,20 @@ module Request =
              dictLens Constants.requestPathBase
         <--> boxIso<string>
 
-    let protocol =
+    let protocol : Lens<OwinEnv, Protocol> =
              dictLens Constants.requestProtocol
         <--> boxIso<string>
-        <--> protocolIso
+        <--> Protocol.iso
 
-    let scheme = 
+    let scheme : Lens<OwinEnv, Scheme> = 
              dictLens Constants.requestScheme
         <--> boxIso<string>
-        <--> schemeIso
+        <--> Scheme.iso
 
     let query key =
              dictLens Constants.requestQueryString
         <--> boxIso<string>
-        <--> queryIso
+        <--> Query.iso
         >-?> mapPLens key
 
 
@@ -792,19 +836,23 @@ module Request =
 
         let ifMatch =
                  header "If-Match"
-            <??> ifMatchPIso
+            <?-> headerIso
+            <??> IfMatch.iso
 
         let ifNoneMatch =
                  header "If-None-Match"
-            <??> ifNoneMatchPIso
+            <?-> headerIso
+            <??> IfNoneMatch.iso
 
         let ifModifiedSince =
                  header "If-Modified-Since"
-            <??> dateTimePIso
+            <?-> headerIso
+            <??> DateTime.iso
 
         let ifUnmodifiedSince =
                  header "If-Unmodified-Since"
-            <??> dateTimePIso
+            <?-> headerIso
+            <??> DateTime.iso
 
 
     [<RequireQualifiedAccess>]
@@ -812,19 +860,23 @@ module Request =
 
         let accept =
                  header "Accept"
-            <??> acceptPIso
+            <?-> headerIso
+            <??> Accept.iso
 
         let acceptCharset =
                  header "Accept-Charset"
-            <??> acceptCharsetPIso
+            <?-> headerIso
+            <??> AcceptCharset.iso
 
         let acceptEncoding =
                  header "Accept-Encoding"
-            <??> acceptEncodingPIso
+            <?-> headerIso
+            <??> AcceptEncoding.iso
 
         let acceptLanguage =
                  header "Accept-Language"
-            <??> acceptLanguagePIso
+            <?-> headerIso
+            <??> AcceptLanguage.iso
 
 
 [<RequireQualifiedAccess>]
