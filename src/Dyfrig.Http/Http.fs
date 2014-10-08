@@ -45,6 +45,38 @@ module Headers =
     [<AutoOpen>]
     module Request =
 
+        (* Conditionals
+            
+           Taken from RFC 7231, Section 5.2 linking to RFC 7232
+           [http://tools.ietf.org/html/rfc7231#section-5.2] *)
+
+        type EntityTag =
+            | Strong of string
+            | Weak of string
+
+        (* If-Match
+
+           Taken from RFC 7232, Section 3.1, If-Match
+           [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+        type IfMatch =
+            | EntityTags of EntityTag list
+            | Any
+
+        (* If-None-Match
+
+           Taken from RFC 7232, Section 3.2, If-None-Match
+           [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+        type IfNoneMatch =
+            | EntityTags of EntityTag list
+            | Any
+
+        (* Content Negotiation
+            
+           Taken from RFC 7231, Section 5.3
+           [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+
         (* Accept
 
            Taken from RFC 7231, Section 5.3.2. Accept
@@ -57,9 +89,15 @@ module Headers =
               Weight: float option }
 
         and MediaRange =
-            | Closed of MediaType * MediaSubType
-            | Partial of MediaType
+            | Closed of ClosedMediaRange
+            | Partial of PartialMediaRange
             | Open
+
+        and ClosedMediaRange =
+            | ClosedMediaRange of MediaType * MediaSubType
+
+        and PartialMediaRange =
+            | PartialMediaRange of MediaType
 
         and MediaType =
             | MediaType of string
@@ -69,17 +107,26 @@ module Headers =
 
         // Negotiation
 
-        let private matchAccept (x: MediaType * MediaSubType) (y: MediaRange) =
-            match x, y with
-            | (MediaType t, MediaSubType s), MediaRange.Closed (MediaType t', MediaSubType s') 
-                when String.Equals (t, t', StringComparison.OrdinalIgnoreCase) 
-                && String.Equals (s, s', StringComparison.OrdinalIgnoreCase) -> true, 3
-            | (MediaType t, _), MediaRange.Partial (MediaType t') 
-                when String.Equals (t, t', StringComparison.OrdinalIgnoreCase) -> true, 2
-            | (_, _), MediaRange.Open -> true, 1
-            | _ -> false, 0
+        // TODO: Make this much better! It's ugly as hell right now...
 
-        let negotiateAccept (available: (MediaType * MediaSubType) list) (requested: Accept list) =
+        let private (|Closed|_|) =
+            function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
+                     | _ -> None
+
+        let private (|Partial|_|) =
+            function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
+                     | _ -> None
+
+        let private (===) s1 s2 =
+            String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+        let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+            function | Closed (t', s') when t === t' && s === s' -> true, 3
+                     | Partial t' when t === t' -> true, 2
+                     | MediaRange.Open -> true, 1
+                     | _ -> false, 0
+
+        let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
             requested
             |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
             |> List.rev
@@ -150,26 +197,6 @@ module Headers =
 
         let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
             None
-
-        // Conditionals
-
-        (* If-Match
-
-           Taken from RFC 7232, Section 3.1, If-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.1] *)
-
-        type IfMatch =
-            | EntityTags of string list
-            | Any
-
-        (* If-None-Match
-
-           Taken from RFC 7232, Section 3.2, If-None-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.2] *)
-
-        type IfNoneMatch =
-            | EntityTags of string list
-            | Any
 
 
 [<AutoOpen>]
@@ -374,11 +401,11 @@ module internal Parsers =
 
             let private partialRange = 
                 token .>> skipString "/*"
-                |>> fun x -> MediaRange.Partial (MediaType x)
+                |>> fun x -> MediaRange.Partial (PartialMediaRange (MediaType x))
 
             let private fullRange = 
                 token .>> skipChar '/' .>>. token
-                |>> fun (x, y) -> MediaRange.Closed (MediaType x, MediaSubType y)
+                |>> fun (x, y) -> MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y))
 
             let private range = 
                 choice [
@@ -507,7 +534,8 @@ module internal Parsers =
             let ifMatch =
                 choice [
                     skipChar '*' |>> fun _ -> IfMatch.Any
-                    infix (skipChar ',') entityTag |>> fun x -> IfMatch.EntityTags x ]
+                    infix (skipChar ',') entityTag |>> fun x -> 
+                        IfMatch.EntityTags (List.map EntityTag.Strong x) ]
 
 
         [<AutoOpen>]
@@ -521,7 +549,8 @@ module internal Parsers =
             let ifNoneMatch =
                 choice [
                     skipChar '*' |>> fun _ -> IfNoneMatch.Any
-                    infix (skipChar ',') entityTag |>> fun x -> IfNoneMatch.EntityTags x ]
+                    infix (skipChar ',') entityTag |>> fun x -> 
+                        IfNoneMatch.EntityTags (List.map EntityTag.Strong x) ]
 
 
 [<AutoOpen>]

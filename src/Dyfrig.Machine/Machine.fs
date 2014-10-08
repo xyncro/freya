@@ -190,7 +190,7 @@ module internal Defaults =
         List.empty<CultureInfo>
 
     let mediaTypesAvailable =
-        List.empty<MediaType * MediaSubType>
+        List.empty<ClosedMediaRange>
         
     let methodsAllowed =
         Set.ofList
@@ -677,6 +677,13 @@ module internal Execution =
                      Override =
                        { AllowOverride = true
                          Overridden = false }
+
+                     // TODO: Make the decision allow for non-configured charsets,
+                     // default should probably be to allow through charsets if charsets
+                     // are not defined in the machine definition.
+                     // See [http://tools.ietf.org/html/rfc7231#section-5.3.3] for logic
+                     // on disregarding field if none available.
+
                      Decision =
                              (fun a r -> Option.isSome (negotiateCharset a r))
                          <!> (Option.getOrElse charsetsAvailable <!> getPLM (defPLens >??> configPLens C.CharsetsAvailable))

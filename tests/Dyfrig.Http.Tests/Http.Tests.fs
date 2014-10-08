@@ -82,22 +82,22 @@ module Request =
             x.IsSome =? true
             x.Value.Length =? 4
 
-            x.Value.[0].MediaType =? MediaRange.Closed (MediaType "text", MediaSubType "plain")
+            x.Value.[0].MediaType =? MediaRange.Closed (ClosedMediaRange (MediaType "text", MediaSubType "plain"))
             x.Value.[0].Weight =? Some 0.5
 
         [<Test>]
         let ``negotiateAccept returns correct negotiated type/subtype pair`` () =
             let available =
-                [ MediaType "text", MediaSubType "html"
-                  MediaType "application", MediaSubType "json"
-                  MediaType "text", MediaSubType "plain" ]
+                [ ClosedMediaRange (MediaType "text", MediaSubType "html")
+                  ClosedMediaRange (MediaType "application", MediaSubType "json")
+                  ClosedMediaRange (MediaType "text", MediaSubType "plain") ]
 
             let requested =
-                [ { MediaType = MediaRange.Closed (MediaType "application", MediaSubType "json")
+                [ { MediaType = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
                     MediaTypeParameters = Map.empty
                     ExtensionParameters = Map.empty
                     Weight = Some 0.8 }
-                  { MediaType = MediaRange.Closed (MediaType "text", MediaSubType "html")
+                  { MediaType = MediaRange.Closed (ClosedMediaRange  (MediaType "text", MediaSubType "html"))
                     MediaTypeParameters = Map.empty
                     ExtensionParameters = Map.empty
                     Weight = Some 0.7 }
@@ -106,7 +106,7 @@ module Request =
                     ExtensionParameters = Map.empty
                     Weight = Some 0.5 } ]
 
-            negotiateAccept available requested =? Some (MediaType "application", MediaSubType "json")
+            negotiateAccept available requested =? Some (ClosedMediaRange (MediaType "application", MediaSubType "json"))
 
         [<Test>]
         let ``accept-charset header contains correct values`` () =
