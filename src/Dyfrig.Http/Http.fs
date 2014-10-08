@@ -10,6 +10,11 @@ open Dyfrig.Core
 open Dyfrig.Core.Operators
 
 
+(* Method/Protocol/Scheme
+    
+   Types representing common properties of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
+
 type Method =
     | DELETE 
     | HEAD 
@@ -30,6 +35,112 @@ type Scheme =
     | HTTPS 
     | Custom of string
 
+(* Headers
+
+   Types representing common HTTP headers. *)
+
+(* Content Negotiation
+            
+   Taken from RFC 7231, Section 5.3
+   [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+
+(* Accept
+
+   Taken from RFC 7231, Section 5.3.2. Accept
+   [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+
+type Accept =
+    { MediaType: MediaRange
+      MediaTypeParameters: Map<string, string>
+      ExtensionParameters: Map<string, string option>
+      Weight: float option }
+
+and MediaRange =
+    | Closed of ClosedMediaRange
+    | Partial of PartialMediaRange
+    | Open
+
+and ClosedMediaRange =
+    | ClosedMediaRange of MediaType * MediaSubType
+
+and PartialMediaRange =
+    | PartialMediaRange of MediaType
+
+and MediaType =
+    | MediaType of string
+
+and MediaSubType =
+    | MediaSubType of string
+
+(* Accept-Charset
+
+   Taken from RFC 7231, Section 5.3.3. Accept-Charset
+   [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+
+type AcceptCharset =
+    { Charset: Charset
+      Weight: float option }
+
+and Charset =
+    | Named of NamedCharset
+    | Any
+
+and NamedCharset =
+    | NamedCharset of string
+
+(* Accept-Encoding
+
+   Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+   [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+
+type AcceptEncoding =
+    { Encoding: Encoding
+      Weight: float option }
+
+and Encoding =
+    | Named of NamedEncoding
+    | Identity
+    | Any
+
+and NamedEncoding =
+    | NamedEncoding of string
+
+(* Accept-Language
+
+   Taken from RFC 7231, Section 5.3.5. Accept-Language
+   [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+
+type AcceptLanguage =
+    { Language: CultureInfo
+      Weight: float option }
+
+(* Precondition
+            
+   Taken from RFC 7232, Section 3
+   [http://tools.ietf.org/html/rfc7232#section-3] *)
+
+type EntityTag =
+    | Strong of string
+    | Weak of string
+
+(* If-Match
+
+   Taken from RFC 7232, Section 3.1, If-Match
+   [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+type IfMatch =
+    | EntityTags of EntityTag list
+    | Any
+
+(* If-None-Match
+
+   Taken from RFC 7232, Section 3.2, If-None-Match
+   [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+type IfNoneMatch =
+    | EntityTags of EntityTag list
+    | Any
+
 
 [<RequireQualifiedAccess>]
 module private Option =
@@ -40,163 +151,75 @@ module private Option =
 
 
 [<AutoOpen>]
-module Headers =
+module Negotiation =
 
-    [<AutoOpen>]
-    module Request =
+    // TODO: Make this much better! It's ugly as hell right now...
 
-        (* Conditionals
+    let private (===) s1 s2 =
+        String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+    (* Content Negotiation
             
-           Taken from RFC 7231, Section 5.2 linking to RFC 7232
-           [http://tools.ietf.org/html/rfc7231#section-5.2] *)
+       Taken from RFC 7231, Section 5.3
+       [http://tools.ietf.org/html/rfc7231#section-5.3] *)
 
-        type EntityTag =
-            | Strong of string
-            | Weak of string
+    (* Accept
 
-        (* If-Match
+       Taken from RFC 7231, Section 5.3.2. Accept
+       [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-           Taken from RFC 7232, Section 3.1, If-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+    let private (|Closed|_|) =
+        function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
+                    | _ -> None
 
-        type IfMatch =
-            | EntityTags of EntityTag list
-            | Any
+    let private (|Partial|_|) =
+        function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
+                    | _ -> None
 
-        (* If-None-Match
+    let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+        function | Closed (t', s') when t === t' && s === s' -> true, 3
+                 | Partial t' when t === t' -> true, 2
+                 | MediaRange.Open -> true, 1
+                 | _ -> false, 0
 
-           Taken from RFC 7232, Section 3.2, If-None-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.2] *)
-
-        type IfNoneMatch =
-            | EntityTags of EntityTag list
-            | Any
-
-        (* Content Negotiation
-            
-           Taken from RFC 7231, Section 5.3
-           [http://tools.ietf.org/html/rfc7231#section-5.3] *)
-
-        (* Accept
-
-           Taken from RFC 7231, Section 5.3.2. Accept
-           [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
-
-        type Accept =
-            { MediaType: MediaRange
-              MediaTypeParameters: Map<string, string>
-              ExtensionParameters: Map<string, string option>
-              Weight: float option }
-
-        and MediaRange =
-            | Closed of ClosedMediaRange
-            | Partial of PartialMediaRange
-            | Open
-
-        and ClosedMediaRange =
-            | ClosedMediaRange of MediaType * MediaSubType
-
-        and PartialMediaRange =
-            | PartialMediaRange of MediaType
-
-        and MediaType =
-            | MediaType of string
-
-        and MediaSubType =
-            | MediaSubType of string
-
-        // Negotiation
-
-        // TODO: Make this much better! It's ugly as hell right now...
-
-        let private (|Closed|_|) =
-            function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
-                     | _ -> None
-
-        let private (|Partial|_|) =
-            function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
-                     | _ -> None
-
-        let private (===) s1 s2 =
-            String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-        let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
-            function | Closed (t', s') when t === t' && s === s' -> true, 3
-                     | Partial t' when t === t' -> true, 2
-                     | MediaRange.Open -> true, 1
-                     | _ -> false, 0
-
-        let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
-            requested
-            |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
-            |> List.rev
-            |> List.tryPick (fun r ->
-                let available =
-                    available 
-                    |> List.map (fun a -> a, matchAccept a r.MediaType)
-                    |> List.filter (fun (_, (m, _)) -> m)
+    let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
+        requested
+        |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
+        |> List.rev
+        |> List.tryPick (fun r ->
+            let available =
+                available 
+                |> List.map (fun a -> a, matchAccept a r.MediaType)
+                |> List.filter (fun (_, (m, _)) -> m)
                     
-                match available with
-                | [] -> None
-                | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
-            |> Option.map (fun (_, (selected, _)) -> selected)
+            match available with
+            | [] -> None
+            | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
+        |> Option.map (fun (_, (selected, _)) -> selected)
 
-        (* Accept-Charset
+    (* Accept-Charset
 
-           Taken from RFC 7231, Section 5.3.3. Accept-Charset
-           [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+       Taken from RFC 7231, Section 5.3.3. Accept-Charset
+       [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-        type AcceptCharset =
-            { Charset: Charset
-              Weight: float option }
+    let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
+        None
 
-        and Charset =
-            | Named of NamedCharset
-            | Any
+    (* Accept-Encoding
 
-        and NamedCharset =
-            | NamedCharset of string
+       Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-        // Negotiation
+    let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
+        None
 
-        let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
-            None
+    (* Accept-Language
 
-        (* Accept-Encoding
+       Taken from RFC 7231, Section 5.3.5. Accept-Language
+       [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
-           Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-           [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
-
-        type AcceptEncoding =
-            { Encoding: Encoding
-              Weight: float option }
-
-        and Encoding =
-            | Named of NamedEncoding
-            | Identity
-            | Any
-
-        and NamedEncoding =
-            | NamedEncoding of string
-
-        // Negotiation
-
-        let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
-            None
-
-        (* Accept-Language
-
-           Taken from RFC 7231, Section 5.3.5. Accept-Language
-           [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
-
-        type AcceptLanguage =
-            { Language: CultureInfo
-              Weight: float option }
-
-        // Negotiation
-
-        let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
-            None
+    let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
+        None
 
 
 [<AutoOpen>]
@@ -222,8 +245,8 @@ module internal Parsers =
                Taken from RFC 5234, Appendix B.1. Core Rules
                [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
-            let CR = 
-                char 0x0d
+//            let CR = 
+//                char 0x0d
 
             let DQUOTE = 
                 char 0x22
@@ -242,8 +265,8 @@ module internal Parsers =
             let DIGIT = 
                 set (List.map char [0x30 .. 0x39])
 
-            let VCHAR = 
-                set (List.map char [0x21 .. 0x7e])
+//            let VCHAR = 
+//                set (List.map char [0x21 .. 0x7e])
 
             let WSP = 
                 set [ SP; HTAB ]
@@ -330,8 +353,8 @@ module internal Parsers =
             let prefix s p =
                 many (OWS >>? s >>? OWS >>? p)
 
-            let prefix1 s p =
-                notEmpty (prefix s p)
+//            let prefix1 s p =
+//                notEmpty (prefix s p)
 
 
     [<AutoOpen>]
@@ -611,7 +634,7 @@ module internal Helpers =
     let schemeToString =    
         fun s ->
             match s with
-            | HTTP -> "http" 
+            | HTTP -> "http"
             | HTTPS -> "https" 
             | Custom x -> x
 
@@ -765,27 +788,7 @@ module Request =
 
 
     [<RequireQualifiedAccess>]
-    module Headers =
-
-        // Content Negotiation
-
-        let accept =
-                 header "Accept"
-            <??> acceptPIso
-
-        let acceptCharset =
-                 header "Accept-Charset"
-            <??> acceptCharsetPIso
-
-        let acceptEncoding =
-                 header "Accept-Encoding"
-            <??> acceptEncodingPIso
-
-        let acceptLanguage =
-                 header "Accept-Language"
-            <??> acceptLanguagePIso
-
-        // Conditionals
+    module Conditionals =
 
         let ifMatch =
                  header "If-Match"
@@ -802,6 +805,26 @@ module Request =
         let ifUnmodifiedSince =
                  header "If-Unmodified-Since"
             <??> dateTimePIso
+
+
+    [<RequireQualifiedAccess>]
+    module ContentNegotiation =
+
+        let accept =
+                 header "Accept"
+            <??> acceptPIso
+
+        let acceptCharset =
+                 header "Accept-Charset"
+            <??> acceptCharsetPIso
+
+        let acceptEncoding =
+                 header "Accept-Encoding"
+            <??> acceptEncodingPIso
+
+        let acceptLanguage =
+                 header "Accept-Language"
+            <??> acceptLanguagePIso
 
 
 [<RequireQualifiedAccess>]
