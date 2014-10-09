@@ -3,7 +3,6 @@
 Thumbs.db
 #Ignore files build by Visual Studio
 *.obj
-*.exe
 *.pdb
 *.user
 *.aps
@@ -19,6 +18,7 @@ Thumbs.db
 *.cache
 *.ilk
 *.log
+*_Spliced.*proj
 [Bb]in
 [Dd]ebug*/
 *.lib
@@ -29,9 +29,13 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 build/
 deploy/
-docs/tools/
+docs/
 nuget/
 packages/
+temp/
 test/
-*.userprefs
+tools/
+*.nupkg
+.paket/paket.exe
 AssemblyInfo.fs
+*.userprefs

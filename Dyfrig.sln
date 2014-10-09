@@ -1,8 +1,14 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{500020E1-325C-46AB-9E93-9FFC6B1F0D5D}"
+ ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
+EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Tests", "tests\Dyfrig.Tests\Dyfrig.Tests.fsproj", "{5F794EE5-7235-4B43-8F24-AD8662D18659}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D9D5F8DB-0EC4-4474-80C2-38D9D6ECA7F5}"
