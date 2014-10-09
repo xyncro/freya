@@ -1,6 +1,7 @@
 NUGET
   remote: http://nuget.org/api/v2
   specs:
+    FAKE (3.5.8)
     FSharp.Formatting (2.2.11-beta)
       Microsoft.AspNet.Razor (>= 2.0.30506.0)
       RazorEngine (>= 3.3.0)
@@ -12,4 +13,5 @@ NUGET
     NUnit.Runners (2.6.3)
     RazorEngine (3.3.0)
       Microsoft.AspNet.Razor (>= 2.0.30506.0)
+    SourceLink.Fake (0.4.0)
     Unquote (2.2.2)
