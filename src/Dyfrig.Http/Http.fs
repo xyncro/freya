@@ -2,8 +2,9 @@
 
 open System
 open System.Collections.Generic
-open System.IO
 open System.Globalization
+open System.IO
+open System.Text
 open Aether
 open Aether.Operators
 open Dyfrig.Core
@@ -563,7 +564,7 @@ module internal Parsing =
                 choice [
                     skipChar '*' |>> fun _ -> IfMatch.Any
                     infix (skipChar ',') entityTag |>> fun x -> 
-                        IfMatch.EntityTags (List.map EntityTag.Strong x) ]
+                        IfMatch.EntityTags (List.map Strong x) ]
 
 
         [<AutoOpen>]
@@ -578,20 +579,23 @@ module internal Parsing =
                 choice [
                     skipChar '*' |>> fun _ -> IfNoneMatch.Any
                     infix (skipChar ',') entityTag |>> fun x -> 
-                        IfNoneMatch.EntityTags (List.map EntityTag.Strong x) ]
+                        IfNoneMatch.EntityTags (List.map Strong x) ]
 
 
 [<AutoOpen>]
 module internal Serialization =
 
+    let private weightToString =
+        Option.map (sprintf ";q=%.3g") >> Option.getOrElse ""
+
     
     [<RequireQualifiedAccess>]
     module Accept =
 
-        let fromString =
+        let private fromString =
             parse accept
 
-        let toString _ =
+        let private toString _ =
             ""
 
         let iso =
@@ -601,11 +605,18 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module AcceptCharset =
 
-        let fromString =
+        let private fromString =
             parse acceptCharset
 
-        let toString _ =
-            ""
+        let private toString =
+            List.map (fun x ->
+                let charset =
+                    match x.Charset with
+                    | Charset.Named (NamedCharset x) -> x
+                    | Charset.Any -> "*"                    
+
+                sprintf "%s%s" charset (weightToString x.Weight))
+            >> String.concat ","
 
         let iso =
             fromString, toString
@@ -614,11 +625,19 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module AcceptEncoding =
 
-        let fromString =
+        let private fromString =
             parse acceptEncoding
 
-        let toString _ =
-            ""
+        let private toString =
+            List.map (fun x ->
+                let encoding =
+                    match x.Encoding with
+                    | Encoding.Named (NamedEncoding x) -> x
+                    | Encoding.Identity -> "identity"
+                    | Encoding.Any -> "*"                    
+
+                sprintf "%s%s" encoding (weightToString x.Weight)) 
+            >> String.concat ","
 
         let iso =
             fromString, toString
@@ -627,37 +646,12 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module AcceptLanguage =
 
-        let fromString =
+        let private fromString =
             parse acceptLanguage
 
-        let toString _ =
-            ""
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module IfMatch =
-
-        let fromString =
-            parse ifMatch
-
-        let toString _ =
-            ""
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module IfNoneMatch =
-
-        let fromString =
-            parse ifNoneMatch
-
-        let toString _ =
-            ""
+        let private toString =
+            List.map (fun x -> sprintf "%s%s" x.Language.Name (weightToString x.Weight)) 
+            >> String.concat ","
 
         let iso =
             fromString, toString
@@ -666,25 +660,73 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module DateTime =
 
-        let fromString d =
+        let private fromString x =
             let format = CultureInfo.InvariantCulture.DateTimeFormat
             let adjustment = DateTimeStyles.AdjustToUniversal
 
-            match DateTime.TryParse (d, format, adjustment) with
-            | true, d -> Some d
+            match DateTime.TryParse (x, format, adjustment) with
+            | true, x -> Some x
             | _ -> None
 
-        let toString (d: DateTime) =
-            d.ToUniversalTime().ToString("r")
+        let private toString (x: DateTime) =
+            x.ToString("r")
 
         let iso =
             fromString, toString
 
 
     [<RequireQualifiedAccess>]
+    module IfMatch =
+
+        let private fromString =
+            parse ifMatch
+
+        let private toString =
+            function 
+            | IfMatch.EntityTags entityTags -> 
+                entityTags
+                |> List.map (fun (Strong x | Weak x) -> sprintf "\"%s\"" x) 
+                |> String.concat ","
+            | IfMatch.Any -> "*"
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module IfNoneMatch =
+
+        let private fromString =
+            parse ifNoneMatch
+
+        let private toString =
+            function 
+            | IfNoneMatch.EntityTags entityTags -> 
+                entityTags
+                |> List.map (fun (Strong x | Weak x) -> sprintf "\"%s\"" x) 
+                |> String.concat ","
+            | IfNoneMatch.Any -> "*"
+
+        let iso =
+            fromString, toString
+
+
+    [<RequireQualifiedAccess>]
+    module MaxForwards =
+
+        let private fromString x =
+            match Int32.TryParse x with
+            | true, x -> Some x
+            | _ -> None
+
+        let iso =
+            fromString, string
+
+
+    [<RequireQualifiedAccess>]
     module Method =
 
-        let fromString =
+        let private fromString =
             function | "DELETE" -> DELETE 
                      | "HEAD" -> HEAD 
                      | "GET" -> GET 
@@ -695,7 +737,7 @@ module internal Serialization =
                      | "TRACE" -> TRACE
                      | x -> Method.Custom x        
                      
-        let toString =
+        let private toString =
             function | DELETE -> "DELETE" 
                      | HEAD -> "HEAD" 
                      | GET -> "GET" 
@@ -713,12 +755,12 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module Protocol =
 
-        let fromString =
+        let private fromString =
             function | "HTTP/1.0" -> Protocol.HTTP 1.0 
                      | "HTTP/1.1" -> Protocol.HTTP 1.1 
                      | x -> Protocol.Custom x
 
-        let toString =
+        let private toString =
             function | Protocol.HTTP x -> sprintf "HTTP/%f" x 
                      | Protocol.Custom x -> x
 
@@ -729,12 +771,12 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module Scheme =
 
-        let fromString =
+        let private fromString =
             function | "http" -> HTTP 
                      | "https" -> HTTPS 
                      | x -> Scheme.Custom x
 
-        let toString =    
+        let private toString =    
             function | HTTP -> "http"
                      | HTTPS -> "https" 
                      | Scheme.Custom x -> x
@@ -746,7 +788,7 @@ module internal Serialization =
     [<RequireQualifiedAccess>]
     module Query =
 
-        let fromString =
+        let private fromString =
             function | "" -> Map.empty
                      | s ->
                          s.Split [| '&' |]
@@ -754,7 +796,7 @@ module internal Serialization =
                          |> Array.map (fun x -> x.[0], x.[1])
                          |> Map.ofArray
 
-        let toString =
+        let private toString =
             fun m ->
                 Map.toArray m
                 |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
@@ -784,7 +826,7 @@ module Lenses =
 
     // Headers
 
-    let internal headerIso : Iso<string [], string> =
+    let headerIso : Iso<string [], string> =
         (fun s -> String.concat "," s),
         (fun s -> [| s |])
 
@@ -877,6 +919,22 @@ module Request =
                  header "Accept-Language"
             <?-> headerIso
             <??> AcceptLanguage.iso
+
+
+    [<RequireQualifiedAccess>]
+    module Controls =
+
+        // TODO: Investigate a strongly typed
+        // abstraction over a Host value.
+
+        let host =
+            header "Host"
+            <?-> headerIso
+
+        let maxForwards =
+            header "Max-Forwards"
+            <?-> headerIso
+            <??> MaxForwards.iso
 
 
 [<RequireQualifiedAccess>]

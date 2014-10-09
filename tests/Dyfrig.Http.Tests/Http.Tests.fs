@@ -2,77 +2,190 @@
 
 open System
 open System.Collections.Generic
+open System.Globalization
 open NUnit.Framework
 open Swensen.Unquote
+open Aether
+open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Http
 
 
-[<AutoOpen>]
-module Helpers =
+module Read =
 
-    let test (k, v) f =
+    let getT (k, v) f =
         let data = dict [ k, box v ]
         let env = Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
 
-        Async.RunSynchronously (f env) |> fst
+        Async.RunSynchronously (f env) 
+        |> fst
 
-    let testRequestHeader (k, h) f =
+
+    let getRequestHeaderT (k, h) f =
         let headers = dict [ k, [| h |] ]
         let data = dict [ Constants.requestHeaders, box headers ]
         let env = Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
 
-        Async.RunSynchronously (f env) |> fst
+        Async.RunSynchronously (f env) 
+        |> fst
+
+
+module Write =
+
+    let setT f k =
+        let env = Dictionary<string, obj> (StringComparer.OrdinalIgnoreCase)
+
+        Async.RunSynchronously (f env) 
+        |> snd 
+        |> getL ((dictLens k) <--> boxIso<string>)
+
+    let setRequestHeaderT f k =
+        let headers = Dictionary<string, string []> (StringComparer.OrdinalIgnoreCase)
+        let data = dict [ Constants.requestHeaders, box headers ]
+        let env = Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
+
+        Async.RunSynchronously (f env) 
+        |> snd 
+        |> getPL (Request.header k <?-> headerIso)
 
 
 module Lenses =
 
-    (* Request *)
+    open Read
+    open Write
 
     [<Test>]
     let ``Request.meth`` () =
-        test (Constants.requestMethod, "GET") (getLM Request.meth) =? Method.GET
+        let methTyped = GET
+        let methString = "GET"
+
+        let get =
+            getT 
+                (Constants.requestMethod, methString) 
+                (getLM Request.meth)
+
+        let set =
+            setT
+                (setLM Request.meth methTyped)
+                Constants.requestMethod
+
+        get =? methTyped
+        set =? methString
 
     [<Test>]
     let ``Request.path`` () =
-        test (Constants.requestPath, "/some/path") (getLM Request.path) =? "/some/path"
+        getT (Constants.requestPath, "/some/path") (getLM Request.path) =? "/some/path"
 
     [<Test>]
     let ``Request.pathBase`` () =
-        test (Constants.requestPathBase, "") (getLM Request.pathBase) =? ""
+        getT (Constants.requestPathBase, "") (getLM Request.pathBase) =? ""
 
     [<Test>]
     let ``Request.protocol`` () =
-        test (Constants.requestProtocol, "HTTP/1.0") (getLM Request.protocol) =? Protocol.HTTP 1.0
-        test (Constants.requestProtocol, "HTTP/1.1") (getLM Request.protocol) =? Protocol.HTTP 1.1
-        test (Constants.requestProtocol, "Other") (getLM Request.protocol) =? Protocol.Custom "Other"
+        getT (Constants.requestProtocol, "HTTP/1.0") (getLM Request.protocol) =? Protocol.HTTP 1.0
+        getT (Constants.requestProtocol, "HTTP/1.1") (getLM Request.protocol) =? Protocol.HTTP 1.1
+        getT (Constants.requestProtocol, "Other") (getLM Request.protocol) =? Protocol.Custom "Other"
 
     [<Test>]
     let ``Request.query`` () =
-        let test' = test (Constants.requestQueryString, "foo=bar&baz=boz")
+        let getT' = getT (Constants.requestQueryString, "foo=bar&baz=boz")
 
-        test' (getPLM (Request.query "foo")) =? Some "bar"
-        test' (getPLM (Request.query "baz")) =? Some "boz"
-        test' (getPLM (Request.query "qux")) =? None
+        getT' (getPLM (Request.query "foo")) =? Some "bar"
+        getT' (getPLM (Request.query "baz")) =? Some "boz"
+        getT' (getPLM (Request.query "qux")) =? None
 
     [<Test>]
     let ``Request.scheme`` () =
-        test (Constants.requestScheme, "http") (getLM Request.scheme) =? Scheme.HTTP
+        getT (Constants.requestScheme, "http") (getLM Request.scheme) =? Scheme.HTTP
 
-    (* Content Negotiation
-            
-       Taken from RFC 7231, Section 5.3
-       [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+    [<Test>]
+    let ``Request.Conditionals.ifMatch`` () =
+        let ifMatchTyped =
+            IfMatch.EntityTags 
+                [ Strong "xyzzy"
+                  Strong "r2d2xxxx"
+                  Strong "c3piozzzz" ]
 
-    (* Accept
+        let ifMatchString =
+            "\"xyzzy\",\"r2d2xxxx\",\"c3piozzzz\""
 
-       Taken from RFC 7231, Section 5.3.2. Accept
-       [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+        let get = 
+            getRequestHeaderT
+                ("If-Match", ifMatchString)
+                (getPLM Request.Conditionals.ifMatch)
+
+        let set =
+            setRequestHeaderT
+                (setPLM Request.Conditionals.ifMatch ifMatchTyped)
+                "If-Match"
+
+        get.Value =? ifMatchTyped
+        set.Value =? ifMatchString
+
+    [<Test>]
+    let ``Request.Conditionals.ifNoneMatch`` () =
+        let ifNoneMatchTyped =
+            IfNoneMatch.EntityTags 
+                [ Strong "xyzzy"
+                  Strong "r2d2xxxx"
+                  Strong "c3piozzzz" ]
+
+        let ifNoneMatchString =
+            "\"xyzzy\",\"r2d2xxxx\",\"c3piozzzz\""
+
+        let get = 
+            getRequestHeaderT
+                ("If-None-Match", ifNoneMatchString)
+                (getPLM Request.Conditionals.ifNoneMatch)
+
+        let set =
+            setRequestHeaderT
+                (setPLM Request.Conditionals.ifNoneMatch ifNoneMatchTyped)
+                "If-None-Match"
+
+        get.Value =? ifNoneMatchTyped
+        set.Value =? ifNoneMatchString
+
+    [<Test>]
+    let ``Request.Conditionals.ifModifiedSince`` () =
+        let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
+        let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
+
+        let get =
+            getRequestHeaderT
+                ("If-Modified-Since", dateString)
+                (getPLM Request.Conditionals.ifModifiedSince)
+
+        let set =
+            setRequestHeaderT
+                (setPLM Request.Conditionals.ifModifiedSince dateTyped)
+                "If-Modified-Since"
+
+        get.Value =? dateTyped
+        set.Value =? dateString
+
+    [<Test>]
+    let ``Request.Conditionals.ifUnmodifiedSince`` () =
+        let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
+        let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
+
+        let get =
+            getRequestHeaderT
+                ("If-Unmodified-Since", dateString)
+                (getPLM Request.Conditionals.ifUnmodifiedSince)
+
+        let set =
+            setRequestHeaderT
+                (setPLM Request.Conditionals.ifUnmodifiedSince dateTyped)
+                "If-Unmodified-Since"
+
+        get.Value =? dateTyped
+        set.Value =? dateString
 
     [<Test>]
     let ``Request.ContentNegotiation.accept`` () =
         let x = 
-            testRequestHeader 
+            getRequestHeaderT 
                 ("Accept", "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c") 
                 (getPLM Request.ContentNegotiation.accept)
 
@@ -104,147 +217,105 @@ module Lenses =
 //
 //            negotiateAccept available requested =? Some (ClosedMediaRange (MediaType "application", MediaSubType "json"))
 
-    (* Accept-Charset
-
-       Taken from RFC 7231, Section 5.3.3. Accept-Charset
-       [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
-
     [<Test>]
     let ``Request.ContentNegotiation.acceptCharset`` () =
-        let x = 
-            testRequestHeader
-                ("Accept-Charset", "iso-8859-5, unicode-1-1;q=0.8")
+        let acceptCharsetTyped =
+            [ { Charset = Charset.Named (NamedCharset "iso-8859-5")
+                Weight = None }
+              { Charset = Charset.Named (NamedCharset "unicode-1-1")
+                Weight = Some 0.8 } ]
+
+        let acceptCharsetString =
+            "iso-8859-5,unicode-1-1;q=0.8"
+
+        let get = 
+            getRequestHeaderT
+                ("Accept-Charset", acceptCharsetString)
                 (getPLM Request.ContentNegotiation.acceptCharset)
 
-        x.IsSome =? true
-        x.Value.Length =? 2
-        x.Value.[0].Charset =? Charset.Named (NamedCharset "iso-8859-5")
-        x.Value.[0].Weight =? None
-        x.Value.[1].Charset =? Charset.Named (NamedCharset "unicode-1-1")
-        x.Value.[1].Weight =? Some 0.8
+        let set =
+            setRequestHeaderT
+                (setPLM (Request.ContentNegotiation.acceptCharset) acceptCharsetTyped)
+                "Accept-Charset"
 
-    (* Accept-Encoding
-
-       Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-       [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+        get.Value =? acceptCharsetTyped
+        set.Value =? acceptCharsetString
 
     [<Test>]
     let ``Request.ContentNegotiation.acceptEncoding`` () =
-        let x = 
-            testRequestHeader
-                ("Accept-Encoding", "gzip;q=1.0, identity; q=0.5, *;q=0")
+        let acceptEncodingTyped =
+            [ { Encoding = Encoding.Named (NamedEncoding "gzip")
+                Weight = None }
+              { Encoding = Encoding.Identity
+                Weight = Some 0.5 }
+              { Encoding = Encoding.Any
+                Weight = Some 0. } ]
+
+        let acceptEncodingString = 
+            "gzip,identity;q=0.5,*;q=0"
+
+        let get = 
+            getRequestHeaderT
+                ("Accept-Encoding", acceptEncodingString)
                 (getPLM Request.ContentNegotiation.acceptEncoding)
 
-        x.IsSome =? true
-        x.Value.Length =? 3
-        x.Value.[0].Encoding =? Encoding.Named (NamedEncoding "gzip")
-        x.Value.[0].Weight =? Some 1.
-        x.Value.[1].Encoding =? Encoding.Identity
-        x.Value.[1].Weight =? Some 0.5
-        x.Value.[2].Encoding =? Encoding.Any
-        x.Value.[2].Weight =? Some 0.
+        let set =
+            setRequestHeaderT
+                (setPLM (Request.ContentNegotiation.acceptEncoding) acceptEncodingTyped)
+                "Accept-Encoding"
 
-    (* Accept-Language
-
-       Taken from RFC 7231, Section 5.3.5. Accept-Language
-       [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+        get.Value =? acceptEncodingTyped
+        set.Value =? acceptEncodingString
 
     [<Test>]
     let ``Request.ContentNegotiation.acceptLanguage`` () =
-        let x = 
-            testRequestHeader
-                ("Accept-Language", "da, en-gb;q=0.8, en;q=0.7")
+        let acceptLanguageTyped =
+            [ { Language = CultureInfo ("da")
+                Weight = None }
+              { Language = CultureInfo ("en-gb")
+                Weight = Some 0.8 }
+              { Language = CultureInfo ("en")
+                Weight = Some 0.7 } ]
+
+        let acceptLanguageString = 
+            "da,en-GB;q=0.8,en;q=0.7"
+
+        let get = 
+            getRequestHeaderT
+                ("Accept-Language", acceptLanguageString)
                 (getPLM Request.ContentNegotiation.acceptLanguage)
 
-        x.IsSome =? true
-        x.Value.Length =? 3
-        x.Value.[0].Language.Name =? "da"
-        x.Value.[0].Weight =? None
-        x.Value.[1].Language.Name =? "en-GB"
-        x.Value.[1].Weight =? Some 0.8
-        x.Value.[2].Language.Name =? "en"
-        x.Value.[2].Weight =? Some 0.7
+        let set =
+            setRequestHeaderT
+                (setPLM (Request.ContentNegotiation.acceptLanguage) acceptLanguageTyped)
+                "Accept-Language"
 
-    (* Conditionals
-            
-        Taken from RFC 7232, Section 3
-        [http://tools.ietf.org/html/rfc7232#section-3] *)
-
-    (* If-Match
-
-       Taken from RFC 7232, Section 3.1, If-Match
-       [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+        get.Value =? acceptLanguageTyped
+        set.Value =? acceptLanguageString
 
     [<Test>]
-    let ``Request.Conditionals.ifMatch`` () =
-        let x = 
-            testRequestHeader
-                ("If-Match", "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\"")
-                (getPLM Request.Conditionals.ifMatch)
+    let ``Request.Controls.host`` () =
+        let get = 
+            getRequestHeaderT
+                ("Host", "www.example.org:8080")
+                (getPLM Request.Controls.host)
 
-        let y = x |> function | Some (IfMatch.EntityTags x) -> Some x | _ -> None
-
-        y.IsSome =? true
-
-        y.Value.Length =? 3
-        y.Value.[0] =? EntityTag.Strong "xyzzy"
-
-    (* If-None-Match
-
-       Taken from RFC 7232, Section 3.2, If-None-Match
-       [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+        get.Value =? "www.example.org:8080"
 
     [<Test>]
-    let ``Request.Conditionals.ifNoneMatch`` () =
-        let x = 
-            testRequestHeader
-                ("If-None-Match", "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\"")
-                (getPLM Request.Conditionals.ifNoneMatch)
+    let ``Request.Controls.maxForwards`` () =
+        let maxForwardsTyped = 5
+        let maxForwardsString = "5"
 
-        let y = x |> function | Some (IfNoneMatch.EntityTags x) -> Some x | _ -> None
+        let get = 
+            getRequestHeaderT
+                ("Max-Forwards", maxForwardsString)
+                (getPLM Request.Controls.maxForwards)
 
-        y.IsSome =? true
-        y.Value.Length =? 3
-        y.Value.[0] =? EntityTag.Strong "xyzzy"
+        let set =
+            setRequestHeaderT
+                (setPLM (Request.Controls.maxForwards) maxForwardsTyped)
+                "Max-Forwards"
 
-    (* If-Modified-Since
-
-       Taken from RFC 7232, Section 3.3, If-Modified-Since
-       [http://tools.ietf.org/html/rfc7232#section-3.3] *)
-
-    [<Test>]
-    let ``Request.Conditionals.ifModifiedSince`` () =
-        let x =
-            testRequestHeader
-                ("If-Modified-Since", "Sat, 29 Oct 1994 19:43:31 GMT")
-                (getPLM Request.Conditionals.ifModifiedSince)
-
-        x.IsSome =? true
-        x.Value.Year =? 1994
-        x.Value.Month =? 10
-        x.Value.Day =? 29
-        x.Value.Hour =? 19
-        x.Value.Minute =? 43
-        x.Value.Second =? 31
-        x.Value.Kind =? DateTimeKind.Utc
-
-    (* If-Unmodified-Since
-
-       Taken from RFC 7232, Section 3.4, If-Unmodified-Since
-       [http://tools.ietf.org/html/rfc7232#section-3.4] *)
-
-    [<Test>]
-    let ``Request.Conditionals.ifUnmodifiedSince`` () =
-        let x =
-            testRequestHeader
-                ("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT")
-                (getPLM Request.Conditionals.ifUnmodifiedSince)
-
-        x.IsSome =? true
-        x.Value.Year =? 1994
-        x.Value.Month =? 10
-        x.Value.Day =? 29
-        x.Value.Hour =? 19
-        x.Value.Minute =? 43
-        x.Value.Second =? 31
-        x.Value.Kind =? DateTimeKind.Utc
+        get.Value =? maxForwardsTyped
+        set.Value =? maxForwardsString
