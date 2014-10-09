@@ -4,15 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>5F794EE5-7235-4B43-8F24-AD8662D18659</ProjectGuid>
+    <ProjectGuid>{5F794EE5-7235-4B43-8F24-AD8662D18659}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dyfrig.Tests</RootNamespace>
     <AssemblyName>Dyfrig.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>Dyfrig.Tests</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <ProductVersion>12.0.0</ProductVersion>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -39,13 +37,13 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.fs" />
@@ -55,8 +53,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dyfrig\Dyfrig.fsproj">
       <Name>Dyfrig</Name>
-      <Project>{36d091d6-791f-4d45-a81a-8d51e4822f57}</Project>
-      <Private>True</Private>
+      <Project>{36D091D6-791F-4D45-A81A-8D51E4822F57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj">
+      <Project>{3BD18DA3-9BC3-4198-87B1-E570E1D268D2}</Project>
+      <Name>Dyfrig.Net.Http</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

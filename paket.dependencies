@@ -11,3 +11,5 @@ nuget Microsoft.Net.Http 2.0.20710.0
 nuget NUnit.Runners 2.6.3
 nuget RazorEngine 3.3.0
 nuget Unquote 2.2.2
+nuget Microsoft.Bcl 1.1.9
+nuget Microsoft.Bcl.Build 1.0.14

@@ -4,6 +4,7 @@ open System.IO
 open System.Net
 open System.Net.Http
 open Dyfrig
+open Dyfrig.Net.Http
 open Fuchu
 open Swensen.Unquote
 
@@ -177,38 +178,6 @@ let adapterTests =
                 bytesRead =? 12
                 body =? "Hello, world"B
             } |> Async.RunSynchronously
-
-        testCase "should create an OwinAppFunc from OwinRailway" <| fun _ ->
-            let env = env()
-
-            let app =
-                SystemNetHttpAdapter.toHttpRequestRailway
-                >> OwinRailway.map (fun request -> request, 2) // Fake retrieval of a query string parameter
-                >> OwinRailway.map (fun (request, idParam) -> request, idParam * idParam)
-                >> OwinRailway.map (fun (request: HttpRequestMessage, result) ->
-                    let buffer = Text.Encoding.ASCII.GetBytes(result.ToString())
-                    let content = new ByteArrayContent(buffer)
-                    content.Headers.ContentType <- Headers.MediaTypeHeaderValue("text/plain")
-                    content.Headers.ContentLength <- Nullable buffer.LongLength
-                    new HttpResponseMessage(Content = content, RequestMessage = request))
-                >> OwinRailway.mapAsync (SystemNetHttpAdapter.mapResponseToEnvironment env)
-                |> OwinRailway.fromRailway (fun env exnHandler -> env.With(Constants.responseStatusCode, 500))
-            
-            async {
-                do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
-                env.ResponseStatusCode =? 200
-                env.ResponseReasonPhrase =? "OK"
-                env.ResponseHeaders.Count =? 2
-                env.ResponseHeaders.["Content-Type"] =? [|"text/plain"|]
-                env.ResponseHeaders.["Content-Length"] =? [|"1"|]
-                // Test the response body
-                env.ResponseBody <>? null
-                env.ResponseBody.Position <- 0L
-                let body = Array.zeroCreate 1
-                let bytesRead = env.ResponseBody.Read(body, 0, int env.ResponseBody.Length)
-                bytesRead =? 1
-                body =? "4"B
-            } |> Async.RunSynchronously
     ]
 
 [<EntryPoint>]
@@ -221,3 +190,4 @@ let main argv =
     ]
     |> testList "Environment tests"
     |> runParallel
+
