@@ -2,13 +2,120 @@
 
 open System
 open System.Collections.Generic
-open System.IO
 open System.Globalization
+open System.IO
+open System.Text
 open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 
+(* Content Negotiation
+            
+   Taken from RFC 7231, Section 5.3
+   [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+
+(* Accept
+
+   Taken from RFC 7231, Section 5.3.2. Accept
+   [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+
+type Accept =
+    { MediaType: MediaRange
+      MediaTypeParameters: Map<string, string>
+      ExtensionParameters: Map<string, string option>
+      Weight: float option }
+
+and MediaRange =
+    | Closed of ClosedMediaRange
+    | Partial of PartialMediaRange
+    | Open
+
+and ClosedMediaRange =
+    | ClosedMediaRange of MediaType * MediaSubType
+
+and PartialMediaRange =
+    | PartialMediaRange of MediaType
+
+and MediaType =
+    | MediaType of string
+
+and MediaSubType =
+    | MediaSubType of string
+
+(* Accept-Charset
+
+   Taken from RFC 7231, Section 5.3.3. Accept-Charset
+   [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+
+type AcceptCharset =
+    { Charset: Charset
+      Weight: float option }
+
+and Charset =
+    | Named of NamedCharset
+    | Any
+
+and NamedCharset =
+    | NamedCharset of string
+
+(* Accept-Encoding
+
+   Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+   [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+
+type AcceptEncoding =
+    { Encoding: Encoding
+      Weight: float option }
+
+and Encoding =
+    | Named of NamedEncoding
+    | Identity
+    | Any
+
+and NamedEncoding =
+    | NamedEncoding of string
+
+(* Accept-Language
+
+   Taken from RFC 7231, Section 5.3.5. Accept-Language
+   [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+
+type AcceptLanguage =
+    { Language: CultureInfo
+      Weight: float option }
+
+(* Precondition
+            
+   Taken from RFC 7232, Section 3
+   [http://tools.ietf.org/html/rfc7232#section-3] *)
+
+type EntityTag =
+    | Strong of string
+    | Weak of string
+
+(* If-Match
+
+   Taken from RFC 7232, Section 3.1, If-Match
+   [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+type IfMatch =
+    | EntityTags of EntityTag list
+    | Any
+
+(* If-None-Match
+
+   Taken from RFC 7232, Section 3.2, If-None-Match
+   [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+type IfNoneMatch =
+    | EntityTags of EntityTag list
+    | Any
+    
+(* Method
+    
+   Types representing the method of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
 
 type Method =
     | DELETE 
@@ -21,9 +128,19 @@ type Method =
     | TRACE 
     | Custom of string
 
+(* Protocol
+    
+   Types representing the protocol of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
+
 type Protocol =
     | HTTP of float 
     | Custom of string
+
+(* Scheme
+    
+   Types representing the scheme of an HTTP request.
+   See [http://tools.ietf.org/html/rfc7231] for details. *)
 
 type Scheme =
     | HTTP 
@@ -40,167 +157,79 @@ module private Option =
 
 
 [<AutoOpen>]
-module Headers =
+module Negotiation =
 
-    [<AutoOpen>]
-    module Request =
+    // TODO: Make this much better! It's ugly as hell right now...
 
-        (* Conditionals
+    let private (===) s1 s2 =
+        String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+    (* Content Negotiation
             
-           Taken from RFC 7231, Section 5.2 linking to RFC 7232
-           [http://tools.ietf.org/html/rfc7231#section-5.2] *)
+       Taken from RFC 7231, Section 5.3
+       [http://tools.ietf.org/html/rfc7231#section-5.3] *)
 
-        type EntityTag =
-            | Strong of string
-            | Weak of string
+    (* Accept
 
-        (* If-Match
+       Taken from RFC 7231, Section 5.3.2. Accept
+       [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-           Taken from RFC 7232, Section 3.1, If-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+    let private (|Closed|_|) =
+        function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
+                    | _ -> None
 
-        type IfMatch =
-            | EntityTags of EntityTag list
-            | Any
+    let private (|Partial|_|) =
+        function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
+                    | _ -> None
 
-        (* If-None-Match
+    let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+        function | Closed (t', s') when t === t' && s === s' -> true, 3
+                 | Partial t' when t === t' -> true, 2
+                 | MediaRange.Open -> true, 1
+                 | _ -> false, 0
 
-           Taken from RFC 7232, Section 3.2, If-None-Match
-           [http://tools.ietf.org/html/rfc7232#section-3.2] *)
-
-        type IfNoneMatch =
-            | EntityTags of EntityTag list
-            | Any
-
-        (* Content Negotiation
-            
-           Taken from RFC 7231, Section 5.3
-           [http://tools.ietf.org/html/rfc7231#section-5.3] *)
-
-        (* Accept
-
-           Taken from RFC 7231, Section 5.3.2. Accept
-           [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
-
-        type Accept =
-            { MediaType: MediaRange
-              MediaTypeParameters: Map<string, string>
-              ExtensionParameters: Map<string, string option>
-              Weight: float option }
-
-        and MediaRange =
-            | Closed of ClosedMediaRange
-            | Partial of PartialMediaRange
-            | Open
-
-        and ClosedMediaRange =
-            | ClosedMediaRange of MediaType * MediaSubType
-
-        and PartialMediaRange =
-            | PartialMediaRange of MediaType
-
-        and MediaType =
-            | MediaType of string
-
-        and MediaSubType =
-            | MediaSubType of string
-
-        // Negotiation
-
-        // TODO: Make this much better! It's ugly as hell right now...
-
-        let private (|Closed|_|) =
-            function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
-                     | _ -> None
-
-        let private (|Partial|_|) =
-            function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
-                     | _ -> None
-
-        let private (===) s1 s2 =
-            String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-        let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
-            function | Closed (t', s') when t === t' && s === s' -> true, 3
-                     | Partial t' when t === t' -> true, 2
-                     | MediaRange.Open -> true, 1
-                     | _ -> false, 0
-
-        let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
-            requested
-            |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
-            |> List.rev
-            |> List.tryPick (fun r ->
-                let available =
-                    available 
-                    |> List.map (fun a -> a, matchAccept a r.MediaType)
-                    |> List.filter (fun (_, (m, _)) -> m)
+    let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
+        requested
+        |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
+        |> List.rev
+        |> List.tryPick (fun r ->
+            let available =
+                available 
+                |> List.map (fun a -> a, matchAccept a r.MediaType)
+                |> List.filter (fun (_, (m, _)) -> m)
                     
-                match available with
-                | [] -> None
-                | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
-            |> Option.map (fun (_, (selected, _)) -> selected)
+            match available with
+            | [] -> None
+            | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
+        |> Option.map (fun (_, (selected, _)) -> selected)
 
-        (* Accept-Charset
+    (* Accept-Charset
 
-           Taken from RFC 7231, Section 5.3.3. Accept-Charset
-           [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+       Taken from RFC 7231, Section 5.3.3. Accept-Charset
+       [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-        type AcceptCharset =
-            { Charset: Charset
-              Weight: float option }
+    let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
+        None
 
-        and Charset =
-            | Named of NamedCharset
-            | Any
+    (* Accept-Encoding
 
-        and NamedCharset =
-            | NamedCharset of string
+       Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-        // Negotiation
+    let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
+        None
 
-        let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
-            None
+    (* Accept-Language
 
-        (* Accept-Encoding
+       Taken from RFC 7231, Section 5.3.5. Accept-Language
+       [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
-           Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-           [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
-
-        type AcceptEncoding =
-            { Encoding: Encoding
-              Weight: float option }
-
-        and Encoding =
-            | Named of NamedEncoding
-            | Identity
-            | Any
-
-        and NamedEncoding =
-            | NamedEncoding of string
-
-        // Negotiation
-
-        let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
-            None
-
-        (* Accept-Language
-
-           Taken from RFC 7231, Section 5.3.5. Accept-Language
-           [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
-
-        type AcceptLanguage =
-            { Language: CultureInfo
-              Weight: float option }
-
-        // Negotiation
-
-        let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
-            None
+    let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
+        None
 
 
 [<AutoOpen>]
-module internal Parsers =
+module internal Parsing =
 
     open FParsec
 
@@ -222,8 +251,8 @@ module internal Parsers =
                Taken from RFC 5234, Appendix B.1. Core Rules
                [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
-            let CR = 
-                char 0x0d
+//            let CR = 
+//                char 0x0d
 
             let DQUOTE = 
                 char 0x22
@@ -242,8 +271,8 @@ module internal Parsers =
             let DIGIT = 
                 set (List.map char [0x30 .. 0x39])
 
-            let VCHAR = 
-                set (List.map char [0x21 .. 0x7e])
+//            let VCHAR = 
+//                set (List.map char [0x21 .. 0x7e])
 
             let WSP = 
                 set [ SP; HTAB ]
@@ -330,8 +359,8 @@ module internal Parsers =
             let prefix s p =
                 many (OWS >>? s >>? OWS >>? p)
 
-            let prefix1 s p =
-                notEmpty (prefix s p)
+//            let prefix1 s p =
+//                notEmpty (prefix s p)
 
 
     [<AutoOpen>]
@@ -535,7 +564,7 @@ module internal Parsers =
                 choice [
                     skipChar '*' |>> fun _ -> IfMatch.Any
                     infix (skipChar ',') entityTag |>> fun x -> 
-                        IfMatch.EntityTags (List.map EntityTag.Strong x) ]
+                        IfMatch.EntityTags (List.map Strong x) ]
 
 
         [<AutoOpen>]
@@ -550,116 +579,245 @@ module internal Parsers =
                 choice [
                     skipChar '*' |>> fun _ -> IfNoneMatch.Any
                     infix (skipChar ',') entityTag |>> fun x -> 
-                        IfNoneMatch.EntityTags (List.map EntityTag.Strong x) ]
+                        IfNoneMatch.EntityTags (List.map Strong x) ]
 
 
 [<AutoOpen>]
-module internal Helpers =
+module Isomorphisms =
 
-    // Method
+    let private weightToString =
+        Option.map (sprintf ";q=%.4g") >> Option.getOrElse ""
 
-    let methodFromString =
-        fun s -> 
-            match s with
-            | "DELETE" -> DELETE 
-            | "HEAD" -> HEAD 
-            | "GET" -> GET 
-            | "OPTIONS" -> OPTIONS
-            | "PATCH" -> PATCH 
-            | "POST" -> POST 
-            | "PUT" -> PUT 
-            | "TRACE" -> TRACE
-            | x -> Method.Custom x
+    // Acc
 
-    let methodToString =
-        fun m -> 
-            match m with
-            | DELETE -> "DELETE" 
-            | HEAD -> "HEAD" 
-            | GET -> "GET" 
-            | OPTIONS -> "OPTIONS"
-            | PATCH -> "PATCH" 
-            | POST -> "POST" 
-            | PUT -> "PUT"  
-            | TRACE -> "TRACE"
-            | Method.Custom x -> x
+    let private acceptFromString =
+        parse accept
 
-    // Protocol
+    let private acceptToString =
+        List.map (fun (x) ->
+            let mediaRange =
+                match x.MediaType with
+                | Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
+                | Partial (PartialMediaRange (MediaType x)) -> sprintf "%s/*" x
+                | Open -> "*/*"
 
-    let protocolFromString =
-        fun s ->
-            match s with
-            | "HTTP/1.0" -> Protocol.HTTP 1.0 
-            | "HTTP/1.1" -> Protocol.HTTP 1.1 
-            | x -> Protocol.Custom x
-            
-    let protocolToString =
-        fun p ->
-            match p with
-            | Protocol.HTTP x -> sprintf "HTTP/%f" x 
-            | Protocol.Custom x -> x
+            let mediaTypeParameters =
+                match x.MediaTypeParameters.Count with
+                | 0 -> ""
+                | _ ->
+                    x.MediaTypeParameters
+                    |> Map.toArray
+                    |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+                    |> Array.rev
+                    |> String.concat ";"
 
-    // Scheme
-            
-    let schemeFromString =
-        fun s ->
-            match s with
-            | "http" -> HTTP 
-            | "https" -> HTTPS 
-            | x -> Custom x
-        
-    let schemeToString =    
-        fun s ->
-            match s with
-            | HTTP -> "http" 
-            | HTTPS -> "https" 
-            | Custom x -> x
+            sprintf "%s%s%s" mediaRange mediaTypeParameters (weightToString x.Weight))
+        >> String.concat ","
 
-    // Query
+    let internal acceptPIso =
+        acceptFromString, acceptToString
 
-    (* TODO: This approach to query strings is probably overly naive and should
-       be replaced ASAP *)
+    // AcceptCharset
 
-    let queryFromString =
-        fun q ->
-            match q with
-            | "" -> 
-                Map.empty
-            | s ->
-                s.Split [| '&' |]
-                |> Array.map (fun x -> x.Split [| '=' |])
-                |> Array.map (fun x -> x.[0], x.[1])
-                |> Map.ofArray
+    let private acceptCharsetFromString =
+        parse acceptCharset
 
-    let queryToString =
-        fun m ->
-            Map.toArray m
-            |> Array.map (fun x -> sprintf "%s=%s" (fst x) (snd x))
-            |> String.concat "&"
+    let private acceptCharsetToString =
+        List.map (fun x ->
+            let charset =
+                match x.Charset with
+                | Charset.Named (NamedCharset x) -> x
+                | Charset.Any -> "*"                    
 
-    // DateTime 
+            sprintf "%s%s" charset (weightToString x.Weight))
+        >> String.concat ","
 
-    let dateTimeFromString d =
+    let internal acceptCharsetPIso =
+        acceptCharsetFromString, acceptCharsetToString
+
+    // AcceptEncoding
+
+    let private acceptEncodingFromString =
+        parse acceptEncoding
+
+    let private acceptEncodingToString =
+        List.map (fun x ->
+            let encoding =
+                match x.Encoding with
+                | Encoding.Named (NamedEncoding x) -> x
+                | Encoding.Identity -> "identity"
+                | Encoding.Any -> "*"                    
+
+            sprintf "%s%s" encoding (weightToString x.Weight)) 
+        >> String.concat ","
+
+    let internal acceptEncodingPIso =
+        acceptEncodingFromString, acceptEncodingToString
+
+    // AcceptLanguage
+
+    let private acceptLanguageFromString =
+        parse acceptLanguage
+
+    let private acceptLanguageToString =
+        List.map (fun x -> sprintf "%s%s" x.Language.Name (weightToString x.Weight)) 
+        >> String.concat ","
+
+    let internal acceptLanguagePIso =
+        acceptLanguageFromString, acceptLanguageToString
+
+    // Box
+
+    let boxIso<'T> : Iso<obj,'T> =
+        unbox<'T>, box
+
+    // DateTime
+
+    let private dateTimeFromString x =
         let format = CultureInfo.InvariantCulture.DateTimeFormat
         let adjustment = DateTimeStyles.AdjustToUniversal
 
-        match DateTime.TryParse (d, format, adjustment) with
-        | true, d -> Some d
+        match DateTime.TryParse (x, format, adjustment) with
+        | true, x -> Some x
         | _ -> None
 
-    let dateTimeToString (d: DateTime) =
-        d.ToUniversalTime().ToString("r")
+    let private dateTimeToString (x: DateTime) =
+        x.ToString("r")
+
+    let internal dateTimePIso =
+        dateTimeFromString, dateTimeToString
+
+    // ETag
+
+    let private eTagFromString =
+        Strong >> Some
+
+    let private eTagToString =
+        function | Strong x -> sprintf "\"%s\"" x
+                    | Weak x -> sprintf "W/\"%s\"" x
+        
+    let internal eTagPIso =
+        eTagFromString, eTagToString
+
+    // Header
+
+    let headerIso =
+        (fun s -> String.concat "," s),
+        (fun s -> [| s |])
+
+    // IfMatch
+
+    let private ifMatchFromString =
+        parse ifMatch
+
+    let private ifMatchToString =
+        function | IfMatch.EntityTags x ->  List.map (snd eTagPIso) x |> String.concat ","
+                 | IfMatch.Any -> "*"
+
+    let internal ifMatchPIso =
+        ifMatchFromString, ifMatchToString
+
+    // IfNoneMatch
+
+    let private ifNoneMatchFromString =
+        parse ifNoneMatch
+
+    let private ifNoneMatchToString =
+        function | IfNoneMatch.EntityTags x -> List.map (snd eTagPIso) x |> String.concat ","
+                 | IfNoneMatch.Any -> "*"
+
+    let internal ifNoneMatchPIso =
+        ifNoneMatchFromString, ifNoneMatchToString
+
+    // Integer
+
+    let private intFromString x =
+        match Int32.TryParse x with
+        | true, x -> Some x
+        | _ -> None
+
+    let internal intPIso =
+        intFromString, string
+
+    // Method
+
+    let private methodFromString =
+        function | "DELETE" -> DELETE 
+                 | "HEAD" -> HEAD 
+                 | "GET" -> GET 
+                 | "OPTIONS" -> OPTIONS
+                 | "PATCH" -> PATCH 
+                 | "POST" -> POST 
+                 | "PUT" -> PUT 
+                 | "TRACE" -> TRACE
+                 | x -> Method.Custom x        
+                     
+    let private methodToString =
+        function | DELETE -> "DELETE" 
+                 | HEAD -> "HEAD" 
+                 | GET -> "GET" 
+                 | OPTIONS -> "OPTIONS"
+                 | PATCH -> "PATCH" 
+                 | POST -> "POST" 
+                 | PUT -> "PUT"  
+                 | TRACE -> "TRACE"
+                 | Method.Custom x -> x
+
+    let internal methodIso =
+        methodFromString, methodToString
+
+    // Protocol
+
+    let private protocolFromString =
+        function | "HTTP/1.0" -> Protocol.HTTP 1.0 
+                 | "HTTP/1.1" -> Protocol.HTTP 1.1 
+                 | x -> Protocol.Custom x
+
+    let private protocolToString =
+        function | Protocol.HTTP x -> sprintf "HTTP/%.2g" x 
+                 | Protocol.Custom x -> x
+
+    let internal protocolIso =
+        protocolFromString, protocolToString
+
+    // Scheme
+
+    let private schemeFromString =
+        function | "http" -> HTTP 
+                 | "https" -> HTTPS 
+                 | x -> Scheme.Custom x
+
+    let private schemeToString =    
+        function | HTTP -> "http"
+                 | HTTPS -> "https" 
+                 | Scheme.Custom x -> x
+
+    let internal schemeIso =
+        schemeFromString, schemeToString
+
+    // Query
+
+    let private queryFromString =
+        function | "" -> Map.empty
+                 | s ->
+                     s.Split [| '&' |]
+                     |> Array.map (fun x -> x.Split [| '=' |])
+                     |> Array.map (fun x -> x.[0], x.[1])
+                     |> Map.ofArray
+
+    let private queryToString =
+        fun m ->
+            Map.toArray m
+            |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+            |> Array.rev
+            |> String.concat "&"
+
+    let internal queryIso =
+        queryFromString, queryToString
 
 
 [<AutoOpen>]
 module Lenses =
-
-    // Boxing
-
-    let boxIso<'T> : Iso<obj,'T> =
-        ((unbox<'T>), box)
-
-    // Dictionary
 
     let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
         (fun d -> d.[k]),
@@ -667,59 +825,7 @@ module Lenses =
 
     let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
         (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-        (fun v d -> d.[k] <- v; d)
-
-    // Request
-
-    let internal methodIso : Iso<string, Method> =
-        (fun s -> methodFromString s), 
-        (fun m -> methodToString m)
-
-    let internal protocolIso : Iso<string, Protocol> =
-        (fun s -> protocolFromString s), 
-        (fun p -> protocolToString p)
-
-    let internal schemeIso : Iso<string, Scheme> =
-        (fun s -> schemeFromString s), 
-        (fun s -> schemeToString s)
-
-    let internal queryIso : Iso<string, Map<string, string>> =
-        (fun q -> queryFromString q),
-        (fun m -> queryToString m)
-
-    // Content Negotiation
-
-    let internal acceptPIso : PIso<string [], Accept list> =
-        (fun s -> parse accept (String.concat "," s)), 
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptCharsetPIso : PIso<string [], AcceptCharset list> =
-        (fun s -> parse acceptCharset (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptEncodingPIso : PIso<string [], AcceptEncoding list> =
-        (fun s -> parse acceptEncoding (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    let internal acceptLanguagePIso : PIso<string [], AcceptLanguage list> =
-        (fun s -> parse acceptLanguage (String.concat "," s)),
-        (fun _ -> Array.ofList [ "test" ])
-
-    // Conditionals
-
-    let internal ifMatchPIso : PIso<string [], IfMatch> =
-        (fun s -> parse ifMatch (String.concat "," s)),
-        (fun _ -> [| "test" |])
-
-    let internal ifNoneMatchPIso : PIso<string [], IfNoneMatch> =
-        (fun s -> parse ifNoneMatch (String.concat "," s)),
-        (fun _ -> [| "test" |])
-
-    // DateTime
-
-    let dateTimePIso : PIso<string [], DateTime> =
-        (fun s -> dateTimeFromString (String.concat "" s)),
-        (fun d -> [| dateTimeToString d |])
+        (fun v d -> d.[k] <- v; d)   
 
 
 [<RequireQualifiedAccess>]
@@ -729,9 +835,12 @@ module Request =
              dictLens Constants.requestBody
         <--> boxIso<Stream>
 
-    let header key =
+    let headers =
              dictLens Constants.requestHeaders
         <--> boxIso<IDictionary<string, string []>>
+
+    let headersKey key =
+             headers
         >-?> dictPLens key
 
     let meth = 
@@ -757,51 +866,205 @@ module Request =
         <--> boxIso<string>
         <--> schemeIso
 
-    let query key =
+    let query =
              dictLens Constants.requestQueryString
         <--> boxIso<string>
         <--> queryIso
+
+    let queryKey key =
+             query
         >-?> mapPLens key
 
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        // Content Negotiation
-
         let accept =
-                 header "Accept"
+                 headersKey "Accept"
+            <?-> headerIso
             <??> acceptPIso
 
         let acceptCharset =
-                 header "Accept-Charset"
+                 headersKey "Accept-Charset"
+            <?-> headerIso
             <??> acceptCharsetPIso
 
         let acceptEncoding =
-                 header "Accept-Encoding"
+                 headersKey "Accept-Encoding"
+            <?-> headerIso
             <??> acceptEncodingPIso
 
         let acceptLanguage =
-                 header "Accept-Language"
+                 headersKey "Accept-Language"
+            <?-> headerIso
             <??> acceptLanguagePIso
 
-        // Conditionals
+        // TODO: typed Authorization
+
+        let authorization =
+                 headersKey "Authorization"
+            <?-> headerIso
+
+        // TODO: typed CacheControl
+
+        let cacheControl =
+                 headersKey "Cache-Control"
+            <?-> headerIso
+
+        // TODO: typed Connection
+
+        let connection =
+                 headersKey "Connection"
+            <?-> headerIso
+
+        // TODO: typed ContentEncoding
+
+        let contentEncoding =
+                 headersKey "Content-Encoding"
+            <?-> headerIso
+
+        // TODO: typed ContentLanguage
+
+        let contentLanguage =
+                 headersKey "Content-Language"
+            <?-> headerIso
+
+        let contentLength =
+                 headersKey "Content-Length"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed ContentLocation
+
+        let contentLocation =
+                 headersKey "Content-Location"
+            <?-> headerIso
+
+        // TODO: typed ContentMD5
+
+        let contentMD5 =
+                 headersKey "Content-MD5"
+            <?-> headerIso
+
+        // TODO: typed ContentType
+
+        let contentType =
+                 headersKey "Content-Type"
+            <?-> headerIso
+
+        let date =
+                 headersKey "Date"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        // TODO: typed Expect
+
+        let expect =
+                 headersKey "Expect"
+            <?-> headerIso
+
+        // TODO: typed From
+
+        let from =
+                 headersKey "From"
+            <?-> headerIso
+
+        // TODO: typed Host
+
+        let host =
+                 headersKey "Host"
+            <?-> headerIso
 
         let ifMatch =
-                 header "If-Match"
+                 headersKey "If-Match"
+            <?-> headerIso
             <??> ifMatchPIso
 
+        let ifModifiedSince =
+                 headersKey "If-Modified-Since"
+            <?-> headerIso
+            <??> dateTimePIso
+
         let ifNoneMatch =
-                 header "If-None-Match"
+                 headersKey "If-None-Match"
+            <?-> headerIso
             <??> ifNoneMatchPIso
 
-        let ifModifiedSince =
-                 header "If-Modified-Since"
-            <??> dateTimePIso
+        // TODO: typed IfRange
+
+        let ifRange =
+                 headersKey "If-Range"
+            <?-> headerIso
 
         let ifUnmodifiedSince =
-                 header "If-Unmodified-Since"
+                 headersKey "If-Unmodified-Since"
+            <?-> headerIso
             <??> dateTimePIso
+
+        let maxForwards =
+                 headersKey "Max-Forwards"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed Pragma
+
+        let pragma =
+                 headersKey "Pragma"
+            <?-> headerIso
+
+        // TODO: typed ProxyAuthorization
+
+        let proxyAuthorization =
+                 headersKey "Proxy-Authorization"
+            <?-> headerIso
+
+        // TODO: typed Range
+
+        let range =
+                 headersKey "Range"
+            <?-> headerIso
+
+        // TODO: typed Referer
+
+        let referer =
+                 headersKey "Referer"
+            <?-> headerIso
+
+        // TODO: typed TE
+
+        let TE =
+                 headersKey "TE"
+            <?-> headerIso
+
+        // TODO: typed Trailer
+
+        let trailer =
+                 headersKey "Trailer"
+            <?-> headerIso
+
+        // TODO: typed TransferEncoding
+
+        let transferEncoding =
+                 headersKey "Transfer-Encoding"
+            <?-> headerIso
+
+        // TODO: typed Upgrade
+
+        let upgrade =
+                 headersKey "Upgrade"
+            <?-> headerIso
+
+        // TODO: typed UserAgent
+
+        let userAgent =
+                 headersKey "User-Agent"
+            <?-> headerIso
+
+        // TODO: typed Via
+
+        let via =
+                 headersKey "Via"
+            <?-> headerIso
 
 
 [<RequireQualifiedAccess>]
@@ -811,9 +1074,12 @@ module Response =
              dictLens Constants.responseBody
         <--> boxIso<Stream>
 
-    let header key =
+    let headers =
              dictLens Constants.responseHeaders
         <--> boxIso<IDictionary<string, string []>>
+
+    let headersKey key =
+             headers
         >-?> dictPLens key
 
     let reasonPhrase =
@@ -823,6 +1089,160 @@ module Response =
     let statusCode =
              dictPLens Constants.responseStatusCode
         <?-> boxIso<int>
+
+
+    [<RequireQualifiedAccess>]
+    module Headers =
+
+        // TODO: typed AcceptRanges
+
+        let acceptRanges =
+                 headersKey "Accept-Ranges"
+            <?-> headerIso
+
+        let age =
+                 headersKey "Age"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed Allow
+
+        let allow =
+                 headersKey "Allo"
+            <?-> headerIso
+
+        // TODO: typed CacheControl
+
+        let cacheControl =
+                 headersKey "Cache-Control"
+            <?-> headerIso
+
+        // TODO: typed Connection
+
+        let connection =
+                 headersKey "Connection"
+            <?-> headerIso
+
+        // TODO: typed ContentEncoding
+
+        let contentEncoding =
+                 headersKey "Content-Encoding"
+            <?-> headerIso
+
+        // TODO: typed ContentLanguage
+
+        let contentLanguage =
+                 headersKey "Content-Language"
+            <?-> headerIso
+
+        let contentLength =
+                 headersKey "Content-Length"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed ContentLocation
+
+        let contentLocation =
+                 headersKey "Content-Location"
+            <?-> headerIso
+
+        // TODO: typed ContentMD5
+
+        let contentMD5 =
+                 headersKey "Content-MD5"
+            <?-> headerIso
+
+        // TODO: typed ContentRange
+
+        let contentRange =
+                 headersKey "Content-Range"
+            <?-> headerIso
+
+        // TODO: typed ContentType
+
+        let contentType =
+                 headersKey "Content-Type"
+            <?-> headerIso
+
+        let date =
+                 headersKey "Date"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let eTag =
+                 headersKey "ETag"
+            <?-> headerIso
+            <??> eTagPIso
+
+        let expires =
+                 headersKey "Expires"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let lastModified =
+                 headersKey "Last-Modified"
+            <?-> headerIso
+            <??> eTagPIso
+
+        // TODO: typed Location
+
+        let location =
+                 headersKey "Location"
+            <?-> headerIso
+
+        // TODO: typed ProxyAuthenticate
+
+        let proxyAuthenticate =
+                 headersKey "Proxy-Authenticate"
+            <?-> headerIso
+
+        // TODO: typed RetryAfter
+
+        let retryAfter =
+                 headersKey "Retry-After"
+            <?-> headerIso
+
+        // TODO: typed Server
+
+        let server =
+                 headersKey "Server"
+            <?-> headerIso
+
+        // TODO: typed Trailer
+
+        let trailer =
+                 headersKey "Trailer"
+            <?-> headerIso
+
+        // TODO: typed TransferEncoding
+
+        let transferEncoding =
+                 headersKey "Transfer-Encoding"
+            <?-> headerIso
+
+        // TODO: typed Upgrade
+
+        let upgrade =
+                 headersKey "Upgrade"
+            <?-> headerIso
+
+        // TODO: typed Vary
+
+        let vary =
+                 headersKey "Vary"
+            <?-> headerIso
+
+        // TODO: typed Warning
+
+        let warning =
+                 headersKey "Warning"
+            <?-> headerIso
+
+        // TODO: typed WWWAuthenticate
+
+        let wwwAuthenticate =
+                 headersKey "WWW-Authenticate"
+            <?-> headerIso
 
 
 [<AutoOpen>]

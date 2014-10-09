@@ -239,8 +239,8 @@ module internal Defaults =
 
     let options =
            operation 200 "Options"
-        *> setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
-        *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
+        *> setPLM (Response.headersKey "Access-Control-Allow-Origin") [| "*" |]
+        *> setPLM (Response.headersKey "Access-Control-Allow-Headers") [| "Content-Type" |]
 
 
 [<AutoOpen>]
@@ -331,7 +331,7 @@ module internal Execution =
        or similar which must take place as part of the execution but does not need
        to be overridden as it will always apply. They are most commonly seen before
        Handler nodes, to make sure that correct header values are set (though the
-       handler could override them). *)
+       handler could override them). Operation nodes cannot be user overridden. *)
 
     and OperationNode =
         { Metadata: Metadata
@@ -1417,7 +1417,7 @@ module Reification =
 
             let! body = execute graph
 
-            do! setPLM (Response.header "Content-Length") [| string body.Length |]
+            do! setPLM Response.Headers.contentLength body.Length
             do! modLM Response.body (fun x -> x.Write (body, 0, body.Length); x)
         
             return Halt }
