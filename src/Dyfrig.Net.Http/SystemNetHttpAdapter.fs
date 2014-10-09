@@ -177,8 +177,7 @@ module SystemNetHttpAdapter =
                     env.ResponseHeaders.[header.Key] <- header.Value |> Seq.toArray
                 // Finally, write the response body content
                 // TODO: Handle the faulted state here.
-                do! response.Content.CopyToAsync(env.ResponseBody).ContinueWith(Func<_, _>(fun _ -> ())) 
-                    |> Async.AwaitTask
+                do! response.Content.CopyToAsync(env.ResponseBody).ContinueWith(Func<_, _>(fun _ -> ())) |> Async.AwaitTask
         }
     
     [<CompiledName("FromAsyncSystemNetHttp")>]
@@ -200,31 +199,3 @@ module SystemNetHttpAdapter =
                 |> Option.get
             async { let! response = handler request |> Async.AwaitTask
                     do! invokeHttpResponseMessage env response } |> Async.StartAsTask :> Task)
-    
-    [<CompiledName("MapResponseToEnvironment")>]
-    let mapResponseToEnvironment (environment : OwinEnv) (response : HttpResponseMessage) = 
-        async { 
-            assert (environment <> null)
-            let env = environment |> toEnvironment
-            // Collect response headers.
-            let headers = Dictionary<string, string []>(StringComparer.Ordinal)
-            for header in response.Headers do
-                headers.[header.Key] <- header.Value |> Seq.toArray
-            // Process response body.
-            let headers', outStream = 
-                if response.Content = null then 
-                    headers.["Content-Length"] <- [| "0" |]
-                    headers, async.Return Stream.Null
-                else 
-                    for header in response.Content.Headers do
-                        headers.[header.Key] <- header.Value |> Seq.toArray
-                    let out = response.Content.ReadAsStreamAsync() |> Async.AwaitTask
-                    headers, out
-            // Create return Environment.
-            let! body = outStream
-            let env' = 
-                env.With(Constants.responseStatusCode, int response.StatusCode)
-                   .With(Constants.responseReasonPhrase, response.ReasonPhrase).With(Constants.responseHeaders, headers)
-                   .With(Constants.responseBody, body)
-            return env' :> OwinEnv
-        }

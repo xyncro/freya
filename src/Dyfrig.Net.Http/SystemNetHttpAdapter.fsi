@@ -34,12 +34,7 @@ module SystemNetHttpAdapter =
     val invokeHttpResponseMessage : environment:OwinEnv -> response:System.Net.Http.HttpResponseMessage -> Async<unit>
     /// Adapts a function of type `HttpRequestMessage -> Async<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromAsyncSystemNetHttp")>]
-    val fromAsyncSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> Async<System.Net.Http.HttpResponseMessage>)
-         -> OwinAppFunc
+    val fromAsyncSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> Async<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc
     /// Adapts a function of type `HttpRequestMessage -> Task<HttpResponseMessage>` to an OWIN handler.
     [<CompiledName("FromSystemNetHttp")>]
-    val fromSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>)
-         -> OwinAppFunc
-    /// Maps an `HttpResponseMessage` to an `Environment`.
-    [<CompiledName("MapResponseToEnvironment")>]
-    val mapResponseToEnvironment : environment:OwinEnv -> response:System.Net.Http.HttpResponseMessage -> Async<OwinEnv>
+    val fromSystemNetHttp : handler:(System.Net.Http.HttpRequestMessage -> System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage>) -> OwinAppFunc
