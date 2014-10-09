@@ -583,238 +583,241 @@ module internal Parsing =
 
 
 [<AutoOpen>]
-module internal Serialization =
+module Isomorphisms =
 
     let private weightToString =
-        Option.map (sprintf ";q=%.3g") >> Option.getOrElse ""
+        Option.map (sprintf ";q=%.4g") >> Option.getOrElse ""
 
-    
-    [<RequireQualifiedAccess>]
-    module Accept =
+    // Acc
 
-        let private fromString =
-            parse accept
+    let private acceptFromString =
+        parse accept
 
-        let private toString _ =
-            ""
+    let private acceptToString =
+        List.map (fun (x) ->
+            let mediaRange =
+                match x.MediaType with
+                | Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
+                | Partial (PartialMediaRange (MediaType x)) -> sprintf "%s/*" x
+                | Open -> "*/*"
 
-        let iso =
-            fromString, toString
+            let mediaTypeParameters =
+                match x.MediaTypeParameters.Count with
+                | 0 -> ""
+                | _ ->
+                    x.MediaTypeParameters
+                    |> Map.toArray
+                    |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+                    |> Array.rev
+                    |> String.concat ";"
 
+            sprintf "%s%s%s" mediaRange mediaTypeParameters (weightToString x.Weight))
+        >> String.concat ","
 
-    [<RequireQualifiedAccess>]
-    module AcceptCharset =
+    let internal acceptPIso =
+        acceptFromString, acceptToString
 
-        let private fromString =
-            parse acceptCharset
+    // AcceptCharset
 
-        let private toString =
-            List.map (fun x ->
-                let charset =
-                    match x.Charset with
-                    | Charset.Named (NamedCharset x) -> x
-                    | Charset.Any -> "*"                    
+    let private acceptCharsetFromString =
+        parse acceptCharset
 
-                sprintf "%s%s" charset (weightToString x.Weight))
-            >> String.concat ","
+    let private acceptCharsetToString =
+        List.map (fun x ->
+            let charset =
+                match x.Charset with
+                | Charset.Named (NamedCharset x) -> x
+                | Charset.Any -> "*"                    
 
-        let iso =
-            fromString, toString
+            sprintf "%s%s" charset (weightToString x.Weight))
+        >> String.concat ","
 
+    let internal acceptCharsetPIso =
+        acceptCharsetFromString, acceptCharsetToString
 
-    [<RequireQualifiedAccess>]
-    module AcceptEncoding =
+    // AcceptEncoding
 
-        let private fromString =
-            parse acceptEncoding
+    let private acceptEncodingFromString =
+        parse acceptEncoding
 
-        let private toString =
-            List.map (fun x ->
-                let encoding =
-                    match x.Encoding with
-                    | Encoding.Named (NamedEncoding x) -> x
-                    | Encoding.Identity -> "identity"
-                    | Encoding.Any -> "*"                    
+    let private acceptEncodingToString =
+        List.map (fun x ->
+            let encoding =
+                match x.Encoding with
+                | Encoding.Named (NamedEncoding x) -> x
+                | Encoding.Identity -> "identity"
+                | Encoding.Any -> "*"                    
 
-                sprintf "%s%s" encoding (weightToString x.Weight)) 
-            >> String.concat ","
+            sprintf "%s%s" encoding (weightToString x.Weight)) 
+        >> String.concat ","
 
-        let iso =
-            fromString, toString
+    let internal acceptEncodingPIso =
+        acceptEncodingFromString, acceptEncodingToString
 
+    // AcceptLanguage
 
-    [<RequireQualifiedAccess>]
-    module AcceptLanguage =
+    let private acceptLanguageFromString =
+        parse acceptLanguage
 
-        let private fromString =
-            parse acceptLanguage
+    let private acceptLanguageToString =
+        List.map (fun x -> sprintf "%s%s" x.Language.Name (weightToString x.Weight)) 
+        >> String.concat ","
 
-        let private toString =
-            List.map (fun x -> sprintf "%s%s" x.Language.Name (weightToString x.Weight)) 
-            >> String.concat ","
+    let internal acceptLanguagePIso =
+        acceptLanguageFromString, acceptLanguageToString
 
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module DateTime =
-
-        let private fromString x =
-            let format = CultureInfo.InvariantCulture.DateTimeFormat
-            let adjustment = DateTimeStyles.AdjustToUniversal
-
-            match DateTime.TryParse (x, format, adjustment) with
-            | true, x -> Some x
-            | _ -> None
-
-        let private toString (x: DateTime) =
-            x.ToString("r")
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module IfMatch =
-
-        let private fromString =
-            parse ifMatch
-
-        let private toString =
-            function 
-            | IfMatch.EntityTags entityTags -> 
-                entityTags
-                |> List.map (fun (Strong x | Weak x) -> sprintf "\"%s\"" x) 
-                |> String.concat ","
-            | IfMatch.Any -> "*"
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module IfNoneMatch =
-
-        let private fromString =
-            parse ifNoneMatch
-
-        let private toString =
-            function 
-            | IfNoneMatch.EntityTags entityTags -> 
-                entityTags
-                |> List.map (fun (Strong x | Weak x) -> sprintf "\"%s\"" x) 
-                |> String.concat ","
-            | IfNoneMatch.Any -> "*"
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module MaxForwards =
-
-        let private fromString x =
-            match Int32.TryParse x with
-            | true, x -> Some x
-            | _ -> None
-
-        let iso =
-            fromString, string
-
-
-    [<RequireQualifiedAccess>]
-    module Method =
-
-        let private fromString =
-            function | "DELETE" -> DELETE 
-                     | "HEAD" -> HEAD 
-                     | "GET" -> GET 
-                     | "OPTIONS" -> OPTIONS
-                     | "PATCH" -> PATCH 
-                     | "POST" -> POST 
-                     | "PUT" -> PUT 
-                     | "TRACE" -> TRACE
-                     | x -> Method.Custom x        
-                     
-        let private toString =
-            function | DELETE -> "DELETE" 
-                     | HEAD -> "HEAD" 
-                     | GET -> "GET" 
-                     | OPTIONS -> "OPTIONS"
-                     | PATCH -> "PATCH" 
-                     | POST -> "POST" 
-                     | PUT -> "PUT"  
-                     | TRACE -> "TRACE"
-                     | Method.Custom x -> x
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module Protocol =
-
-        let private fromString =
-            function | "HTTP/1.0" -> Protocol.HTTP 1.0 
-                     | "HTTP/1.1" -> Protocol.HTTP 1.1 
-                     | x -> Protocol.Custom x
-
-        let private toString =
-            function | Protocol.HTTP x -> sprintf "HTTP/%f" x 
-                     | Protocol.Custom x -> x
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module Scheme =
-
-        let private fromString =
-            function | "http" -> HTTP 
-                     | "https" -> HTTPS 
-                     | x -> Scheme.Custom x
-
-        let private toString =    
-            function | HTTP -> "http"
-                     | HTTPS -> "https" 
-                     | Scheme.Custom x -> x
-
-        let iso =
-            fromString, toString
-
-
-    [<RequireQualifiedAccess>]
-    module Query =
-
-        let private fromString =
-            function | "" -> Map.empty
-                     | s ->
-                         s.Split [| '&' |]
-                         |> Array.map (fun x -> x.Split [| '=' |])
-                         |> Array.map (fun x -> x.[0], x.[1])
-                         |> Map.ofArray
-
-        let private toString =
-            fun m ->
-                Map.toArray m
-                |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
-                |> String.concat "&"
-
-        let iso =
-            fromString, toString
-
-
-[<AutoOpen>]
-module Lenses =
-
-    // Boxing
+    // Box
 
     let boxIso<'T> : Iso<obj,'T> =
         unbox<'T>, box
 
-    // Dictionary
+    // DateTime
+
+    let private dateTimeFromString x =
+        let format = CultureInfo.InvariantCulture.DateTimeFormat
+        let adjustment = DateTimeStyles.AdjustToUniversal
+
+        match DateTime.TryParse (x, format, adjustment) with
+        | true, x -> Some x
+        | _ -> None
+
+    let private dateTimeToString (x: DateTime) =
+        x.ToString("r")
+
+    let internal dateTimePIso =
+        dateTimeFromString, dateTimeToString
+
+    // ETag
+
+    let private eTagFromString =
+        Strong >> Some
+
+    let private eTagToString =
+        function | Strong x -> sprintf "\"%s\"" x
+                    | Weak x -> sprintf "W/\"%s\"" x
+        
+    let internal eTagPIso =
+        eTagFromString, eTagToString
+
+    // Header
+
+    let headerIso =
+        (fun s -> String.concat "," s),
+        (fun s -> [| s |])
+
+    // IfMatch
+
+    let private ifMatchFromString =
+        parse ifMatch
+
+    let private ifMatchToString =
+        function | IfMatch.EntityTags x ->  List.map (snd eTagPIso) x |> String.concat ","
+                 | IfMatch.Any -> "*"
+
+    let internal ifMatchPIso =
+        ifMatchFromString, ifMatchToString
+
+    // IfNoneMatch
+
+    let private ifNoneMatchFromString =
+        parse ifNoneMatch
+
+    let private ifNoneMatchToString =
+        function | IfNoneMatch.EntityTags x -> List.map (snd eTagPIso) x |> String.concat ","
+                 | IfNoneMatch.Any -> "*"
+
+    let internal ifNoneMatchPIso =
+        ifNoneMatchFromString, ifNoneMatchToString
+
+    // Integer
+
+    let private intFromString x =
+        match Int32.TryParse x with
+        | true, x -> Some x
+        | _ -> None
+
+    let internal intPIso =
+        intFromString, string
+
+    // Method
+
+    let private methodFromString =
+        function | "DELETE" -> DELETE 
+                 | "HEAD" -> HEAD 
+                 | "GET" -> GET 
+                 | "OPTIONS" -> OPTIONS
+                 | "PATCH" -> PATCH 
+                 | "POST" -> POST 
+                 | "PUT" -> PUT 
+                 | "TRACE" -> TRACE
+                 | x -> Method.Custom x        
+                     
+    let private methodToString =
+        function | DELETE -> "DELETE" 
+                 | HEAD -> "HEAD" 
+                 | GET -> "GET" 
+                 | OPTIONS -> "OPTIONS"
+                 | PATCH -> "PATCH" 
+                 | POST -> "POST" 
+                 | PUT -> "PUT"  
+                 | TRACE -> "TRACE"
+                 | Method.Custom x -> x
+
+    let internal methodIso =
+        methodFromString, methodToString
+
+    // Protocol
+
+    let private protocolFromString =
+        function | "HTTP/1.0" -> Protocol.HTTP 1.0 
+                 | "HTTP/1.1" -> Protocol.HTTP 1.1 
+                 | x -> Protocol.Custom x
+
+    let private protocolToString =
+        function | Protocol.HTTP x -> sprintf "HTTP/%.2g" x 
+                 | Protocol.Custom x -> x
+
+    let internal protocolIso =
+        protocolFromString, protocolToString
+
+    // Scheme
+
+    let private schemeFromString =
+        function | "http" -> HTTP 
+                 | "https" -> HTTPS 
+                 | x -> Scheme.Custom x
+
+    let private schemeToString =    
+        function | HTTP -> "http"
+                 | HTTPS -> "https" 
+                 | Scheme.Custom x -> x
+
+    let internal schemeIso =
+        schemeFromString, schemeToString
+
+    // Query
+
+    let private queryFromString =
+        function | "" -> Map.empty
+                 | s ->
+                     s.Split [| '&' |]
+                     |> Array.map (fun x -> x.Split [| '=' |])
+                     |> Array.map (fun x -> x.[0], x.[1])
+                     |> Map.ofArray
+
+    let private queryToString =
+        fun m ->
+            Map.toArray m
+            |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+            |> Array.rev
+            |> String.concat "&"
+
+    let internal queryIso =
+        queryFromString, queryToString
+
+
+[<AutoOpen>]
+module Lenses =
 
     let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
         (fun d -> d.[k]),
@@ -822,13 +825,7 @@ module Lenses =
 
     let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
         (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-        (fun v d -> d.[k] <- v; d)
-
-    // Headers
-
-    let headerIso : Iso<string [], string> =
-        (fun s -> String.concat "," s),
-        (fun s -> [| s |])
+        (fun v d -> d.[k] <- v; d)   
 
 
 [<RequireQualifiedAccess>]
@@ -838,15 +835,18 @@ module Request =
              dictLens Constants.requestBody
         <--> boxIso<Stream>
 
-    let header key =
+    let headers =
              dictLens Constants.requestHeaders
         <--> boxIso<IDictionary<string, string []>>
+
+    let headersKey key =
+             headers
         >-?> dictPLens key
 
     let meth = 
              dictLens Constants.requestMethod
         <--> boxIso<string>
-        <--> Method.iso
+        <--> methodIso
 
     let path = 
              dictLens Constants.requestPath
@@ -856,85 +856,215 @@ module Request =
              dictLens Constants.requestPathBase
         <--> boxIso<string>
 
-    let protocol : Lens<OwinEnv, Protocol> =
+    let protocol =
              dictLens Constants.requestProtocol
         <--> boxIso<string>
-        <--> Protocol.iso
+        <--> protocolIso
 
-    let scheme : Lens<OwinEnv, Scheme> = 
+    let scheme = 
              dictLens Constants.requestScheme
         <--> boxIso<string>
-        <--> Scheme.iso
+        <--> schemeIso
 
-    let query key =
+    let query =
              dictLens Constants.requestQueryString
         <--> boxIso<string>
-        <--> Query.iso
+        <--> queryIso
+
+    let queryKey key =
+             query
         >-?> mapPLens key
 
 
     [<RequireQualifiedAccess>]
-    module Conditionals =
-
-        let ifMatch =
-                 header "If-Match"
-            <?-> headerIso
-            <??> IfMatch.iso
-
-        let ifNoneMatch =
-                 header "If-None-Match"
-            <?-> headerIso
-            <??> IfNoneMatch.iso
-
-        let ifModifiedSince =
-                 header "If-Modified-Since"
-            <?-> headerIso
-            <??> DateTime.iso
-
-        let ifUnmodifiedSince =
-                 header "If-Unmodified-Since"
-            <?-> headerIso
-            <??> DateTime.iso
-
-
-    [<RequireQualifiedAccess>]
-    module ContentNegotiation =
+    module Headers =
 
         let accept =
-                 header "Accept"
+                 headersKey "Accept"
             <?-> headerIso
-            <??> Accept.iso
+            <??> acceptPIso
 
         let acceptCharset =
-                 header "Accept-Charset"
+                 headersKey "Accept-Charset"
             <?-> headerIso
-            <??> AcceptCharset.iso
+            <??> acceptCharsetPIso
 
         let acceptEncoding =
-                 header "Accept-Encoding"
+                 headersKey "Accept-Encoding"
             <?-> headerIso
-            <??> AcceptEncoding.iso
+            <??> acceptEncodingPIso
 
         let acceptLanguage =
-                 header "Accept-Language"
+                 headersKey "Accept-Language"
             <?-> headerIso
-            <??> AcceptLanguage.iso
+            <??> acceptLanguagePIso
 
+        // TODO: typed Authorization
 
-    [<RequireQualifiedAccess>]
-    module Controls =
+        let authorization =
+                 headersKey "Authorization"
+            <?-> headerIso
 
-        // TODO: Investigate a strongly typed
-        // abstraction over a Host value.
+        // TODO: typed CacheControl
+
+        let cacheControl =
+                 headersKey "Cache-Control"
+            <?-> headerIso
+
+        // TODO: typed Connection
+
+        let connection =
+                 headersKey "Connection"
+            <?-> headerIso
+
+        // TODO: typed ContentEncoding
+
+        let contentEncoding =
+                 headersKey "Content-Encoding"
+            <?-> headerIso
+
+        // TODO: typed ContentLanguage
+
+        let contentLanguage =
+                 headersKey "Content-Language"
+            <?-> headerIso
+
+        let contentLength =
+                 headersKey "Content-Length"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed ContentLocation
+
+        let contentLocation =
+                 headersKey "Content-Location"
+            <?-> headerIso
+
+        // TODO: typed ContentMD5
+
+        let contentMD5 =
+                 headersKey "Content-MD5"
+            <?-> headerIso
+
+        // TODO: typed ContentType
+
+        let contentType =
+                 headersKey "Content-Type"
+            <?-> headerIso
+
+        let date =
+                 headersKey "Date"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        // TODO: typed Expect
+
+        let expect =
+                 headersKey "Expect"
+            <?-> headerIso
+
+        // TODO: typed From
+
+        let from =
+                 headersKey "From"
+            <?-> headerIso
+
+        // TODO: typed Host
 
         let host =
-            header "Host"
+                 headersKey "Host"
             <?-> headerIso
 
-        let maxForwards =
-            header "Max-Forwards"
+        let ifMatch =
+                 headersKey "If-Match"
             <?-> headerIso
-            <??> MaxForwards.iso
+            <??> ifMatchPIso
+
+        let ifModifiedSince =
+                 headersKey "If-Modified-Since"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let ifNoneMatch =
+                 headersKey "If-None-Match"
+            <?-> headerIso
+            <??> ifNoneMatchPIso
+
+        // TODO: typed IfRange
+
+        let ifRange =
+                 headersKey "If-Range"
+            <?-> headerIso
+
+        let ifUnmodifiedSince =
+                 headersKey "If-Unmodified-Since"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let maxForwards =
+                 headersKey "Max-Forwards"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed Pragma
+
+        let pragma =
+                 headersKey "Pragma"
+            <?-> headerIso
+
+        // TODO: typed ProxyAuthorization
+
+        let proxyAuthorization =
+                 headersKey "Proxy-Authorization"
+            <?-> headerIso
+
+        // TODO: typed Range
+
+        let range =
+                 headersKey "Range"
+            <?-> headerIso
+
+        // TODO: typed Referer
+
+        let referer =
+                 headersKey "Referer"
+            <?-> headerIso
+
+        // TODO: typed TE
+
+        let TE =
+                 headersKey "TE"
+            <?-> headerIso
+
+        // TODO: typed Trailer
+
+        let trailer =
+                 headersKey "Trailer"
+            <?-> headerIso
+
+        // TODO: typed TransferEncoding
+
+        let transferEncoding =
+                 headersKey "Transfer-Encoding"
+            <?-> headerIso
+
+        // TODO: typed Upgrade
+
+        let upgrade =
+                 headersKey "Upgrade"
+            <?-> headerIso
+
+        // TODO: typed UserAgent
+
+        let userAgent =
+                 headersKey "User-Agent"
+            <?-> headerIso
+
+        // TODO: typed Via
+
+        let via =
+                 headersKey "Via"
+            <?-> headerIso
 
 
 [<RequireQualifiedAccess>]
@@ -944,9 +1074,12 @@ module Response =
              dictLens Constants.responseBody
         <--> boxIso<Stream>
 
-    let header key =
+    let headers =
              dictLens Constants.responseHeaders
         <--> boxIso<IDictionary<string, string []>>
+
+    let headersKey key =
+             headers
         >-?> dictPLens key
 
     let reasonPhrase =
@@ -956,6 +1089,160 @@ module Response =
     let statusCode =
              dictPLens Constants.responseStatusCode
         <?-> boxIso<int>
+
+
+    [<RequireQualifiedAccess>]
+    module Headers =
+
+        // TODO: typed AcceptRanges
+
+        let acceptRanges =
+                 headersKey "Accept-Ranges"
+            <?-> headerIso
+
+        let age =
+                 headersKey "Age"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed Allow
+
+        let allow =
+                 headersKey "Allo"
+            <?-> headerIso
+
+        // TODO: typed CacheControl
+
+        let cacheControl =
+                 headersKey "Cache-Control"
+            <?-> headerIso
+
+        // TODO: typed Connection
+
+        let connection =
+                 headersKey "Connection"
+            <?-> headerIso
+
+        // TODO: typed ContentEncoding
+
+        let contentEncoding =
+                 headersKey "Content-Encoding"
+            <?-> headerIso
+
+        // TODO: typed ContentLanguage
+
+        let contentLanguage =
+                 headersKey "Content-Language"
+            <?-> headerIso
+
+        let contentLength =
+                 headersKey "Content-Length"
+            <?-> headerIso
+            <??> intPIso
+
+        // TODO: typed ContentLocation
+
+        let contentLocation =
+                 headersKey "Content-Location"
+            <?-> headerIso
+
+        // TODO: typed ContentMD5
+
+        let contentMD5 =
+                 headersKey "Content-MD5"
+            <?-> headerIso
+
+        // TODO: typed ContentRange
+
+        let contentRange =
+                 headersKey "Content-Range"
+            <?-> headerIso
+
+        // TODO: typed ContentType
+
+        let contentType =
+                 headersKey "Content-Type"
+            <?-> headerIso
+
+        let date =
+                 headersKey "Date"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let eTag =
+                 headersKey "ETag"
+            <?-> headerIso
+            <??> eTagPIso
+
+        let expires =
+                 headersKey "Expires"
+            <?-> headerIso
+            <??> dateTimePIso
+
+        let lastModified =
+                 headersKey "Last-Modified"
+            <?-> headerIso
+            <??> eTagPIso
+
+        // TODO: typed Location
+
+        let location =
+                 headersKey "Location"
+            <?-> headerIso
+
+        // TODO: typed ProxyAuthenticate
+
+        let proxyAuthenticate =
+                 headersKey "Proxy-Authenticate"
+            <?-> headerIso
+
+        // TODO: typed RetryAfter
+
+        let retryAfter =
+                 headersKey "Retry-After"
+            <?-> headerIso
+
+        // TODO: typed Server
+
+        let server =
+                 headersKey "Server"
+            <?-> headerIso
+
+        // TODO: typed Trailer
+
+        let trailer =
+                 headersKey "Trailer"
+            <?-> headerIso
+
+        // TODO: typed TransferEncoding
+
+        let transferEncoding =
+                 headersKey "Transfer-Encoding"
+            <?-> headerIso
+
+        // TODO: typed Upgrade
+
+        let upgrade =
+                 headersKey "Upgrade"
+            <?-> headerIso
+
+        // TODO: typed Vary
+
+        let vary =
+                 headersKey "Vary"
+            <?-> headerIso
+
+        // TODO: typed Warning
+
+        let warning =
+                 headersKey "Warning"
+            <?-> headerIso
+
+        // TODO: typed WWWAuthenticate
+
+        let wwwAuthenticate =
+                 headersKey "WWW-Authenticate"
+            <?-> headerIso
 
 
 [<AutoOpen>]

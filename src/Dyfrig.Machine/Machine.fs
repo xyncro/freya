@@ -239,8 +239,8 @@ module internal Defaults =
 
     let options =
            operation 200 "Options"
-        *> setPLM (Response.header "Access-Control-Allow-Origin") [| "*" |]
-        *> setPLM (Response.header "Access-Control-Allow-Headers") [| "Content-Type" |]
+        *> setPLM (Response.headersKey "Access-Control-Allow-Origin") [| "*" |]
+        *> setPLM (Response.headersKey "Access-Control-Allow-Headers") [| "Content-Type" |]
 
 
 [<AutoOpen>]
@@ -401,7 +401,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.ContentNegotiation.accept
+                     Decision = Option.isSome <!> getPLM Request.Headers.accept
                      True = D.MediaTypeNegotiable
                      False = D.RequestAcceptLanguageExists }
                      
@@ -411,7 +411,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.ContentNegotiation.acceptCharset
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptCharset
                      True = D.CharsetNegotiable
                      False = D.RequestAcceptEncodingExists }
 
@@ -421,7 +421,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.ContentNegotiation.acceptEncoding
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptEncoding
                      True = D.EncodingNegotiable
                      False = D.RequestProcessable }
 
@@ -431,7 +431,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.ContentNegotiation.acceptLanguage
+                     Decision = Option.isSome <!> getPLM Request.Headers.acceptLanguage
                      True = D.LanguageNegotiable
                      False = D.RequestAcceptCharsetExists }
 
@@ -441,7 +441,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Conditionals.ifMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
                      True = D.RequestIfMatchStar
                      False = D.IfUnmodifiedSinceExists }
 
@@ -451,7 +451,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = (=) (Some IfMatch.Any) <!> getPLM Request.Conditionals.ifMatch
+                     Decision = (=) (Some IfMatch.Any) <!> getPLM Request.Headers.ifMatch
                      True = D.IfUnmodifiedSinceExists
                      False = D.ResourceETagMatchesIf }
 
@@ -461,7 +461,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Conditionals.ifMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifMatch
                      True = O.PrePreconditionFailed
                      False = D.MethodPut }
 
@@ -471,7 +471,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Conditionals.ifModifiedSince
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifModifiedSince
                      True = D.RequestIfModifiedSinceValidDate
                      False = D.MethodDelete }
 
@@ -483,7 +483,7 @@ module internal Execution =
                          Overridden = false }
                      Decision = 
                             Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false 
-                        <!> getPLM Request.Conditionals.ifModifiedSince
+                        <!> getPLM Request.Headers.ifModifiedSince
                      True = D.ResourceModifiedSince
                      False = D.MethodDelete }
 
@@ -503,7 +503,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Conditionals.ifNoneMatch
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifNoneMatch
                      True = D.IfNoneMatchStar
                      False = D.RequestIfModifiedSinceExists }
 
@@ -513,7 +513,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = (=) (Some IfNoneMatch.Any) <!> getPLM Request.Conditionals.ifNoneMatch 
+                     Decision = (=) (Some IfNoneMatch.Any) <!> getPLM Request.Headers.ifNoneMatch 
                      True = D.IfNoneMatch
                      False = D.ResourceETagMatchesIfNone }
 
@@ -523,7 +523,7 @@ module internal Execution =
                      Override =
                        { AllowOverride = false
                          Overridden = false }
-                     Decision = Option.isSome <!> getPLM Request.Conditionals.ifUnmodifiedSince
+                     Decision = Option.isSome <!> getPLM Request.Headers.ifUnmodifiedSince
                      True = D.IfUnmodifiedSinceValidDate
                      False = D.IfNoneMatchExists }
 
@@ -535,7 +535,7 @@ module internal Execution =
                          Overridden = false }
                      Decision = 
                             Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false
-                        <!> getPLM Request.Conditionals.ifUnmodifiedSince 
+                        <!> getPLM Request.Headers.ifUnmodifiedSince 
                      True = D.ResourceUnmodifiedSince
                      False = D.IfNoneMatchExists }
 
@@ -687,7 +687,7 @@ module internal Execution =
                      Decision =
                              (fun a r -> Option.isSome (negotiateCharset a r))
                          <!> (Option.getOrElse charsetsAvailable <!> getPLM (defPLens >??> configPLens C.CharsetsAvailable))
-                         <*> (Option.get <!> getPLM Request.ContentNegotiation.acceptCharset)
+                         <*> (Option.get <!> getPLM Request.Headers.acceptCharset)
                      True = D.RequestAcceptEncodingExists
                      False = O.PreNotAcceptable }
                       
@@ -750,7 +750,7 @@ module internal Execution =
                      Decision =
                              (fun a r -> Option.isSome (negotiateEncoding a r))
                          <!> (Option.getOrElse encodingsAvailable <!> getPLM (defPLens >??> configPLens C.EncodingsAvailable))
-                         <*> (Option.get <!> getPLM Request.ContentNegotiation.acceptEncoding)
+                         <*> (Option.get <!> getPLM Request.Headers.acceptEncoding)
                      True = D.RequestProcessable
                      False = O.PreNotAcceptable }
                       
@@ -816,7 +816,7 @@ module internal Execution =
                      Decision =
                              (fun a r -> Option.isSome (negotiateLanguage a r))
                          <!> (Option.getOrElse languagesAvailable <!> getPLM (defPLens >??> configPLens C.LanguagesAvailable))
-                         <*> (Option.get <!> getPLM Request.ContentNegotiation.acceptLanguage)
+                         <*> (Option.get <!> getPLM Request.Headers.acceptLanguage)
                      True = D.RequestAcceptCharsetExists
                      False = O.PreNotAcceptable }
                       
@@ -839,7 +839,7 @@ module internal Execution =
                      Decision =
                             (fun a r -> Option.isSome (negotiateAccept a r))
                         <!> (Option.getOrElse mediaTypesAvailable <!> getPLM (defPLens >??> configPLens C.MediaTypesAvailable))
-                        <*> (Option.get <!> getPLM Request.ContentNegotiation.accept)
+                        <*> (Option.get <!> getPLM Request.Headers.accept)
                      True = D.RequestAcceptLanguageExists
                      False = O.PreNotAcceptable }
                       
@@ -1417,7 +1417,7 @@ module Reification =
 
             let! body = execute graph
 
-            do! setPLM (Response.header "Content-Length") [| string body.Length |]
+            do! setPLM Response.Headers.contentLength body.Length
             do! modLM Response.body (fun x -> x.Write (body, 0, body.Length); x)
         
             return Halt }

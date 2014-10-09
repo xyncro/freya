@@ -11,6 +11,7 @@ open Dyfrig.Core
 open Dyfrig.Http
 
 
+[<AutoOpen>]
 module Read =
 
     let getT (k, v) f =
@@ -30,6 +31,7 @@ module Read =
         |> fst
 
 
+[<AutoOpen>]
 module Write =
 
     let setT f k =
@@ -46,13 +48,10 @@ module Write =
 
         Async.RunSynchronously (f env) 
         |> snd 
-        |> getPL (Request.header k <?-> headerIso)
+        |> getPL (Request.headersKey k <?-> headerIso)
 
 
 module Lenses =
-
-    open Read
-    open Write
 
     [<Test>]
     let ``Request.meth`` () =
@@ -74,32 +73,99 @@ module Lenses =
 
     [<Test>]
     let ``Request.path`` () =
-        getT (Constants.requestPath, "/some/path") (getLM Request.path) =? "/some/path"
+        let path = "/some/path"
+
+        let get =
+            getT 
+                (Constants.requestPath, path) 
+                (getLM Request.path)
+
+        let set =
+            setT
+                (setLM Request.path path)
+                Constants.requestPath
+
+        get =? path
+        set =? path
 
     [<Test>]
     let ``Request.pathBase`` () =
-        getT (Constants.requestPathBase, "") (getLM Request.pathBase) =? ""
+        let pathBase = "/home"
+
+        let get =
+            getT 
+                (Constants.requestPathBase, pathBase) 
+                (getLM Request.pathBase)
+
+        let set =
+            setT
+                (setLM Request.pathBase pathBase)
+                Constants.requestPathBase
+
+        get =? pathBase
+        set =? pathBase
 
     [<Test>]
     let ``Request.protocol`` () =
-        getT (Constants.requestProtocol, "HTTP/1.0") (getLM Request.protocol) =? Protocol.HTTP 1.0
-        getT (Constants.requestProtocol, "HTTP/1.1") (getLM Request.protocol) =? Protocol.HTTP 1.1
-        getT (Constants.requestProtocol, "Other") (getLM Request.protocol) =? Protocol.Custom "Other"
+        let protocolTyped = Protocol.HTTP 1.1
+        let protocolString = "HTTP/1.1"
+
+        let get = 
+            getT
+                (Constants.requestProtocol, protocolString)
+                (getLM Request.protocol)
+
+        let set =
+            setT
+                (setLM Request.protocol protocolTyped)
+                Constants.requestProtocol
+
+        get =? protocolTyped
+        set =? protocolString
 
     [<Test>]
     let ``Request.query`` () =
-        let getT' = getT (Constants.requestQueryString, "foo=bar&baz=boz")
+        let queryTyped =
+            Map.ofList 
+                [ "foo", "bar"
+                  "baz", "boz" ]
 
-        getT' (getPLM (Request.query "foo")) =? Some "bar"
-        getT' (getPLM (Request.query "baz")) =? Some "boz"
-        getT' (getPLM (Request.query "qux")) =? None
+        let queryString =
+            "foo=bar&baz=boz"
+
+        let get = 
+            getT 
+                (Constants.requestQueryString, queryString)
+                (getLM Request.query)
+
+        let set =
+            setT
+                (setLM Request.query queryTyped)
+                Constants.requestQueryString
+
+        get =? queryTyped
+        set =? queryString
 
     [<Test>]
     let ``Request.scheme`` () =
-        getT (Constants.requestScheme, "http") (getLM Request.scheme) =? Scheme.HTTP
+        let schemeTyped = Scheme.HTTP
+        let schemeString = "http"
+
+        let get = 
+            getT
+                (Constants.requestScheme, schemeString)
+                (getLM Request.scheme)
+
+        let set =
+            setT
+                (setLM Request.scheme schemeTyped)
+                Constants.requestScheme
+
+        get =? schemeTyped
+        set =? schemeString
 
     [<Test>]
-    let ``Request.Conditionals.ifMatch`` () =
+    let ``Request.Headers.ifMatch`` () =
         let ifMatchTyped =
             IfMatch.EntityTags 
                 [ Strong "xyzzy"
@@ -112,18 +178,18 @@ module Lenses =
         let get = 
             getRequestHeaderT
                 ("If-Match", ifMatchString)
-                (getPLM Request.Conditionals.ifMatch)
+                (getPLM Request.Headers.ifMatch)
 
         let set =
             setRequestHeaderT
-                (setPLM Request.Conditionals.ifMatch ifMatchTyped)
+                (setPLM Request.Headers.ifMatch ifMatchTyped)
                 "If-Match"
 
         get.Value =? ifMatchTyped
         set.Value =? ifMatchString
 
     [<Test>]
-    let ``Request.Conditionals.ifNoneMatch`` () =
+    let ``Request.Headers.ifNoneMatch`` () =
         let ifNoneMatchTyped =
             IfNoneMatch.EntityTags 
                 [ Strong "xyzzy"
@@ -136,89 +202,86 @@ module Lenses =
         let get = 
             getRequestHeaderT
                 ("If-None-Match", ifNoneMatchString)
-                (getPLM Request.Conditionals.ifNoneMatch)
+                (getPLM Request.Headers.ifNoneMatch)
 
         let set =
             setRequestHeaderT
-                (setPLM Request.Conditionals.ifNoneMatch ifNoneMatchTyped)
+                (setPLM Request.Headers.ifNoneMatch ifNoneMatchTyped)
                 "If-None-Match"
 
         get.Value =? ifNoneMatchTyped
         set.Value =? ifNoneMatchString
 
     [<Test>]
-    let ``Request.Conditionals.ifModifiedSince`` () =
+    let ``Request.Headers.ifModifiedSince`` () =
         let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
         let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
 
         let get =
             getRequestHeaderT
                 ("If-Modified-Since", dateString)
-                (getPLM Request.Conditionals.ifModifiedSince)
+                (getPLM Request.Headers.ifModifiedSince)
 
         let set =
             setRequestHeaderT
-                (setPLM Request.Conditionals.ifModifiedSince dateTyped)
+                (setPLM Request.Headers.ifModifiedSince dateTyped)
                 "If-Modified-Since"
 
         get.Value =? dateTyped
         set.Value =? dateString
 
     [<Test>]
-    let ``Request.Conditionals.ifUnmodifiedSince`` () =
+    let ``Request.Headers.ifUnmodifiedSince`` () =
         let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
         let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
 
         let get =
             getRequestHeaderT
                 ("If-Unmodified-Since", dateString)
-                (getPLM Request.Conditionals.ifUnmodifiedSince)
+                (getPLM Request.Headers.ifUnmodifiedSince)
 
         let set =
             setRequestHeaderT
-                (setPLM Request.Conditionals.ifUnmodifiedSince dateTyped)
+                (setPLM Request.Headers.ifUnmodifiedSince dateTyped)
                 "If-Unmodified-Since"
 
         get.Value =? dateTyped
         set.Value =? dateString
 
     [<Test>]
-    let ``Request.ContentNegotiation.accept`` () =
-        let x = 
+    let ``Request.Headers.accept`` () =
+        let acceptTyped =
+            [ { MediaType = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+                MediaTypeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.8 }
+              { MediaType = MediaRange.Partial (PartialMediaRange  (MediaType "text"))
+                MediaTypeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.7 }
+              { MediaType = MediaRange.Open
+                MediaTypeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.5 } ]
+
+        let acceptString =
+            "application/json;q=0.8,text/*;q=0.7,*/*;q=0.5"
+
+        let get = 
             getRequestHeaderT 
-                ("Accept", "text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c") 
-                (getPLM Request.ContentNegotiation.accept)
+                ("Accept", acceptString) 
+                (getPLM Request.Headers.accept)
 
-        x.IsSome =? true
-        x.Value.Length =? 4
-        x.Value.[0].MediaType =? MediaRange.Closed (ClosedMediaRange (MediaType "text", MediaSubType "plain"))
-        x.Value.[0].Weight =? Some 0.5
+        let set =
+            setRequestHeaderT
+                (setPLM Request.Headers.accept acceptTyped)
+                "Accept"
 
-//        [<Test>]
-//        let ``negotiateAccept returns correct negotiated type/subtype pair`` () =
-//            let available =
-//                [ ClosedMediaRange (MediaType "text", MediaSubType "html")
-//                  ClosedMediaRange (MediaType "application", MediaSubType "json")
-//                  ClosedMediaRange (MediaType "text", MediaSubType "plain") ]
-//
-//            let requested =
-//                [ { MediaType = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
-//                    MediaTypeParameters = Map.empty
-//                    ExtensionParameters = Map.empty
-//                    Weight = Some 0.8 }
-//                  { MediaType = MediaRange.Closed (ClosedMediaRange  (MediaType "text", MediaSubType "html"))
-//                    MediaTypeParameters = Map.empty
-//                    ExtensionParameters = Map.empty
-//                    Weight = Some 0.7 }
-//                  { MediaType = MediaRange.Open
-//                    MediaTypeParameters = Map.empty
-//                    ExtensionParameters = Map.empty
-//                    Weight = Some 0.5 } ]
-//
-//            negotiateAccept available requested =? Some (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+        get.Value =? acceptTyped
+        set.Value =? acceptString
 
     [<Test>]
-    let ``Request.ContentNegotiation.acceptCharset`` () =
+    let ``Request.Headers.acceptCharset`` () =
         let acceptCharsetTyped =
             [ { Charset = Charset.Named (NamedCharset "iso-8859-5")
                 Weight = None }
@@ -231,18 +294,18 @@ module Lenses =
         let get = 
             getRequestHeaderT
                 ("Accept-Charset", acceptCharsetString)
-                (getPLM Request.ContentNegotiation.acceptCharset)
+                (getPLM Request.Headers.acceptCharset)
 
         let set =
             setRequestHeaderT
-                (setPLM (Request.ContentNegotiation.acceptCharset) acceptCharsetTyped)
+                (setPLM (Request.Headers.acceptCharset) acceptCharsetTyped)
                 "Accept-Charset"
 
         get.Value =? acceptCharsetTyped
         set.Value =? acceptCharsetString
 
     [<Test>]
-    let ``Request.ContentNegotiation.acceptEncoding`` () =
+    let ``Request.Headers.acceptEncoding`` () =
         let acceptEncodingTyped =
             [ { Encoding = Encoding.Named (NamedEncoding "gzip")
                 Weight = None }
@@ -257,18 +320,18 @@ module Lenses =
         let get = 
             getRequestHeaderT
                 ("Accept-Encoding", acceptEncodingString)
-                (getPLM Request.ContentNegotiation.acceptEncoding)
+                (getPLM Request.Headers.acceptEncoding)
 
         let set =
             setRequestHeaderT
-                (setPLM (Request.ContentNegotiation.acceptEncoding) acceptEncodingTyped)
+                (setPLM (Request.Headers.acceptEncoding) acceptEncodingTyped)
                 "Accept-Encoding"
 
         get.Value =? acceptEncodingTyped
         set.Value =? acceptEncodingString
 
     [<Test>]
-    let ``Request.ContentNegotiation.acceptLanguage`` () =
+    let ``Request.Headers.acceptLanguage`` () =
         let acceptLanguageTyped =
             [ { Language = CultureInfo ("da")
                 Weight = None }
@@ -283,38 +346,38 @@ module Lenses =
         let get = 
             getRequestHeaderT
                 ("Accept-Language", acceptLanguageString)
-                (getPLM Request.ContentNegotiation.acceptLanguage)
+                (getPLM Request.Headers.acceptLanguage)
 
         let set =
             setRequestHeaderT
-                (setPLM (Request.ContentNegotiation.acceptLanguage) acceptLanguageTyped)
+                (setPLM (Request.Headers.acceptLanguage) acceptLanguageTyped)
                 "Accept-Language"
 
         get.Value =? acceptLanguageTyped
         set.Value =? acceptLanguageString
 
     [<Test>]
-    let ``Request.Controls.host`` () =
+    let ``Request.Headers.host`` () =
         let get = 
             getRequestHeaderT
                 ("Host", "www.example.org:8080")
-                (getPLM Request.Controls.host)
+                (getPLM Request.Headers.host)
 
         get.Value =? "www.example.org:8080"
 
     [<Test>]
-    let ``Request.Controls.maxForwards`` () =
+    let ``Request.Headers.maxForwards`` () =
         let maxForwardsTyped = 5
         let maxForwardsString = "5"
 
         let get = 
             getRequestHeaderT
                 ("Max-Forwards", maxForwardsString)
-                (getPLM Request.Controls.maxForwards)
+                (getPLM Request.Headers.maxForwards)
 
         let set =
             setRequestHeaderT
-                (setPLM (Request.Controls.maxForwards) maxForwardsTyped)
+                (setPLM (Request.Headers.maxForwards) maxForwardsTyped)
                 "Max-Forwards"
 
         get.Value =? maxForwardsTyped
