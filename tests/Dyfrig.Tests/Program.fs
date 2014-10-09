@@ -178,6 +178,35 @@ let adapterTests =
                 bytesRead =? 12
                 body =? "Hello, world"B
             } |> Async.RunSynchronously
+
+        testCase "should copy correct status code to OwinEnv" <| fun _ ->
+            let env = env()
+            let handler request = async {
+                let bytes = "Hello, world"B
+                let content = new ByteArrayContent(bytes)
+                content.Headers.ContentLength <- Nullable bytes.LongLength
+                content.Headers.ContentType <- Headers.MediaTypeHeaderValue("text/plain")
+                let response = new HttpResponseMessage(HttpStatusCode.Created, Content = content, RequestMessage = request)
+                return response
+            }
+
+            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp handler
+
+            async {
+                do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
+                env.ResponseStatusCode =? 201
+                env.ResponseReasonPhrase =? "Created"
+                env.ResponseHeaders.Count =? 2
+                env.ResponseHeaders.["Content-Type"] =? [|"text/plain"|]
+                env.ResponseHeaders.["Content-Length"] =? [|"12"|]
+                // Test the response body
+                env.ResponseBody <>? null
+                env.ResponseBody.Position <- 0L
+                let body = Array.zeroCreate 12
+                let bytesRead = env.ResponseBody.Read(body, 0, int env.ResponseBody.Length)
+                bytesRead =? 12
+                body =? "Hello, world"B
+            } |> Async.RunSynchronously
     ]
 
 [<EntryPoint>]
