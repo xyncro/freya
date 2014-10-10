@@ -1,5 +1,6 @@
 ﻿module Dyfrig.Todo.Backend.Api
 
+open System.Globalization
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
@@ -29,8 +30,23 @@ let todoProcessable =
 
 // Resources
 
+let json =
+    machine {
+        mediaTypesAvailable [ 
+            ClosedMediaRange (
+                MediaType "application", 
+                MediaSubType "json") ] }
+
+let unicode =
+    machine {
+        charsetsAvailable [ 
+            NamedCharset "unicode-1-1" ] }
+
 let todos =
     machine {
+        including json
+        including unicode
+        
         methodsAllowed [ DELETE; GET; OPTIONS; POST ]
         doDelete clearTodos
         doPost createTodo
@@ -40,6 +56,8 @@ let todos =
 
 let todo =
     machine {
+        including json
+
         return () } |> reifyMachine
 
 // Routes
