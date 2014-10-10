@@ -4,11 +4,12 @@ open System.IO
 open System.Net
 open System.Net.Http
 open Dyfrig
+open Dyfrig.Net.Http
 open Fuchu
 open Swensen.Unquote
 
 let env() =
-    new Environment(
+    Environment.Create(
         requestMethod = "GET",
         requestScheme = "http",
         requestPathBase = "",
@@ -178,36 +179,33 @@ let adapterTests =
                 body =? "Hello, world"B
             } |> Async.RunSynchronously
 
-        testCase "should create an OwinAppFunc from OwinRailway" <| fun _ ->
+        testCase "should copy correct status code to OwinEnv" <| fun _ ->
             let env = env()
+            let handler request = async {
+                let bytes = "Hello, world"B
+                let content = new ByteArrayContent(bytes)
+                content.Headers.ContentLength <- Nullable bytes.LongLength
+                content.Headers.ContentType <- Headers.MediaTypeHeaderValue("text/plain")
+                let response = new HttpResponseMessage(HttpStatusCode.Created, Content = content, RequestMessage = request)
+                return response
+            }
 
-            let app =
-                SystemNetHttpAdapter.toHttpRequestRailway
-                >> OwinRailway.map (fun request -> request, 2) // Fake retrieval of a query string parameter
-                >> OwinRailway.map (fun (request, idParam) -> request, idParam * idParam)
-                >> OwinRailway.map (fun (request: HttpRequestMessage, result) ->
-                    let buffer = Text.Encoding.ASCII.GetBytes(result.ToString())
-                    let content = new ByteArrayContent(buffer)
-                    content.Headers.ContentType <- Headers.MediaTypeHeaderValue("text/plain")
-                    content.Headers.ContentLength <- Nullable buffer.LongLength
-                    new HttpResponseMessage(Content = content, RequestMessage = request))
-                >> OwinRailway.mapAsync (SystemNetHttpAdapter.mapResponseToEnvironment env)
-                |> OwinRailway.fromRailway (fun env exnHandler -> env.With(Constants.responseStatusCode, 500))
-            
+            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp handler
+
             async {
                 do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
-                env.ResponseStatusCode =? 200
-                env.ResponseReasonPhrase =? "OK"
+                env.ResponseStatusCode =? 201
+                env.ResponseReasonPhrase =? "Created"
                 env.ResponseHeaders.Count =? 2
                 env.ResponseHeaders.["Content-Type"] =? [|"text/plain"|]
-                env.ResponseHeaders.["Content-Length"] =? [|"1"|]
+                env.ResponseHeaders.["Content-Length"] =? [|"12"|]
                 // Test the response body
                 env.ResponseBody <>? null
                 env.ResponseBody.Position <- 0L
-                let body = Array.zeroCreate 1
+                let body = Array.zeroCreate 12
                 let bytesRead = env.ResponseBody.Read(body, 0, int env.ResponseBody.Length)
-                bytesRead =? 1
-                body =? "4"B
+                bytesRead =? 12
+                body =? "Hello, world"B
             } |> Async.RunSynchronously
     ]
 
@@ -221,3 +219,4 @@ let main argv =
     ]
     |> testList "Environment tests"
     |> runParallel
+
