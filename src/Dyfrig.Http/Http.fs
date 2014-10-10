@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Globalization
 open System.IO
-open System.Text
 open Aether
 open Aether.Operators
 open Dyfrig.Core
@@ -21,8 +20,8 @@ open Dyfrig.Core.Operators
    [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
 type Accept =
-    { MediaType: MediaRange
-      MediaTypeParameters: Map<string, string>
+    { MediaRange: MediaRange
+      MediaRangeParameters: Map<string, string>
       ExtensionParameters: Map<string, string option>
       Weight: float option }
 
@@ -53,11 +52,11 @@ type AcceptCharset =
       Weight: float option }
 
 and Charset =
-    | Named of NamedCharset
+    | Specified of SpecifiedCharset
     | Any
 
-and NamedCharset =
-    | NamedCharset of string
+and SpecifiedCharset =
+    | Named of string
 
 (* Accept-Encoding
 
@@ -69,12 +68,12 @@ type AcceptEncoding =
       Weight: float option }
 
 and Encoding =
-    | Named of NamedEncoding
-    | Identity
+    | Specified of SpecifiedEncoding
     | Any
 
-and NamedEncoding =
-    | NamedEncoding of string
+and SpecifiedEncoding =
+    | Named of string
+    | Identity
 
 (* Accept-Language
 
@@ -159,10 +158,17 @@ module private Option =
 [<AutoOpen>]
 module Negotiation =
 
-    // TODO: Make this much better! It's ugly as hell right now...
-
-    let private (===) s1 s2 =
+    let private (==) s1 s2 =
         String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+    let inline private weight (a: ^a) =
+        ((^a) : (member Weight: float option) a)
+
+    let inline private prepare requested =
+        requested
+        |> List.filter (fun r -> weight r <> Some 0.)
+        |> List.sortBy (fun r -> weight r |> Option.getOrElse 1.)
+        |> List.rev
 
     (* Content Negotiation
             
@@ -174,58 +180,120 @@ module Negotiation =
        Taken from RFC 7231, Section 5.3.2. Accept
        [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-    let private (|Closed|_|) =
+    let private (|ClosedM|_|) =
         function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
-                    | _ -> None
+                 | _ -> None
 
-    let private (|Partial|_|) =
+    let private (|PartialM|_|) =
         function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
-                    | _ -> None
+                 | _ -> None
+
+    let private (|OpenM|_|) =
+        function | MediaRange.Open -> Some ()
+                 | _ -> None
 
     let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
-        function | Closed (t', s') when t === t' && s === s' -> true, 3
-                 | Partial t' when t === t' -> true, 2
-                 | MediaRange.Open -> true, 1
-                 | _ -> false, 0
+        function | ClosedM (t', s') when t == t' && s == s' -> true
+                 | PartialM t' when t == t' -> true
+                 | OpenM _ -> true
+                 | _ -> false
 
-    let negotiateAccept (available: ClosedMediaRange list) (requested: Accept list) =
-        requested
-        |> List.sortBy (fun r -> r.Weight |> Option.getOrElse 1.)
-        |> List.rev
-        |> List.tryPick (fun r ->
-            let available =
-                available 
-                |> List.map (fun a -> a, matchAccept a r.MediaType)
-                |> List.filter (fun (_, (m, _)) -> m)
-                    
-            match available with
-            | [] -> None
-            | available -> Some (r, available |> List.maxBy (fun (_, (_, s)) -> s)))
-        |> Option.map (fun (_, (selected, _)) -> selected)
+    let private scoreAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+        function | ClosedM (t', s') when t == t' && s == s' -> 3
+                 | PartialM t' when t == t' -> 2
+                 | OpenM _ -> 1
+                 | _ -> 0
+
+    let private selectAccept (available: ClosedMediaRange list) =
+        List.tryPick (fun r ->
+            match List.exists (fun a -> matchAccept a r.MediaRange) available with
+            | true -> Some r
+            | _ -> None)
+        >> Option.map (fun r -> List.maxBy (fun a -> scoreAccept a r.MediaRange) available)
+
+    let negotiateAccept (available: ClosedMediaRange list) =
+        prepare >> selectAccept available
 
     (* Accept-Charset
 
        Taken from RFC 7231, Section 5.3.3. Accept-Charset
        [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-    let negotiateCharset (available: NamedCharset list) (requested: AcceptCharset list) =
-        None
+    let private (|NamedC|_|) =
+        function | Charset.Specified (SpecifiedCharset.Named s) -> Some s
+                 | _ -> None
+
+    let private (|AnyC|_|) =
+        function | Charset.Any -> Some ()
+                 | _ -> None
+
+    let private matchAcceptCharset =
+        function | SpecifiedCharset.Named s, NamedC s' when s == s' -> true
+                 | _, AnyC _ -> true
+                 | _ -> false
+
+    let private selectAcceptCharset (available: SpecifiedCharset list) =
+        List.tryPick (fun r -> 
+            List.tryFind (fun a -> 
+                matchAcceptCharset (a, r.Charset)) available)
+
+    let negotiateAcceptCharset (available: SpecifiedCharset list) =
+        prepare >> selectAcceptCharset available
 
     (* Accept-Encoding
 
        Taken from RFC 7231, Section 5.3.4. Accept-Encoding
        [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-    let negotiateEncoding (available: NamedEncoding list) (requested: AcceptEncoding list) =
-        None
+    let private (|NamedE|_|) =
+        function | Encoding.Specified (SpecifiedEncoding.Named e) -> Some e
+                 | _ -> None
+
+    let private (|IdentityE|_|) =
+        function | Encoding.Specified (SpecifiedEncoding.Identity) -> Some ()
+                 | _ -> None
+
+    let private (|AnyE|_|) =
+        function | Encoding.Any -> Some ()
+                 | _ -> None
+
+    let private matchAcceptEncoding =
+        function | SpecifiedEncoding.Named e, NamedE e' when e == e' -> true
+                 | SpecifiedEncoding.Identity, IdentityE _ -> true
+                 | _, AnyE _ -> true
+                 | _ -> false
+
+    let private selectAcceptEncoding (available: SpecifiedEncoding list) =
+        List.tryPick (fun r -> 
+            List.tryFind (fun a -> 
+                matchAcceptEncoding (a, r.Encoding)) available)
+
+    let negotiateAcceptEncoding (available: SpecifiedEncoding list) =
+        prepare >> selectAcceptEncoding available
 
     (* Accept-Language
 
        Taken from RFC 7231, Section 5.3.5. Accept-Language
        [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
-    let negotiateLanguage (available: CultureInfo list) (requested: AcceptLanguage list) =
-        None
+    let private matchAcceptLanguage (c: CultureInfo) =
+        function | c' when c = c' || c.Parent = c' -> true
+                 | _ -> false
+
+    let private scoreAcceptLanguage (c: CultureInfo) =
+        function | c' when c = c' -> 2
+                 | c' when c.Parent = c' -> 1
+                 | _ -> 0
+
+    let private selectAcceptLanguage (available: CultureInfo list) =
+        List.tryPick (fun r ->
+            match List.exists (fun a -> matchAcceptLanguage a r.Language) available with
+            | true -> Some r
+            | _ -> None)
+        >> Option.map (fun r -> List.maxBy (fun a -> scoreAcceptLanguage a r.Language) available)
+
+    let negotiateAcceptLanguage (available: CultureInfo list) =
+        prepare >> selectAcceptLanguage available
 
 
 [<AutoOpen>]
@@ -448,8 +516,8 @@ module internal Parsing =
             let accept = 
                 infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParameters)
                 |>> List.map (fun ((mediaRange, parameters), acceptParameters) ->
-                    { MediaType = mediaRange
-                      MediaTypeParameters = parameters
+                    { MediaRange = mediaRange
+                      MediaRangeParameters = parameters
                       Weight = acceptParameters |> Option.map fst
                       ExtensionParameters = acceptParameters |> Option.map snd |> Option.getOrElse Map.empty })
 
@@ -468,7 +536,7 @@ module internal Parsing =
 
             let private namedCharset =
                 token
-                |>> fun s -> Charset.Named (NamedCharset s)
+                |>> fun s -> Charset.Specified (SpecifiedCharset.Named s)
 
             let private charset = 
                 choice [
@@ -496,11 +564,11 @@ module internal Parsing =
 
             let private identityEncoding =
                 skipStringCI "identity"
-                |>> fun _ -> Encoding.Identity
+                |>> fun _ -> Encoding.Specified (SpecifiedEncoding.Identity)
 
             let private namedEncoding =
                 token
-                |>> fun s -> Encoding.Named (NamedEncoding s)
+                |>> fun s -> Encoding.Specified (SpecifiedEncoding.Named s)
 
             let private encoding =
                 choice [
@@ -588,7 +656,7 @@ module Isomorphisms =
     let private weightToString =
         Option.map (sprintf ";q=%.4g") >> Option.getOrElse ""
 
-    // Acc
+    // Accept
 
     let private acceptFromString =
         parse accept
@@ -596,22 +664,22 @@ module Isomorphisms =
     let private acceptToString =
         List.map (fun (x) ->
             let mediaRange =
-                match x.MediaType with
+                match x.MediaRange with
                 | Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
                 | Partial (PartialMediaRange (MediaType x)) -> sprintf "%s/*" x
                 | Open -> "*/*"
 
-            let mediaTypeParameters =
-                match x.MediaTypeParameters.Count with
+            let mediaRangeParameters =
+                match x.MediaRangeParameters.Count with
                 | 0 -> ""
                 | _ ->
-                    x.MediaTypeParameters
+                    x.MediaRangeParameters
                     |> Map.toArray
                     |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
                     |> Array.rev
                     |> String.concat ";"
 
-            sprintf "%s%s%s" mediaRange mediaTypeParameters (weightToString x.Weight))
+            sprintf "%s%s%s" mediaRange mediaRangeParameters (weightToString x.Weight))
         >> String.concat ","
 
     let internal acceptPIso =
@@ -626,7 +694,7 @@ module Isomorphisms =
         List.map (fun x ->
             let charset =
                 match x.Charset with
-                | Charset.Named (NamedCharset x) -> x
+                | Charset.Specified (SpecifiedCharset.Named x) -> x
                 | Charset.Any -> "*"                    
 
             sprintf "%s%s" charset (weightToString x.Weight))
@@ -644,8 +712,8 @@ module Isomorphisms =
         List.map (fun x ->
             let encoding =
                 match x.Encoding with
-                | Encoding.Named (NamedEncoding x) -> x
-                | Encoding.Identity -> "identity"
+                | Encoding.Specified (SpecifiedEncoding.Named x) -> x
+                | Encoding.Specified (SpecifiedEncoding.Identity) -> "identity"
                 | Encoding.Any -> "*"                    
 
             sprintf "%s%s" encoding (weightToString x.Weight)) 
@@ -805,12 +873,11 @@ module Isomorphisms =
                      |> Array.map (fun x -> x.[0], x.[1])
                      |> Map.ofArray
 
-    let private queryToString =
-        fun m ->
-            Map.toArray m
-            |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
-            |> Array.rev
-            |> String.concat "&"
+    let private queryToString m =
+        Map.toArray m
+        |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+        |> Array.rev
+        |> String.concat "&"
 
     let internal queryIso =
         queryFromString, queryToString
@@ -1081,6 +1148,11 @@ module Response =
     let headersKey key =
              headers
         >-?> dictPLens key
+
+    let protocol =
+             dictPLens Constants.responseProtocol
+        <?-> boxIso<string>
+        <?-> protocolIso
 
     let reasonPhrase =
              dictPLens Constants.responseReasonPhrase

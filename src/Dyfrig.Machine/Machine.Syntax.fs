@@ -1,6 +1,7 @@
 ﻿namespace Dyfrig.Machine
 
 open System
+open System.Globalization
 open Dyfrig.Core
 open Dyfrig.Http
 
@@ -46,23 +47,23 @@ module Syntax =
                 x.Set (r, configPLens C.MethodsAllowed, Set methods)
 
             [<CustomOperation (C.CharsetsAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableCharsets (r, charsets: string list) = 
+            member x.AvailableCharsets (r, charsets: SpecifiedCharset list) = 
                 x.Set (r, configPLens C.CharsetsAvailable, charsets)
 
             [<CustomOperation (C.EncodingsAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableEncodings (r, encodings: string list) = 
+            member x.AvailableEncodings (r, encodings: SpecifiedEncoding list) = 
                 x.Set (r, configPLens C.EncodingsAvailable, encodings)
 
             [<CustomOperation (C.LanguagesAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableLanguages (r, languages: string list) = 
+            member x.AvailableLanguages (r, languages: CultureInfo list) = 
                 x.Set (r, configPLens C.LanguagesAvailable, languages)
 
             [<CustomOperation (C.MediaTypesAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableMediaTypes (r, mediaTypes: (MediaType * MediaSubType) list) =
+            member x.AvailableMediaTypes (r, mediaTypes: ClosedMediaRange list) =
                 x.Set (r, configPLens C.MediaTypesAvailable, mediaTypes)
 
             [<CustomOperation (C.ResourceETag, MaintainsVariableSpaceUsingBind = true)>]
-            member x.ETag (r, etag: OwinMonad<string>) = 
+            member x.ETag (r, etag: OwinMonad<EntityTag>) = 
                 x.Set (r, configPLens C.ResourceETag, etag)
 
             [<CustomOperation (C.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]

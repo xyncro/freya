@@ -251,16 +251,16 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.accept`` () =
         let acceptTyped =
-            [ { MediaType = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
-                MediaTypeParameters = Map.empty
+            [ { MediaRange = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+                MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.8 }
-              { MediaType = MediaRange.Partial (PartialMediaRange  (MediaType "text"))
-                MediaTypeParameters = Map.empty
+              { MediaRange = MediaRange.Partial (PartialMediaRange  (MediaType "text"))
+                MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.7 }
-              { MediaType = MediaRange.Open
-                MediaTypeParameters = Map.empty
+              { MediaRange = MediaRange.Open
+                MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.5 } ]
 
@@ -283,9 +283,9 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptCharset`` () =
         let acceptCharsetTyped =
-            [ { Charset = Charset.Named (NamedCharset "iso-8859-5")
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-5")
                 Weight = None }
-              { Charset = Charset.Named (NamedCharset "unicode-1-1")
+              { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
                 Weight = Some 0.8 } ]
 
         let acceptCharsetString =
@@ -307,9 +307,9 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptEncoding`` () =
         let acceptEncodingTyped =
-            [ { Encoding = Encoding.Named (NamedEncoding "gzip")
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
                 Weight = None }
-              { Encoding = Encoding.Identity
+              { Encoding = Encoding.Specified (SpecifiedEncoding.Identity)
                 Weight = Some 0.5 }
               { Encoding = Encoding.Any
                 Weight = Some 0. } ]
@@ -382,3 +382,89 @@ module Lenses =
 
         get.Value =? maxForwardsTyped
         set.Value =? maxForwardsString
+
+
+module Negotiation =
+
+    [<Test>]
+    let ``negotiateAccept`` =
+        let available =
+            [ ClosedMediaRange (MediaType "application", MediaSubType "json")
+              ClosedMediaRange (MediaType "text", MediaSubType "html") ]
+
+        let requested1 =
+            [ { MediaRange = Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+                MediaRangeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.8 }
+              { MediaRange = Partial (PartialMediaRange (MediaType "text"))
+                MediaRangeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.5 } ]
+
+        let requested2 =
+            [ { MediaRange = Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+                MediaRangeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.8 }
+              { MediaRange = Partial (PartialMediaRange (MediaType "text"))
+                MediaRangeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0.9 } ]
+
+        let requested3 =
+            [ { MediaRange = Open
+                MediaRangeParameters = Map.empty
+                ExtensionParameters = Map.empty
+                Weight = Some 0. } ]
+
+        let negotiated1 = negotiateAccept available requested1
+        let negotiated2 = negotiateAccept available requested2
+        let negotiated3 = negotiateAccept available requested3
+        
+        negotiated1.Value =? ClosedMediaRange (MediaType "application", MediaSubType "json")
+        negotiated2.Value =? ClosedMediaRange (MediaType "text", MediaSubType "html")
+        negotiated3.IsNone =? true
+
+    [<Test>]
+    let ``negotiateAcceptCharset`` () =
+        let available =
+            [ SpecifiedCharset.Named "unicode-1-1"
+              SpecifiedCharset.Named "iso-8859-1" ]
+
+        let requested1 =
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
+                Weight = Some 0.8 }
+              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
+                Weight = Some 0.9 } ]
+
+        let requested2 =
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
+                Weight = None }
+              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
+                Weight = Some 0.9 } ]
+
+        let negotiated1 = negotiateAcceptCharset available requested1
+        let negotiated2 = negotiateAcceptCharset available requested2
+
+        negotiated1.Value =? SpecifiedCharset.Named "iso-8859-1"
+        negotiated2.Value =? SpecifiedCharset.Named "unicode-1-1"
+
+    [<Test>]
+    let ``negotiateAcceptEncoding`` () =
+        let available =
+            [ SpecifiedEncoding.Named "gzip" ]
+
+        let requested1 =
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
+                Weight = Some 0.7 } ]
+
+        let requested2 =
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "compress")
+                Weight = Some 0.7 } ]
+
+        let negotiated1 = negotiateAcceptEncoding available requested1
+        let negotiated2 = negotiateAcceptEncoding available requested2
+
+        negotiated1.Value =? SpecifiedEncoding.Named "gzip"
+        negotiated2.IsNone =? true

@@ -181,10 +181,10 @@ module internal Defaults =
        as mediaTypesAvailable should almost always be overridden. *)
 
     let charsetsAvailable =
-        [ NamedCharset "iso-8859-1" ]
+        [ SpecifiedCharset.Named "iso-8859-1" ]
 
     let encodingsAvailable =
-        List.empty<NamedEncoding>
+        [ SpecifiedEncoding.Identity ]
 
     let languagesAvailable =
         List.empty<CultureInfo>
@@ -685,7 +685,7 @@ module internal Execution =
                      // on disregarding field if none available.
 
                      Decision =
-                             (fun a r -> Option.isSome (negotiateCharset a r))
+                             (fun a r -> Option.isSome (negotiateAcceptCharset a r))
                          <!> (Option.getOrElse charsetsAvailable <!> getPLM (defPLens >??> configPLens C.CharsetsAvailable))
                          <*> (Option.get <!> getPLM Request.Headers.acceptCharset)
                      True = D.RequestAcceptEncodingExists
@@ -748,7 +748,7 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision =
-                             (fun a r -> Option.isSome (negotiateEncoding a r))
+                             (fun a r -> Option.isSome (negotiateAcceptEncoding a r))
                          <!> (Option.getOrElse encodingsAvailable <!> getPLM (defPLens >??> configPLens C.EncodingsAvailable))
                          <*> (Option.get <!> getPLM Request.Headers.acceptEncoding)
                      True = D.RequestProcessable
@@ -814,7 +814,7 @@ module internal Execution =
                        { AllowOverride = true
                          Overridden = false }
                      Decision =
-                             (fun a r -> Option.isSome (negotiateLanguage a r))
+                             (fun a r -> Option.isSome (negotiateAcceptLanguage a r))
                          <!> (Option.getOrElse languagesAvailable <!> getPLM (defPLens >??> configPLens C.LanguagesAvailable))
                          <*> (Option.get <!> getPLM Request.Headers.acceptLanguage)
                      True = D.RequestAcceptCharsetExists
