@@ -9,7 +9,7 @@ open Fuchu
 open Swensen.Unquote
 
 let env() =
-    new Environment(
+    Environment.Create(
         requestMethod = "GET",
         requestScheme = "http",
         requestPathBase = "",

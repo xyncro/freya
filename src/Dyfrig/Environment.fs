@@ -46,36 +46,26 @@ module StreamEx =
 
 open StreamEx
 
-type Environment =
-    inherit Dictionary<string, obj>
+type Environment (env: OwinEnv) =
+    inherit Dictionary<string, obj>(env)
 
-    val mutable private disposed : bool
+    let mutable disposed = false
 
-    new (dictionary: OwinEnv) as x =
-        {
-            inherit Dictionary<string, obj>(dictionary, StringComparer.Ordinal)
-            disposed = false
-        }
-
-    new (requestMethod: string, requestScheme: string, requestPathBase: string, requestPath: string, requestQueryString: string, requestProtocol: string, requestHeaders: OwinHeaders, ?requestBody, ?responseHeaders: OwinHeaders, ?responseBody, ?callCancelled) as x =
-        // TODO: Consider parsing the URI rather than requiring the pieces to be passed in explicitly.
-        {
-            inherit Dictionary<string, obj>(StringComparer.Ordinal)
-            disposed = false
-        }
-        then do
-            x.Add(Constants.requestMethod, requestMethod)
-            x.Add(Constants.requestScheme, requestScheme)
-            x.Add(Constants.requestPathBase, requestPathBase)
-            x.Add(Constants.requestPath, requestPath)
-            x.Add(Constants.requestQueryString, requestQueryString)
-            x.Add(Constants.requestProtocol, requestProtocol)
-            x.Add(Constants.requestHeaders, requestHeaders)
-            x.Add(Constants.requestBody, defaultArg requestBody Stream.Null)
-            x.Add(Constants.responseHeaders, defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> OwinHeaders))
-            x.Add(Constants.responseBody, defaultArg responseBody (new MemoryStream() :> Stream))
-            x.Add(Constants.callCancelled, defaultArg callCancelled (let cts = new CancellationTokenSource() in cts.Token))
-            x.Add(Constants.owinVersion, "1.1")
+    static member Create (requestMethod: string, requestScheme: string, requestPathBase: string, requestPath: string, requestQueryString: string, requestProtocol: string, requestHeaders: OwinHeaders, ?requestBody, ?responseHeaders: OwinHeaders, ?responseBody, ?callCancelled) =
+        let env = Dictionary<string, obj>(StringComparer.Ordinal)
+        env.Add(Constants.requestMethod, requestMethod)
+        env.Add(Constants.requestScheme, requestScheme)
+        env.Add(Constants.requestPathBase, requestPathBase)
+        env.Add(Constants.requestPath, requestPath)
+        env.Add(Constants.requestQueryString, requestQueryString)
+        env.Add(Constants.requestProtocol, requestProtocol)
+        env.Add(Constants.requestHeaders, requestHeaders)
+        env.Add(Constants.requestBody, defaultArg requestBody Stream.Null)
+        env.Add(Constants.responseHeaders, defaultArg responseHeaders (new Dictionary<_,_>(HashIdentity.Structural) :> OwinHeaders))
+        env.Add(Constants.responseBody, defaultArg responseBody (new MemoryStream() :> Stream))
+        env.Add(Constants.callCancelled, defaultArg callCancelled (let cts = new CancellationTokenSource() in cts.Token))
+        env.Add(Constants.owinVersion, "1.1")
+        new Environment(env)
 
     static member inline Get<'a> (environment: OwinEnv, key: string) =
         if environment.ContainsKey(key) then
@@ -193,10 +183,10 @@ type Environment =
             |> Seq.iter (fun x -> try x.Dispose() with | _ -> ()) // TODO: Log any failed disposals.
 
     member x.Dispose() =
-        if not x.disposed then
+        if not disposed then
             GC.SuppressFinalize(x)
             x.Dispose(true)
-            x.disposed <- true
+            disposed <- true
 
     interface IDisposable with
         member x.Dispose() = x.Dispose()

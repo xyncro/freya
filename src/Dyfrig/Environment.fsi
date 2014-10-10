@@ -32,11 +32,8 @@ type Environment =
     inherit System.Collections.Generic.Dictionary<string, obj>
     interface System.IDisposable
 
-    /// Initializes a new Environment from an existing, valid, OWIN environment dictionary.
-    new : dictionary:OwinEnv -> Environment
-
     /// Initializes a new Environment from parameters, adding defaults for optional response parameters.
-    new : requestMethod:string * requestScheme:string * requestPathBase:string * requestPath:string * requestQueryString:string * requestProtocol:string * requestHeaders:OwinHeaders * ?requestBody:System.IO.Stream * ?responseHeaders:OwinHeaders * ?responseBody:System.IO.Stream * ?callCancelled:System.Threading.CancellationToken -> Environment
+    static member Create : requestMethod:string * requestScheme:string * requestPathBase:string * requestPath:string * requestQueryString:string * requestProtocol:string * requestHeaders:OwinHeaders * ?requestBody:System.IO.Stream * ?responseHeaders:OwinHeaders * ?responseBody:System.IO.Stream * ?callCancelled:System.Threading.CancellationToken -> Environment
 
     /// Gets a value with the specified key from the environment dictionary as the specified type 'a.
     static member inline Get<'a> : environment:OwinEnv * key: string -> 'a option
