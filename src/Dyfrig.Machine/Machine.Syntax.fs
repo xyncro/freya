@@ -47,11 +47,11 @@ module Syntax =
                 x.Set (r, configPLens C.MethodsAllowed, Set methods)
 
             [<CustomOperation (C.CharsetsAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableCharsets (r, charsets: NamedCharset list) = 
+            member x.AvailableCharsets (r, charsets: SpecifiedCharset list) = 
                 x.Set (r, configPLens C.CharsetsAvailable, charsets)
 
             [<CustomOperation (C.EncodingsAvailable, MaintainsVariableSpaceUsingBind = true)>]
-            member x.AvailableEncodings (r, encodings: NamedEncoding list) = 
+            member x.AvailableEncodings (r, encodings: SpecifiedEncoding list) = 
                 x.Set (r, configPLens C.EncodingsAvailable, encodings)
 
             [<CustomOperation (C.LanguagesAvailable, MaintainsVariableSpaceUsingBind = true)>]

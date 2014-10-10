@@ -40,7 +40,7 @@ let json =
 let unicode =
     machine {
         charsetsAvailable [ 
-            NamedCharset "unicode-1-1" ] }
+            SpecifiedCharset.Named "unicode-1-1" ] }
 
 let todos =
     machine {

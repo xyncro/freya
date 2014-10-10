@@ -181,10 +181,10 @@ module internal Defaults =
        as mediaTypesAvailable should almost always be overridden. *)
 
     let charsetsAvailable =
-        [ NamedCharset "iso-8859-1" ]
+        [ SpecifiedCharset.Named "iso-8859-1" ]
 
     let encodingsAvailable =
-        List.empty<NamedEncoding>
+        [ SpecifiedEncoding.Identity ]
 
     let languagesAvailable =
         List.empty<CultureInfo>

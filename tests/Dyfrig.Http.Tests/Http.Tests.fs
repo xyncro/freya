@@ -283,9 +283,9 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptCharset`` () =
         let acceptCharsetTyped =
-            [ { Charset = Charset.Named (NamedCharset "iso-8859-5")
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-5")
                 Weight = None }
-              { Charset = Charset.Named (NamedCharset "unicode-1-1")
+              { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
                 Weight = Some 0.8 } ]
 
         let acceptCharsetString =
@@ -307,9 +307,9 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptEncoding`` () =
         let acceptEncodingTyped =
-            [ { Encoding = Encoding.Named (NamedEncoding "gzip")
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
                 Weight = None }
-              { Encoding = Encoding.Identity
+              { Encoding = Encoding.Specified (SpecifiedEncoding.Identity)
                 Weight = Some 0.5 }
               { Encoding = Encoding.Any
                 Weight = Some 0. } ]
@@ -429,23 +429,42 @@ module Negotiation =
     [<Test>]
     let ``negotiateAcceptCharset`` () =
         let available =
-            [ NamedCharset "unicode-1-1"
-              NamedCharset "iso-8859-1" ]
+            [ SpecifiedCharset.Named "unicode-1-1"
+              SpecifiedCharset.Named "iso-8859-1" ]
 
         let requested1 =
-            [ { Charset = Charset.Named (NamedCharset "unicode-1-1")
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
                 Weight = Some 0.8 }
-              { Charset = Charset.Named (NamedCharset "iso-8859-1")
+              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
                 Weight = Some 0.9 } ]
 
         let requested2 =
-            [ { Charset = Charset.Named (NamedCharset "unicode-1-1")
+            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
                 Weight = None }
-              { Charset = Charset.Named (NamedCharset "iso-8859-1")
+              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
                 Weight = Some 0.9 } ]
 
         let negotiated1 = negotiateAcceptCharset available requested1
         let negotiated2 = negotiateAcceptCharset available requested2
 
-        negotiated1.Value =? NamedCharset "iso-8859-1"
-        negotiated2.Value =? NamedCharset "unicode-1-1"
+        negotiated1.Value =? SpecifiedCharset.Named "iso-8859-1"
+        negotiated2.Value =? SpecifiedCharset.Named "unicode-1-1"
+
+    [<Test>]
+    let ``negotiateAcceptEncoding`` () =
+        let available =
+            [ SpecifiedEncoding.Named "gzip" ]
+
+        let requested1 =
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
+                Weight = Some 0.7 } ]
+
+        let requested2 =
+            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "compress")
+                Weight = Some 0.7 } ]
+
+        let negotiated1 = negotiateAcceptEncoding available requested1
+        let negotiated2 = negotiateAcceptEncoding available requested2
+
+        negotiated1.Value =? SpecifiedEncoding.Named "gzip"
+        negotiated2.IsNone =? true
