@@ -119,7 +119,7 @@ let adapterTests =
                 return response
             }
 
-            let app = SystemNetHttpAdapter.fromAsyncSystemNetHttp handler
+            let app = Dyfrig.Net.Http.fromAsyncSystemNetHttp handler
 
             async {
                 do! app.Invoke(env).ContinueWith(Func<_,_>(fun _ -> ())) |> Async.AwaitTask
