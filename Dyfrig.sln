@@ -1,10 +1,9 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{500020E1-325C-46AB-9E93-9FFC6B1F0D5D}"
- ProjectSection(SolutionItems) = preProject
+	ProjectSection(SolutionItems) = preProject
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
 	EndProjectSection
@@ -55,6 +54,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{64546C15
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig", "src\Dyfrig\Dyfrig.fsproj", "{36D091D6-791F-4D45-A81A-8D51E4822F57}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Net.Http", "src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj", "{3533610C-F45A-4791-AA3D-33E1DDA0416A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +70,10 @@ Global
 		{36D091D6-791F-4D45-A81A-8D51E4822F57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36D091D6-791F-4D45-A81A-8D51E4822F57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36D091D6-791F-4D45-A81A-8D51E4822F57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
