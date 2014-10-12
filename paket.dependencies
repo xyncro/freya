@@ -3,7 +3,8 @@ source http://nuget.org/api/v2
 nuget FAKE
 nuget SourceLink.Fake
 nuget Nuget.CommandLine
-nuget FSharp.Formatting 2.2.11-beta
+nuget FSharp.Formatting 2.4.25
+nuget FSharp.Compiler.Service 0.0.62
 nuget FSharpx.Core 1.8.41
 nuget Fuchu 0.4.0.0
 nuget Microsoft.AspNet.Razor 2.0.30506.0
