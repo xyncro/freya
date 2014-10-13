@@ -10,7 +10,7 @@
     <RootNamespace>Dyfrig.Net.Http</RootNamespace>
     <AssemblyName>Dyfrig.Net.Http</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Dyfrig.Net.Http</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
@@ -48,7 +48,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
