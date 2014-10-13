@@ -6,7 +6,7 @@
 // Binaries that have XML documentation (in a corresponding generated XML file)
 let referenceBinaries = [ "Dyfrig.dll" ]
 // Web site location for the generated documentation
-let website = ""
+let website = "/dyfrig"
 
 let githubLink = "https://github.com/fsprojects/dyfrig"
 
