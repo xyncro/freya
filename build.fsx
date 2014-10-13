@@ -69,14 +69,10 @@ let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 let isAppVeyorBuild = environVar "APPVEYOR" <> null
 let nugetVersion =
     if isAppVeyorBuild then
-        let versionParts = release.NugetVersion.Split([|'-'|])
-        let version = versionParts.[0]
-        let bugFixIndex = version.LastIndexOf('.')
-        let tempVersion = version.Substring(0, bugFixIndex)
-        // Split version string if it is suffixed with something like "-beta"
-        if versionParts.Length > 1 then
-            sprintf "%s.%s-%s" tempVersion buildVersion versionParts.[1]
-        else sprintf "%s.%s" tempVersion buildVersion
+        // If `release.NugetVersion` includes a pre-release suffix, just append the `buildVersion`.
+        if release.NugetVersion.Contains("-") then
+            sprintf "%s%s" release.NugetVersion buildVersion
+        else sprintf "%s.%s" release.NugetVersion buildVersion
     else release.NugetVersion
 
 // Generate assembly info files with the right version & up-to-date information
@@ -164,7 +160,7 @@ Target "NuGet" (fun _ ->
             Project = project
             Summary = summary
             Description = description
-            Version = nugetVersion
+            Version = release.NugetVersion
             ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
             Tags = tags
             OutputPath = "bin"
@@ -202,17 +198,17 @@ Target "ReleaseDocs" (fun _ ->
 
     CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
     StageAll tempDocsDir
-    Commit tempDocsDir (sprintf "Update generated documentation for version %s" nugetVersion)
+    Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
     Branches.push tempDocsDir
 )
 
 Target "Release" (fun _ ->
     StageAll ""
-    Commit "" (sprintf "Bump version to %s" nugetVersion)
+    Commit "" (sprintf "Bump version to %s" release.NugetVersion)
     Branches.push ""
 
-    Branches.tag "" nugetVersion
-    Branches.pushTag "" "origin" nugetVersion
+    Branches.tag "" release.NugetVersion
+    Branches.pushTag "" "origin" release.NugetVersion
 )
 
 Target "BuildPackage" DoNothing
