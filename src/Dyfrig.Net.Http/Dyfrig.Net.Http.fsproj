@@ -57,9 +57,9 @@
   </Target>
   -->
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="Adapter.fsi" />
     <Compile Include="Adapter.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

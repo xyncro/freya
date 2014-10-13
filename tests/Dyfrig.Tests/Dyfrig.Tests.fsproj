@@ -49,9 +49,9 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="paket.references" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj">

@@ -51,12 +51,12 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="Constants.fs" />
     <Compile Include="OwinApp.fsi" />
     <Compile Include="OwinApp.fs" />
     <Compile Include="Environment.fsi" />
     <Compile Include="Environment.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
