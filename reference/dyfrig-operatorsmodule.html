@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Operators - Dyfrig</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content=""/>
+    <meta name="author" content="Ryan Riley"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+
+    <link type="text/css" rel="stylesheet" href="/dyfrig/content/style.css" />
+    <script type="text/javascript" src="/dyfrig/content/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="http://github.com/fsprojects/dyfrig">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/dyfrig/index.html">Dyfrig</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+
+
+
+<h1>Operators</h1>
+<div class="xmldoc">
+<p>OWIN operators</p>
+</div>
+
+<!-- Render nested types and modules, if there are any -->
+
+  <h3>Functions and values</h3>
+  <table class="table table-bordered member-list">
+    <thead>
+      <tr><td>Function or value</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '47', 47)" onmouseover="showTip(event, '47', 47)">
+            ( -!&gt; ) f l
+          </code>
+          <div class="tip" id="47">
+            <strong>Signature:</strong> f:(&#39;a -&gt; &#39;a) -&gt; l:(type) -&gt; OwinMonad&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L142-142" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Right to left update value using lens</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '48', 48)" onmouseover="showTip(event, '48', 48)">
+            ( &lt;-- ) l v
+          </code>
+          <div class="tip" id="48">
+            <strong>Signature:</strong> l:(type) -&gt; v:&#39;a -&gt; OwinMonad&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L139-139" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Left to right set value using lens</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '49', 49)" onmouseover="showTip(event, '49', 49)">
+            ( &lt;!- ) l f
+          </code>
+          <div class="tip" id="49">
+            <strong>Signature:</strong> l:(type) -&gt; f:(&#39;a -&gt; &#39;a) -&gt; OwinMonad&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L145-145" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Left to right update value using lens</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '50', 50)" onmouseover="showTip(event, '50', 50)">
+            ( &lt;!&gt; ) f m
+          </code>
+          <div class="tip" id="50">
+            <strong>Signature:</strong> f:(&#39;a -&gt; &#39;b) -&gt; m:OwinMonad&lt;&#39;a&gt; -&gt; OwinMonad&lt;&#39;b&gt;<br />
+                          <strong>Type parameters:</strong> 'a, 'b          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L133-133" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Map of f over m</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '51', 51)" onmouseover="showTip(event, '51', 51)">
+            ( &lt;=&lt; ) f m
+          </code>
+          <div class="tip" id="51">
+            <strong>Signature:</strong> f:(&#39;b -&gt; OwinMonad&lt;&#39;c&gt;) -&gt; m:(&#39;a -&gt; OwinMonad&lt;&#39;b&gt;) -&gt; &#39;a -&gt; OwinMonad&lt;&#39;c&gt;<br />
+                          <strong>Type parameters:</strong> 'b, 'c, 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L130-130" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Right to left Kleisli composition</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '52', 52)" onmouseover="showTip(event, '52', 52)">
+            ( =&lt;&lt; ) f m
+          </code>
+          <div class="tip" id="52">
+            <strong>Signature:</strong> f:(&#39;a -&gt; OwinMonad&lt;&#39;b&gt;) -&gt; m:OwinMonad&lt;&#39;a&gt; -&gt; OwinMonad&lt;&#39;b&gt;<br />
+                          <strong>Type parameters:</strong> 'a, 'b          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L124-124" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Right to left composition</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '53', 53)" onmouseover="showTip(event, '53', 53)">
+            ( --&gt; ) v l
+          </code>
+          <div class="tip" id="53">
+            <strong>Signature:</strong> v:&#39;a -&gt; l:(type) -&gt; OwinMonad&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L136-136" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Right to left set value using lens</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
+            ( &gt;=&gt; ) m f
+          </code>
+          <div class="tip" id="54">
+            <strong>Signature:</strong> m:(&#39;a -&gt; OwinMonad&lt;&#39;b&gt;) -&gt; f:(&#39;b -&gt; OwinMonad&lt;&#39;c&gt;) -&gt; &#39;a -&gt; OwinMonad&lt;&#39;c&gt;<br />
+                          <strong>Type parameters:</strong> 'a, 'b, 'c          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L127-127" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Left to right Kleisli composition</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '55', 55)" onmouseover="showTip(event, '55', 55)">
+            ( &gt;&gt;= ) m f
+          </code>
+          <div class="tip" id="55">
+            <strong>Signature:</strong> m:OwinMonad&lt;&#39;a&gt; -&gt; f:(&#39;a -&gt; OwinMonad&lt;&#39;b&gt;) -&gt; OwinMonad&lt;&#39;b&gt;<br />
+                          <strong>Type parameters:</strong> 'a, 'b          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/fsprojects/dyfrig/tree/master/src/Dyfrig/OwinApp.fs#L121-121" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Left to right composition</p>
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+        </div>
+        <div class="span3">
+          <img src="/dyfrig/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+            <li class="nav-header">Dyfrig</li>
+            <li><a href="/dyfrig/index.html">Home page</a></li>
+            <li class="divider"></li>
+            <li><a href="http://nuget.com/packages/Dyfrig">Get Library via NuGet</a></li>
+            <li><a href="http://github.com/fsprojects/dyfrig">Source Code on GitHub</a></li>
+            <li><a href="http://github.com/fsprojects/dyfrig/blob/master/LICENSE.txt">License</a></li>
+            <li><a href="http://github.com/fsprojects/dyfrig/blob/master/RELEASE_NOTES.md">Release Notes</a></li>
+            
+            <li class="nav-header">Getting started</li>
+            <li><a href="/dyfrig/tutorial.html">Sample tutorial</a></li>
+
+            <li class="nav-header">Documentation</li>
+            <li><a href="/dyfrig/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="http://github.com/fsprojects/dyfrig"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>
+
