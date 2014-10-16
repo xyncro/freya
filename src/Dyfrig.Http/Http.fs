@@ -26,15 +26,15 @@ type Accept =
       Weight: float option }
 
 and MediaRange =
-    | Closed of ClosedMediaRange
+    | Specified of SpecifiedMediaRange
     | Partial of PartialMediaRange
-    | Open
 
-and ClosedMediaRange =
-    | ClosedMediaRange of MediaType * MediaSubType
+and SpecifiedMediaRange =
+    | Closed of MediaType * MediaSubType
 
 and PartialMediaRange =
-    | PartialMediaRange of MediaType
+    | Partial of MediaType
+    | Open
 
 and MediaType =
     | MediaType of string
@@ -181,37 +181,36 @@ module Negotiation =
        [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
     let private (|ClosedM|_|) =
-        function | MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> Some (x, y)
+        function | MediaRange.Specified (Closed (MediaType x, MediaSubType y)) -> Some (x, y)
                  | _ -> None
 
     let private (|PartialM|_|) =
-        function | MediaRange.Partial (PartialMediaRange (MediaType x)) -> Some x
+        function | MediaRange.Partial (Partial (MediaType x)) -> Some x
                  | _ -> None
 
     let private (|OpenM|_|) =
-        function | MediaRange.Open -> Some ()
+        function | MediaRange.Partial (Open) -> Some ()
                  | _ -> None
 
-    let private matchAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+    let private matchAccept (Closed (MediaType t, MediaSubType s)) =
         function | ClosedM (t', s') when t == t' && s == s' -> true
                  | PartialM t' when t == t' -> true
                  | OpenM _ -> true
                  | _ -> false
 
-    let private scoreAccept (ClosedMediaRange (MediaType t, MediaSubType s)) =
+    let private scoreAccept (Closed (MediaType t, MediaSubType s)) =
         function | ClosedM (t', s') when t == t' && s == s' -> 3
                  | PartialM t' when t == t' -> 2
                  | OpenM _ -> 1
                  | _ -> 0
 
-    let private selectAccept (available: ClosedMediaRange list) =
-        List.tryPick (fun r ->
-            match List.exists (fun a -> matchAccept a r.MediaRange) available with
-            | true -> Some r
-            | _ -> None)
-        >> Option.map (fun r -> List.maxBy (fun a -> scoreAccept a r.MediaRange) available)
+    let private selectAccept (available: SpecifiedMediaRange list) =
+        List.map (fun r -> 
+            available 
+            |> List.filter (fun a -> matchAccept a r.MediaRange)
+            |> List.sortBy (fun a -> scoreAccept a r.MediaRange)) >> List.concat
 
-    let negotiateAccept (available: ClosedMediaRange list) =
+    let negotiateAccept (available: SpecifiedMediaRange list) =
         prepare >> selectAccept available
 
     (* Accept-Charset
@@ -233,9 +232,9 @@ module Negotiation =
                  | _ -> false
 
     let private selectAcceptCharset (available: SpecifiedCharset list) =
-        List.tryPick (fun r -> 
-            List.tryFind (fun a -> 
-                matchAcceptCharset (a, r.Charset)) available)
+        List.map (fun r ->
+            available
+            |> List.filter (fun a -> matchAcceptCharset (a, r.Charset))) >> List.concat
 
     let negotiateAcceptCharset (available: SpecifiedCharset list) =
         prepare >> selectAcceptCharset available
@@ -264,9 +263,9 @@ module Negotiation =
                  | _ -> false
 
     let private selectAcceptEncoding (available: SpecifiedEncoding list) =
-        List.tryPick (fun r -> 
-            List.tryFind (fun a -> 
-                matchAcceptEncoding (a, r.Encoding)) available)
+        List.map (fun r ->
+            available
+            |> List.filter (fun a -> matchAcceptEncoding (a, r.Encoding))) >> List.concat
 
     let negotiateAcceptEncoding (available: SpecifiedEncoding list) =
         prepare >> selectAcceptEncoding available
@@ -286,11 +285,10 @@ module Negotiation =
                  | _ -> 0
 
     let private selectAcceptLanguage (available: CultureInfo list) =
-        List.tryPick (fun r ->
-            match List.exists (fun a -> matchAcceptLanguage a r.Language) available with
-            | true -> Some r
-            | _ -> None)
-        >> Option.map (fun r -> List.maxBy (fun a -> scoreAcceptLanguage a r.Language) available)
+        List.map (fun r -> 
+            available 
+            |> List.filter (fun a -> matchAcceptLanguage a r.Language)
+            |> List.sortBy (fun a -> scoreAcceptLanguage a r.Language)) >> List.concat
 
     let negotiateAcceptLanguage (available: CultureInfo list) =
         prepare >> selectAcceptLanguage available
@@ -494,15 +492,15 @@ module internal Parsing =
 
             let private openRange = 
                 skipString "*/*"
-                |>> fun _ -> MediaRange.Open
+                |>> fun _ -> MediaRange.Partial (Open)
 
             let private partialRange = 
                 token .>> skipString "/*"
-                |>> fun x -> MediaRange.Partial (PartialMediaRange (MediaType x))
+                |>> fun x -> MediaRange.Partial (Partial (MediaType x))
 
             let private fullRange = 
                 token .>> skipChar '/' .>>. token
-                |>> fun (x, y) -> MediaRange.Closed (ClosedMediaRange (MediaType x, MediaSubType y))
+                |>> fun (x, y) -> MediaRange.Specified (Closed (MediaType x, MediaSubType y))
 
             let private range = 
                 choice [
@@ -665,9 +663,9 @@ module Isomorphisms =
         List.map (fun (x) ->
             let mediaRange =
                 match x.MediaRange with
-                | Closed (ClosedMediaRange (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
-                | Partial (PartialMediaRange (MediaType x)) -> sprintf "%s/*" x
-                | Open -> "*/*"
+                | MediaRange.Specified (Closed (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
+                | MediaRange.Partial (Partial (MediaType x)) -> sprintf "%s/*" x
+                | MediaRange.Partial (Open) -> "*/*"
 
             let mediaRangeParameters =
                 match x.MediaRangeParameters.Count with

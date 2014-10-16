@@ -44,35 +44,35 @@ module Syntax =
 
             [<CustomOperation (C.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
             member x.CharsetsSupported (monad, charsets: SpecifiedCharset list) = 
-                x.Set (monad, configPLens C.CharsetsSupported, charsets)
+                x.Set (monad, configurationPLens C.CharsetsSupported, charsets)
 
             [<CustomOperation (C.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
             member x.EncodingsSupported (monad, encodings: SpecifiedEncoding list) = 
-                x.Set (monad, configPLens C.EncodingsSupported, encodings)
+                x.Set (monad, configurationPLens C.EncodingsSupported, encodings)
 
             [<CustomOperation (C.ETag, MaintainsVariableSpaceUsingBind = true)>]
             member x.ETag (monad, etag: OwinMonad<EntityTag>) = 
-                x.Set (monad, configPLens C.ETag, etag)
+                x.Set (monad, configurationPLens C.ETag, etag)
 
             [<CustomOperation (C.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
             member x.LanguagesSupported (monad, languages: CultureInfo list) = 
-                x.Set (monad, configPLens C.LanguagesSupported, languages)
+                x.Set (monad, configurationPLens C.LanguagesSupported, languages)
 
             [<CustomOperation (C.LastModified, MaintainsVariableSpaceUsingBind = true)>]
             member x.LastModified (monad, modified: OwinMonad<DateTime>) = 
-                x.Set (monad, configPLens C.LastModified, modified)
+                x.Set (monad, configurationPLens C.LastModified, modified)
 
             [<CustomOperation (C.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
             member x.MediaTypesSupported (monad, mediaTypes: ClosedMediaRange list) =
-                x.Set (monad, configPLens C.MediaTypesSupported, mediaTypes)
+                x.Set (monad, configurationPLens C.MediaTypesSupported, mediaTypes)
 
             [<CustomOperation (C.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
             member x.MethodsKnown (monad, methods: Method list) = 
-                x.Set (monad, configPLens C.MethodsKnown, Set methods)
+                x.Set (monad, configurationPLens C.MethodsKnown, Set methods)
 
             [<CustomOperation (C.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
             member x.MethodsSupported (monad, methods: Method list) = 
-                x.Set (monad, configPLens C.MethodsSupported, Set methods)
+                x.Set (monad, configurationPLens C.MethodsSupported, Set methods)
 
 
     [<AutoOpen>]

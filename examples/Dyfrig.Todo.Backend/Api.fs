@@ -8,6 +8,11 @@ open Dyfrig.Machine
 open Dyfrig.Router
 open Dyfrig.Todo.Backend.Storage
 
+// Helpers
+
+let asJSON =
+    toJSON >> MachineRepresentationResponse.Default
+
 // Machine Functions
 
 let clearTodos =
@@ -16,11 +21,11 @@ let clearTodos =
 let createTodo =
     returnM ()
 
-let createdTodo =
-    returnM Array.empty
+let createdTodo _ =
+    MachineRepresentationResponse.Default <!> returnM Array.empty
 
-let getTodos =
-    toJSON <!> liftAsync (getAll ())
+let getTodos r =
+    asJSON <!> liftAsync (getAll ())
 
 let todoProcessable =
     returnM true

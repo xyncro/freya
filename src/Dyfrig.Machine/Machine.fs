@@ -18,11 +18,45 @@ module O = Operations
 
 
 [<RequireQualifiedAccess>]
-module Option =
+module private Option =
 
     let getOrElse def =
         function | Some x -> x
                  | _ -> def
+
+    let getOrElseOptionF f =
+        function | Some x -> Some x
+                 | _ -> f ()
+
+
+[<AutoOpen>]
+module Data =
+
+    type MachineRepresentationRequest =
+        { Charsets: SpecifiedCharset list
+          Encodings: SpecifiedEncoding list
+          MediaTypes: ClosedMediaRange list
+          Languages: CultureInfo list }
+
+        static member Create charsets encodings mediaTypes languages =
+            { Charsets = charsets
+              Encodings = encodings
+              MediaTypes = mediaTypes
+              Languages = languages }
+
+    type MachineRepresentationResponse =
+        { Charset: SpecifiedCharset option
+          Encoding: SpecifiedEncoding option
+          MediaType: ClosedMediaRange option
+          Language: CultureInfo option
+          Representation: byte [] }
+
+        static member Default representation =
+            { Charset = None
+              Encoding = None
+              MediaType = None
+              Language = None
+              Representation = representation }
 
 
 [<AutoOpen>]
@@ -41,7 +75,7 @@ module Definition =
         OwinMonad<bool>
 
     type MachineHandler = 
-        OwinMonad<byte []>
+        MachineRepresentationRequest -> OwinMonad<MachineRepresentationResponse>
 
     type MachineOperation =
         OwinMonad<unit>
@@ -128,7 +162,7 @@ module internal Lenses =
        to the Machine Definition within an OWIN monad (see Dyfrig.Core),
        and to aspects of the machine definition. *)
 
-    let defPLens =
+    let definitionPLens =
              dictPLens "dyfrig.machine.definition"
         <?-> boxIso<MachineDefinition>
 
@@ -136,7 +170,7 @@ module internal Lenses =
              mapPLens k
         <??> ((|Action|), Action)
     
-    let configPLens<'T> k =
+    let configurationPLens<'T> k =
              mapPLens k
         <??> ((|Configuration|), Configuration)
         <?-> boxIso<'T>
@@ -226,18 +260,17 @@ module internal Defaults =
 
     (* Handlers
 
-       A default handler which returns only an empty response, and which should
+       A default handler which returns only an empty response, assuming no modifications
+       to the negotiated charset, encoding, etc. and which should
        be overridden according to the resource design and the methods, etc.
        handled. *)
 
-    let handler =
-        owin {
-            let result = Array.empty<byte>
-            printfn "result length: %i" result.Length
-            return result }
-
-
-        //returnM Array.empty<byte>
+    let handler _ =
+        returnM { Charset = None
+                  Encoding = None
+                  MediaType = None
+                  Language = None
+                  Representation = Array.empty }
 
     (* Operations
 
@@ -276,6 +309,9 @@ module internal Logic =
     let inline private (!?) x =
         Option.isSome <!> x
 
+    let inline private (!.) x =
+        List.isEmpty >> not <!> x
+
     let inline private (=?) x y =
         (=) y <!> x
 
@@ -293,12 +329,13 @@ module internal Logic =
                 getPLM Request.Headers.acceptCharset
 
             let private supported =
-                getPLM (defPLens >??> configPLens C.CharsetsSupported)
+                getPLM (definitionPLens >??> configurationPLens C.CharsetsSupported)
 
             let private negotiation =
-                function | Some x, Some y -> negotiateAcceptCharset y x
-                         | Some x, _ -> negotiateAcceptCharset defaultCharsets x
-                         | _ -> None
+                function | Some requested, Some available -> negotiateAcceptCharset available requested
+                         | Some requested, _ -> negotiateAcceptCharset defaultCharsets requested
+                         | _, Some available -> available
+                         | _, _ -> defaultCharsets
 
             let requested =
                 !? request
@@ -307,7 +344,7 @@ module internal Logic =
                 (request, supported) ?> negotiation
 
             let negotiable =
-                !? negotiated
+                !. negotiated
 
 
         [<RequireQualifiedAccess>]
@@ -317,12 +354,13 @@ module internal Logic =
                 getPLM Request.Headers.acceptEncoding
 
             let private supported =
-                getPLM (defPLens >??> configPLens C.EncodingsSupported)
+                getPLM (definitionPLens >??> configurationPLens C.EncodingsSupported)
 
             let private negotiation =
-                function | Some x, Some y -> negotiateAcceptEncoding y x
-                         | Some x, _ -> negotiateAcceptEncoding defaultEncodings x
-                         | _ -> None
+                function | Some requested, Some available -> negotiateAcceptEncoding available requested
+                         | Some requested, _ -> negotiateAcceptEncoding defaultEncodings requested
+                         | _, Some available -> available
+                         | _, _ -> defaultEncodings
 
             let requested =
                 !? request
@@ -331,7 +369,7 @@ module internal Logic =
                 (request, supported) ?> negotiation
 
             let negotiable =
-                !? negotiated 
+                !. negotiated 
 
 
         [<RequireQualifiedAccess>]
@@ -341,12 +379,13 @@ module internal Logic =
                 getPLM Request.Headers.acceptLanguage
 
             let private supported =
-                getPLM (defPLens >??> configPLens C.LanguagesSupported)
+                getPLM (definitionPLens >??> configurationPLens C.LanguagesSupported)
 
             let private negotiation =
-                function | Some x, Some y -> negotiateAcceptLanguage y x
-                         | Some x, _ -> negotiateAcceptLanguage defaultLanguages x
-                         | _ -> None
+                function | Some requested, Some available -> negotiateAcceptLanguage available requested
+                         | Some requested, _ -> negotiateAcceptLanguage defaultLanguages requested
+                         | _, Some available -> available
+                         | _, _ -> defaultLanguages
 
             let requested =
                 !? request
@@ -355,7 +394,7 @@ module internal Logic =
                 (request, supported) ?> negotiation
 
             let negotiable =
-                !? negotiated
+                !. negotiated
 
 
         [<RequireQualifiedAccess>]
@@ -365,12 +404,13 @@ module internal Logic =
                 getPLM Request.Headers.accept
 
             let private supported =
-                getPLM (defPLens >??> configPLens C.MediaTypesSupported)
+                getPLM (definitionPLens >??> configurationPLens C.MediaTypesSupported)
 
             let private negotiation =
-                function | Some x, Some y -> negotiateAccept y x
-                         | Some x, _ -> negotiateAccept defaultMediaTypes x
-                         | _ -> None
+                function | Some requested, Some available -> negotiateAccept available requested
+                         | Some requested, _ -> negotiateAccept defaultMediaTypes requested
+                         | _, Some available -> available
+                         | _, _ -> defaultMediaTypes
 
             let requested =
                 !? request
@@ -379,7 +419,7 @@ module internal Logic =
                 (request, supported) ?> negotiation
 
             let negotiable =
-                !? negotiated
+                !. negotiated
 
 
     [<AutoOpen>]
@@ -405,7 +445,7 @@ module internal Logic =
                 getPLM Request.Headers.ifModifiedSince
 
             let private lastModified =
-                getPLM (defPLens >??> configPLens C.LastModified)
+                getPLM (definitionPLens >??> configurationPLens C.LastModified)
 
             let requested =
                 !? ifModifiedSince
@@ -444,7 +484,7 @@ module internal Logic =
                 getPLM Request.Headers.ifUnmodifiedSince
 
             let private lastModified =
-                getPLM (defPLens >??> configPLens C.LastModified)
+                getPLM (definitionPLens >??> configurationPLens C.LastModified)
 
             let requested =
                 !? ifUnmodifiedSince
@@ -473,14 +513,14 @@ module internal Logic =
                 getLM Request.meth
 
             let private methodsKnown =
-                getPLM (defPLens >??> configPLens C.MethodsKnown)
+                getPLM (definitionPLens >??> configurationPLens C.MethodsKnown)
 
             let private negotiateKnown =
                 function | x, Some y -> Set.contains x y
                          | x, _ -> Set.contains x defaultMethodsKnown
 
             let private methodsSupported =
-                getPLM (defPLens >??> configPLens C.MethodsSupported)
+                getPLM (definitionPLens >??> configurationPLens C.MethodsSupported)
 
             let private negotiateSupported =
                 function | x, Some y -> Set.contains x y
@@ -854,13 +894,50 @@ module internal Execution =
                     return! traverse next
                 | Handler handler ->
                     printfn "handler: %s (overridden? %b)" handler.Id handler.Override.Overridden
-                    return! handler.Handler
+                    return handler.Handler
                 | Operation operation ->
                     do! operation.Operation
                     printfn "operation: %s" operation.Id
                     return! traverse operation.Next }
 
         traverse D.ServiceAvailable
+
+
+[<AutoOpen>]
+module internal Invocation =
+
+    let private request =
+        owin {
+            let! charsets = Charset.negotiated
+            let! encodings = Encoding.negotiated
+            let! mediaTypes = MediaType.negotiated
+            let! languages = Language.negotiated
+
+            return 
+                { Charsets = charsets
+                  Encodings = encodings
+                  MediaTypes = mediaTypes
+                  Languages = languages } }
+
+    let private write (req: MachineRepresentationRequest) (res: MachineRepresentationResponse) =
+        owin {
+            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.Languages) res.Language with
+            | Some language -> do! setPLM (Response.Headers.contentLanguage) "Language!"
+            | _ -> ()
+
+            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.MediaTypes) res.MediaType with
+            | Some mediaType -> do! setPLM (Response.Headers.contentType) "MediaType!"
+            | _ -> ()
+
+            do! setPLM (Response.Headers.contentLength) res.Representation.Length
+            do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }
+
+    let invoke handler =
+        owin {    
+            let! req = request
+            let! res = handler req
+
+            do! write req res }
 
 
 [<AutoOpen>]
@@ -871,11 +948,7 @@ module Reification =
         let graph = construct definition
 
         owin {
-            do! setPLM defPLens definition
+            do! setPLM definitionPLens definition
+            do! execute graph >>= invoke
 
-            let! body = execute graph
-
-            do! setPLM Response.Headers.contentLength body.Length
-            do! modLM Response.body (fun x -> x.Write (body, 0, body.Length); x)
-        
             return Halt }

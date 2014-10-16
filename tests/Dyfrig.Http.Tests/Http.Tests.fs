@@ -422,9 +422,11 @@ module Negotiation =
         let negotiated2 = negotiateAccept available requested2
         let negotiated3 = negotiateAccept available requested3
         
-        negotiated1.Value =? ClosedMediaRange (MediaType "application", MediaSubType "json")
-        negotiated2.Value =? ClosedMediaRange (MediaType "text", MediaSubType "html")
-        negotiated3.IsNone =? true
+        negotiated1 =? [ ClosedMediaRange (MediaType "application", MediaSubType "json")
+                         ClosedMediaRange (MediaType "text", MediaSubType "html") ]
+        negotiated2 =? [ ClosedMediaRange (MediaType "text", MediaSubType "html")
+                         ClosedMediaRange (MediaType "application", MediaSubType "json") ]
+        negotiated3 =? []
 
     [<Test>]
     let ``negotiateAcceptCharset`` () =
@@ -447,8 +449,10 @@ module Negotiation =
         let negotiated1 = negotiateAcceptCharset available requested1
         let negotiated2 = negotiateAcceptCharset available requested2
 
-        negotiated1.Value =? SpecifiedCharset.Named "iso-8859-1"
-        negotiated2.Value =? SpecifiedCharset.Named "unicode-1-1"
+        negotiated1 =? [ SpecifiedCharset.Named "iso-8859-1"
+                         SpecifiedCharset.Named "unicode-1-1" ]
+        negotiated2 =? [ SpecifiedCharset.Named "unicode-1-1"
+                         SpecifiedCharset.Named "iso-8859-1" ]
 
     [<Test>]
     let ``negotiateAcceptEncoding`` () =
@@ -466,5 +470,5 @@ module Negotiation =
         let negotiated1 = negotiateAcceptEncoding available requested1
         let negotiated2 = negotiateAcceptEncoding available requested2
 
-        negotiated1.Value =? SpecifiedEncoding.Named "gzip"
-        negotiated2.IsNone =? true
+        negotiated1 =? [ SpecifiedEncoding.Named "gzip" ]
+        negotiated2 =? []

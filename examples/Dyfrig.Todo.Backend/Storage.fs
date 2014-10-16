@@ -10,12 +10,12 @@ open FSharpPlus
 type Todo =
     { Index: int
       Title: string
-      Complete: bool }
+      Complete: bool option }
 
     static member Create title =
         { Index = 0
           Title = title
-          Complete = false }
+          Complete = Some false }
 
     static member ToJSON (x: Todo) =
         jobj [
