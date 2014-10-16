@@ -66,7 +66,7 @@
     <Compile Include="Decisions.fs" />
     <Compile Include="Handlers.fs" />
     <Compile Include="Operations.fs" />
-    <Compile Include="Machine.fs" />
+    <Compile Include="Execution.fs" />
     <Compile Include="Syntax.fs" />
     <Content Include="app.config" />
   </ItemGroup>
