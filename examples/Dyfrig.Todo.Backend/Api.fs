@@ -1,6 +1,6 @@
 ﻿module Dyfrig.Todo.Backend.Api
 
-open System.Globalization
+open System
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
@@ -14,51 +14,54 @@ let clearTodos =
     liftAsync (clear ())
 
 let createTodo =
-    owin {
-        return () }
+    returnM ()
 
 let createdTodo =
-    owin {
-        return Array.empty }
+    returnM Array.empty
 
 let getTodos =
     toJSON <!> liftAsync (getAll ())
 
 let todoProcessable =
-    owin {
-        return true }
+    returnM true
 
-// Resources
+let todoLastModified =
+    returnM (DateTime.Now.Subtract (TimeSpan.FromDays 100.))
+
+// Resource Configuration
 
 let json =
     machine {
-        mediaTypesAvailable [ 
+        mediaTypesSupported [ 
             ClosedMediaRange (
                 MediaType "application", 
                 MediaSubType "json") ] }
 
 let unicode =
     machine {
-        charsetsAvailable [ 
+        charsetsSupported [ 
             SpecifiedCharset.Named "unicode-1-1" ] }
+
+// Resources
 
 let todos =
     machine {
         including json
         including unicode
         
-        methodsAllowed [ DELETE; GET; OPTIONS; POST ]
         doDelete clearTodos
         doPost createTodo
+
         handleCreated createdTodo
         handleOk getTodos
-        requestProcessable todoProcessable } |> reifyMachine
+
+        lastModified todoLastModified
+        methodsSupported [ DELETE; GET; OPTIONS; POST ]
+        processable todoProcessable } |> reifyMachine
 
 let todo =
     machine {
-        including json
-
-        return () } |> reifyMachine
+        including json } |> reifyMachine
 
 // Routes
 
