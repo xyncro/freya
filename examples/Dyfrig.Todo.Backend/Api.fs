@@ -11,7 +11,7 @@ open Dyfrig.Todo.Backend.Storage
 // Helpers
 
 let asJSON =
-    toJSON >> MachineRepresentationResponse.Default
+    toJSON >> RepresentationResponse.Default
 
 // Machine Functions
 
@@ -22,7 +22,7 @@ let createTodo =
     returnM ()
 
 let createdTodo _ =
-    MachineRepresentationResponse.Default <!> returnM Array.empty
+    RepresentationResponse.Default <!> returnM Array.empty
 
 let getTodos r =
     asJSON <!> liftAsync (getAll ())
