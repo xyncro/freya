@@ -63,7 +63,7 @@ module Syntax =
                 x.Set (monad, configurationPLens C.LastModified, modified)
 
             [<CustomOperation (C.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-            member x.MediaTypesSupported (monad, mediaTypes: ClosedMediaRange list) =
+            member x.MediaTypesSupported (monad, mediaTypes: SpecifiedMediaRange list) =
                 x.Set (monad, configurationPLens C.MediaTypesSupported, mediaTypes)
 
             [<CustomOperation (C.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]

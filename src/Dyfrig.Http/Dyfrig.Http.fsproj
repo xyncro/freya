@@ -56,7 +56,12 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="Http.fs" />
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Parsers.fs" />
+    <Compile Include="Formatters.fs" />
+    <Compile Include="Lenses.fs" />
+    <Compile Include="Negotiation.fs" />
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>

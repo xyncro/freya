@@ -251,15 +251,15 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.accept`` () =
         let acceptTyped =
-            [ { MediaRange = MediaRange.Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.8 }
-              { MediaRange = MediaRange.Partial (PartialMediaRange  (MediaType "text"))
+              { MediaRange = MediaRange.Partial (Partial  (MediaType "text"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.7 }
-              { MediaRange = MediaRange.Open
+              { MediaRange = MediaRange.Partial (Open)
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.5 } ]
@@ -389,31 +389,31 @@ module Negotiation =
     [<Test>]
     let ``negotiateAccept`` =
         let available =
-            [ ClosedMediaRange (MediaType "application", MediaSubType "json")
-              ClosedMediaRange (MediaType "text", MediaSubType "html") ]
+            [ Closed (MediaType "application", MediaSubType "json")
+              Closed (MediaType "text", MediaSubType "html") ]
 
         let requested1 =
-            [ { MediaRange = Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.8 }
-              { MediaRange = Partial (PartialMediaRange (MediaType "text"))
+              { MediaRange = MediaRange.Partial (Partial (MediaType "text"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.5 } ]
 
         let requested2 =
-            [ { MediaRange = Closed (ClosedMediaRange (MediaType "application", MediaSubType "json"))
+            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.8 }
-              { MediaRange = Partial (PartialMediaRange (MediaType "text"))
+              { MediaRange = MediaRange.Partial (Partial (MediaType "text"))
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0.9 } ]
 
         let requested3 =
-            [ { MediaRange = Open
+            [ { MediaRange = MediaRange.Partial (Open)
                 MediaRangeParameters = Map.empty
                 ExtensionParameters = Map.empty
                 Weight = Some 0. } ]
@@ -422,10 +422,10 @@ module Negotiation =
         let negotiated2 = negotiateAccept available requested2
         let negotiated3 = negotiateAccept available requested3
         
-        negotiated1 =? [ ClosedMediaRange (MediaType "application", MediaSubType "json")
-                         ClosedMediaRange (MediaType "text", MediaSubType "html") ]
-        negotiated2 =? [ ClosedMediaRange (MediaType "text", MediaSubType "html")
-                         ClosedMediaRange (MediaType "application", MediaSubType "json") ]
+        negotiated1 =? [ Closed (MediaType "application", MediaSubType "json")
+                         Closed (MediaType "text", MediaSubType "html") ]
+        negotiated2 =? [ Closed (MediaType "text", MediaSubType "html")
+                         Closed (MediaType "application", MediaSubType "json") ]
         negotiated3 =? []
 
     [<Test>]

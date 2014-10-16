@@ -38,7 +38,7 @@ let todoLastModified =
 let json =
     machine {
         mediaTypesSupported [ 
-            ClosedMediaRange (
+            SpecifiedMediaRange.Closed (
                 MediaType "application", 
                 MediaSubType "json") ] }
 

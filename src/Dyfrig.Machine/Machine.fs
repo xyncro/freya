@@ -35,7 +35,7 @@ module Data =
     type MachineRepresentationRequest =
         { Charsets: SpecifiedCharset list
           Encodings: SpecifiedEncoding list
-          MediaTypes: ClosedMediaRange list
+          MediaTypes: SpecifiedMediaRange list
           Languages: CultureInfo list }
 
         static member Create charsets encodings mediaTypes languages =
@@ -47,7 +47,7 @@ module Data =
     type MachineRepresentationResponse =
         { Charset: SpecifiedCharset option
           Encoding: SpecifiedEncoding option
-          MediaType: ClosedMediaRange option
+          MediaType: SpecifiedMediaRange option
           Language: CultureInfo option
           Representation: byte [] }
 
@@ -232,7 +232,7 @@ module internal Defaults =
         List.empty<CultureInfo>
 
     let defaultMediaTypes =
-        List.empty<ClosedMediaRange>
+        List.empty<SpecifiedMediaRange>
         
     let defaultMethods =
         Set.ofList
