@@ -1,7 +1,9 @@
-﻿namespace Dyfrig.Pipeline
+﻿module Dyfrig.Pipeline
 
 open Dyfrig.Core
+open Dyfrig.Core.Operators
 
+(* Types *)
 
 type Pipeline =
     OwinMonad<PipelineChoice>
@@ -10,30 +12,26 @@ and PipelineChoice =
     | Next
     | Halt
 
+(* Helpers *)
 
-[<AutoOpen>]
-module Return =
+let next : Pipeline =
+    returnM Next
 
-    let next : Pipeline =
-        owin { return Next }
+let halt : Pipeline =
+    returnM Halt
 
-    let halt : Pipeline =
-        owin { return Halt }
+(* Composition *)
 
+let compose (p1: Pipeline) (p2: Pipeline) : Pipeline =
+    owin {
+        let! pc = p1
 
-[<AutoOpen>]
-module Composition =
-
-    let pipeline (p1: Pipeline) (p2: Pipeline) : Pipeline =
-        owin {
-            let! pc = p1
-
-            match pc with
-            | Next -> return! p2
-            | _ -> return Halt }
+        match pc with
+        | Next -> return! p2
+        | _ -> return Halt }
 
 
 module Operators =
 
     let (>?=) p1 p2 : Pipeline = 
-        pipeline p1 p2
+        compose p1 p2
