@@ -9,7 +9,7 @@ open Dyfrig
 Dyfrig
 ===================
 
-Documentation
+Dyfrig is an [OWIN](http://owin.org/) implementation written in F# with a focus on a functional style of programming.
 
 <div class="row">
   <div class="span1"></div>
@@ -40,9 +40,9 @@ The library is available under the Apache 2.0 license, which allows modification
 redistribution for both commercial and non-commercial purposes. For more information see the 
 [License file][license] in the GitHub repository. 
 
-  [content]: https://github.com/fsprojects/dyfrig/tree/master/docs/content
-  [gh]: https://github.com/fsprojects/dyfrig
-  [issues]: https://github.com/fsprojects/dyfrig/issues
-  [readme]: https://github.com/fsprojects/dyfrig/blob/master/README.md
-  [license]: https://github.com/fsprojects/dyfrig/blob/master/LICENSE.txt
+  [content]: https://github.com/panesofglass/dyfrig/tree/master/docs/content
+  [gh]: https://github.com/panesofglass/dyfrig
+  [issues]: https://github.com/panesofglass/dyfrig/issues
+  [readme]: https://github.com/panesofglass/dyfrig/blob/master/README.md
+  [license]: https://github.com/panesofglass/dyfrig/blob/master/LICENSE.txt
 *)

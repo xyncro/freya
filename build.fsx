@@ -53,10 +53,10 @@ let testAssemblies = "tests/**/bin/Release/*Tests*exe"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
-let gitHome = "git@github.com:fsprojects"
+let gitHome = "git@github.com:panesofglass"
 // The name of the project on GitHub
 let gitName = "dyfrig"
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/fsprojects"
+let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
 
 // --------------------------------------------------------------------------------------
 // The rest of the file includes standard build steps 

@@ -6,9 +6,9 @@
     <authors>@authors@</authors>
     <owners>@authors@</owners>
     <language>en-US</language>
-    <projectUrl>https://github.com/fsprojects/dyfrig</projectUrl>
+    <projectUrl>https://github.com/panesofglass/dyfrig</projectUrl>
     <iconUrl>https://raw.github.com/fsharp/FSharp.ProjectScaffold/master/nuget/logo.png</iconUrl>
-    <licenseUrl>https://github.com/fsprojects/dyfrig/raw/master/LICENSE.txt</licenseUrl>
+    <licenseUrl>https://github.com/panesofglass/dyfrig/raw/master/LICENSE.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>@summary@</summary>
     <description>@description@</description>
