@@ -56,6 +56,8 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Monad.fs" />
     <Compile Include="Router.fs" />
     <Compile Include="Router.Syntax.fs" />
     <Content Include="app.config" />

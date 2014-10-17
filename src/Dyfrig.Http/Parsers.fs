@@ -172,15 +172,15 @@ let weight =
 
 // TODO: tokens are not the only values here, dquoted strings need implementing
 
-let private acceptExtension =
+let private acceptExt =
     token .>>. opt (skipChar '=' >>. token)
 
-let private acceptExtensions =
-    prefix (skipChar ';') acceptExtension 
+let private acceptExts =
+    prefix (skipChar ';') acceptExt
     |>> Map.ofList
 
-let private acceptParameters =
-    weight .>> OWS .>>. acceptExtensions
+let private acceptParams =
+    weight .>> OWS .>>. acceptExts
 
 let private parameter =
     notFollowedBy (OWS >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
@@ -189,34 +189,45 @@ let private parameters =
     prefix (skipChar ';') parameter 
     |>> Map.ofList
 
-let private openRange = 
+let private mediaRangeSpecOpen = 
     skipString "*/*"
-    |>> fun _ -> MediaRange.Partial (Open)
+    |>> fun _ -> MediaRangeSpec.Open
 
-let private partialRange = 
+let private mediaRangeSpecPartial = 
     token .>> skipString "/*"
-    |>> fun x -> MediaRange.Partial (Partial (MediaType x))
+    |>> fun x -> MediaRangeSpec.Partial (Type x)
 
-let private fullRange = 
+let private mediaRangeSpecClosed = 
     token .>> skipChar '/' .>>. token
-    |>> fun (x, y) -> MediaRange.Specified (Closed (MediaType x, MediaSubType y))
+    |>> fun (x, y) -> MediaRangeSpec.Closed (Type x, SubType y)
 
-let private range = 
+let private mediaRangeSpec = 
     choice [
-        attempt openRange
-        attempt partialRange
-        fullRange ]
+        attempt mediaRangeSpecOpen
+        attempt mediaRangeSpecPartial
+        mediaRangeSpecClosed ]
 
-let private mediaRange = 
-    range .>> OWS .>>. parameters
+let private mediaRange : Parser<MediaRange, unit> = 
+    mediaRangeSpec .>> OWS .>>. parameters
+    |>> (fun (mediaRangeSpec, parameters) ->
+            { MediaRange = mediaRangeSpec
+              Parameters = parameters })
 
-let private accept = 
-    infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParameters)
-    |>> List.map (fun ((mediaRange, parameters), acceptParameters) ->
+let private accept =
+    infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParams)
+    |>> List.map (fun (mediaRange, acceptParams) ->
+        let weight = 
+            acceptParams 
+            |> Option.map fst
+
+        let parameters = 
+            acceptParams 
+            |> Option.map snd
+            |> Option.getOrElse Map.empty
+
         { MediaRange = mediaRange
-          MediaRangeParameters = parameters
-          Weight = acceptParameters |> Option.map fst
-          ExtensionParameters = acceptParameters |> Option.map snd |> Option.getOrElse Map.empty })
+          Weight = weight
+          Parameters = parameters })
 
 let parseAccept =
     parse accept
@@ -226,23 +237,23 @@ let parseAccept =
    Taken from RFC 7231, Section 5.3.3. Accept-Charset
    [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-let private openCharset =
+let private charsetSpecAny =
     skipChar '*'
-    |>> fun _ -> Charset.Any
+    |>> fun _ -> CharsetSpec.Any
 
-let private namedCharset =
+let private charsetSpecCharset =
     token
-    |>> fun s -> Charset.Specified (SpecifiedCharset.Named s)
+    |>> fun s -> CharsetSpec.Charset (Charset.Charset s)
 
-let private charset = 
+let private charsetSpec = 
     choice [
-        openCharset
-        namedCharset ]
+        attempt charsetSpecAny
+        charsetSpecCharset ]
 
 let private acceptCharset =
-    infix1 (skipChar ',') (charset .>> OWS .>>. opt weight)
-    |>> List.map (fun (charset, weight) ->
-        { Charset = charset
+    infix1 (skipChar ',') (charsetSpec .>> OWS .>>. opt weight)
+    |>> List.map (fun (charsetSpec, weight) ->
+        { Charset = charsetSpec
           Weight = weight })
 
 let parseAcceptCharset =
@@ -253,23 +264,23 @@ let parseAcceptCharset =
    Taken from RFC 7231, Section 5.3.4. Accept-Encoding
    [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-let private openEncoding =
+let private encodingSpecAny =
     skipChar '*'
-    |>> fun _ -> Encoding.Any
+    |>> fun _ -> EncodingSpec.Any
 
-let private identityEncoding =
+let private encodingSpecIdentity =
     skipStringCI "identity"
-    |>> fun _ -> Encoding.Specified (SpecifiedEncoding.Identity)
+    |>> fun _ -> EncodingSpec.Identity
 
-let private namedEncoding =
+let private encodingSpecEncoding =
     token
-    |>> fun s -> Encoding.Specified (SpecifiedEncoding.Named s)
+    |>> fun s -> EncodingSpec.Encoding (Encoding.Encoding s)
 
 let private encoding =
     choice [
-        openEncoding
-        identityEncoding
-        namedEncoding ]
+        attempt encodingSpecAny
+        attempt encodingSpecIdentity
+        encodingSpecEncoding ]
 
 let private acceptEncoding =
     infix (skipChar ',') (encoding .>> OWS .>>. opt weight)

@@ -29,7 +29,7 @@ let inline private (?>) (x, y) f =
 module Charset =
 
     let private defaults =
-        [ SpecifiedCharset.Named "iso-8859-1" ]
+        [ Charset "iso-8859-1" ]
 
     let private request =
         getPLM Request.Headers.acceptCharset
@@ -57,7 +57,7 @@ module Charset =
 module Encoding =
         
     let private defaults =
-        [ SpecifiedEncoding.Identity ]
+        List.empty<Encoding>
 
     let private request =
         getPLM Request.Headers.acceptEncoding
@@ -113,7 +113,7 @@ module Language =
 module MediaType =
 
     let private defaults =
-        List.empty<SpecifiedMediaRange>
+        List.empty<MediaType>
 
     let private request =
         getPLM Request.Headers.accept

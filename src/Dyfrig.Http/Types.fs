@@ -40,6 +40,49 @@ type Scheme =
     | HTTPS 
     | Custom of string
 
+(* Media Types/Ranges *)
+
+type Type =
+    | Type of string
+
+and SubType =
+    | SubType of string
+
+type MediaRange =
+    { MediaRange: MediaRangeSpec
+      Parameters: Map<string, string> }
+
+and MediaRangeSpec =
+    | Closed of Type * SubType
+    | Partial of Type
+    | Open
+
+type MediaType =
+    { MediaType: MediaTypeSpec
+      Parameters: Map<string, string> }
+
+and MediaTypeSpec =
+    | MediaType of Type * SubType
+
+(* Charsets *)
+
+type CharsetSpec =
+    | Charset of Charset
+    | Any
+
+and Charset =
+    | Charset of string
+
+(* Encodings *)
+
+type EncodingSpec =
+    | Encoding of Encoding
+    | Identity
+    | Any
+
+and Encoding =
+    | Encoding of string
+
 (* Accept
 
    Taken from RFC 7231, Section 5.3.2. Accept
@@ -47,26 +90,8 @@ type Scheme =
 
 type Accept =
     { MediaRange: MediaRange
-      MediaRangeParameters: Map<string, string>
-      ExtensionParameters: Map<string, string option>
-      Weight: float option }
-
-and MediaRange =
-    | Specified of SpecifiedMediaRange
-    | Partial of PartialMediaRange
-
-and SpecifiedMediaRange =
-    | Closed of MediaType * MediaSubType
-
-and PartialMediaRange =
-    | Partial of MediaType
-    | Open
-
-and MediaType =
-    | MediaType of string
-
-and MediaSubType =
-    | MediaSubType of string
+      Weight: float option
+      Parameters: Map<string, string option> }
 
 (* Accept-Charset
 
@@ -74,15 +99,8 @@ and MediaSubType =
    [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
 type AcceptCharset =
-    { Charset: Charset
+    { Charset: CharsetSpec
       Weight: float option }
-
-and Charset =
-    | Specified of SpecifiedCharset
-    | Any
-
-and SpecifiedCharset =
-    | Named of string
 
 (* Accept-Encoding
 
@@ -90,16 +108,8 @@ and SpecifiedCharset =
    [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
 type AcceptEncoding =
-    { Encoding: Encoding
+    { Encoding: EncodingSpec
       Weight: float option }
-
-and Encoding =
-    | Specified of SpecifiedEncoding
-    | Any
-
-and SpecifiedEncoding =
-    | Named of string
-    | Identity
 
 (* Accept-Language
 
@@ -111,6 +121,8 @@ type AcceptLanguage =
       Weight: float option }
 
 (* RFC 7232 *)
+
+(* Entity Tags *)
 
 type EntityTag =
     | Strong of string

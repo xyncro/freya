@@ -10,9 +10,9 @@ open Dyfrig.Http
 (* Representations *)
 
 type RepresentationRequest =
-    { Charsets: SpecifiedCharset list
-      Encodings: SpecifiedEncoding list
-      MediaTypes: SpecifiedMediaRange list
+    { Charsets: Charset list
+      Encodings: Encoding list
+      MediaTypes: MediaType list
       Languages: CultureInfo list }
 
     static member Create charsets encodings mediaTypes languages =
@@ -22,10 +22,10 @@ type RepresentationRequest =
           Languages = languages }
 
 type RepresentationResponse =
-    { Charset: SpecifiedCharset option
-      Encoding: SpecifiedEncoding option
-      MediaType: SpecifiedMediaRange option
-      Language: CultureInfo option
+    { Charset: Charset option
+      Encoding: Encoding list option
+      MediaType: MediaType option
+      Language: CultureInfo list option
       Representation: byte [] }
 
     static member Default representation =

@@ -27,36 +27,36 @@ let inline private prepare requested =
     [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
 let private (|ClosedM|_|) =
-    function | MediaRange.Specified (Closed (MediaType x, MediaSubType y)) -> Some (x, y)
+    function | MediaRangeSpec.Closed (Type x, SubType y) -> Some (x, y)
              | _ -> None
 
 let private (|PartialM|_|) =
-    function | MediaRange.Partial (Partial (MediaType x)) -> Some x
+    function | MediaRangeSpec.Partial (Type x) -> Some x
              | _ -> None
 
 let private (|OpenM|_|) =
-    function | MediaRange.Partial (Open) -> Some ()
+    function | MediaRangeSpec.Open -> Some ()
              | _ -> None
 
-let private matchAccept (Closed (MediaType t, MediaSubType s)) =
+let private matchAccept (MediaType (Type t, SubType s)) =
     function | ClosedM (t', s') when t == t' && s == s' -> true
              | PartialM t' when t == t' -> true
              | OpenM _ -> true
              | _ -> false
 
-let private scoreAccept (Closed (MediaType t, MediaSubType s)) =
+let private scoreAccept (MediaType (Type t, SubType s)) =
     function | ClosedM (t', s') when t == t' && s == s' -> 3
              | PartialM t' when t == t' -> 2
              | OpenM _ -> 1
              | _ -> 0
 
-let private selectAccept (available: SpecifiedMediaRange list) =
+let private selectAccept (available: MediaType list) =
     List.map (fun r -> 
         available 
-        |> List.filter (fun a -> matchAccept a r.MediaRange)
-        |> List.sortBy (fun a -> scoreAccept a r.MediaRange)) >> List.concat
+        |> List.filter (fun a -> matchAccept a.MediaType r.MediaRange.MediaRange)
+        |> List.sortBy (fun a -> scoreAccept a.MediaType r.MediaRange.MediaRange)) >> List.concat
 
-let negotiateAccept (available: SpecifiedMediaRange list) =
+let negotiateAccept (available: MediaType list) =
     prepare >> selectAccept available
 
 (* Accept-Charset
@@ -64,25 +64,25 @@ let negotiateAccept (available: SpecifiedMediaRange list) =
     Taken from RFC 7231, Section 5.3.3. Accept-Charset
     [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-let private (|NamedC|_|) =
-    function | Charset.Specified (SpecifiedCharset.Named s) -> Some s
+let private (|CharsetC|_|) =
+    function | CharsetSpec.Charset (Charset s) -> Some s
              | _ -> None
 
 let private (|AnyC|_|) =
-    function | Charset.Any -> Some ()
+    function | CharsetSpec.Any -> Some ()
              | _ -> None
 
 let private matchAcceptCharset =
-    function | SpecifiedCharset.Named s, NamedC s' when s == s' -> true
+    function | Charset s, CharsetC s' when s == s' -> true
              | _, AnyC _ -> true
              | _ -> false
 
-let private selectAcceptCharset (available: SpecifiedCharset list) =
+let private selectAcceptCharset (available: Charset list) =
     List.map (fun r ->
         available
         |> List.filter (fun a -> matchAcceptCharset (a, r.Charset))) >> List.concat
 
-let negotiateAcceptCharset (available: SpecifiedCharset list) =
+let negotiateAcceptCharset (available: Charset list) =
     prepare >> selectAcceptCharset available
 
 (* Accept-Encoding
@@ -91,29 +91,29 @@ let negotiateAcceptCharset (available: SpecifiedCharset list) =
     [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
 let private (|NamedE|_|) =
-    function | Encoding.Specified (SpecifiedEncoding.Named e) -> Some e
+    function | EncodingSpec.Encoding (Encoding e) -> Some e
              | _ -> None
 
 let private (|IdentityE|_|) =
-    function | Encoding.Specified (SpecifiedEncoding.Identity) -> Some ()
+    function | EncodingSpec.Identity -> Some ()
              | _ -> None
 
 let private (|AnyE|_|) =
-    function | Encoding.Any -> Some ()
+    function | EncodingSpec.Any -> Some ()
              | _ -> None
 
 let private matchAcceptEncoding =
-    function | SpecifiedEncoding.Named e, NamedE e' when e == e' -> true
-             | SpecifiedEncoding.Identity, IdentityE _ -> true
+    function | Encoding e, NamedE e' when e == e' -> true
+             | _, IdentityE _ -> true
              | _, AnyE _ -> true
              | _ -> false
 
-let private selectAcceptEncoding (available: SpecifiedEncoding list) =
+let private selectAcceptEncoding (available: Encoding list) =
     List.map (fun r ->
         available
         |> List.filter (fun a -> matchAcceptEncoding (a, r.Encoding))) >> List.concat
 
-let negotiateAcceptEncoding (available: SpecifiedEncoding list) =
+let negotiateAcceptEncoding (available: Encoding list) =
     prepare >> selectAcceptEncoding available
 
 (* Accept-Language

@@ -35,11 +35,11 @@ module Configuration =
     type MachineMonadBuilder with
 
         [<CustomOperation (Configuration.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.CharsetsSupported (monad, charsets: SpecifiedCharset list) = 
+        member x.CharsetsSupported (monad, charsets: Charset list) = 
             x.Set (monad, configurationPLens Configuration.CharsetsSupported, charsets)
 
         [<CustomOperation (Configuration.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.EncodingsSupported (monad, encodings: SpecifiedEncoding list) = 
+        member x.EncodingsSupported (monad, encodings: Encoding list) = 
             x.Set (monad, configurationPLens Configuration.EncodingsSupported, encodings)
 
         [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
@@ -55,7 +55,7 @@ module Configuration =
             x.Set (monad, configurationPLens Configuration.LastModified, modified)
 
         [<CustomOperation (Configuration.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.MediaTypesSupported (monad, mediaTypes: SpecifiedMediaRange list) =
+        member x.MediaTypesSupported (monad, mediaTypes: MediaType list) =
             x.Set (monad, configurationPLens Configuration.MediaTypesSupported, mediaTypes)
 
         [<CustomOperation (Configuration.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]

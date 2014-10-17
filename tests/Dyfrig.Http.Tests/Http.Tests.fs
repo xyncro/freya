@@ -251,18 +251,21 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.accept`` () =
         let acceptTyped =
-            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.8 }
-              { MediaRange = MediaRange.Partial (Partial  (MediaType "text"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.7 }
-              { MediaRange = MediaRange.Partial (Open)
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.5 } ]
+            [ { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
+                    Parameters = Map.empty }
+                Weight = Some 0.8
+                Parameters = Map.empty }
+              { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Partial (Type "text")
+                    Parameters = Map.empty }
+                Weight = Some 0.7
+                Parameters = Map.empty }
+              { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Open
+                    Parameters = Map.empty }
+                Weight = Some 0.5
+                Parameters = Map.empty } ]
 
         let acceptString =
             "application/json;q=0.8,text/*;q=0.7,*/*;q=0.5"
@@ -283,9 +286,9 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptCharset`` () =
         let acceptCharsetTyped =
-            [ { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-5")
+            [ { Charset = CharsetSpec.Charset (Charset "iso-8859-5")
                 Weight = None }
-              { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
+              { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
                 Weight = Some 0.8 } ]
 
         let acceptCharsetString =
@@ -307,11 +310,11 @@ module Lenses =
     [<Test>]
     let ``Request.Headers.acceptEncoding`` () =
         let acceptEncodingTyped =
-            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
+            [ { Encoding = EncodingSpec.Encoding (Encoding "gzip")
                 Weight = None }
-              { Encoding = Encoding.Specified (SpecifiedEncoding.Identity)
+              { Encoding = EncodingSpec.Identity
                 Weight = Some 0.5 }
-              { Encoding = Encoding.Any
+              { Encoding = EncodingSpec.Any
                 Weight = Some 0. } ]
 
         let acceptEncodingString = 
@@ -389,86 +392,103 @@ module Negotiation =
     [<Test>]
     let ``negotiateAccept`` =
         let available =
-            [ Closed (MediaType "application", MediaSubType "json")
-              Closed (MediaType "text", MediaSubType "html") ]
+            [ { MediaType = MediaType (Type "application", SubType "json")
+                Parameters = Map.empty }
+              { MediaType = MediaType (Type "text", SubType "html")
+                Parameters = Map.empty } ]
 
         let requested1 =
-            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.8 }
-              { MediaRange = MediaRange.Partial (Partial (MediaType "text"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.5 } ]
+            [ { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
+                    Parameters = Map.empty }
+                Weight = Some 0.8
+                Parameters = Map.empty }
+              { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Partial (Type "text")
+                    Parameters = Map.empty }
+                Weight = Some 0.5
+                Parameters = Map.empty } ]
 
         let requested2 =
-            [ { MediaRange = MediaRange.Specified (Closed (MediaType "application", MediaSubType "json"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.8 }
-              { MediaRange = MediaRange.Partial (Partial (MediaType "text"))
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0.9 } ]
+            [ { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
+                    Parameters = Map.empty }
+                Weight = Some 0.8
+                Parameters = Map.empty }
+              { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Partial (Type "text")
+                    Parameters = Map.empty }
+                Weight = Some 0.9
+                Parameters = Map.empty } ]
 
         let requested3 =
-            [ { MediaRange = MediaRange.Partial (Open)
-                MediaRangeParameters = Map.empty
-                ExtensionParameters = Map.empty
-                Weight = Some 0. } ]
+            [ { MediaRange = 
+                  { MediaRange = MediaRangeSpec.Open
+                    Parameters = Map.empty }
+                Weight = Some 0.
+                Parameters = Map.empty } ]
 
         let negotiated1 = negotiateAccept available requested1
         let negotiated2 = negotiateAccept available requested2
         let negotiated3 = negotiateAccept available requested3
         
-        negotiated1 =? [ Closed (MediaType "application", MediaSubType "json")
-                         Closed (MediaType "text", MediaSubType "html") ]
-        negotiated2 =? [ Closed (MediaType "text", MediaSubType "html")
-                         Closed (MediaType "application", MediaSubType "json") ]
+        negotiated1 =? 
+            [ { MediaType = MediaType (Type "application", SubType "json")
+                Parameters = Map.empty }
+              { MediaType = MediaType (Type "text", SubType "html")
+                Parameters = Map.empty } ]
+
+        negotiated2 =?
+            [ { MediaType = MediaType (Type "text", SubType "html")
+                Parameters = Map.empty }
+              { MediaType = MediaType (Type "application", SubType "json")
+                Parameters = Map.empty } ]
+
         negotiated3 =? []
 
     [<Test>]
     let ``negotiateAcceptCharset`` () =
         let available =
-            [ SpecifiedCharset.Named "unicode-1-1"
-              SpecifiedCharset.Named "iso-8859-1" ]
+            [ Charset "unicode-1-1"
+              Charset "iso-8859-1" ]
 
         let requested1 =
-            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
+            [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
                 Weight = Some 0.8 }
-              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
+              { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
                 Weight = Some 0.9 } ]
 
         let requested2 =
-            [ { Charset = Charset.Specified (SpecifiedCharset.Named "unicode-1-1")
+            [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
                 Weight = None }
-              { Charset = Charset.Specified (SpecifiedCharset.Named "iso-8859-1")
+              { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
                 Weight = Some 0.9 } ]
 
         let negotiated1 = negotiateAcceptCharset available requested1
         let negotiated2 = negotiateAcceptCharset available requested2
 
-        negotiated1 =? [ SpecifiedCharset.Named "iso-8859-1"
-                         SpecifiedCharset.Named "unicode-1-1" ]
-        negotiated2 =? [ SpecifiedCharset.Named "unicode-1-1"
-                         SpecifiedCharset.Named "iso-8859-1" ]
+        negotiated1 =? 
+            [ Charset "iso-8859-1"  
+              Charset "unicode-1-1" ]
+        negotiated2 =? 
+            [ Charset "unicode-1-1"
+              Charset "iso-8859-1" ]
 
     [<Test>]
     let ``negotiateAcceptEncoding`` () =
         let available =
-            [ SpecifiedEncoding.Named "gzip" ]
+            [ Encoding.Encoding "gzip" ]
 
         let requested1 =
-            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "gzip")
+            [ { Encoding = EncodingSpec.Encoding (Encoding "gzip")
                 Weight = Some 0.7 } ]
 
         let requested2 =
-            [ { Encoding = Encoding.Specified (SpecifiedEncoding.Named "compress")
+            [ { Encoding = EncodingSpec.Encoding (Encoding "compress")
                 Weight = Some 0.7 } ]
 
         let negotiated1 = negotiateAcceptEncoding available requested1
         let negotiated2 = negotiateAcceptEncoding available requested2
 
-        negotiated1 =? [ SpecifiedEncoding.Named "gzip" ]
+        negotiated1 =? [ Encoding "gzip" ]
         negotiated2 =? []

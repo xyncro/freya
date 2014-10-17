@@ -46,13 +46,13 @@ module internal Invocation =
 
     let private write (req: RepresentationRequest) (res: RepresentationResponse) =
         owin {
-            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.Languages) res.Language with
-            | Some _ -> do! setPLM (Response.Headers.contentLanguage) "Language!"
-            | _ -> ()
-
-            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.MediaTypes) res.MediaType with
-            | Some _ -> do! setPLM (Response.Headers.contentType) "MediaType!"
-            | _ -> ()
+//            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.Languages) res.Language with
+//            | Some _ -> do! setPLM (Response.Headers.contentLanguage) "Language!"
+//            | _ -> ()
+//
+//            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.MediaTypes) res.MediaType with
+//            | Some _ -> do! setPLM (Response.Headers.contentType) "MediaType!"
+//            | _ -> ()
 
             do! setPLM (Response.Headers.contentLength) res.Representation.Length
             do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }

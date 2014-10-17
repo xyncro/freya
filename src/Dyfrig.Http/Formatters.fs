@@ -29,36 +29,51 @@ let formatQuery m =
     |> Array.rev
     |> String.concat "&"
 
+(* Media Types/Ranges *)
+
+let private formatParameters (parameters: Map<string, string>) =
+    match parameters.Count with
+    | 0 -> ""
+    | _ ->
+        parameters
+        |> Map.toArray
+        |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
+        |> Array.rev
+        |> String.concat ";"
+        |> sprintf ";%s"
+
+let formatMediaRange (x: MediaRange) =
+    let mediaRange =
+        match x.MediaRange with
+        | MediaRangeSpec.Closed (Type x, SubType y) -> sprintf "%s/%s" x y
+        | MediaRangeSpec.Partial (Type x) -> sprintf "%s/*" x
+        | MediaRangeSpec.Open -> "*/*"
+
+    sprintf "%s%s" mediaRange (formatParameters x.Parameters)
+
+let formatMediaType (x: MediaType) =
+    let mediaType =
+        match x.MediaType with
+        | MediaType (Type x, SubType y) -> sprintf "%s/%s" x y
+
+    sprintf "%s%s" mediaType (formatParameters x.Parameters)
+
 let private formatWeight =
     Option.map (sprintf ";q=%.4g") >> Option.getOrElse ""
 
+(* Content Negotiation *)
+
 let formatAccept =
     List.map (fun (x) ->
-        let mediaRange =
-            match x.MediaRange with
-            | MediaRange.Specified (Closed (MediaType x, MediaSubType y)) -> sprintf "%s/%s" x y
-            | MediaRange.Partial (Partial (MediaType x)) -> sprintf "%s/*" x
-            | MediaRange.Partial (Open) -> "*/*"
-
-        let mediaRangeParameters =
-            match x.MediaRangeParameters.Count with
-            | 0 -> ""
-            | _ ->
-                x.MediaRangeParameters
-                |> Map.toArray
-                |> Array.map (fun (x, y) -> sprintf "%s=%s" x y)
-                |> Array.rev
-                |> String.concat ";"
-
-        sprintf "%s%s%s" mediaRange mediaRangeParameters (formatWeight x.Weight))
+        sprintf "%s%s" (formatMediaRange x.MediaRange) (formatWeight x.Weight))
     >> String.concat ","
 
 let formatAcceptCharset =
     List.map (fun x ->
         let charset =
             match x.Charset with
-            | Charset.Specified (SpecifiedCharset.Named x) -> x
-            | Charset.Any -> "*"                    
+            | CharsetSpec.Charset (Charset.Charset x) -> x
+            | CharsetSpec.Any -> "*"                    
 
         sprintf "%s%s" charset (formatWeight x.Weight))
     >> String.concat ","
@@ -67,9 +82,9 @@ let formatAcceptEncoding =
     List.map (fun x ->
         let encoding =
             match x.Encoding with
-            | Encoding.Specified (SpecifiedEncoding.Named x) -> x
-            | Encoding.Specified (SpecifiedEncoding.Identity) -> "identity"
-            | Encoding.Any -> "*"                    
+            | EncodingSpec.Encoding (Encoding.Encoding x) -> x
+            | EncodingSpec.Identity -> "identity"
+            | EncodingSpec.Any -> "*"                    
 
         sprintf "%s%s" encoding (formatWeight x.Weight)) 
     >> String.concat ","

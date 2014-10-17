@@ -24,7 +24,7 @@ let createTodo =
 let createdTodo _ =
     RepresentationResponse.Default <!> returnM Array.empty
 
-let getTodos r =
+let getTodos _ =
     asJSON <!> liftAsync (getAll ())
 
 let todoProcessable =
@@ -37,15 +37,14 @@ let todoLastModified =
 
 let json =
     machine {
-        mediaTypesSupported [ 
-            SpecifiedMediaRange.Closed (
-                MediaType "application", 
-                MediaSubType "json") ] }
+        mediaTypesSupported [
+            { MediaType = MediaType (Type "application", SubType "json")
+              Parameters = Map.empty } ] }
 
 let unicode =
     machine {
         charsetsSupported [ 
-            SpecifiedCharset.Named "unicode-1-1" ] }
+            Charset "unicode-1-1" ] }
 
 // Resources
 
