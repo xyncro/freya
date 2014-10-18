@@ -37,14 +37,11 @@ let todoLastModified =
 
 let json =
     machine {
-        mediaTypesSupported [
-            { MediaType = MediaType (Type "application", SubType "json")
-              Parameters = Map.empty } ] }
+        mediaTypesSupported [ MediaTypes.JSON ] }
 
 let unicode =
     machine {
-        charsetsSupported [ 
-            Charset "unicode-1-1" ] }
+        charsetsSupported [ Charsets.Unicode ] }
 
 // Resources
 

@@ -62,6 +62,7 @@
     <Compile Include="Formatters.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Negotiation.fs" />
+    <Compile Include="Presets.fs" />
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
