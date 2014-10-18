@@ -145,3 +145,16 @@ type IfMatch =
 type IfNoneMatch =
     | EntityTags of EntityTag list
     | Any
+
+(* RFC 7235 *)
+
+(* Authorization
+    
+   Taken from RFC 7235, Section 4.2. Authorization
+   [http://tools.ietf.org/html/rfc7235#section-4.2] *)
+
+type Authorization =
+    { Scheme: AuthorizationScheme }
+
+and AuthorizationScheme =
+    | AuthorizationScheme of string

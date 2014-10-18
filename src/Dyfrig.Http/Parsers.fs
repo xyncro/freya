@@ -18,34 +18,28 @@ let private parse p s =
    Taken from RFC 5234, Appendix B.1. Core Rules
    [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
-let private DQUOTE = 
-    char 0x22
+let private alpha = 
+    Set.unionMany [ 
+        set (List.map char [0x41 .. 0x5a])
+        set (List.map char [0x61 .. 0x7a]) ]
 
-let private HTAB = 
-    char 0x09
-
-let private SP = 
-    char 0x20
-
-let private ALPHA = 
-    Set.unionMany 
-        [ set (List.map char [0x41 .. 0x5a])
-          set (List.map char [0x61 .. 0x7a]) ]
-
-let private DIGIT = 
+let private digit = 
     set (List.map char [0x30 .. 0x39])
 
-let private WSP = 
-    set [ SP; HTAB ]
+let private dquote = 
+    char 0x22
 
-let private isALPHA c = 
-    Set.contains c ALPHA
+let private htab = 
+    char 0x09
 
-let private isDIGIT c = 
-    Set.contains c DIGIT
+let private sp = 
+    char 0x20
 
-let private isWSP c = 
-    Set.contains c WSP
+let private vchar =
+    set (List.map char [0x21 .. 0x7e])
+
+let private wsp = 
+    set [ sp; htab ]
 
 (* RFC 7230 *)
 
@@ -55,31 +49,60 @@ let private isWSP c =
    [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
         
 let private OWS = 
-    skipManySatisfy isWSP
+    skipManySatisfy (fun c -> Set.contains c wsp)
 
-//let private RWS = 
-//    skipMany1Satisfy isWSP
+//let private RWS =
+//    skipMany1Satisfy (fun c -> Set.contains c wsp)
+
+let private BWS =
+    OWS
 
 (* Field Value Components
 
    Taken from RFC 7230, Section 3.2.6. Field Value Components
    [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
 
-let private nonDelimiters =
-    set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
-          '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
-
-let private TCHAR = 
-    Set.unionMany 
-        [ nonDelimiters
-          ALPHA
-          DIGIT ]
-
-let private isTCHAR c =
-    Set.contains c TCHAR
+let private tchar = 
+    Set.unionMany [ 
+        set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
+              '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
+        alpha
+        digit ]
 
 let private token = 
-    many1Satisfy isTCHAR
+    many1Satisfy (fun c -> Set.contains c tchar)
+
+let private obsText =
+    set (List.map char [0x80 .. 0xff])
+
+let private qdtext =
+    Set.unionMany [
+        set [ htab; sp ]
+        set [ char 0x21 ]
+        set (List.map char [0x23 .. 0x5b])
+        set (List.map char [0x5d .. 0x7e])
+        obsText ]
+
+let private ctext =
+    Set.unionMany [
+        set [ htab; sp ]
+        set (List.map char [0x21 .. 0x27])
+        set (List.map char [0x2a .. 0x5b])
+        set (List.map char [0x5d .. 0x7e])
+        obsText ]
+
+let private quotedPair =
+    skipString "\\" >>. satisfy (fun c -> 
+           c = htab 
+        || c = sp 
+        || Set.contains c vchar
+        || Set.contains c obsText)
+
+let private quotedString =
+        skipChar dquote 
+    >>. many (choice [ quotedPair; (satisfy (fun c -> Set.contains c qdtext)) ])
+        |>> (fun x -> System.String (List.toArray x))
+    .>> skipChar dquote
 
 (* ABNF List Extension: #rule
 
@@ -149,13 +172,15 @@ let private valueOrDefault =
     | _ -> 0.
 
 let private d3 =
-        manyMinMaxSatisfy 0 3 isDIGIT .>> notFollowedBy (skipSatisfy isDIGIT)
+        manyMinMaxSatisfy 0 3 (fun c -> Set.contains c digit) 
+    .>> notFollowedBy (skipSatisfy (fun c -> Set.contains c digit))
 
 let private isZero =
     isAnyOf [ '0' ]
 
 let private d03 =
-    skipManyMinMaxSatisfy 0 3 isZero .>> notFollowedBy (skipSatisfy isDIGIT)
+        skipManyMinMaxSatisfy 0 3 isZero 
+    .>> notFollowedBy (skipSatisfy (fun c -> Set.contains c digit))
 
 let private qvalue =
     choice
@@ -170,10 +195,10 @@ let weight =
    Taken from RFC 7231, Section 5.3.2. Accept
    [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-// TODO: tokens are not the only values here, dquoted strings need implementing
+// TODO: Test this quoted string implementation...
 
 let private acceptExt =
-    token .>>. opt (skipChar '=' >>. token)
+    token .>>. opt (skipChar '=' >>. choice [ quotedString; token ])
 
 let private acceptExts =
     prefix (skipChar ';') acceptExt
@@ -300,7 +325,7 @@ let parseAcceptEncoding =
    definition from RFC 4647, Section 3.1.3.1 *)
 
 let private languageRangeComponent =
-    manyMinMaxSatisfy 1 8 isALPHA
+    manyMinMaxSatisfy 1 8 (fun c -> Set.contains c alpha)
 
 let private languageRange =
     languageRangeComponent .>>. opt (skipChar '-' >>. languageRangeComponent)
@@ -324,7 +349,7 @@ let parseAcceptLanguage =
    should be implemented ASAP *)
 
 let private eTag =
-    skipChar DQUOTE >>. token .>> skipChar DQUOTE
+    skipChar dquote >>. token .>> skipChar dquote
     |>> Strong
 
 let parseETag =
