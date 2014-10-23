@@ -19,7 +19,6 @@ let getT (k, v) f =
     Async.RunSynchronously (f env) 
     |> fst
 
-
 let getRequestHeaderT (k, h) f =
     let headers = dict [ k, [| h |] ]
     let data = dict [ Constants.requestHeaders, box headers ]

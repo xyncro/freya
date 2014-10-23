@@ -136,6 +136,7 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Compile Include="Parsers.Tests.fs" />
     <Compile Include="Lenses.Tests.fs" />
     <Compile Include="Negotiation.Tests.fs" />
     <Content Include="app.config" />

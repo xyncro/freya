@@ -44,39 +44,39 @@ let intPIso : PIso<string, int> =
 (* RFC 7231 *)
 
 let private methodIso =
-    parseMethod, formatMethod
+    RFC7231.parseMethod, formatMethod
 
 let private protocolIso =
-    parseProtocol, formatProtocol
+    RFC7231.parseProtocol, formatProtocol
 
 let private schemeIso =
-    parseScheme, formatScheme
+    RFC7231.parseScheme, formatScheme
 
 let private queryIso =
-    parseQuery, formatQuery
+    RFC7231.parseQuery, formatQuery
 
 let private acceptPIso =
-    parseAccept, formatAccept
+    parse RFC7231.accept, formatAccept
 
 let private acceptCharsetPIso =
-    parseAcceptCharset, formatAcceptCharset
+    parse RFC7231.acceptCharset, formatAcceptCharset
 
 let private acceptEncodingPIso =
-    parseAcceptEncoding, formatAcceptEncoding
+    parse RFC7231.acceptEncoding, formatAcceptEncoding
 
 let private acceptLanguagePIso =
-    parseAcceptLanguage, formatAcceptLanguage
+    parse RFC7231.acceptLanguage, formatAcceptLanguage
 
 (* RFC 7232 *)
         
 let private eTagPIso =
-    parseETag, formatETag
+    parse RFC7232.eTag, formatETag
 
 let private ifMatchPIso =
-    parseIfMatch, formatIfMatch
+    parse RFC7232.ifMatch, formatIfMatch
 
 let private ifNoneMatchPIso =
-    parseIfNoneMatch, formatIfNoneMatch
+    parse RFC7232.ifNoneMatch, formatIfNoneMatch
 
 (* Lenses *)
 
