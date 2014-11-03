@@ -1,9 +1,14 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core", "src\Dyfrig.Core\Dyfrig.Core.fsproj", "{1AAE3D8F-196F-4868-88AB-47D860CF091F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{500020E1-325C-46AB-9E93-9FFC6B1F0D5D}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ABE59DEA-56DB-4354-9754-0E4074360A9B}"
 EndProject
@@ -36,6 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", 
 		tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references = tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references
 		src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references = src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references
 		examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references = examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references
+		docs\tools\generate.fsx = docs\tools\generate.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{0A570763-69E7-4E5B-8640-A848A4E2239F}"
@@ -59,6 +65,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Inspector", "src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj", "{27EC7C3C-DAFC-48FC-9953-42C58BF85354}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Net.Http", "src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj", "{3533610C-F45A-4791-AA3D-33E1DDA0416A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,6 +114,10 @@ Global
 		{27EC7C3C-DAFC-48FC-9953-42C58BF85354}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27EC7C3C-DAFC-48FC-9953-42C58BF85354}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27EC7C3C-DAFC-48FC-9953-42C58BF85354}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,5 +136,6 @@ Global
 		{318A69F6-E0F9-49CC-9A6F-77BEDF68FA05} = {E12DF794-FA72-4B5F-AE4B-36469B5C2E13}
 		{4B77A140-D2FF-4C67-BD08-8C0081221263} = {291EFE25-4571-4F3D-A7A3-A900C66EBA62}
 		{27EC7C3C-DAFC-48FC-9953-42C58BF85354} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{3533610C-F45A-4791-AA3D-33E1DDA0416A} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 	EndGlobalSection
 EndGlobal

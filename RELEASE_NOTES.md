@@ -1,3 +1,24 @@
+### New in 0.8.0 - (Released 2014/10/12)
+* Removed `OwinRailway`. A new pipeline approach will appear as a separate library soon.
+* Moved `SystemNetHttpAdapter` to its own library, `Dyfrig.Net.Http`, which is not yet available.
+* Expect `Dyfrig` to be renamed `Dyfrig.Core` in the near future.
+* Now using [`Paket`](https://fsprojects.github.io/Paket/).
+
+### New in 0.7.0 - (Released 2014/08/27)
+* Reorganized modules, merging `Owin` with `Monad` into `OwinMonad`
+* Added signature file for `OwinApp`
+* Breaking changes to signatures found in `OwinMonad`:
+    * Renamed `Owin.async` to `OwinMonad.fromAsync`
+    * Added `OwinMonad.result`
+    * Renamed `Owin.composeSeq` to `OwinMonad.bind`
+    * `OwinMonad` is not automatically opened as was `Owin` previously
+
+### New in 0.6.0 - (Released 2014/08/27)
+* Added `Environment.flush` function to support pushing changes to an immutable `Environment` to the original `OwinEnv`.
+* Added additional properties to support upcoming [OWIN v1.1](https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md) keys:
+    * [`owin.RequestId`](https://github.com/owin/owin/issues/18)
+    * [`owin.RequestUser`](https://github.com/owin/owin/issues/9)
+
 ### New in 0.5.0 - (Released 2014/08/011)
 * Added OwinMonad (courtesy of [Andrew Cherry](https://github.com/kolektiv))
 * Breaking change: `OwinApp` module renamed to `OwinAppFunc` module with `fromOwinApp` and `fromOwinMonad` members
