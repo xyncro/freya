@@ -44,7 +44,7 @@ let intPIso : PIso<string, int> =
 (* RFC 7231 *)
 
 let private methodIso =
-    RFC7231.parseMethod, formatMethod
+    parse RFC7231.meth, formatMethod
 
 let private protocolIso =
     RFC7231.parseProtocol, formatProtocol
@@ -56,27 +56,27 @@ let private queryIso =
     RFC7231.parseQuery, formatQuery
 
 let private acceptPIso =
-    parse RFC7231.accept, formatAccept
+    parseP RFC7231.accept, formatAccept
 
 let private acceptCharsetPIso =
-    parse RFC7231.acceptCharset, formatAcceptCharset
+    parseP RFC7231.acceptCharset, formatAcceptCharset
 
 let private acceptEncodingPIso =
-    parse RFC7231.acceptEncoding, formatAcceptEncoding
+    parseP RFC7231.acceptEncoding, formatAcceptEncoding
 
 let private acceptLanguagePIso =
-    parse RFC7231.acceptLanguage, formatAcceptLanguage
+    parseP RFC7231.acceptLanguage, formatAcceptLanguage
 
 (* RFC 7232 *)
         
 let private eTagPIso =
-    parse RFC7232.eTag, formatETag
+    parseP RFC7232.eTag, formatETag
 
 let private ifMatchPIso =
-    parse RFC7232.ifMatch, formatIfMatch
+    parseP RFC7232.ifMatch, formatIfMatch
 
 let private ifNoneMatchPIso =
-    parse RFC7232.ifNoneMatch, formatIfNoneMatch
+    parseP RFC7232.ifNoneMatch, formatIfNoneMatch
 
 (* Lenses *)
 
@@ -88,427 +88,342 @@ let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
     (fun v d -> d.[k] <- v; d)   
 
+let private item<'a> key =
+    dictLens key <--> boxIso<'a>
+
+let private pItem<'a> key =
+    dictPLens key <?-> boxIso<'a>
+
 
 [<RequireQualifiedAccess>]
 module Request =
 
     let body =
-             dictLens Constants.requestBody
-        <--> boxIso<Stream>
+        item<Stream> Constants.requestBody
 
     let headers =
-             dictLens Constants.requestHeaders
-        <--> boxIso<IDictionary<string, string []>>
+        item<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
-             headers
-        >-?> dictPLens key
+        headers >-?> dictPLens key
 
     let meth = 
-             dictLens Constants.requestMethod
-        <--> boxIso<string>
-        <--> methodIso
+        item<string> Constants.requestMethod <--> methodIso
 
     let path = 
-             dictLens Constants.requestPath
-        <--> boxIso<string>
+        item<string> Constants.requestPath
 
     let pathBase =
-             dictLens Constants.requestPathBase
-        <--> boxIso<string>
+        item<string> Constants.requestPathBase
 
     let protocol =
-             dictLens Constants.requestProtocol
-        <--> boxIso<string>
-        <--> protocolIso
+        item<string> Constants.requestProtocol <--> protocolIso
 
     let scheme = 
-             dictLens Constants.requestScheme
-        <--> boxIso<string>
-        <--> schemeIso
+        item<string> Constants.requestScheme <--> schemeIso
 
     let query =
-             dictLens Constants.requestQueryString
-        <--> boxIso<string>
-        <--> queryIso
+        item<string> Constants.requestQueryString <--> queryIso
 
     let queryKey key =
-             query
-        >-?> mapPLens key
+        query >-?> mapPLens key
 
 
     [<RequireQualifiedAccess>]
     module Headers =
 
+        let private header key =
+            headersKey key <?-> headerIso
+
         let accept =
-                 headersKey "Accept"
-            <?-> headerIso
-            <??> acceptPIso
+            header "Accept" <??> acceptPIso
 
         let acceptCharset =
-                 headersKey "Accept-Charset"
-            <?-> headerIso
-            <??> acceptCharsetPIso
+            header "Accept-Charset" <??> acceptCharsetPIso
 
         let acceptEncoding =
-                 headersKey "Accept-Encoding"
-            <?-> headerIso
-            <??> acceptEncodingPIso
+            header "Accept-Encoding" <??> acceptEncodingPIso
 
         let acceptLanguage =
-                 headersKey "Accept-Language"
-            <?-> headerIso
-            <??> acceptLanguagePIso
+            header "Accept-Language" <??> acceptLanguagePIso
 
         // TODO: typed Authorization
 
         let authorization =
-                 headersKey "Authorization"
-            <?-> headerIso
+            header "Authorization"
 
         // TODO: typed CacheControl
 
         let cacheControl =
-                 headersKey "Cache-Control"
-            <?-> headerIso
+            header "Cache-Control"
 
         // TODO: typed Connection
 
         let connection =
-                 headersKey "Connection"
-            <?-> headerIso
+            header "Connection"
 
         // TODO: typed ContentEncoding
 
         let contentEncoding =
-                 headersKey "Content-Encoding"
-            <?-> headerIso
+            header "Content-Encoding"
 
         // TODO: typed ContentLanguage
 
         let contentLanguage =
-                 headersKey "Content-Language"
-            <?-> headerIso
+            header "Content-Language"
 
         let contentLength =
-                 headersKey "Content-Length"
-            <?-> headerIso
-            <??> intPIso
+            header"Content-Length" <??> intPIso
 
         // TODO: typed ContentLocation
 
         let contentLocation =
-                 headersKey "Content-Location"
-            <?-> headerIso
+            header "Content-Location"
 
         // TODO: typed ContentMD5
 
         let contentMD5 =
-                 headersKey "Content-MD5"
-            <?-> headerIso
+            header "Content-MD5"
 
         // TODO: typed ContentType
 
         let contentType =
-                 headersKey "Content-Type"
-            <?-> headerIso
+            header "Content-Type"
 
         let date =
-                 headersKey "Date"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Date" <??> dateTimePIso
 
         // TODO: typed Expect
 
         let expect =
-                 headersKey "Expect"
-            <?-> headerIso
+            header "Expect"
 
         // TODO: typed From
 
         let from =
-                 headersKey "From"
-            <?-> headerIso
+            header "From"
 
         // TODO: typed Host
 
         let host =
-                 headersKey "Host"
-            <?-> headerIso
+            header "Host"
 
         let ifMatch =
-                 headersKey "If-Match"
-            <?-> headerIso
-            <??> ifMatchPIso
+            header"If-Match" <??> ifMatchPIso
 
         let ifModifiedSince =
-                 headersKey "If-Modified-Since"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "If-Modified-Since" <??> dateTimePIso
 
         let ifNoneMatch =
-                 headersKey "If-None-Match"
-            <?-> headerIso
-            <??> ifNoneMatchPIso
+            header "If-None-Match" <??> ifNoneMatchPIso
 
         // TODO: typed IfRange
 
         let ifRange =
-                 headersKey "If-Range"
-            <?-> headerIso
+            header "If-Range"
 
         let ifUnmodifiedSince =
-                 headersKey "If-Unmodified-Since"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "If-Unmodified-Since" <??> dateTimePIso
 
         let maxForwards =
-                 headersKey "Max-Forwards"
-            <?-> headerIso
-            <??> intPIso
+            header "Max-Forwards" <??> intPIso
 
         // TODO: typed Pragma
 
         let pragma =
-                 headersKey "Pragma"
-            <?-> headerIso
+            header "Pragma"
 
         // TODO: typed ProxyAuthorization
 
         let proxyAuthorization =
-                 headersKey "Proxy-Authorization"
-            <?-> headerIso
+            header "Proxy-Authorization"
 
         // TODO: typed Range
 
         let range =
-                 headersKey "Range"
-            <?-> headerIso
+            header "Range"
 
         // TODO: typed Referer
 
         let referer =
-                 headersKey "Referer"
-            <?-> headerIso
+            header "Referer"
 
         // TODO: typed TE
 
         let TE =
-                 headersKey "TE"
-            <?-> headerIso
+            header "TE"
 
         // TODO: typed Trailer
 
         let trailer =
-                 headersKey "Trailer"
-            <?-> headerIso
+            header "Trailer"
 
         // TODO: typed TransferEncoding
 
         let transferEncoding =
-                 headersKey "Transfer-Encoding"
-            <?-> headerIso
+            header "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
         let upgrade =
-                 headersKey "Upgrade"
-            <?-> headerIso
+            header "Upgrade"
 
         // TODO: typed UserAgent
 
         let userAgent =
-                 headersKey "User-Agent"
-            <?-> headerIso
+            header "User-Agent"
 
         // TODO: typed Via
 
         let via =
-                 headersKey "Via"
-            <?-> headerIso
+            header "Via"
 
 
 [<RequireQualifiedAccess>]
 module Response =
 
     let body =
-             dictLens Constants.responseBody
-        <--> boxIso<Stream>
+        item<Stream> Constants.responseBody
 
     let headers =
-             dictLens Constants.responseHeaders
-        <--> boxIso<IDictionary<string, string []>>
+        item<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
-             headers
-        >-?> dictPLens key
+        headers >-?> dictPLens key
 
     let protocol =
-             dictPLens Constants.responseProtocol
-        <?-> boxIso<string>
-        <?-> protocolIso
+        pItem<string> Constants.responseProtocol <?-> protocolIso
 
     let reasonPhrase =
-             dictPLens Constants.responseReasonPhrase
-        <?-> boxIso<string>
+        pItem<string> Constants.responseReasonPhrase
 
     let statusCode =
-             dictPLens Constants.responseStatusCode
-        <?-> boxIso<int>
+        pItem<int> Constants.responseStatusCode
 
 
     [<RequireQualifiedAccess>]
     module Headers =
 
+        let header key =
+            headersKey key <?-> headerIso
+
         // TODO: typed AcceptRanges
 
         let acceptRanges =
-                 headersKey "Accept-Ranges"
-            <?-> headerIso
+            header "Accept-Ranges"
 
         let age =
-                 headersKey "Age"
-            <?-> headerIso
-            <??> intPIso
+            header "Age" <??> intPIso
 
         // TODO: typed Allow
 
         let allow =
-                 headersKey "Allo"
-            <?-> headerIso
+            header "Allow"
 
         // TODO: typed CacheControl
 
         let cacheControl =
-                 headersKey "Cache-Control"
-            <?-> headerIso
+            header "Cache-Control"
 
         // TODO: typed Connection
 
         let connection =
-                 headersKey "Connection"
-            <?-> headerIso
+            header "Connection"
 
         // TODO: typed ContentEncoding
 
         let contentEncoding =
-                 headersKey "Content-Encoding"
-            <?-> headerIso
+            header "Content-Encoding"
 
         // TODO: typed ContentLanguage
 
         let contentLanguage =
-                 headersKey "Content-Language"
-            <?-> headerIso
+            header "Content-Language"
 
         let contentLength =
-                 headersKey "Content-Length"
-            <?-> headerIso
-            <??> intPIso
+            header "Content-Length" <??> intPIso
 
         // TODO: typed ContentLocation
 
         let contentLocation =
-                 headersKey "Content-Location"
-            <?-> headerIso
+            header "Content-Location"
 
         // TODO: typed ContentMD5
 
         let contentMD5 =
-                 headersKey "Content-MD5"
-            <?-> headerIso
+            header "Content-MD5"
 
         // TODO: typed ContentRange
 
         let contentRange =
-                 headersKey "Content-Range"
-            <?-> headerIso
+            header "Content-Range"
 
         // TODO: typed ContentType
 
         let contentType =
-                 headersKey "Content-Type"
-            <?-> headerIso
+            header "Content-Type"
 
         let date =
-                 headersKey "Date"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Date" <??> dateTimePIso
 
         let eTag =
-                 headersKey "ETag"
-            <?-> headerIso
-            <??> eTagPIso
+            header "ETag" <??> eTagPIso
 
         let expires =
-                 headersKey "Expires"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Expires" <??> dateTimePIso
 
         let lastModified =
-                 headersKey "Last-Modified"
-            <?-> headerIso
-            <??> eTagPIso
+            header "Last-Modified" <??> eTagPIso
 
         // TODO: typed Location
 
         let location =
-                 headersKey "Location"
-            <?-> headerIso
+            header "Location"
 
         // TODO: typed ProxyAuthenticate
 
         let proxyAuthenticate =
-                 headersKey "Proxy-Authenticate"
-            <?-> headerIso
+            header "Proxy-Authenticate"
 
         // TODO: typed RetryAfter
 
         let retryAfter =
-                 headersKey "Retry-After"
-            <?-> headerIso
+            header "Retry-After"
 
         // TODO: typed Server
 
         let server =
-                 headersKey "Server"
-            <?-> headerIso
+            header "Server"
 
         // TODO: typed Trailer
 
         let trailer =
-                 headersKey "Trailer"
-            <?-> headerIso
+            header "Trailer"
 
         // TODO: typed TransferEncoding
 
         let transferEncoding =
-                 headersKey "Transfer-Encoding"
-            <?-> headerIso
+            header "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
         let upgrade =
-                 headersKey "Upgrade"
-            <?-> headerIso
+            header "Upgrade"
 
         // TODO: typed Vary
 
         let vary =
-                 headersKey "Vary"
-            <?-> headerIso
+            header "Vary"
 
         // TODO: typed Warning
 
         let warning =
-                 headersKey "Warning"
-            <?-> headerIso
+            header "Warning"
 
         // TODO: typed WWWAuthenticate
 
         let wwwAuthenticate =
-                 headersKey "WWW-Authenticate"
-            <?-> headerIso
+            header "WWW-Authenticate"
 
 
 [<AutoOpen>]

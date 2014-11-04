@@ -8,13 +8,18 @@ open FParsec
 
 let parse p s =
     match run p s with
+    | Success (x, _, _) -> x
+    | Failure (e, _, _) -> failwith e
+
+let parseP p s =
+    match run p s with
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None
 
 let private charRange x y =
     set (List.map char [ x .. y ])
 
-let inline private (?>) xs x =
+let private (?>) xs x =
     Set.contains x xs
 
 
@@ -51,6 +56,7 @@ module RFC5234 =
 
 module RFC7230 =
 
+    open System
     open RFC5234
 
     (* Whitespace
@@ -112,7 +118,7 @@ module RFC7230 =
 
     let quotedString =
             skipChar dquote 
-        >>. many (quotedPair <|> satisfy ((?>) qdtext)) |>> (fun x -> System.String (List.toArray x))
+        >>. many (quotedPair <|> satisfy ((?>) qdtext)) |>> (fun x -> String (List.toArray x))
         .>> skipChar dquote
 
     (* ABNF List Extension: #rule
@@ -147,16 +153,17 @@ module RFC7231 =
     open RFC5234
     open RFC7230
 
-    let parseMethod =
-        function | "DELETE" -> DELETE 
-                 | "HEAD" -> HEAD 
-                 | "GET" -> GET 
-                 | "OPTIONS" -> OPTIONS
-                 | "PATCH" -> PATCH 
-                 | "POST" -> POST 
-                 | "PUT" -> PUT 
-                 | "TRACE" -> TRACE
-                 | x -> Method.Custom x
+    let meth : Parser<Method, unit> =
+        choice [
+            skipStringCI "DELETE" >>% DELETE
+            skipStringCI "HEAD" >>% HEAD
+            skipStringCI "GET" >>% GET 
+            skipStringCI "OPTIONS" >>% OPTIONS
+            skipStringCI "PATCH" >>% PATCH 
+            skipStringCI "POST" >>% POST 
+            skipStringCI "PUT" >>% PUT 
+            skipStringCI "TRACE" >>% TRACE
+            restOfLine false |>> fun x -> Method.Custom x ]
 
     let parseProtocol =
         function | "HTTP/1.0" -> Protocol.HTTP 1.0 
@@ -272,8 +279,8 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
     let private charsetSpecAny =
-        skipChar '*'
-        |>> fun _ -> CharsetSpec.Any
+        skipChar '*' 
+        >>%  CharsetSpec.Any
 
     let private charsetSpecCharset =
         token
@@ -297,7 +304,7 @@ module RFC7231 =
 
     let private encodingSpecAny =
         skipChar '*'
-        |>> fun _ -> EncodingSpec.Any
+        >>% EncodingSpec.Any
 
     let private encodingSpecIdentity =
         skipStringCI "identity"
@@ -373,5 +380,5 @@ module RFC7232 =
 
     let ifNoneMatch =
         choice [
-            skipChar '*' |>> fun _ -> IfNoneMatch.Any
+            skipChar '*' >>% IfNoneMatch.Any
             infix (skipChar ',') eTag |>> fun x -> IfNoneMatch.EntityTags x ]
