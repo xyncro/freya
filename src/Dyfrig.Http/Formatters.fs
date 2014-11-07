@@ -8,7 +8,9 @@ open System.Text
 let format (formatter: 'a -> StringBuilder -> StringBuilder) =
     fun a -> string (formatter a (StringBuilder ()))
 
-type private Writer<'a> =
+(* Formatting Patterns *)
+
+type private Formatter<'a> =
     'a -> StringBuilder -> StringBuilder
 
 type private Separator =
@@ -23,12 +25,12 @@ let private appendf1 (s: string) (v1: obj) (b: StringBuilder) =
 let private appendf2 (s: string) (v1: obj) (v2: obj) (b: StringBuilder) =
     b.AppendFormat (s, v1, v2)
 
-let private join<'a> (w: Writer<'a>) (s: Separator) =
+let private join<'a> (f: Formatter<'a>) (s: Separator) =
     let rec join values (b: StringBuilder) =
         match values with
         | [] -> b
-        | h :: [] -> w h b
-        | h :: t -> (w h >> s >> join t) b
+        | h :: [] -> f h b
+        | h :: t -> (f h >> s >> join t) b
 
     join
 

@@ -13,14 +13,15 @@ open Dyfrig.Pipeline
 
 [<RequireQualifiedAccess>]
 module Route =
+
+    let private boxIso<'a> : Iso<obj, 'a> =
+        unbox<'a>, box
         
     let internal Values =
-        dictLens "dyfrig.routing.values"
-        <--> boxIso<Map<string, string>>
+        dictLens "dyfrig.routing.values" <--> boxIso<Map<string, string>>
 
     let Value key = 
-        Values
-        >-?> mapPLens key
+        Values >-?> mapPLens key
 
 
 [<AutoOpen>]

@@ -89,6 +89,11 @@ let internal (|Handler|) =
     function | Handler x -> Some x
              | _ -> None
 
+(* Isomorphisms *)
+
+let private boxIso<'a> : Iso<obj, 'a> =
+    unbox<'a>, box
+
 (* Lenses
         
     Partial lenses (Aether form - see https://github.com/xyncro/aether) 
@@ -96,22 +101,16 @@ let internal (|Handler|) =
     and to aspects of the machine definition. *)
 
 let internal definitionPLens =
-         dictPLens "dyfrig.machine.definition"
-    <?-> boxIso<MachineDefinition>
+    dictPLens "dyfrig.machine.definition" <?-> boxIso<MachineDefinition>
 
 let internal actionPLens k =
-         mapPLens k
-    <??> ((|Action|), Action)
+    mapPLens k <??> ((|Action|), Action)
     
 let internal configurationPLens<'T> (k: string) =
-         mapPLens k
-    <??> ((|Configuration|), Configuration)
-    <?-> boxIso<'T>
+    mapPLens k <??> ((|Configuration|), Configuration) <?-> boxIso<'T>
         
 let internal decisionPLens k =
-         mapPLens k
-    <??> ((|Decision|), Decision)
+    mapPLens k <??> ((|Decision|), Decision)
 
 let internal handlerPLens k =
-         mapPLens k
-    <??> ((|Handler|), Handler) 
+    mapPLens k <??> ((|Handler|), Handler) 

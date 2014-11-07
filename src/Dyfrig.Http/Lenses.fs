@@ -1,53 +1,12 @@
 ﻿[<AutoOpen>]
 module Dyfrig.Http.Lenses
 
-open System
 open System.Collections.Generic
-open System.Globalization
 open System.IO
 open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
-
-(* Isomorphisms *)
-
-let boxIso<'T> : Iso<obj,'T> =
-    unbox<'T>, box
-
-let private dateTimeFromString x =
-    let format = CultureInfo.InvariantCulture.DateTimeFormat
-    let adjustment = DateTimeStyles.AdjustToUniversal
-
-    match DateTime.TryParse (x, format, adjustment) with
-    | true, x -> Some x
-    | _ -> None
-
-let private dateTimeToString (x: DateTime) =
-    x.ToString("r")
-
-let private dateTimePIso =
-    dateTimeFromString, dateTimeToString
-
-let headerIso =
-    (fun s -> String.concat "," s),
-    (fun s -> [| s |])
-
-let private intFromString x =
-    match Int32.TryParse x with
-    | true, x -> Some x
-    | _ -> None
-
-let intPIso : PIso<string, int> =
-    intFromString, string
-
-
-(* RFC 7231 *)
-
-//let private queryIso =
-//    RFC7231.parseQuery, formatQuery
-
-// TODO: Reinstate Query Iso
 
 (* Lenses *)
 
@@ -59,42 +18,42 @@ let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
     (fun v d -> d.[k] <- v; d)
 
-let private item<'a> key =
-    dictLens key <--> boxIso<'a>
+let private itemLens<'a> key =
+    dictLens key <--> Isomorphisms.Generic.boxIso<'a>
 
-let private itemP<'a> key =
-    dictPLens key <?-> boxIso<'a>
+let private itemPLens<'a> key =
+    dictPLens key <?-> Isomorphisms.Generic.boxIso<'a>
 
 
 [<RequireQualifiedAccess>]
 module Request =
 
     let body =
-        item<Stream> Constants.requestBody
+        itemLens<Stream> Constants.requestBody
 
     let headers =
-        item<IDictionary<string, string []>> Constants.requestHeaders
+        itemLens<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
         headers >-?> dictPLens key
 
     let meth = 
-        item<string> Constants.requestMethod <--> Isomorphisms.RFC7230.methodIso
+        itemLens<string> Constants.requestMethod <--> Isomorphisms.RFC7230.methodIso
 
     let path = 
-        item<string> Constants.requestPath
+        itemLens<string> Constants.requestPath
 
     let pathBase =
-        item<string> Constants.requestPathBase
+        itemLens<string> Constants.requestPathBase
 
     let httpVersion =
-        item<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
+        itemLens<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
 
     let scheme = 
-        item<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
+        itemLens<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
 
     let query =
-        item<string> Constants.requestQueryString // <--> TODO: Isomorphism
+        itemLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
 
 // TODO: Reinstate when query is iso again
 
@@ -106,7 +65,7 @@ module Request =
     module Headers =
 
         let private header key =
-            headersKey key <?-> headerIso
+            headersKey key <?-> Isomorphisms.Generic.headerIso
 
         let accept =
             header "Accept" <??> Isomorphisms.RFC7231.acceptPIso
@@ -144,7 +103,7 @@ module Request =
             header "Content-Language"
 
         let contentLength =
-            header"Content-Length" <??> intPIso
+            header"Content-Length" <??> Isomorphisms.Generic.intPIso
 
         // TODO: typed ContentLocation
 
@@ -162,7 +121,7 @@ module Request =
             header "Content-Type"
 
         let date =
-            header "Date" <??> dateTimePIso
+            header "Date" <??> Isomorphisms.Generic.dateTimePIso
 
         // TODO: typed Expect
 
@@ -183,7 +142,7 @@ module Request =
             header"If-Match" <??> Isomorphisms.RFC7232.ifMatchPIso
 
         let ifModifiedSince =
-            header "If-Modified-Since" <??> dateTimePIso
+            header "If-Modified-Since" <??> Isomorphisms.Generic.dateTimePIso
 
         let ifNoneMatch =
             header "If-None-Match" <??> Isomorphisms.RFC7232.ifNoneMatchPIso
@@ -194,10 +153,10 @@ module Request =
             header "If-Range"
 
         let ifUnmodifiedSince =
-            header "If-Unmodified-Since" <??> dateTimePIso
+            header "If-Unmodified-Since" <??> Isomorphisms.Generic.dateTimePIso
 
         let maxForwards =
-            header "Max-Forwards" <??> intPIso
+            header "Max-Forwards" <??> Isomorphisms.Generic.intPIso
 
         // TODO: typed Pragma
 
@@ -254,29 +213,29 @@ module Request =
 module Response =
 
     let body =
-        item<Stream> Constants.responseBody
+        itemLens<Stream> Constants.responseBody
 
     let headers =
-        item<IDictionary<string, string []>> Constants.responseHeaders
+        itemLens<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
         headers >-?> dictPLens key
 
     let httpVersion =
-        itemP<string> Constants.responseProtocol <?-> Isomorphisms.RFC7230.httpVersionIso
+        itemPLens<string> Constants.responseProtocol <?-> Isomorphisms.RFC7230.httpVersionIso
 
     let reasonPhrase =
-        itemP<string> Constants.responseReasonPhrase
+        itemPLens<string> Constants.responseReasonPhrase
 
     let statusCode =
-        itemP<int> Constants.responseStatusCode
+        itemPLens<int> Constants.responseStatusCode
 
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let header key =
-            headersKey key <?-> headerIso
+        let private header key =
+            headersKey key <?-> Isomorphisms.Generic.headerIso
 
         // TODO: typed AcceptRanges
 
@@ -284,7 +243,7 @@ module Response =
             header "Accept-Ranges"
 
         let age =
-            header "Age" <??> intPIso
+            header "Age" <??> Isomorphisms.Generic.intPIso <?-> Isomorphisms.Generic.timeSpanIso
 
         // TODO: typed Allow
 
@@ -312,7 +271,7 @@ module Response =
             header "Content-Language"
 
         let contentLength =
-            header "Content-Length" <??> intPIso
+            header "Content-Length" <??> Isomorphisms.Generic.intPIso
 
         // TODO: typed ContentLocation
 
@@ -335,16 +294,16 @@ module Response =
             header "Content-Type"
 
         let date =
-            header "Date" <??> dateTimePIso
+            header "Date" <??> Isomorphisms.Generic.dateTimePIso
 
         let eTag =
             header "ETag" <??> Isomorphisms.RFC7232.eTagPIso
 
         let expires =
-            header "Expires" <??> dateTimePIso
+            header "Expires" <??> Isomorphisms.Generic.dateTimePIso
 
         let lastModified =
-            header "Last-Modified" <??> dateTimePIso
+            header "Last-Modified" <??> Isomorphisms.Generic.dateTimePIso
 
         // TODO: typed Location
 

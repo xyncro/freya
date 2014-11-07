@@ -1,5 +1,9 @@
 ﻿module internal Dyfrig.Http.Isomorphisms
 
+open System
+open System.Globalization
+open Aether
+
 (* Constructors *)
 
 let private iso p f =
@@ -11,11 +15,60 @@ let private isoP p f =
 
 module Generic =
 
+    (* Box *)
+
+    let boxIso<'a> : Iso<obj, 'a> =
+        unbox<'a>, box
+
+    (* DateTime *)
+
+    let private dateTimeFormat =
+        CultureInfo.InvariantCulture.DateTimeFormat
+
+    let private dateTimeAdjustment =
+        DateTimeStyles.AdjustToUniversal
+
+    let dateTimePIso : PIso<string, DateTime> =
+        (fun s ->
+            match DateTime.TryParse (s, dateTimeFormat, dateTimeAdjustment) with
+            | true, x -> Some x
+            | _ -> None),
+        (fun d -> d.ToString ("r"))
+
+    (* Header
+        
+       Headers in OWIN dictionaries are represented by an array of strings, which
+       we simply concatenate, as we expect a single string. This *shouldn't* cause
+       problems, but suggestions for alternatives are welcome here. *)
+
+    let headerIso =
+        (fun s -> String.concat "," s),
+        (fun s -> [| s |])
+
+    (* Integer *)
+
+    let intPIso : PIso<string, int> =
+        (fun s ->
+            match Int32.TryParse s with
+            | true, x -> Some x
+            | _ -> None),
+        (string)
+
+    (* Scheme *)
+
     let schemeIso =
         iso Parsers.Generic.scheme Formatters.Generic.scheme
 
+    (* TimeSpan *)
+
+    let timeSpanIso : Iso<int, TimeSpan> =
+        (fun s -> TimeSpan.FromSeconds (float s)),
+        (fun t -> t.Seconds)
+
 
 module RFC7230 =
+
+    // TODO: Query Iso
 
     (* Section 3 *)
 

@@ -34,7 +34,7 @@ let setT f k =
 
     Async.RunSynchronously (f env) 
     |> snd 
-    |> getL ((dictLens k) <--> boxIso<string>)
+    |> getL ((dictLens k) <--> Isomorphisms.Generic.boxIso<string>)
 
 let setRequestHeaderT f k =
     let headers = Dictionary<string, string []> (StringComparer.OrdinalIgnoreCase)
@@ -43,7 +43,7 @@ let setRequestHeaderT f k =
 
     Async.RunSynchronously (f env) 
     |> snd 
-    |> getPL (Request.headersKey k <?-> headerIso)
+    |> getPL (Request.headersKey k <?-> Isomorphisms.Generic.headerIso)
 
 // Tests
 
