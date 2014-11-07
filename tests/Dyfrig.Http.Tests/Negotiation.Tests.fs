@@ -23,7 +23,7 @@ let ``negotiateAccept`` =
               { MediaRange = MediaRangeSpec.Partial (Type "text")
                 Parameters = Map.empty }
             Weight = Some 0.5
-            Parameters = Map.empty } ]
+            Parameters = Map.empty } ] |> Accept
 
     let requested2 =
         [ { MediaRange = 
@@ -35,14 +35,14 @@ let ``negotiateAccept`` =
               { MediaRange = MediaRangeSpec.Partial (Type "text")
                 Parameters = Map.empty }
             Weight = Some 0.9
-            Parameters = Map.empty } ]
+            Parameters = Map.empty } ] |> Accept
 
     let requested3 =
         [ { MediaRange = 
               { MediaRange = MediaRangeSpec.Open
                 Parameters = Map.empty }
             Weight = Some 0.
-            Parameters = Map.empty } ]
+            Parameters = Map.empty } ] |> Accept
 
     let negotiated1 = negotiateAccept available requested1
     let negotiated2 = negotiateAccept available requested2
@@ -72,13 +72,13 @@ let ``negotiateAcceptCharset`` () =
         [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
             Weight = Some 0.8 }
           { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
-            Weight = Some 0.9 } ]
+            Weight = Some 0.9 } ] |> AcceptCharset
 
     let requested2 =
         [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
             Weight = None }
           { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
-            Weight = Some 0.9 } ]
+            Weight = Some 0.9 } ] |> AcceptCharset
 
     let negotiated1 = negotiateAcceptCharset available requested1
     let negotiated2 = negotiateAcceptCharset available requested2
@@ -98,11 +98,11 @@ let ``negotiateAcceptEncoding`` () =
 
     let requested1 =
         [ { Encoding = EncodingSpec.Encoding (Encoding "gzip")
-            Weight = Some 0.7 } ]
+            Weight = Some 0.7 } ] |> AcceptEncoding
 
     let requested2 =
         [ { Encoding = EncodingSpec.Encoding (Encoding "compress")
-            Weight = Some 0.7 } ]
+            Weight = Some 0.7 } ] |> AcceptEncoding
 
     let negotiated1 = negotiateAcceptEncoding available requested1
     let negotiated2 = negotiateAcceptEncoding available requested2

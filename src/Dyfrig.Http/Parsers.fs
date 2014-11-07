@@ -1,10 +1,9 @@
-﻿[<AutoOpen>]
-module internal Dyfrig.Http.Parsers
+﻿module internal Dyfrig.Http.Parsers
 
 open System.Globalization
 open FParsec
 
-(* Helpers *)
+(* Parsing *)
 
 let parse p s =
     match run p s with
@@ -16,11 +15,24 @@ let parseP p s =
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None
 
+(* Character Ranges *)
+
 let private charRange x y =
     set (List.map char [ x .. y ])
 
+(* Operators *)
+
 let private (?>) xs x =
     Set.contains x xs
+
+
+module Generic =
+
+    let scheme : Parser<Scheme, unit> =
+        choice [
+            skipStringCI "http" >>% HTTP
+            skipStringCI "https" >>% HTTPS
+            restOfLine false |>> Scheme.Custom ]
 
 
 module RFC5234 =
@@ -67,11 +79,11 @@ module RFC7230 =
     let ows = 
         skipManySatisfy ((?>) wsp)
 
-    //let rws =
-    //    skipMany1Satisfy (fun c -> Set.contains c wsp)
+//    let rws =
+//        skipMany1Satisfy (fun c -> Set.contains c wsp)
 
-    let bws =
-        ows
+//    let bws =
+//        ows
 
     (* Field Value Components
 
@@ -98,13 +110,13 @@ module RFC7230 =
             charRange 0x5d 0x7e
             obsText ]
 
-    let ctext =
-        Set.unionMany [
-            set [ htab; sp ]
-            charRange 0x21 0x27
-            charRange 0x2a 0x5b
-            charRange 0x5d 0x7e
-            obsText ]
+//    let ctext =
+//        Set.unionMany [
+//            set [ htab; sp ]
+//            charRange 0x21 0x27
+//            charRange 0x2a 0x5b
+//            charRange 0x5d 0x7e
+//            obsText ]
 
     let private quotedPairChars =
         Set.unionMany [
@@ -147,34 +159,50 @@ module RFC7230 =
     let prefix s p =
         many (ows >>? s >>? ows >>? p)
 
+    (* Method
+
+       Taken from RFC 7230, Section 3.1 Request Line
+       [http://tools.ietf.org/html/rfc7230#section-3.1] *)
+
+    let meth : Parser<Method, unit> =
+        choice [
+            skipStringCI "delete" >>% DELETE
+            skipStringCI "head" >>% HEAD
+            skipStringCI "get" >>% GET
+            skipStringCI "options" >>% OPTIONS
+            skipStringCI "patch" >>% PATCH
+            skipStringCI "post" >>% POST
+            skipStringCI "put" >>% PUT
+            skipStringCI "trace" >>% TRACE
+            restOfLine false |>> Method.Custom ]
+
+    (* HTTP Version
+
+       Taken from RFC 7230, Section 3.1 Request Line
+       [http://tools.ietf.org/html/rfc7230#section-3.1] *)
+
+    let httpVersion : Parser<HttpVersion, unit> =
+        choice [
+            skipString "HTTP/1.0" >>% HttpVersion.HTTP 1.0
+            skipString "HTTP/1.1" >>% HttpVersion.HTTP 1.1
+            restOfLine false |>> HttpVersion.Custom ]
+
+    (* Connection
+        
+       Taken from RFC 7230, Section 6.1 Connection
+       [http://tools.ietf.org/html/rfc7230#section-6.1] *)
+
+    let connection : Parser<Connection, unit> =
+        infix1 (skipChar ',') token
+        |>> (List.map ConnectionOption >> Connection)
+
 
 module RFC7231 =
 
     open RFC5234
     open RFC7230
 
-    let meth : Parser<Method, unit> =
-        choice [
-            skipStringCI "DELETE" >>% DELETE
-            skipStringCI "HEAD" >>% HEAD
-            skipStringCI "GET" >>% GET 
-            skipStringCI "OPTIONS" >>% OPTIONS
-            skipStringCI "PATCH" >>% PATCH 
-            skipStringCI "POST" >>% POST 
-            skipStringCI "PUT" >>% PUT 
-            skipStringCI "TRACE" >>% TRACE
-            restOfLine false |>> fun x -> Method.Custom x ]
-
-    let parseProtocol =
-        function | "HTTP/1.0" -> Protocol.HTTP 1.0 
-                 | "HTTP/1.1" -> Protocol.HTTP 1.1 
-                 | x -> Protocol.Custom x
-
-    let parseScheme =
-        function | "http" -> HTTP 
-                 | "https" -> HTTPS 
-                 | x -> Scheme.Custom x
-
+    // TODO: Proper Query String Parser
     let parseQuery =
         function | "" -> Map.empty
                  | s ->
@@ -259,7 +287,7 @@ module RFC7231 =
 
     let accept =
         infix (skipChar ',') (mediaRange .>> ows .>>. opt acceptParams)
-        |>> List.map (fun (mediaRange, acceptParams) ->
+        |>> (List.map (fun (mediaRange, acceptParams) ->
             let weight = 
                 acceptParams 
                 |> Option.map fst
@@ -271,7 +299,7 @@ module RFC7231 =
 
             { MediaRange = mediaRange
               Weight = weight
-              Parameters = parameters })
+              Parameters = parameters }) >> Accept)
 
     (* Accept-Charset
 
@@ -293,9 +321,9 @@ module RFC7231 =
 
     let acceptCharset =
         infix1 (skipChar ',') (charsetSpec .>> ows .>>. opt weight)
-        |>> List.map (fun (charsetSpec, weight) ->
+        |>> (List.map (fun (charsetSpec, weight) ->
             { Charset = charsetSpec
-              Weight = weight })
+              Weight = weight }) >> AcceptCharset)
 
     (* Accept-Encoding
 
@@ -322,9 +350,9 @@ module RFC7231 =
 
     let acceptEncoding =
         infix (skipChar ',') (encoding .>> ows .>>. opt weight)
-        |>> List.map (fun (encoding, weight) ->
+        |>> (List.map (fun (encoding, weight) ->
             { Encoding = encoding
-              Weight = weight })
+              Weight = weight }) >> AcceptEncoding)
 
     (* Accept-Language
 
@@ -345,9 +373,9 @@ module RFC7231 =
 
     let acceptLanguage =
         infix (skipChar ',') (languageRange .>> ows .>>. opt weight)
-        |>> List.map (fun (languageRange, weight) ->
+        |>> (List.map (fun (languageRange, weight) ->
             { Language = languageRange
-              Weight = weight })
+              Weight = weight }) >> AcceptLanguage)
 
 
 module RFC7232 =

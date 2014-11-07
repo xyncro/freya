@@ -3,13 +3,19 @@ module Dyfrig.Http.Types
 
 open System.Globalization
 
-(* RFC 7231 *)
+(*  RFC 7230
 
-(* Method
-    
-   Types representing the method of an HTTP request.
-   See [http://tools.ietf.org/html/rfc7231] for details. *)
+    Types implemented to mirror the specification of HTTP semantics as defined
+    in RFC 7230. See [http://tools.ietf.org/html/rfc7230]. *)
 
+(*  Section 3 *)
+
+/// Type representing the Method part of the Request Line of an HTTP message.
+/// Standard semantic methods are represented directly as cases, custom methods 
+/// will be represented by the "Custom" case.
+/// See [http://tools.ietf.org/html/rfc7230#section-3.1] for details of the
+/// basic semantics and [http://tools.ietf.org/html/rfc7231] for standards-defined
+/// semantic methods.
 type Method =
     | DELETE 
     | HEAD 
@@ -21,14 +27,64 @@ type Method =
     | TRACE 
     | Custom of string
 
-(* Protocol
-    
-   Types representing the protocol of an HTTP request.
-   See [http://tools.ietf.org/html/rfc7231] for details. *)
-
-type Protocol =
+/// Type representing the HTTP Version part of the Request Line of an HTTP message.
+/// 1.0 and 1.1 versions are represented via the HTTP case, any other values will
+/// be represented by the "Custom" case.
+/// See [http://tools.ietf.org/html/rfc7230#section-3.1].
+type HttpVersion =
     | HTTP of float 
     | Custom of string
+
+/// Type representing the Transfer-Encoding header for an HTTP request.
+/// See [http://tools.ietf.org/html/rfc7230#section-3.3.1].
+type TransferEncoding =
+    string // TODO: TransferEncoding Type
+
+(*  Section 4 *)
+
+/// Type representing the TE header for an HTTP request.
+/// See [http://tools.ietf.org/html/rfc7230#section-4.3].
+type TE =
+    string // TODO: TE Type
+
+/// Type representing the Trailer header for an HTTP request.
+/// See [http://tools.ietf.org/html/rfc7230#section-4.4].
+type Trailer =
+    string // TODO: Trailer Type
+
+(*  Section 5 *)
+
+/// Type representing the Host header of an HTTP message.
+/// See [http://tools.ietf.org/html/rfc7230#section-5.4].
+type Host = 
+    string // TODO: Header Type
+
+/// Type representing the Via header for an HTTP request.
+/// See [http://tools.ietf.org/html/rfc7230#section-5.7.1].
+type Via =
+    string // TODO: Via Type
+
+(*  Section 6 *)
+
+/// Type representing the Connection header of an HTTP message.
+/// See [http://tools.ietf.org/html/rfc7230#section-6.1].
+type Connection =
+    | Connection of ConnectionOption list
+
+/// Type representing a single Connection Option as part of
+/// a Connection header.
+and ConnectionOption =
+    | ConnectionOption of string
+
+/// Type representing the Upgrade header for an HTTP request.
+/// See [http://tools.ietf.org/html/rfc7230#section-6.7].
+type Upgrade =
+    string // TODOL: Upgrade Type
+
+(*  RFC 7231
+
+    Types implemented to mirror the specification of HTTP semantics as defined
+    in RFC 7231. See [http://tools.ietf.org/html/rfc7231]. *)
 
 (* Scheme
     
@@ -88,7 +144,11 @@ and Encoding =
    Taken from RFC 7231, Section 5.3.2. Accept
    [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
+/// Accept Header
 type Accept =
+    | Accept of AcceptValue list
+
+and AcceptValue =
     { MediaRange: MediaRange
       Weight: float option
       Parameters: Map<string, string option> }
@@ -98,7 +158,11 @@ type Accept =
    Taken from RFC 7231, Section 5.3.3. Accept-Charset
    [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
+/// Accept-Charset Header
 type AcceptCharset =
+    | AcceptCharset of AcceptableCharset list
+
+and AcceptableCharset =
     { Charset: CharsetSpec
       Weight: float option }
 
@@ -107,7 +171,11 @@ type AcceptCharset =
    Taken from RFC 7231, Section 5.3.4. Accept-Encoding
    [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
+/// Accept-Encoding Header
 type AcceptEncoding =
+    | AcceptEncoding of AcceptableEncoding list
+
+and AcceptableEncoding =
     { Encoding: EncodingSpec
       Weight: float option }
 
@@ -116,7 +184,11 @@ type AcceptEncoding =
    Taken from RFC 7231, Section 5.3.5. Accept-Language
    [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
+/// Accept-Language Header
 type AcceptLanguage =
+    | AcceptLanguage of AcceptableLanguage list
+
+and AcceptableLanguage =
     { Language: CultureInfo
       Weight: float option }
 
@@ -133,6 +205,7 @@ type EntityTag =
    Taken from RFC 7232, Section 3.1, If-Match
    [http://tools.ietf.org/html/rfc7232#section-3.1] *)
 
+/// If-Match Header
 type IfMatch =
     | EntityTags of EntityTag list
     | Any
@@ -142,6 +215,7 @@ type IfMatch =
    Taken from RFC 7232, Section 3.2, If-None-Match
    [http://tools.ietf.org/html/rfc7232#section-3.2] *)
 
+/// If-None-Match Header
 type IfNoneMatch =
     | EntityTags of EntityTag list
     | Any

@@ -3,7 +3,6 @@ module internal Dyfrig.Machine.Logic
 
 open System
 open System.Globalization
-open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
@@ -36,6 +35,8 @@ module Charset =
 
     let private supported =
         getPLM (definitionPLens >??> configurationPLens Configuration.CharsetsSupported)
+
+    // TODO: Refactor these to take the negotiation function.
 
     let private negotiation =
         function | Some requested, Some available -> negotiateAcceptCharset available requested

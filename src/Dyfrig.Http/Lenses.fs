@@ -41,42 +41,13 @@ let private intFromString x =
 let intPIso : PIso<string, int> =
     intFromString, string
 
+
 (* RFC 7231 *)
 
-let private methodIso =
-    parse RFC7231.meth, formatMethod
+//let private queryIso =
+//    RFC7231.parseQuery, formatQuery
 
-let private protocolIso =
-    RFC7231.parseProtocol, formatProtocol
-
-let private schemeIso =
-    RFC7231.parseScheme, formatScheme
-
-let private queryIso =
-    RFC7231.parseQuery, formatQuery
-
-let private acceptPIso =
-    parseP RFC7231.accept, formatAccept
-
-let private acceptCharsetPIso =
-    parseP RFC7231.acceptCharset, formatAcceptCharset
-
-let private acceptEncodingPIso =
-    parseP RFC7231.acceptEncoding, formatAcceptEncoding
-
-let private acceptLanguagePIso =
-    parseP RFC7231.acceptLanguage, formatAcceptLanguage
-
-(* RFC 7232 *)
-        
-let private eTagPIso =
-    parseP RFC7232.eTag, formatETag
-
-let private ifMatchPIso =
-    parseP RFC7232.ifMatch, formatIfMatch
-
-let private ifNoneMatchPIso =
-    parseP RFC7232.ifNoneMatch, formatIfNoneMatch
+// TODO: Reinstate Query Iso
 
 (* Lenses *)
 
@@ -86,12 +57,12 @@ let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
 
 let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-    (fun v d -> d.[k] <- v; d)   
+    (fun v d -> d.[k] <- v; d)
 
 let private item<'a> key =
     dictLens key <--> boxIso<'a>
 
-let private pItem<'a> key =
+let private itemP<'a> key =
     dictPLens key <?-> boxIso<'a>
 
 
@@ -108,7 +79,7 @@ module Request =
         headers >-?> dictPLens key
 
     let meth = 
-        item<string> Constants.requestMethod <--> methodIso
+        item<string> Constants.requestMethod <--> Isomorphisms.RFC7230.methodIso
 
     let path = 
         item<string> Constants.requestPath
@@ -116,17 +87,19 @@ module Request =
     let pathBase =
         item<string> Constants.requestPathBase
 
-    let protocol =
-        item<string> Constants.requestProtocol <--> protocolIso
+    let httpVersion =
+        item<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
 
     let scheme = 
-        item<string> Constants.requestScheme <--> schemeIso
+        item<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
 
     let query =
-        item<string> Constants.requestQueryString <--> queryIso
+        item<string> Constants.requestQueryString // <--> TODO: Isomorphism
 
-    let queryKey key =
-        query >-?> mapPLens key
+// TODO: Reinstate when query is iso again
+
+//    let queryKey key =
+//        query >-?> mapPLens key
 
 
     [<RequireQualifiedAccess>]
@@ -136,16 +109,16 @@ module Request =
             headersKey key <?-> headerIso
 
         let accept =
-            header "Accept" <??> acceptPIso
+            header "Accept" <??> Isomorphisms.RFC7231.acceptPIso
 
         let acceptCharset =
-            header "Accept-Charset" <??> acceptCharsetPIso
+            header "Accept-Charset" <??> Isomorphisms.RFC7231.acceptCharsetPIso
 
         let acceptEncoding =
-            header "Accept-Encoding" <??> acceptEncodingPIso
+            header "Accept-Encoding" <??> Isomorphisms.RFC7231.acceptEncodingPIso
 
         let acceptLanguage =
-            header "Accept-Language" <??> acceptLanguagePIso
+            header "Accept-Language" <??> Isomorphisms.RFC7231.acceptLanguagePIso
 
         // TODO: typed Authorization
 
@@ -157,10 +130,8 @@ module Request =
         let cacheControl =
             header "Cache-Control"
 
-        // TODO: typed Connection
-
         let connection =
-            header "Connection"
+            header "Connection" <??> Isomorphisms.RFC7230.connectionPIso
 
         // TODO: typed ContentEncoding
 
@@ -209,13 +180,13 @@ module Request =
             header "Host"
 
         let ifMatch =
-            header"If-Match" <??> ifMatchPIso
+            header"If-Match" <??> Isomorphisms.RFC7232.ifMatchPIso
 
         let ifModifiedSince =
             header "If-Modified-Since" <??> dateTimePIso
 
         let ifNoneMatch =
-            header "If-None-Match" <??> ifNoneMatchPIso
+            header "If-None-Match" <??> Isomorphisms.RFC7232.ifNoneMatchPIso
 
         // TODO: typed IfRange
 
@@ -291,14 +262,14 @@ module Response =
     let headersKey key =
         headers >-?> dictPLens key
 
-    let protocol =
-        pItem<string> Constants.responseProtocol <?-> protocolIso
+    let httpVersion =
+        itemP<string> Constants.responseProtocol <?-> Isomorphisms.RFC7230.httpVersionIso
 
     let reasonPhrase =
-        pItem<string> Constants.responseReasonPhrase
+        itemP<string> Constants.responseReasonPhrase
 
     let statusCode =
-        pItem<int> Constants.responseStatusCode
+        itemP<int> Constants.responseStatusCode
 
 
     [<RequireQualifiedAccess>]
@@ -367,13 +338,13 @@ module Response =
             header "Date" <??> dateTimePIso
 
         let eTag =
-            header "ETag" <??> eTagPIso
+            header "ETag" <??> Isomorphisms.RFC7232.eTagPIso
 
         let expires =
             header "Expires" <??> dateTimePIso
 
         let lastModified =
-            header "Last-Modified" <??> eTagPIso
+            header "Last-Modified" <??> dateTimePIso
 
         // TODO: typed Location
 

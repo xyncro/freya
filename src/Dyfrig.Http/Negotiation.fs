@@ -56,8 +56,9 @@ let private selectAccept (available: MediaType list) =
         |> List.filter (fun a -> matchAccept a.MediaType r.MediaRange.MediaRange)
         |> List.sortBy (fun a -> scoreAccept a.MediaType r.MediaRange.MediaRange)) >> List.concat
 
-let negotiateAccept (available: MediaType list) =
-    prepare >> selectAccept available
+let negotiateAccept (available: MediaType list) (Accept requested) =
+    prepare requested 
+    |> selectAccept available
 
 (* Accept-Charset
 
@@ -82,8 +83,9 @@ let private selectAcceptCharset (available: Charset list) =
         available
         |> List.filter (fun a -> matchAcceptCharset (a, r.Charset))) >> List.concat
 
-let negotiateAcceptCharset (available: Charset list) =
-    prepare >> selectAcceptCharset available
+let negotiateAcceptCharset (available: Charset list) (AcceptCharset requested) =
+    prepare requested 
+    |> selectAcceptCharset available
 
 (* Accept-Encoding
 
@@ -113,8 +115,9 @@ let private selectAcceptEncoding (available: Encoding list) =
         available
         |> List.filter (fun a -> matchAcceptEncoding (a, r.Encoding))) >> List.concat
 
-let negotiateAcceptEncoding (available: Encoding list) =
-    prepare >> selectAcceptEncoding available
+let negotiateAcceptEncoding (available: Encoding list) (AcceptEncoding requested) =
+    prepare requested 
+    |> selectAcceptEncoding available
 
 (* Accept-Language
 
@@ -136,6 +139,7 @@ let private selectAcceptLanguage (available: CultureInfo list) =
         |> List.filter (fun a -> matchAcceptLanguage a r.Language)
         |> List.sortBy (fun a -> scoreAcceptLanguage a r.Language)) >> List.concat
 
-let negotiateAcceptLanguage (available: CultureInfo list) =
-    prepare >> selectAcceptLanguage available
+let negotiateAcceptLanguage (available: CultureInfo list) (AcceptLanguage requested) =
+    prepare requested 
+    |> selectAcceptLanguage available
 
