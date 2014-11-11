@@ -1,82 +1,12 @@
 ﻿[<AutoOpen>]
 module Dyfrig.Http.Lenses
 
-open System
 open System.Collections.Generic
-open System.Globalization
 open System.IO
 open Aether
 open Aether.Operators
 open Dyfrig.Core
 open Dyfrig.Core.Operators
-
-(* Isomorphisms *)
-
-let boxIso<'T> : Iso<obj,'T> =
-    unbox<'T>, box
-
-let private dateTimeFromString x =
-    let format = CultureInfo.InvariantCulture.DateTimeFormat
-    let adjustment = DateTimeStyles.AdjustToUniversal
-
-    match DateTime.TryParse (x, format, adjustment) with
-    | true, x -> Some x
-    | _ -> None
-
-let private dateTimeToString (x: DateTime) =
-    x.ToString("r")
-
-let private dateTimePIso =
-    dateTimeFromString, dateTimeToString
-
-let headerIso =
-    (fun s -> String.concat "," s),
-    (fun s -> [| s |])
-
-let private intFromString x =
-    match Int32.TryParse x with
-    | true, x -> Some x
-    | _ -> None
-
-let intPIso : PIso<string, int> =
-    intFromString, string
-
-(* RFC 7231 *)
-
-let private methodIso =
-    parseMethod, formatMethod
-
-let private protocolIso =
-    parseProtocol, formatProtocol
-
-let private schemeIso =
-    parseScheme, formatScheme
-
-let private queryIso =
-    parseQuery, formatQuery
-
-let private acceptPIso =
-    parseAccept, formatAccept
-
-let private acceptCharsetPIso =
-    parseAcceptCharset, formatAcceptCharset
-
-let private acceptEncodingPIso =
-    parseAcceptEncoding, formatAcceptEncoding
-
-let private acceptLanguagePIso =
-    parseAcceptLanguage, formatAcceptLanguage
-
-(* RFC 7232 *)
-        
-let private eTagPIso =
-    parseETag, formatETag
-
-let private ifMatchPIso =
-    parseIfMatch, formatIfMatch
-
-let private ifNoneMatchPIso =
-    parseIfNoneMatch, formatIfNoneMatch
 
 (* Lenses *)
 
@@ -86,427 +16,330 @@ let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
 
 let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-    (fun v d -> d.[k] <- v; d)   
+    (fun v d -> d.[k] <- v; d)
+
+let private itemLens<'a> key =
+    dictLens key <--> Isomorphisms.Generic.boxIso<'a>
+
+let private itemPLens<'a> key =
+    dictPLens key <?-> Isomorphisms.Generic.boxIso<'a>
 
 
 [<RequireQualifiedAccess>]
 module Request =
 
     let body =
-             dictLens Constants.requestBody
-        <--> boxIso<Stream>
+        itemLens<Stream> Constants.requestBody
 
     let headers =
-             dictLens Constants.requestHeaders
-        <--> boxIso<IDictionary<string, string []>>
+        itemLens<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
-             headers
-        >-?> dictPLens key
+        headers >-?> dictPLens key
 
     let meth = 
-             dictLens Constants.requestMethod
-        <--> boxIso<string>
-        <--> methodIso
+        itemLens<string> Constants.requestMethod <--> Isomorphisms.RFC7230.methodIso
 
     let path = 
-             dictLens Constants.requestPath
-        <--> boxIso<string>
+        itemLens<string> Constants.requestPath
 
     let pathBase =
-             dictLens Constants.requestPathBase
-        <--> boxIso<string>
+        itemLens<string> Constants.requestPathBase
 
-    let protocol =
-             dictLens Constants.requestProtocol
-        <--> boxIso<string>
-        <--> protocolIso
+    let httpVersion =
+        itemLens<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
 
-    let scheme = 
-             dictLens Constants.requestScheme
-        <--> boxIso<string>
-        <--> schemeIso
+    let scheme =
+        itemLens<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
 
     let query =
-             dictLens Constants.requestQueryString
-        <--> boxIso<string>
-        <--> queryIso
+        itemLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
 
-    let queryKey key =
-             query
-        >-?> mapPLens key
+// TODO: Reinstate when query is iso again
+
+//    let queryKey key =
+//        query >-?> mapPLens key
 
     [<RequireQualifiedAccess>]
     module Headers =
 
+        let private header key =
+            headersKey key <?-> Isomorphisms.Generic.headerIso
+
         let accept =
-                 headersKey "Accept"
-            <?-> headerIso
-            <??> acceptPIso
+            header "Accept" <??> Isomorphisms.RFC7231.acceptPIso
 
         let acceptCharset =
-                 headersKey "Accept-Charset"
-            <?-> headerIso
-            <??> acceptCharsetPIso
+            header "Accept-Charset" <??> Isomorphisms.RFC7231.acceptCharsetPIso
 
         let acceptEncoding =
-                 headersKey "Accept-Encoding"
-            <?-> headerIso
-            <??> acceptEncodingPIso
+            header "Accept-Encoding" <??> Isomorphisms.RFC7231.acceptEncodingPIso
 
         let acceptLanguage =
-                 headersKey "Accept-Language"
-            <?-> headerIso
-            <??> acceptLanguagePIso
+            header "Accept-Language" <??> Isomorphisms.RFC7231.acceptLanguagePIso
 
         // TODO: typed Authorization
 
         let authorization =
-                 headersKey "Authorization"
-            <?-> headerIso
+            header "Authorization"
 
         // TODO: typed CacheControl
 
         let cacheControl =
-                 headersKey "Cache-Control"
-            <?-> headerIso
-
-        // TODO: typed Connection
+            header "Cache-Control"
 
         let connection =
-                 headersKey "Connection"
-            <?-> headerIso
-
-        // TODO: typed ContentEncoding
+            header "Connection" <??> Isomorphisms.RFC7230.connectionPIso
 
         let contentEncoding =
-                 headersKey "Content-Encoding"
-            <?-> headerIso
+            header "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
 
         // TODO: typed ContentLanguage
 
         let contentLanguage =
-                 headersKey "Content-Language"
-            <?-> headerIso
+            header "Content-Language"
 
         let contentLength =
-                 headersKey "Content-Length"
-            <?-> headerIso
-            <??> intPIso
+            header"Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
 
         // TODO: typed ContentLocation
 
         let contentLocation =
-                 headersKey "Content-Location"
-            <?-> headerIso
+            header "Content-Location"
 
         // TODO: typed ContentMD5
 
         let contentMD5 =
-                 headersKey "Content-MD5"
-            <?-> headerIso
-
-        // TODO: typed ContentType
+            header "Content-MD5"
 
         let contentType =
-                 headersKey "Content-Type"
-            <?-> headerIso
+            header "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
 
         let date =
-                 headersKey "Date"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Date" <??> Isomorphisms.RFC7231.datePIso
 
         // TODO: typed Expect
 
         let expect =
-                 headersKey "Expect"
-            <?-> headerIso
+            header "Expect"
 
         // TODO: typed From
 
         let from =
-                 headersKey "From"
-            <?-> headerIso
+            header "From"
 
         // TODO: typed Host
 
         let host =
-                 headersKey "Host"
-            <?-> headerIso
+            header "Host"
 
         let ifMatch =
-                 headersKey "If-Match"
-            <?-> headerIso
-            <??> ifMatchPIso
+            header"If-Match" <??> Isomorphisms.RFC7232.ifMatchPIso
 
         let ifModifiedSince =
-                 headersKey "If-Modified-Since"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "If-Modified-Since" <??> Isomorphisms.RFC7232.ifModifiedSincePIso
 
         let ifNoneMatch =
-                 headersKey "If-None-Match"
-            <?-> headerIso
-            <??> ifNoneMatchPIso
+            header "If-None-Match" <??> Isomorphisms.RFC7232.ifNoneMatchPIso
 
         // TODO: typed IfRange
 
         let ifRange =
-                 headersKey "If-Range"
-            <?-> headerIso
+            header "If-Range"
 
         let ifUnmodifiedSince =
-                 headersKey "If-Unmodified-Since"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "If-Unmodified-Since" <??> Isomorphisms.RFC7232.ifUnmodifiedSincePIso
 
         let maxForwards =
-                 headersKey "Max-Forwards"
-            <?-> headerIso
-            <??> intPIso
+            header "Max-Forwards" <??> Isomorphisms.RFC7231.maxForwardsPIso
 
         // TODO: typed Pragma
 
         let pragma =
-                 headersKey "Pragma"
-            <?-> headerIso
+            header "Pragma"
 
         // TODO: typed ProxyAuthorization
 
         let proxyAuthorization =
-                 headersKey "Proxy-Authorization"
-            <?-> headerIso
+            header "Proxy-Authorization"
 
         // TODO: typed Range
 
         let range =
-                 headersKey "Range"
-            <?-> headerIso
+            header "Range"
 
         // TODO: typed Referer
 
         let referer =
-                 headersKey "Referer"
-            <?-> headerIso
+            header "Referer"
 
         // TODO: typed TE
 
         let TE =
-                 headersKey "TE"
-            <?-> headerIso
+            header "TE"
 
         // TODO: typed Trailer
 
         let trailer =
-                 headersKey "Trailer"
-            <?-> headerIso
+            header "Trailer"
 
         // TODO: typed TransferEncoding
 
         let transferEncoding =
-                 headersKey "Transfer-Encoding"
-            <?-> headerIso
+            header "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
         let upgrade =
-                 headersKey "Upgrade"
-            <?-> headerIso
+            header "Upgrade"
 
         // TODO: typed UserAgent
 
         let userAgent =
-                 headersKey "User-Agent"
-            <?-> headerIso
+            header "User-Agent"
 
         // TODO: typed Via
 
         let via =
-                 headersKey "Via"
-            <?-> headerIso
+            header "Via"
 
 [<RequireQualifiedAccess>]
 module Response =
 
     let body =
-             dictLens Constants.responseBody
-        <--> boxIso<Stream>
+        itemLens<Stream> Constants.responseBody
 
     let headers =
-             dictLens Constants.responseHeaders
-        <--> boxIso<IDictionary<string, string []>>
+        itemLens<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
-             headers
-        >-?> dictPLens key
+        headers >-?> dictPLens key
 
-    let protocol =
-             dictPLens Constants.responseProtocol
-        <?-> boxIso<string>
-        <?-> protocolIso
+    let httpVersion =
+        itemPLens<string> Constants.responseProtocol <?-> Isomorphisms.RFC7230.httpVersionIso
 
     let reasonPhrase =
-             dictPLens Constants.responseReasonPhrase
-        <?-> boxIso<string>
+        itemPLens<string> Constants.responseReasonPhrase
 
     let statusCode =
-             dictPLens Constants.responseStatusCode
-        <?-> boxIso<int>
+        itemPLens<int> Constants.responseStatusCode
 
 
     [<RequireQualifiedAccess>]
     module Headers =
 
+        let private header key =
+            headersKey key <?-> Isomorphisms.Generic.headerIso
+
         // TODO: typed AcceptRanges
 
         let acceptRanges =
-                 headersKey "Accept-Ranges"
-            <?-> headerIso
+            header "Accept-Ranges"
 
         let age =
-                 headersKey "Age"
-            <?-> headerIso
-            <??> intPIso
-
-        // TODO: typed Allow
+            header "Age" <??> Isomorphisms.RFC7234.agePIso
 
         let allow =
-                 headersKey "Allo"
-            <?-> headerIso
+            header "Allow" <??> Isomorphisms.RFC7231.allowPIso
 
         // TODO: typed CacheControl
 
         let cacheControl =
-                 headersKey "Cache-Control"
-            <?-> headerIso
-
-        // TODO: typed Connection
+            header "Cache-Control"
 
         let connection =
-                 headersKey "Connection"
-            <?-> headerIso
-
-        // TODO: typed ContentEncoding
+            header "Connection" <??> Isomorphisms.RFC7230.connectionPIso
 
         let contentEncoding =
-                 headersKey "Content-Encoding"
-            <?-> headerIso
+            header "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
 
         // TODO: typed ContentLanguage
 
         let contentLanguage =
-                 headersKey "Content-Language"
-            <?-> headerIso
+            header "Content-Language"
 
         let contentLength =
-                 headersKey "Content-Length"
-            <?-> headerIso
-            <??> intPIso
+            header "Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
 
         // TODO: typed ContentLocation
 
         let contentLocation =
-                 headersKey "Content-Location"
-            <?-> headerIso
+            header "Content-Location"
 
         // TODO: typed ContentMD5
 
         let contentMD5 =
-                 headersKey "Content-MD5"
-            <?-> headerIso
+            header "Content-MD5"
 
         // TODO: typed ContentRange
 
         let contentRange =
-                 headersKey "Content-Range"
-            <?-> headerIso
-
-        // TODO: typed ContentType
+            header "Content-Range"
 
         let contentType =
-                 headersKey "Content-Type"
-            <?-> headerIso
+            header "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
 
         let date =
-                 headersKey "Date"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Date" <??> Isomorphisms.RFC7231.datePIso
 
         let eTag =
-                 headersKey "ETag"
-            <?-> headerIso
-            <??> eTagPIso
+            header "ETag" <??> Isomorphisms.RFC7232.eTagPIso
 
         let expires =
-                 headersKey "Expires"
-            <?-> headerIso
-            <??> dateTimePIso
+            header "Expires" <??> Isomorphisms.RFC7234.expiresPIso
 
         let lastModified =
-                 headersKey "Last-Modified"
-            <?-> headerIso
-            <??> eTagPIso
+            header "Last-Modified" <??> Isomorphisms.RFC7232.lastModifiedPIso
 
         // TODO: typed Location
 
         let location =
-                 headersKey "Location"
-            <?-> headerIso
+            header "Location"
 
         // TODO: typed ProxyAuthenticate
 
         let proxyAuthenticate =
-                 headersKey "Proxy-Authenticate"
-            <?-> headerIso
+            header "Proxy-Authenticate"
 
         // TODO: typed RetryAfter
 
         let retryAfter =
-                 headersKey "Retry-After"
-            <?-> headerIso
+            header "Retry-After"
 
         // TODO: typed Server
 
         let server =
-                 headersKey "Server"
-            <?-> headerIso
+            header "Server"
 
         // TODO: typed Trailer
 
         let trailer =
-                 headersKey "Trailer"
-            <?-> headerIso
+            header "Trailer"
 
         // TODO: typed TransferEncoding
 
         let transferEncoding =
-                 headersKey "Transfer-Encoding"
-            <?-> headerIso
+            header "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
         let upgrade =
-                 headersKey "Upgrade"
-            <?-> headerIso
+            header "Upgrade"
 
         // TODO: typed Vary
 
         let vary =
-                 headersKey "Vary"
-            <?-> headerIso
+            header "Vary"
 
         // TODO: typed Warning
 
         let warning =
-                 headersKey "Warning"
-            <?-> headerIso
+            header "Warning"
 
         // TODO: typed WWWAuthenticate
 
         let wwwAuthenticate =
-                 headersKey "WWW-Authenticate"
-            <?-> headerIso
+            header "WWW-Authenticate"
 
 
 [<AutoOpen>]

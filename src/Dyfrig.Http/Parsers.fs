@@ -1,357 +1,528 @@
-﻿[<AutoOpen>]
-module internal Dyfrig.Http.Parsers
+﻿module internal Dyfrig.Http.Parsers
 
+open System
 open System.Globalization
 open FParsec
 
-(* Helpers *)
+(* Parsing *)
 
-let private parse p s =
+let parse p s =
+    match run p s with
+    | Success (x, _, _) -> x
+    | Failure (e, _, _) -> failwith e
+
+let parseP p s =
     match run p s with
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None
 
-(* RFC 5234 *)
+(* Character Ranges *)
 
-(* Core Rules
+let private charRange x y =
+    set (List.map char [ x .. y ])
 
-   Taken from RFC 5234, Appendix B.1. Core Rules
-   [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
+(* Operators *)
 
-let private DQUOTE = 
-    char 0x22
+let private (?>) xs x =
+    Set.contains x xs
 
-let private HTAB = 
-    char 0x09
 
-let private SP = 
-    char 0x20
+module Generic =
 
-let private ALPHA = 
-    Set.unionMany 
-        [ set (List.map char [0x41 .. 0x5a])
-          set (List.map char [0x61 .. 0x7a]) ]
+    let scheme : Parser<Scheme, unit> =
+        choice [
+            skipStringCI "http" >>% HTTP
+            skipStringCI "https" >>% HTTPS
+            restOfLine false |>> Scheme.Custom ]
 
-let private DIGIT = 
-    set (List.map char [0x30 .. 0x39])
+    let comma =
+        skipChar ','
 
-let private WSP = 
-    set [ SP; HTAB ]
+    let semicolon =
+        skipChar ';'
 
-let private isALPHA c = 
-    Set.contains c ALPHA
 
-let private isDIGIT c = 
-    Set.contains c DIGIT
+module RFC5234 =
 
-let private isWSP c = 
-    Set.contains c WSP
+    (* Core Rules
 
-(* RFC 7230 *)
+       Taken from RFC 5234, Appendix B.1. Core Rules
+       [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
-(* Whitespace
+    let alpha = 
+        Set.unionMany [ 
+            charRange 0x41 0x5a
+            charRange 0x61 0x7a ]
 
-   Taken from RFC 7230, Section 3.2.3. Whitespace
-   [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
+    let digit = 
+        charRange 0x30 0x39
+
+    let dquote = 
+        char 0x22
+
+    let htab = 
+        char 0x09
+
+    let sp = 
+        char 0x20
+
+    let vchar =
+        charRange 0x21 0x7e
+
+    let wsp = 
+        set [ sp; htab ]
+
+
+module RFC7230 =
+
+    open System
+    open RFC5234
+
+    (* Whitespace
+
+       Taken from RFC 7230, Section 3.2.3. Whitespace
+       [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
         
-let private OWS = 
-    skipManySatisfy isWSP
+    let ows = 
+        skipManySatisfy ((?>) wsp)
+
+//    let rws =
+//        skipMany1Satisfy (fun c -> Set.contains c wsp)
+
+//    let bws =
+//        ows
+
+    (* Field Value Components
+
+       Taken from RFC 7230, Section 3.2.6. Field Value Components
+       [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
+
+    let tchar = 
+        Set.unionMany [ 
+            set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
+                  '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
+            alpha
+            digit ]
+
+    let token = 
+        many1Satisfy ((?>) tchar)
+
+    let obsText =
+        charRange 0x80 0xff
+
+    let qdtext =
+        Set.unionMany [
+            set [ htab; sp; char 0x21 ]
+            charRange 0x23 0x5b
+            charRange 0x5d 0x7e
+            obsText ]
+
+//    let ctext =
+//        Set.unionMany [
+//            set [ htab; sp ]
+//            charRange 0x21 0x27
+//            charRange 0x2a 0x5b
+//            charRange 0x5d 0x7e
+//            obsText ]
 
-//let private RWS = 
-//    skipMany1Satisfy isWSP
+    let private quotedPairChars =
+        Set.unionMany [
+            set [ htab; sp ]
+            vchar
+            obsText ]
 
-(* Field Value Components
+    let quotedPair =
+            skipChar '\\' 
+        >>. satisfy ((?>) quotedPairChars)
 
-   Taken from RFC 7230, Section 3.2.6. Field Value Components
-   [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
+    let quotedString =
+            skipChar dquote 
+        >>. many (quotedPair <|> satisfy ((?>) qdtext)) |>> (fun x -> string (String (List.toArray x)))
+        .>> skipChar dquote
 
-let private nonDelimiters =
-    set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
-          '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
+    (* ABNF List Extension: #rule
 
-let private TCHAR = 
-    Set.unionMany 
-        [ nonDelimiters
-          ALPHA
-          DIGIT ]
+       Taken from RFC 7230, Section 7. ABNF List Extension: #rule
+       [http://tools.ietf.org/html/rfc7230#section-7] *)
 
-let private isTCHAR c =
-    Set.contains c TCHAR
+    let private infixHead s p =
+        (attempt p |>> Some) <|> (s >>% None)
 
-let private token = 
-    many1Satisfy isTCHAR
+    let private infixTail s p =
+        many (ows >>? s >>? ows >>? opt p)
 
-(* ABNF List Extension: #rule
+    (* Note:
+       The infix and prefix parsers are designed to convey as accurately as possible the 
+       meaning of the ABNF #rule extension including the laxity of specification for backward 
+       compatibility. Whether they are a perfectly true representation is open to debate, 
+       but they should perform sensibly under normal conditions. *)
 
-   Taken from RFC 7230, Section 7. ABNF List Extension: #rule
-   [http://tools.ietf.org/html/rfc7230#section-7] *)
+    let infix s p = 
+        infixHead s p .>>. infixTail s p .>> ows |>> fun (x, xs) -> x :: xs |> List.choose id
 
-let private infixHead s p =
-    (attempt p |>> Some) <|> (s >>% None)
+    let infix1 s p =
+        notEmpty (infix s p)
 
-let private infixTail s p =
-    many (OWS >>? s >>? OWS >>? opt p)
+    let prefix s p =
+        many (ows >>? s >>? ows >>? p)
 
-(* Note:
-   The infix and prefix parsers are designed to convey as accurately as possible the 
-   meaning of the ABNF #rule extension including the laxity of specification for backward 
-   compatibility. Whether they are a perfectly true representation is open to debate, 
-   but they should perform sensibly under normal conditions. *)
+    (* Method
 
-let private infix s p = 
-    infixHead s p .>>. infixTail s p .>> OWS |>> fun (x, xs) ->  x :: xs |> List.choose id
+       Taken from RFC 7230, Section 3.1 Request Line
+       [http://tools.ietf.org/html/rfc7230#section-3.1] *)
 
-let private infix1 s p =
-    notEmpty (infix s p)
+    let meth =
+        choice [
+            skipStringCI "delete" >>% DELETE
+            skipStringCI "head" >>% HEAD
+            skipStringCI "get" >>% GET
+            skipStringCI "options" >>% OPTIONS
+            skipStringCI "patch" >>% PATCH
+            skipStringCI "post" >>% POST
+            skipStringCI "put" >>% PUT
+            skipStringCI "trace" >>% TRACE
+            restOfLine false |>> Method.Custom ]
 
-let private prefix s p =
-    many (OWS >>? s >>? OWS >>? p)
+    (* HTTP Version
 
-(* RFC 7231 *)
+       Taken from RFC 7230, Section 3.1 Request Line
+       [http://tools.ietf.org/html/rfc7230#section-3.1] *)
 
-let parseMethod =
-    function | "DELETE" -> DELETE 
-             | "HEAD" -> HEAD 
-             | "GET" -> GET 
-             | "OPTIONS" -> OPTIONS
-             | "PATCH" -> PATCH 
-             | "POST" -> POST 
-             | "PUT" -> PUT 
-             | "TRACE" -> TRACE
-             | x -> Method.Custom x
+    let httpVersion : Parser<HttpVersion, unit> =
+        choice [
+            skipString "HTTP/1.0" >>% HttpVersion.HTTP 1.0
+            skipString "HTTP/1.1" >>% HttpVersion.HTTP 1.1
+            restOfLine false |>> HttpVersion.Custom ]
 
-let parseProtocol =
-    function | "HTTP/1.0" -> Protocol.HTTP 1.0 
-             | "HTTP/1.1" -> Protocol.HTTP 1.1 
-             | x -> Protocol.Custom x
+    (* Content-Length
+        
+       Taken from RFC 7230, Section 3.3.2 Content-Length
+       [http://tools.ietf.org/html/rfc7230#section-3.3.2] *)
 
-let parseScheme =
-    function | "http" -> HTTP 
-             | "https" -> HTTPS 
-             | x -> Scheme.Custom x
+    let contentLength : Parser<ContentLength, unit> =
+        puint32
+        |>> (int >> ContentLength)
 
-let parseQuery =
-    function | "" -> Map.empty
-             | s ->
-                 s.Split [| '&' |]
-                 |> Array.map (fun x -> x.Split [| '=' |])
-                 |> Array.map (fun x -> x.[0], x.[1])
-                 |> Map.ofArray
+    (* Connection
+        
+       Taken from RFC 7230, Section 6.1 Connection
+       [http://tools.ietf.org/html/rfc7230#section-6.1] *)
 
-(* Quality Values
+    let connection : Parser<Connection, unit> =
+        infix1 (skipChar ',') token
+        |>> (List.map ConnectionOption >> Connection)
 
-   Taken from RFC 7231, Section 5.3.1. Quality Values
-   [http://tools.ietf.org/html/rfc7231#section-5.3.1] *)
 
-let private valueOrDefault =
-    function
-    | Some x -> float (sprintf "0.%s" x)
-    | _ -> 0.
+module RFC7231 =
 
-let private d3 =
-        manyMinMaxSatisfy 0 3 isDIGIT .>> notFollowedBy (skipSatisfy isDIGIT)
+    open Generic
+    open RFC5234
+    open RFC7230
 
-let private isZero =
-    isAnyOf [ '0' ]
+    (* Media-Type
 
-let private d03 =
-    skipManyMinMaxSatisfy 0 3 isZero .>> notFollowedBy (skipSatisfy isDIGIT)
+       Includes the common definition of parameter as defined within this
+       section, but applicable to multiple later types.
 
-let private qvalue =
-    choice
-        [ skipChar '0' >>. opt (skipChar '.' >>. d3) |>> valueOrDefault
-          skipChar '1' >>. optional (skipChar '.' >>. d03) >>% 1. ]
+       Taken from RFC 7231, Section 3.1.1.1 Media-Type
+       [http://tools.ietf.org/html/rfc7231#section-3.1.1.1] *)
 
-let weight =
-    skipChar ';' >>. OWS >>. skipStringCI "q=" >>. qvalue .>> OWS
+    let private parameter =
+        token .>> skipChar '=' .>>. (quotedString <|> token)
 
-(* Accept
+    let parameters =
+        prefix semicolon parameter
+        |>> Map.ofList
 
-   Taken from RFC 7231, Section 5.3.2. Accept
-   [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+    let mediaType =
+        token .>> skipChar '/' .>>. token .>>. parameters
+        |>> (fun ((x, y), p) -> MediaType (Types.Type x, SubType y, p))
 
-// TODO: tokens are not the only values here, dquoted strings need implementing
+    (* Content-Type
 
-let private acceptExt =
-    token .>>. opt (skipChar '=' >>. token)
+       Taken from RFC 7231, Section 3.1.1.5 Content-Type
+       [http://tools.ietf.org/html/rfc7231#section-3.1.1.5] *)
 
-let private acceptExts =
-    prefix (skipChar ';') acceptExt
-    |>> Map.ofList
+    let contentType =
+        mediaType
+        |>> ContentType
 
-let private acceptParams =
-    weight .>> OWS .>>. acceptExts
+    (* Content-Encoding
 
-let private parameter =
-    notFollowedBy (OWS >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
+       Taken from RFC 7231, Section 3.1.2.2 Content-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
 
-let private parameters =
-    prefix (skipChar ';') parameter 
-    |>> Map.ofList
+    let contentEncoding =
+        infix1 comma token
+        |>> (List.map Encoding >> ContentEncoding)
 
-let private mediaRangeSpecOpen = 
-    skipString "*/*"
-    |>> fun _ -> MediaRangeSpec.Open
+    (* Max-Forwards *)
 
-let private mediaRangeSpecPartial = 
-    token .>> skipString "/*"
-    |>> fun x -> MediaRangeSpec.Partial (Type x)
+    let maxForwards : Parser<MaxForwards, unit> =
+        puint32
+        |>> (int >> MaxForwards)
 
-let private mediaRangeSpecClosed = 
-    token .>> skipChar '/' .>>. token
-    |>> fun (x, y) -> MediaRangeSpec.Closed (Type x, SubType y)
+    // TODO: Proper Query String Parser
+    let parseQuery =
+        function | "" -> Map.empty
+                 | s ->
+                     s.Split [| '&' |]
+                     |> Array.map (fun x -> x.Split [| '=' |])
+                     |> Array.map (fun x -> x.[0], x.[1])
+                     |> Map.ofArray
 
-let private mediaRangeSpec = 
-    choice [
-        attempt mediaRangeSpecOpen
-        attempt mediaRangeSpecPartial
-        mediaRangeSpecClosed ]
+    (* Quality Values
 
-let private mediaRange : Parser<MediaRange, unit> = 
-    mediaRangeSpec .>> OWS .>>. parameters
-    |>> (fun (mediaRangeSpec, parameters) ->
-            { MediaRange = mediaRangeSpec
-              Parameters = parameters })
+       Taken from RFC 7231, Section 5.3.1. Quality Values
+       [http://tools.ietf.org/html/rfc7231#section-5.3.1] *)
 
-let private accept =
-    infix (skipChar ',') (mediaRange .>> OWS .>>. opt acceptParams)
-    |>> List.map (fun (mediaRange, acceptParams) ->
-        let weight = 
-            acceptParams 
-            |> Option.map fst
+    let private valueOrDefault =
+        function | Some x -> float (sprintf "0.%s" x)
+                 | _ -> 0.
 
-        let parameters = 
-            acceptParams 
-            |> Option.map snd
-            |> Option.getOrElse Map.empty
+    let private d3 =
+            manyMinMaxSatisfy 0 3 (fun c -> Set.contains c digit) 
+        .>> notFollowedBy (skipSatisfy ((?>) digit))
 
-        { MediaRange = mediaRange
-          Weight = weight
-          Parameters = parameters })
+    let private d03 =
+            skipManyMinMaxSatisfy 0 3 ((=) '0') 
+        .>> notFollowedBy (skipSatisfy ((?>) digit))
 
-let parseAccept =
-    parse accept
+    let private qvalue =
+        choice [ 
+            skipChar '0' >>. opt (skipChar '.' >>. d3) |>> valueOrDefault
+            skipChar '1' >>. optional (skipChar '.' >>. d03) >>% 1. ]
 
-(* Accept-Charset
+    let weight =
+        semicolon >>. ows >>. skipStringCI "q=" >>. qvalue .>> ows
 
-   Taken from RFC 7231, Section 5.3.3. Accept-Charset
-   [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+    (* Accept
 
-let private charsetSpecAny =
-    skipChar '*'
-    |>> fun _ -> CharsetSpec.Any
+       Taken from RFC 7231, Section 5.3.2. Accept
+       [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-let private charsetSpecCharset =
-    token
-    |>> fun s -> CharsetSpec.Charset (Charset.Charset s)
+    // TODO: Test this quoted string implementation...
 
-let private charsetSpec = 
-    choice [
-        attempt charsetSpecAny
-        charsetSpecCharset ]
+    let private acceptExt =
+        token .>>. opt (skipChar '=' >>. (quotedString <|> token))
 
-let private acceptCharset =
-    infix1 (skipChar ',') (charsetSpec .>> OWS .>>. opt weight)
-    |>> List.map (fun (charsetSpec, weight) ->
-        { Charset = charsetSpec
-          Weight = weight })
+    let private acceptExts =
+        prefix (skipChar ';') acceptExt
+        |>> Map.ofList
 
-let parseAcceptCharset =
-    parse acceptCharset
+    let private acceptParams =
+        weight .>> ows .>>. acceptExts
+        |>> (fun (weight, extensions) ->
+            { Weight = weight
+              Extensions = extensions })
 
-(* Accept-Encoding
+    let private mediaRangeParameter =
+        notFollowedBy (ows >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
 
-   Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-   [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+    let private mediaRangeParameters =
+        prefix semicolon mediaRangeParameter 
+        |>> Map.ofList
 
-let private encodingSpecAny =
-    skipChar '*'
-    |>> fun _ -> EncodingSpec.Any
+    let private openMediaRange = 
+        skipString "*/*" >>. ows >>. mediaRangeParameters
+        |>> fun parameters -> 
+                MediaRange.Open parameters
 
-let private encodingSpecIdentity =
-    skipStringCI "identity"
-    |>> fun _ -> EncodingSpec.Identity
+    let private partialMediaRange = 
+        token .>> skipString "/*" .>> ows .>>. mediaRangeParameters
+        |>> fun (x, parameters) -> 
+                MediaRange.Partial (Types.Type x, parameters)
 
-let private encodingSpecEncoding =
-    token
-    |>> fun s -> EncodingSpec.Encoding (Encoding.Encoding s)
+    let private closedMediaRange = 
+        token .>> skipChar '/' .>>. token .>> ows .>>. mediaRangeParameters
+        |>> fun ((x, y), parameters) -> 
+                MediaRange.Closed (Types.Type x, SubType y, parameters)
 
-let private encoding =
-    choice [
-        attempt encodingSpecAny
-        attempt encodingSpecIdentity
-        encodingSpecEncoding ]
+    let private mediaRange = 
+        choice [
+            attempt openMediaRange
+            attempt partialMediaRange
+            closedMediaRange ]
 
-let private acceptEncoding =
-    infix (skipChar ',') (encoding .>> OWS .>>. opt weight)
-    |>> List.map (fun (encoding, weight) ->
-        { Encoding = encoding
-          Weight = weight })
+    let private acceptableMedia : Parser<AcceptableMedia, unit> = 
+        mediaRange .>>. opt acceptParams
+        |>> (fun (mediaRangeSpec, parameters) ->
+                { MediaRange = mediaRangeSpec
+                  Parameters = parameters })
 
-let parseAcceptEncoding =
-    parse acceptEncoding
+    let accept =
+        infix comma acceptableMedia
+        |>> Accept
 
-(* Accept-Language
+    (* Accept-Charset
 
-   Taken from RFC 7231, Section 5.3.5. Accept-Language
-   [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+       Taken from RFC 7231, Section 5.3.3. Accept-Charset
+       [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-(* Note: Language range taken as the Basic Language Range
-   definition from RFC 4647, Section 3.1.3.1 *)
+    let private charsetSpecAny =
+        skipChar '*' 
+        >>% CharsetSpec.Any
 
-let private languageRangeComponent =
-    manyMinMaxSatisfy 1 8 isALPHA
+    let private charsetSpecCharset =
+        token
+        |>> fun s -> CharsetSpec.Charset (Charset s)
 
-let private languageRange =
-    languageRangeComponent .>>. opt (skipChar '-' >>. languageRangeComponent)
-    |>> function 
-        | range, Some sub -> CultureInfo (sprintf "%s-%s" range sub)
-        | range, _ -> CultureInfo (range)
+    let private charsetSpec = 
+        choice [
+            attempt charsetSpecAny
+            charsetSpecCharset ]
 
-let private acceptLanguage =
-    infix (skipChar ',') (languageRange .>> OWS .>>. opt weight)
-    |>> List.map (fun (languageRange, weight) ->
-        { Language = languageRange
-          Weight = weight })
+    let acceptCharset =
+        infix1 (skipChar ',') (charsetSpec .>> ows .>>. opt weight)
+        |>> (List.map (fun (charsetSpec, weight) ->
+            { Charset = charsetSpec
+              Weight = weight }) >> AcceptCharset)
 
-let parseAcceptLanguage =
-    parse acceptLanguage
+    (* Accept-Encoding
 
-(* RFC 7232 *)
+       Taken from RFC 7231, Section 5.3.4. Accept-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-(* TODO: This is a naive formulation of an entity tag and does not
-   properly support the grammar, particularly weak references, which
-   should be implemented ASAP *)
+    let private encodingSpecAny =
+        skipChar '*'
+        >>% EncodingSpec.Any
 
-let private eTag =
-    skipChar DQUOTE >>. token .>> skipChar DQUOTE
-    |>> Strong
+    let private encodingSpecIdentity =
+        skipStringCI "identity"
+        |>> fun _ -> EncodingSpec.Identity
 
-let parseETag =
-    parse eTag
+    let private encodingSpecEncoding =
+        token
+        |>> fun s -> EncodingSpec.Encoding (Encoding s)
 
-(* If-Match
+    let private encoding =
+        choice [
+            attempt encodingSpecAny
+            attempt encodingSpecIdentity
+            encodingSpecEncoding ]
 
-   Taken from RFC 7232, Section 3.1, If-Match
-   [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+    let acceptEncoding =
+        infix comma (encoding .>> ows .>>. opt weight)
+        |>> (List.map (fun (encoding, weight) ->
+            { Encoding = encoding
+              Weight = weight }) >> AcceptEncoding)
 
-let private ifMatch =
-    choice [
-        skipChar '*' |>> fun _ -> IfMatch.Any
-        infix (skipChar ',') eTag |>> fun x ->  IfMatch.EntityTags x ]
+    (* Accept-Language
 
-let parseIfMatch =
-    parse ifMatch
+       Taken from RFC 7231, Section 5.3.5. Accept-Language
+       [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
-(* If-None-Match
+    (* Note: Language range taken as the Basic Language Range
+       definition from RFC 4647, Section 3.1.3.1 *)
 
-   Taken from RFC 7232, Section 3.2, If-None-Match
-   [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+    let private languageRangeComponent =
+        manyMinMaxSatisfy 1 8 (fun c -> Set.contains c alpha)
 
-let private ifNoneMatch =
-    choice [
-        skipChar '*' |>> fun _ -> IfNoneMatch.Any
-        infix (skipChar ',') eTag |>> fun x -> IfNoneMatch.EntityTags x ]
+    let private languageRange =
+        languageRangeComponent .>>. opt (skipChar '-' >>. languageRangeComponent)
+        |>> function 
+            | range, Some sub -> CultureInfo (sprintf "%s-%s" range sub)
+            | range, _ -> CultureInfo (range)
 
-let parseIfNoneMatch =
-    parse ifNoneMatch
+    let acceptLanguage =
+        infix comma (languageRange .>> ows .>>. opt weight)
+        |>> (List.map (fun (languageRange, weight) ->
+            { Language = languageRange
+              Weight = weight }) >> AcceptLanguage)
+
+    (* HTTP-Date
+
+       Taken from RFC 7231, Section 7.1.1 HTTP-Date *)
+
+    let private dateTimeFormat =
+        CultureInfo.InvariantCulture.DateTimeFormat
+
+    let private dateTimeAdjustment =
+        DateTimeStyles.AdjustToUniversal
+
+    let httpDate : Parser<DateTime, unit> =
+        restOfLine false >>= (fun s ->
+            match DateTime.TryParse (s, dateTimeFormat, dateTimeAdjustment) with
+            | true, d -> preturn d
+            | _ -> pzero)
+
+    (* Date *)
+
+    let date =
+        httpDate
+        |>> Date
+
+    (* Allow
+
+       Taken from RFC 7231, Section 7.4.1 Allow
+       [http://tools.ietf.org/html/rfc7231#section-7.4.1] *)
+
+    let allow =
+        infix comma meth
+        |>> Allow
+
+
+module RFC7232 =
+
+    open Generic
+    open RFC5234
+    open RFC7230
+    open RFC7231
+
+    let lastModified =
+        httpDate
+        |>> LastModified
+
+    (* TODO: This is a naive formulation of an entity tag and does not
+       properly support the grammar, particularly weak references, which
+       should be implemented ASAP *)
+
+    let eTag =
+        skipChar dquote >>. token .>> skipChar dquote
+        |>> Strong
+
+    (* If-Match
+
+       Taken from RFC 7232, Section 3.1, If-Match
+       [http://tools.ietf.org/html/rfc7232#section-3.1] *)
+
+    let ifMatch =
+        choice [
+            skipChar '*' >>% IfMatch.Any
+            infix comma eTag |>> IfMatch.EntityTags ]
+
+    (* If-None-Match
+
+       Taken from RFC 7232, Section 3.2, If-None-Match
+       [http://tools.ietf.org/html/rfc7232#section-3.2] *)
+
+    let ifNoneMatch =
+        choice [
+            skipChar '*' >>% IfNoneMatch.Any
+            infix comma eTag |>> IfNoneMatch.EntityTags ]
+
+    let ifModifiedSince =
+        httpDate
+        |>> IfModifiedSince
+
+    let ifUnmodifiedSince =
+        httpDate
+        |>> IfUnmodifiedSince
+
+
+module RFC7234 =
+
+    open RFC7231
+
+    (* Age
+
+       Taken from RFC 7234, Section 5.1, Age
+       [http://tools.ietf.org/html/rfc7234#section-5.1] *)
+
+    let age : Parser<Age, unit> =
+        puint32
+        |>> (float >> TimeSpan.FromSeconds >> Age)
+
+    let expires =
+        httpDate
+        |>> Expires

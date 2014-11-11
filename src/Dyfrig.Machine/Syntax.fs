@@ -25,7 +25,7 @@ module Actions =
             x.Set (monad, actionPLens Actions.Post, m)
 
         [<CustomOperation (Actions.Put, MaintainsVariableSpaceUsingBind = true)>]
-        member x.DoPut (monad, m) = 
+        member x.DoPut (monad, m) =
             x.Set (monad, actionPLens Actions.Put, m)
 
 

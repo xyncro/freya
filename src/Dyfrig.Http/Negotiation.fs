@@ -4,138 +4,130 @@ module Dyfrig.Http.Negotiation
 open System
 open System.Globalization
 
-let private (==) s1 s2 =
-    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-let inline private weight (a: ^a) =
-    ((^a) : (member Weight: float option) a)
-
-let inline private prepare requested =
-    requested
-    |> List.filter (fun r -> weight r <> Some 0.)
-    |> List.sortBy (fun r -> weight r |> Option.getOrElse 1.)
-    |> List.rev
-
 (* Content Negotiation
-            
+
     Taken from RFC 7231, Section 5.3
     [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+
+type private Negotiation<'a,'b> =
+    { Predicate: 'a -> 'b -> bool
+      Score: 'a -> 'b -> int
+      Weigh: 'b -> float }
+
+let private negotiate (n: Negotiation<'a,'b>) r =
+       List.map (fun a -> a, (List.filter (n.Predicate a) >> List.tryMaxBy (n.Score a)) r)
+    >> List.choose (function | (a, Some b) -> Some (a, b) | _ -> None)
+    >> List.filter (fun (_, b) -> n.Weigh b <> 0.)
+    >> List.sortBy (fun (_, b) -> n.Weigh b)
+    >> List.rev
+    >> List.map fst
+
+let private (==) s1 s2 =
+    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
 
 (* Accept
 
     Taken from RFC 7231, Section 5.3.2. Accept
     [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
 
-let private (|ClosedM|_|) =
-    function | MediaRangeSpec.Closed (Type x, SubType y) -> Some (x, y)
-             | _ -> None
+module Accept =
 
-let private (|PartialM|_|) =
-    function | MediaRangeSpec.Partial (Type x) -> Some x
-             | _ -> None
+    let private predicate (MediaType (Type t, SubType s, _)) =
+        function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> true
+                 | { MediaRange = Partial (Type t', _) } when t == t' -> true
+                 | { MediaRange = Open _ } -> true
+                 | _ -> false
 
-let private (|OpenM|_|) =
-    function | MediaRangeSpec.Open -> Some ()
-             | _ -> None
+    let private score (MediaType (Type t, SubType s, _)) =
+        function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> 3
+                 | { MediaRange = Partial (Type t', _) } when t == t' -> 2
+                 | { MediaRange = Open _ } -> 1
+                 | _ -> 0
 
-let private matchAccept (MediaType (Type t, SubType s)) =
-    function | ClosedM (t', s') when t == t' && s == s' -> true
-             | PartialM t' when t == t' -> true
-             | OpenM _ -> true
-             | _ -> false
+    let private weigh =
+        function | { AcceptableMedia.Parameters = Some { Weight = weight } } -> weight 
+                 | _ -> 1.
 
-let private scoreAccept (MediaType (Type t, SubType s)) =
-    function | ClosedM (t', s') when t == t' && s == s' -> 3
-             | PartialM t' when t == t' -> 2
-             | OpenM _ -> 1
-             | _ -> 0
-
-let private selectAccept (available: MediaType list) =
-    List.map (fun r -> 
-        available 
-        |> List.filter (fun a -> matchAccept a.MediaType r.MediaRange.MediaRange)
-        |> List.sortBy (fun a -> scoreAccept a.MediaType r.MediaRange.MediaRange)) >> List.concat
-
-let negotiateAccept (available: MediaType list) =
-    prepare >> selectAccept available
+    let negotiate (Accept requested) =
+        negotiate { Predicate = predicate
+                    Score = score
+                    Weigh = weigh } requested
 
 (* Accept-Charset
 
     Taken from RFC 7231, Section 5.3.3. Accept-Charset
     [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
-let private (|CharsetC|_|) =
-    function | CharsetSpec.Charset (Charset s) -> Some s
-             | _ -> None
+module AcceptCharset =
 
-let private (|AnyC|_|) =
-    function | CharsetSpec.Any -> Some ()
-             | _ -> None
+    let private predicate (Charset s) =
+        function | { Charset = CharsetSpec.Charset (Charset s') } when s == s' -> true
+                 | { Charset = CharsetSpec.Any } -> true
+                 | _ -> false
 
-let private matchAcceptCharset =
-    function | Charset s, CharsetC s' when s == s' -> true
-             | _, AnyC _ -> true
-             | _ -> false
+    let private score (Charset s) =
+        function | { Charset = CharsetSpec.Charset (Charset s') } when s == s' -> 2
+                 | { Charset = CharsetSpec.Any } -> 1
+                 | _ -> 0
 
-let private selectAcceptCharset (available: Charset list) =
-    List.map (fun r ->
-        available
-        |> List.filter (fun a -> matchAcceptCharset (a, r.Charset))) >> List.concat
+    let private weigh =
+        function | { AcceptableCharset.Weight = Some weight } -> weight 
+                 | _ -> 1.
 
-let negotiateAcceptCharset (available: Charset list) =
-    prepare >> selectAcceptCharset available
+    let negotiate (AcceptCharset requested) =
+        negotiate { Predicate = predicate
+                    Score = score
+                    Weigh = weigh } requested
 
 (* Accept-Encoding
 
     Taken from RFC 7231, Section 5.3.4. Accept-Encoding
     [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
-let private (|NamedE|_|) =
-    function | EncodingSpec.Encoding (Encoding e) -> Some e
-             | _ -> None
+module AcceptEncoding =
 
-let private (|IdentityE|_|) =
-    function | EncodingSpec.Identity -> Some ()
-             | _ -> None
+    let private predicate (Encoding e) =
+        function | { Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> true
+                 | { Encoding = EncodingSpec.Identity } -> true
+                 | { Encoding = EncodingSpec.Any } -> true
+                 | _ -> false
 
-let private (|AnyE|_|) =
-    function | EncodingSpec.Any -> Some ()
-             | _ -> None
+    let private score (Encoding e) =
+        function | { Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> 3
+                 | { Encoding = EncodingSpec.Identity } -> 2
+                 | { Encoding = EncodingSpec.Any } -> 1
+                 | _ -> 0
 
-let private matchAcceptEncoding =
-    function | Encoding e, NamedE e' when e == e' -> true
-             | _, IdentityE _ -> true
-             | _, AnyE _ -> true
-             | _ -> false
+    let private weigh =
+        function | { AcceptableEncoding.Weight = Some weight } -> weight 
+                 | _ -> 1.
 
-let private selectAcceptEncoding (available: Encoding list) =
-    List.map (fun r ->
-        available
-        |> List.filter (fun a -> matchAcceptEncoding (a, r.Encoding))) >> List.concat
-
-let negotiateAcceptEncoding (available: Encoding list) =
-    prepare >> selectAcceptEncoding available
+    let negotiate (AcceptEncoding requested) =
+        negotiate { Predicate = predicate
+                    Score = score
+                    Weigh = weigh } requested
 
 (* Accept-Language
 
     Taken from RFC 7231, Section 5.3.5. Accept-Language
     [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
 
-let private matchAcceptLanguage (c: CultureInfo) =
-    function | c' when c = c' || c.Parent = c' -> true
-             | _ -> false
+module AcceptLanguage =
 
-let private scoreAcceptLanguage (c: CultureInfo) =
-    function | c' when c = c' -> 2
-             | c' when c.Parent = c' -> 1
-             | _ -> 0
+    let private predicate (c: CultureInfo) =
+        function | { Language = c' } when c = c' || c.Parent = c' -> true
+                 | _ -> false
 
-let private selectAcceptLanguage (available: CultureInfo list) =
-    List.map (fun r -> 
-        available 
-        |> List.filter (fun a -> matchAcceptLanguage a r.Language)
-        |> List.sortBy (fun a -> scoreAcceptLanguage a r.Language)) >> List.concat
+    let private score (c: CultureInfo) =
+        function | { Language = c' } when c = c' -> 2
+                 | { Language = c' } when c.Parent = c' -> 1
+                 | _ -> 0
 
-let negotiateAcceptLanguage (available: CultureInfo list) =
-    prepare >> selectAcceptLanguage available
+    let private weigh =
+        function | { AcceptableLanguage.Weight = Some weight } -> weight 
+                 | _ -> 1.
 
+    let negotiate (AcceptLanguage requested) =
+        negotiate { Predicate = predicate
+                    Score = score
+                    Weigh = weigh } requested
