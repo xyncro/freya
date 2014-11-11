@@ -54,7 +54,7 @@ module internal Invocation =
 //            | Some _ -> do! setPLM (Response.Headers.contentType) "MediaType!"
 //            | _ -> ()
 
-            do! setPLM (Response.Headers.contentLength) res.Representation.Length
+            do! setPLM (Response.Headers.contentLength) (ContentLength res.Representation.Length)
             do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }
 
     let invoke handler =

@@ -49,7 +49,7 @@ let todos =
     machine {
         including json
         including unicode
-        
+
         doDelete clearTodos
         doPost createTodo
 

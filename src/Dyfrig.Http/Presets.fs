@@ -27,15 +27,12 @@ module MediaTypes =
 
     /// Convenience definition for "application/json" without extra parameters
     let JSON =
-        { MediaType = MediaType (Type "application", SubType "json")
-          Parameters = Map.empty }
+        MediaType (Type "application", SubType "json", Map.empty)
 
     /// Convenience definition for "text/plain" without extra parameters
     let Text =
-        { MediaType = MediaType (Type "text", SubType "plain")
-          Parameters = Map.empty }
+        MediaType (Type "text", SubType "plain", Map.empty)
 
     /// Convenience definition for "application/xml" without extra parameters
     let XML =
-        { MediaType = MediaType (Type "application", SubType "xml")
-          Parameters = Map.empty }
+        MediaType (Type "application", SubType "xml", Map.empty)

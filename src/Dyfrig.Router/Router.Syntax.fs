@@ -19,5 +19,5 @@ module Syntax =
         type RoutesMonadBuilder with
 
             [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
-            member x.Including (r, routes) = 
+            member x.Including (r, routes) =
                 x.Combine (r, routes)

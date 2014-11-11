@@ -39,8 +39,8 @@ module Charset =
     // TODO: Refactor these to take the negotiation function.
 
     let private negotiation =
-        function | Some requested, Some available -> negotiateAcceptCharset available requested
-                 | Some requested, _ -> negotiateAcceptCharset defaults requested
+        function | Some requested, Some available -> AcceptCharset.negotiate requested available
+                 | Some requested, _ -> AcceptCharset.negotiate requested defaults
                  | _, Some available -> available
                  | _, _ -> defaults
 
@@ -67,8 +67,8 @@ module Encoding =
         getPLM (definitionPLens >??> configurationPLens Configuration.EncodingsSupported)
 
     let private negotiation =
-        function | Some requested, Some available -> negotiateAcceptEncoding available requested
-                 | Some requested, _ -> negotiateAcceptEncoding defaults requested
+        function | Some requested, Some available -> AcceptEncoding.negotiate requested available
+                 | Some requested, _ -> AcceptEncoding.negotiate requested defaults
                  | _, Some available -> available
                  | _, _ -> defaults
 
@@ -95,8 +95,8 @@ module Language =
         getPLM (definitionPLens >??> configurationPLens Configuration.LanguagesSupported)
 
     let private negotiation =
-        function | Some requested, Some available -> negotiateAcceptLanguage available requested
-                 | Some requested, _ -> negotiateAcceptLanguage defaults requested
+        function | Some requested, Some available -> AcceptLanguage.negotiate requested available
+                 | Some requested, _ -> AcceptLanguage.negotiate requested defaults
                  | _, Some available -> available
                  | _, _ -> defaults
 
@@ -123,8 +123,8 @@ module MediaType =
         getPLM (definitionPLens >??> configurationPLens Configuration.MediaTypesSupported)
 
     let private negotiation =
-        function | Some requested, Some available -> negotiateAccept available requested
-                 | Some requested, _ -> negotiateAccept defaults requested
+        function | Some requested, Some available -> Accept.negotiate requested available
+                 | Some requested, _ -> Accept.negotiate requested defaults
                  | _, Some available -> available
                  | _, _ -> defaults
 

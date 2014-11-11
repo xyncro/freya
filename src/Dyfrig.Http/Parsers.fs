@@ -1,5 +1,6 @@
 ﻿module internal Dyfrig.Http.Parsers
 
+open System
 open System.Globalization
 open FParsec
 
@@ -33,6 +34,12 @@ module Generic =
             skipStringCI "http" >>% HTTP
             skipStringCI "https" >>% HTTPS
             restOfLine false |>> Scheme.Custom ]
+
+    let comma =
+        skipChar ','
+
+    let semicolon =
+        skipChar ';'
 
 
 module RFC5234 =
@@ -130,7 +137,7 @@ module RFC7230 =
 
     let quotedString =
             skipChar dquote 
-        >>. many (quotedPair <|> satisfy ((?>) qdtext)) |>> (fun x -> String (List.toArray x))
+        >>. many (quotedPair <|> satisfy ((?>) qdtext)) |>> (fun x -> string (String (List.toArray x)))
         .>> skipChar dquote
 
     (* ABNF List Extension: #rule
@@ -164,7 +171,7 @@ module RFC7230 =
        Taken from RFC 7230, Section 3.1 Request Line
        [http://tools.ietf.org/html/rfc7230#section-3.1] *)
 
-    let meth : Parser<Method, unit> =
+    let meth =
         choice [
             skipStringCI "delete" >>% DELETE
             skipStringCI "head" >>% HEAD
@@ -187,6 +194,15 @@ module RFC7230 =
             skipString "HTTP/1.1" >>% HttpVersion.HTTP 1.1
             restOfLine false |>> HttpVersion.Custom ]
 
+    (* Content-Length
+        
+       Taken from RFC 7230, Section 3.3.2 Content-Length
+       [http://tools.ietf.org/html/rfc7230#section-3.3.2] *)
+
+    let contentLength : Parser<ContentLength, unit> =
+        puint32
+        |>> (int >> ContentLength)
+
     (* Connection
         
        Taken from RFC 7230, Section 6.1 Connection
@@ -199,8 +215,47 @@ module RFC7230 =
 
 module RFC7231 =
 
+    open Generic
     open RFC5234
     open RFC7230
+
+    // TODO: Parameters parser!
+    // TODO: MediaType parser!
+
+    (* Media-Type
+
+       Includes the common definition of parameter as defined within this
+       section, but applicable to multiple later types.
+
+       Taken from RFC 7231, Section 3.1.1.1 Media-Type
+       [http://tools.ietf.org/html/rfc7231#section-3.1.1.1] *)
+
+    let private parameter =
+        token .>> skipChar '=' .>>. (quotedString <|> token)
+
+    let parameters =
+        prefix semicolon parameter
+        |>> Map.ofList
+
+    let mediaType =
+        token .>> skipChar '/' .>>. token .>>. parameters
+        |>> (fun ((x, y), p) -> MediaType (Types.Type x, SubType y, p))
+
+
+    (* Content-Type
+
+       Taken from RFC 7231, Section 3.1.1.5 Content-Type
+       [http://tools.ietf.org/html/rfc7231#section-3.1.1.5] *)
+
+
+    (* Content-Encoding
+
+       Taken from RFC 7231, Section 3.1.2.2 Content-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+
+    let contentEncoding =
+        infix1 comma token
+        |>> (List.map Encoding >> ContentEncoding)
 
     // TODO: Proper Query String Parser
     let parseQuery =
@@ -217,9 +272,8 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-5.3.1] *)
 
     let private valueOrDefault =
-        function
-        | Some x -> float (sprintf "0.%s" x)
-        | _ -> 0.
+        function | Some x -> float (sprintf "0.%s" x)
+                 | _ -> 0.
 
     let private d3 =
             manyMinMaxSatisfy 0 3 (fun c -> Set.contains c digit) 
@@ -230,12 +284,12 @@ module RFC7231 =
         .>> notFollowedBy (skipSatisfy ((?>) digit))
 
     let private qvalue =
-        choice
-            [ skipChar '0' >>. opt (skipChar '.' >>. d3) |>> valueOrDefault
-              skipChar '1' >>. optional (skipChar '.' >>. d03) >>% 1. ]
+        choice [ 
+            skipChar '0' >>. opt (skipChar '.' >>. d3) |>> valueOrDefault
+            skipChar '1' >>. optional (skipChar '.' >>. d03) >>% 1. ]
 
     let weight =
-        skipChar ';' >>. ows >>. skipStringCI "q=" >>. qvalue .>> ows
+        semicolon >>. ows >>. skipStringCI "q=" >>. qvalue .>> ows
 
     (* Accept
 
@@ -253,53 +307,47 @@ module RFC7231 =
 
     let private acceptParams =
         weight .>> ows .>>. acceptExts
+        |>> (fun (weight, extensions) ->
+            { Weight = weight
+              Extensions = extensions })
 
-    let private parameter =
+    let private mediaRangeParameter =
         notFollowedBy (ows >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
 
-    let private parameters =
-        prefix (skipChar ';') parameter 
+    let private mediaRangeParameters =
+        prefix semicolon mediaRangeParameter 
         |>> Map.ofList
 
-    let private mediaRangeSpecOpen = 
-        skipString "*/*"
-        |>> fun _ -> MediaRangeSpec.Open
+    let private openMediaRange = 
+        skipString "*/*" >>. ows >>. mediaRangeParameters
+        |>> fun parameters -> 
+                MediaRange.Open parameters
 
-    let private mediaRangeSpecPartial = 
-        token .>> skipString "/*"
-        |>> fun x -> MediaRangeSpec.Partial (Type x)
+    let private partialMediaRange = 
+        token .>> skipString "/*" .>> ows .>>. mediaRangeParameters
+        |>> fun (x, parameters) -> 
+                MediaRange.Partial (Types.Type x, parameters)
 
-    let private mediaRangeSpecClosed = 
-        token .>> skipChar '/' .>>. token
-        |>> fun (x, y) -> MediaRangeSpec.Closed (Type x, SubType y)
+    let private closedMediaRange = 
+        token .>> skipChar '/' .>>. token .>> ows .>>. mediaRangeParameters
+        |>> fun ((x, y), parameters) -> 
+                MediaRange.Closed (Types.Type x, SubType y, parameters)
 
-    let private mediaRangeSpec = 
+    let private mediaRange = 
         choice [
-            attempt mediaRangeSpecOpen
-            attempt mediaRangeSpecPartial
-            mediaRangeSpecClosed ]
+            attempt openMediaRange
+            attempt partialMediaRange
+            closedMediaRange ]
 
-    let private mediaRange : Parser<MediaRange, unit> = 
-        mediaRangeSpec .>> ows .>>. parameters
+    let private acceptableMedia : Parser<AcceptableMedia, unit> = 
+        mediaRange .>>. opt acceptParams
         |>> (fun (mediaRangeSpec, parameters) ->
                 { MediaRange = mediaRangeSpec
                   Parameters = parameters })
 
     let accept =
-        infix (skipChar ',') (mediaRange .>> ows .>>. opt acceptParams)
-        |>> (List.map (fun (mediaRange, acceptParams) ->
-            let weight = 
-                acceptParams 
-                |> Option.map fst
-
-            let parameters = 
-                acceptParams 
-                |> Option.map snd
-                |> Option.getOrElse Map.empty
-
-            { MediaRange = mediaRange
-              Weight = weight
-              Parameters = parameters }) >> Accept)
+        infix comma acceptableMedia
+        |>> Accept
 
     (* Accept-Charset
 
@@ -308,11 +356,11 @@ module RFC7231 =
 
     let private charsetSpecAny =
         skipChar '*' 
-        >>%  CharsetSpec.Any
+        >>% CharsetSpec.Any
 
     let private charsetSpecCharset =
         token
-        |>> fun s -> CharsetSpec.Charset (Charset.Charset s)
+        |>> fun s -> CharsetSpec.Charset (Charset s)
 
     let private charsetSpec = 
         choice [
@@ -340,7 +388,7 @@ module RFC7231 =
 
     let private encodingSpecEncoding =
         token
-        |>> fun s -> EncodingSpec.Encoding (Encoding.Encoding s)
+        |>> fun s -> EncodingSpec.Encoding (Encoding s)
 
     let private encoding =
         choice [
@@ -349,7 +397,7 @@ module RFC7231 =
             encodingSpecEncoding ]
 
     let acceptEncoding =
-        infix (skipChar ',') (encoding .>> ows .>>. opt weight)
+        infix comma (encoding .>> ows .>>. opt weight)
         |>> (List.map (fun (encoding, weight) ->
             { Encoding = encoding
               Weight = weight }) >> AcceptEncoding)
@@ -372,14 +420,24 @@ module RFC7231 =
             | range, _ -> CultureInfo (range)
 
     let acceptLanguage =
-        infix (skipChar ',') (languageRange .>> ows .>>. opt weight)
+        infix comma (languageRange .>> ows .>>. opt weight)
         |>> (List.map (fun (languageRange, weight) ->
             { Language = languageRange
               Weight = weight }) >> AcceptLanguage)
 
+    (* Allow
+
+       Taken from RFC 7231, Section 3.1.2.2. Content-Encoding
+       [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+
+    let allow =
+        infix comma meth
+        |>> Allow
+
 
 module RFC7232 =
 
+    open Generic
     open RFC5234
     open RFC7230
 
@@ -398,8 +456,8 @@ module RFC7232 =
 
     let ifMatch =
         choice [
-            skipChar '*' |>> fun _ -> IfMatch.Any
-            infix (skipChar ',') eTag |>> fun x ->  IfMatch.EntityTags x ]
+            skipChar '*' >>% IfMatch.Any
+            infix comma eTag |>> IfMatch.EntityTags ]
 
     (* If-None-Match
 
@@ -409,4 +467,16 @@ module RFC7232 =
     let ifNoneMatch =
         choice [
             skipChar '*' >>% IfNoneMatch.Any
-            infix (skipChar ',') eTag |>> fun x -> IfNoneMatch.EntityTags x ]
+            infix comma eTag |>> IfNoneMatch.EntityTags ]
+
+
+module RFC7234 =
+
+    (* Age
+
+       Taken from RFC 7234, Section 5.1, Age
+       [http://tools.ietf.org/html/rfc7234#section-5.1] *)
+
+    let age : Parser<Age, unit> =
+        puint32
+        |>> (float >> TimeSpan.FromSeconds >> Age)

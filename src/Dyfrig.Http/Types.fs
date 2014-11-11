@@ -1,6 +1,7 @@
 ﻿[<AutoOpen>]
 module Dyfrig.Http.Types
 
+open System
 open System.Globalization
 
 (*  RFC 7230
@@ -34,6 +35,9 @@ type Method =
 type HttpVersion =
     | HTTP of float 
     | Custom of string
+
+type ContentLength =
+    | ContentLength of int
 
 /// Type representing the Transfer-Encoding header for an HTTP request.
 /// See [http://tools.ietf.org/html/rfc7230#section-3.3.1].
@@ -86,10 +90,24 @@ type Upgrade =
     Types implemented to mirror the specification of HTTP semantics as defined
     in RFC 7231. See [http://tools.ietf.org/html/rfc7231]. *)
 
+type Parameters =
+    Map<string, string>
+
+type MediaType =
+    | MediaType of Type * SubType * Parameters
+
+and Type =
+    | Type of string
+
+and SubType =
+    | SubType of string
+
 (* Scheme
     
    Types representing the scheme of an HTTP request.
    See [http://tools.ietf.org/html/rfc7231] for details. *)
+
+// TODO: Should this be here now?
 
 type Scheme =
     | HTTP 
@@ -98,27 +116,7 @@ type Scheme =
 
 (* Media Types/Ranges *)
 
-type Type =
-    | Type of string
-
-and SubType =
-    | SubType of string
-
-type MediaRange =
-    { MediaRange: MediaRangeSpec
-      Parameters: Map<string, string> }
-
-and MediaRangeSpec =
-    | Closed of Type * SubType
-    | Partial of Type
-    | Open
-
-type MediaType =
-    { MediaType: MediaTypeSpec
-      Parameters: Map<string, string> }
-
-and MediaTypeSpec =
-    | MediaType of Type * SubType
+// TODO: Move these in to their proper places with types etc. not with ranges...
 
 (* Charsets *)
 
@@ -139,6 +137,22 @@ type EncodingSpec =
 and Encoding =
     | Encoding of string
 
+(* Content-Type
+
+   Taken from RFC 7231, Section 3.1.1.5 Content-Type
+   [http://tools.ietf.org/html/rfc7231#section-3.1.1.5] *)
+
+type ContentType =
+    | ContentType of MediaType
+
+(* Content-Encoding
+
+   Taken from RFC 7231, Section 3.1.2.2. Content-Encoding
+   [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+
+type ContentEncoding =
+    | ContentEncoding of Encoding list
+
 (* Accept
 
    Taken from RFC 7231, Section 5.3.2. Accept
@@ -146,12 +160,23 @@ and Encoding =
 
 /// Accept Header
 type Accept =
-    | Accept of AcceptValue list
+    | Accept of AcceptableMedia list
 
-and AcceptValue =
+and AcceptableMedia =
     { MediaRange: MediaRange
-      Weight: float option
-      Parameters: Map<string, string option> }
+      Parameters: AcceptParameters option }
+
+and MediaRange =
+    | Closed of Type * SubType * Parameters
+    | Partial of Type * Parameters
+    | Open of Parameters
+
+and AcceptParameters =
+    { Weight: float
+      Extensions: AcceptExtensions }
+
+and AcceptExtensions =
+    Map<string, string option>
 
 (* Accept-Charset
 
@@ -192,6 +217,14 @@ and AcceptableLanguage =
     { Language: CultureInfo
       Weight: float option }
 
+(* Allow
+
+   Taken from RFC 7231, Section 3.1.2.2. Content-Encoding
+   [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+
+type Allow =
+    | Allow of Method list
+
 (* RFC 7232 *)
 
 (* Entity Tags *)
@@ -219,6 +252,11 @@ type IfMatch =
 type IfNoneMatch =
     | EntityTags of EntityTag list
     | Any
+
+(* RFC 7234 *)
+
+type Age =
+    | Age of TimeSpan
 
 (* RFC 7235 *)
 

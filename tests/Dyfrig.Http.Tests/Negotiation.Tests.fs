@@ -8,57 +8,46 @@ open Dyfrig.Http
 [<Test>]
 let ``negotiateAccept`` =
     let available =
-        [ { MediaType = MediaType (Type "application", SubType "json")
-            Parameters = Map.empty }
-          { MediaType = MediaType (Type "text", SubType "html")
-            Parameters = Map.empty } ]
+        [ MediaTypes.JSON
+          MediaTypes.XML ]
 
     let requested1 =
-        [ { MediaRange = 
-              { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
-                Parameters = Map.empty }
-            Weight = Some 0.8
-            Parameters = Map.empty }
-          { MediaRange = 
-              { MediaRange = MediaRangeSpec.Partial (Type "text")
-                Parameters = Map.empty }
-            Weight = Some 0.5
-            Parameters = Map.empty } ] |> Accept
+        [ { MediaRange = MediaRange.Closed (Type "application", SubType "json", Map.empty)
+            Parameters =
+                Some { Weight = 0.8
+                       Extensions = Map.empty } }
+          { MediaRange = MediaRange.Partial (Type "application", Map.empty)
+            Parameters = 
+                Some { Weight = 0.5
+                       Extensions = Map.empty } } ] |> Accept
 
     let requested2 =
-        [ { MediaRange = 
-              { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
-                Parameters = Map.empty }
-            Weight = Some 0.8
-            Parameters = Map.empty }
-          { MediaRange = 
-              { MediaRange = MediaRangeSpec.Partial (Type "text")
-                Parameters = Map.empty }
-            Weight = Some 0.9
-            Parameters = Map.empty } ] |> Accept
+        [ { MediaRange = MediaRange.Closed (Type "application", SubType "json", Map.empty)
+            Parameters =
+                Some { Weight = 0.8
+                       Extensions = Map.empty } }
+          { MediaRange = MediaRange.Partial (Type "application", Map.empty)
+            Parameters = 
+                Some { Weight = 0.9
+                       Extensions = Map.empty } } ] |> Accept
 
     let requested3 =
-        [ { MediaRange = 
-              { MediaRange = MediaRangeSpec.Open
-                Parameters = Map.empty }
-            Weight = Some 0.
-            Parameters = Map.empty } ] |> Accept
+        [ { MediaRange = MediaRange.Open Map.empty
+            Parameters =
+                Some { Weight = 0.0
+                       Extensions = Map.empty } } ] |> Accept
 
-    let negotiated1 = negotiateAccept available requested1
-    let negotiated2 = negotiateAccept available requested2
-    let negotiated3 = negotiateAccept available requested3
+    let negotiated1 = Accept.negotiate requested1 available
+    let negotiated2 = Accept.negotiate requested2 available
+    let negotiated3 = Accept.negotiate requested3 available
         
     negotiated1 =? 
-        [ { MediaType = MediaType (Type "application", SubType "json")
-            Parameters = Map.empty }
-          { MediaType = MediaType (Type "text", SubType "html")
-            Parameters = Map.empty } ]
+        [ MediaTypes.JSON
+          MediaTypes.XML ]
 
     negotiated2 =?
-        [ { MediaType = MediaType (Type "text", SubType "html")
-            Parameters = Map.empty }
-          { MediaType = MediaType (Type "application", SubType "json")
-            Parameters = Map.empty } ]
+        [ MediaTypes.XML
+          MediaTypes.JSON ]
 
     negotiated3 =? []
 
@@ -80,8 +69,8 @@ let ``negotiateAcceptCharset`` () =
           { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
             Weight = Some 0.9 } ] |> AcceptCharset
 
-    let negotiated1 = negotiateAcceptCharset available requested1
-    let negotiated2 = negotiateAcceptCharset available requested2
+    let negotiated1 = AcceptCharset.negotiate requested1 available
+    let negotiated2 = AcceptCharset.negotiate requested2 available
 
     negotiated1 =? 
         [ Charset "iso-8859-1"  
@@ -104,8 +93,8 @@ let ``negotiateAcceptEncoding`` () =
         [ { Encoding = EncodingSpec.Encoding (Encoding "compress")
             Weight = Some 0.7 } ] |> AcceptEncoding
 
-    let negotiated1 = negotiateAcceptEncoding available requested1
-    let negotiated2 = negotiateAcceptEncoding available requested2
+    let negotiated1 = AcceptEncoding.negotiate requested1 available
+    let negotiated2 = AcceptEncoding.negotiate requested2 available
 
     negotiated1 =? [ Encoding "gzip" ]
     negotiated2 =? []

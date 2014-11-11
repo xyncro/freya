@@ -71,6 +71,9 @@ module RFC7230 =
         function | HttpVersion.HTTP x -> appendf1 "HTTP/{0:G4}" x 
                  | HttpVersion.Custom x -> append x
 
+    let contentLength =
+        function | ContentLength x -> append (string x)
+
     (* Section 6 *)
 
     let private connectionOption =
@@ -82,14 +85,25 @@ module RFC7230 =
 
 module RFC7231 =
 
-    (* Section 5 *)
+    (* Section 3 *)
 
     let private pair =
         (<||) (appendf2 "{0}={1}")
 
     let private parameters =
         function | (x: Map<string, string>) when Map.isEmpty x -> id
-                 | x -> join pair semicolon (Map.toList x |> List.rev)
+                 | (x) -> append ";" >> join pair semicolon (Map.toList x |> List.rev)
+
+    let mediaType =
+        function | MediaType (Type x, SubType y, p) -> appendf2 "{0}/{1}" x y >> parameters p
+
+    let private encoding =
+        function | Encoding x -> append x
+
+    let contentEncoding (ContentEncoding values) =
+        join encoding comma values
+
+    (* Section 5 *)
 
     let private weight =
         function | Some (x: float) -> appendf1 ";q={0:G4}" x
@@ -97,58 +111,63 @@ module RFC7231 =
 
     let query =
         function | (x: Map<string, string>) when Map.isEmpty x -> id
-                 | x -> join pair ampersand (Map.toList x |> List.rev)
+                 | (x) -> join pair ampersand (Map.toList x |> List.rev)
 
-    let private mediaRangeSpec =
-        function | MediaRangeSpec.Closed (Type x, SubType y) -> appendf2 "{0}/{1}" x y
-                 | MediaRangeSpec.Partial (Type x) -> appendf1 "{0}/*" x
-                 | MediaRangeSpec.Open -> append "*/*"
+    let private mediaRange =
+        function | MediaRange.Closed (Type x, SubType y, p) -> appendf2 "{0}/{1}" x y >> parameters p
+                 | MediaRange.Partial (Type x, p) -> appendf1 "{0}/*" x >> parameters p
+                 | MediaRange.Open p -> append "*/*" >> parameters p
 
-    let private mediaRange (value: MediaRange) =
-        mediaRangeSpec value.MediaRange >> parameters value.Parameters
+    // TODO: Proper extensions...
 
-//    let private mediaTypeSpec (value: MediaTypeSpec) (builder: StringBuilder) =
-//        match value with
-//        | MediaType (Type x, SubType y) -> builder.AppendFormat ("{0}/{1}", x, y)
-//
-//    let private mediaType (value: MediaType) =
-//        mediaTypeSpec value.MediaType >> parameters value.Parameters
+    let private acceptExtensions =
+        function | (x: Map<string, string option>) when Map.isEmpty x -> id
+                 | _ -> id
 
-    let private acceptValue (value: AcceptValue) =
-        mediaRange value.MediaRange >> weight value.Weight
+    let private acceptParameters =
+        function | Some ({ Weight = w; Extensions = e }) -> weight (Some w) >> acceptExtensions e
+                 | _ -> id
+
+    let private acceptableMedia (value: AcceptableMedia) =
+        mediaRange value.MediaRange >> acceptParameters value.Parameters
 
     let accept (Accept values) =
-        join acceptValue comma values
+        join acceptableMedia comma values
 
     let private charsetSpec =
         function | CharsetSpec.Charset (Charset x) -> append x
                  | CharsetSpec.Any -> append "*"
 
-    let private acceptCharsetValue (value: AcceptableCharset) =
+    let private acceptableCharset (value: AcceptableCharset) =
         charsetSpec value.Charset >> weight value.Weight
 
     let acceptCharset (AcceptCharset values) =
-        join acceptCharsetValue comma values
+        join acceptableCharset comma values
 
     let private encodingSpec =
         function | EncodingSpec.Encoding (Encoding.Encoding x) -> append x
                  | EncodingSpec.Identity -> append "identity"
                  | EncodingSpec.Any -> append "*" 
 
-    let private acceptEncodingValue (value: AcceptableEncoding) =
+    let private acceptableEncoding (value: AcceptableEncoding) =
         encodingSpec value.Encoding >> weight value.Weight
 
     let acceptEncoding (AcceptEncoding values) =
-        join acceptEncodingValue comma values
+        join acceptableEncoding comma values
 
     let private cultureInfo (value: CultureInfo) =
         append value.Name
 
-    let private acceptLanguageValue (value: AcceptableLanguage) =
+    let private acceptableLanguage (value: AcceptableLanguage) =
         cultureInfo value.Language >> weight value.Weight
 
     let acceptLanguage (AcceptLanguage values) =
-        join acceptLanguageValue comma values
+        join acceptableLanguage comma values
+
+    (* Section 7 *)
+
+    let allow (Allow values) =
+        join RFC7230.meth comma values
 
 
 module RFC7232 =
@@ -168,3 +187,11 @@ module RFC7232 =
     let ifNoneMatch =
         function | IfNoneMatch.EntityTags x -> join eTag comma x
                  | IfNoneMatch.Any -> append "*"
+
+
+module RFC7234 =
+
+    (* Section 5 *)
+
+    let age =
+        function | Age x -> append (string x.Seconds)

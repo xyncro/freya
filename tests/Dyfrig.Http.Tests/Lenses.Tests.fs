@@ -247,21 +247,18 @@ let ``Request.Headers.ifUnmodifiedSince`` () =
 [<Test>]
 let ``Request.Headers.accept`` () =
     let acceptTyped =
-        [ { MediaRange = 
-              { MediaRange = MediaRangeSpec.Closed (Type "application", SubType "json")
-                Parameters = Map.empty }
-            Weight = Some 0.8
-            Parameters = Map.empty }
-          { MediaRange = 
-              { MediaRange = MediaRangeSpec.Partial (Type "text")
-                Parameters = Map.empty }
-            Weight = Some 0.7
-            Parameters = Map.empty }
-          { MediaRange = 
-              { MediaRange = MediaRangeSpec.Open
-                Parameters = Map.empty }
-            Weight = Some 0.5
-            Parameters = Map.empty } ] |> Accept
+        [ { MediaRange = MediaRange.Closed (Type "application", SubType "json", Map.empty)
+            Parameters =
+                Some { Weight = 0.8
+                       Extensions = Map.empty } }
+          { MediaRange = MediaRange.Partial (Type "text", Map.empty)
+            Parameters =
+                Some { Weight = 0.7
+                       Extensions = Map.empty } }
+          { MediaRange = MediaRange.Open Map.empty
+            Parameters =
+                Some { Weight = 0.5
+                       Extensions = Map.empty } } ] |> Accept
 
     let acceptString =
         "application/json;q=0.8,text/*;q=0.7,*/*;q=0.5"

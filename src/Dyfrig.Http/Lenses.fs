@@ -49,7 +49,7 @@ module Request =
     let httpVersion =
         itemLens<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
 
-    let scheme = 
+    let scheme =
         itemLens<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
 
     let query =
@@ -92,10 +92,8 @@ module Request =
         let connection =
             header "Connection" <??> Isomorphisms.RFC7230.connectionPIso
 
-        // TODO: typed ContentEncoding
-
         let contentEncoding =
-            header "Content-Encoding"
+            header "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
 
         // TODO: typed ContentLanguage
 
@@ -103,7 +101,7 @@ module Request =
             header "Content-Language"
 
         let contentLength =
-            header"Content-Length" <??> Isomorphisms.Generic.intPIso
+            header"Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
 
         // TODO: typed ContentLocation
 
@@ -115,10 +113,8 @@ module Request =
         let contentMD5 =
             header "Content-MD5"
 
-        // TODO: typed ContentType
-
         let contentType =
-            header "Content-Type"
+            header "Content-Type" <??> Isomorphisms.RFC7231.mediaTypePIso
 
         let date =
             header "Date" <??> Isomorphisms.Generic.dateTimePIso
@@ -243,27 +239,21 @@ module Response =
             header "Accept-Ranges"
 
         let age =
-            header "Age" <??> Isomorphisms.Generic.intPIso <?-> Isomorphisms.Generic.timeSpanIso
-
-        // TODO: typed Allow
+            header "Age" <??> Isomorphisms.RFC7234.agePIso
 
         let allow =
-            header "Allow"
+            header "Allow" <??> Isomorphisms.RFC7231.allowPIso
 
         // TODO: typed CacheControl
 
         let cacheControl =
             header "Cache-Control"
 
-        // TODO: typed Connection
-
         let connection =
-            header "Connection"
-
-        // TODO: typed ContentEncoding
+            header "Connection" <??> Isomorphisms.RFC7230.connectionPIso
 
         let contentEncoding =
-            header "Content-Encoding"
+            header "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
 
         // TODO: typed ContentLanguage
 
@@ -271,7 +261,7 @@ module Response =
             header "Content-Language"
 
         let contentLength =
-            header "Content-Length" <??> Isomorphisms.Generic.intPIso
+            header "Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
 
         // TODO: typed ContentLocation
 
@@ -288,10 +278,8 @@ module Response =
         let contentRange =
             header "Content-Range"
 
-        // TODO: typed ContentType
-
         let contentType =
-            header "Content-Type"
+            header "Content-Type" <??> Isomorphisms.RFC7231.mediaTypePIso
 
         let date =
             header "Date" <??> Isomorphisms.Generic.dateTimePIso

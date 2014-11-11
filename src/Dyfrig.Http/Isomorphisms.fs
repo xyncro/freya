@@ -78,6 +78,12 @@ module RFC7230 =
     let httpVersionIso =
         iso Parsers.RFC7230.httpVersion Formatters.RFC7230.httpVersion
 
+    let contentLengthPIso =
+        isoP Parsers.RFC7230.contentLength Formatters.RFC7230.contentLength
+
+//    let mediaTypePIso =
+//        isoP Parsers.RFC7230.m
+
     (* Section 6 *)
 
     let connectionPIso =
@@ -85,6 +91,14 @@ module RFC7230 =
 
 
 module RFC7231 =
+
+    (* Section 3 *)
+
+    let contentEncodingPIso =
+        isoP Parsers.RFC7231.contentEncoding Formatters.RFC7231.contentEncoding
+
+    let mediaTypePIso =
+        isoP Parsers.RFC7231.mediaType Formatters.RFC7231.mediaType
 
     (* Section 5 *)
 
@@ -99,6 +113,11 @@ module RFC7231 =
 
     let acceptLanguagePIso =
         isoP Parsers.RFC7231.acceptLanguage Formatters.RFC7231.acceptLanguage
+
+    (* Section 7 *)
+
+    let allowPIso =
+        isoP Parsers.RFC7231.allow Formatters.RFC7231.allow
 
 
 module RFC7232 =
@@ -115,3 +134,11 @@ module RFC7232 =
 
     let ifNoneMatchPIso =
         isoP Parsers.RFC7232.ifNoneMatch Formatters.RFC7232.ifNoneMatch
+
+
+module RFC7234 =
+
+    (* Section 5 *)
+
+    let agePIso =
+        isoP Parsers.RFC7234.age Formatters.RFC7234.age
