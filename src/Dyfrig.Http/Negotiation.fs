@@ -32,28 +32,16 @@ let private (==) s1 s2 =
 
 module Accept =
 
-    let private (|Closed|_|) =
-        function | { MediaRange = MediaRange.Closed (Type x, SubType y, _) } -> Some (x, y)
-                 | _ -> None
-
-    let private (|Partial|_|) =
-        function | { MediaRange = MediaRange.Partial (Type x, _) } -> Some x
-                 | _ -> None
-
-    let private (|Open|_|) =
-        function | { MediaRange = MediaRange.Open _ } -> Some ()
-                 | _ -> None
-
     let private predicate (MediaType (Type t, SubType s, _)) =
-        function | Closed (t', s') when t == t' && s == s' -> true
-                 | Partial t' when t == t' -> true
-                 | Open _ -> true
+        function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> true
+                 | { MediaRange = Partial (Type t', _) } when t == t' -> true
+                 | { MediaRange = Open _ } -> true
                  | _ -> false
 
     let private score (MediaType (Type t, SubType s, _)) =
-        function | Closed (t', s') when t == t' && s == s' -> 3
-                 | Partial t' when t == t' -> 2
-                 | Open _ -> 1
+        function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> 3
+                 | { MediaRange = Partial (Type t', _) } when t == t' -> 2
+                 | { MediaRange = Open _ } -> 1
                  | _ -> 0
 
     let private weigh =
@@ -72,22 +60,14 @@ module Accept =
 
 module AcceptCharset =
 
-    let private (|CharsetC|_|) =
-        function | { Charset = CharsetSpec.Charset (Charset s) } -> Some s
-                 | _ -> None
-
-    let private (|AnyC|_|) =
-        function | { Charset = CharsetSpec.Any } -> Some ()
-                 | _ -> None
-
     let private predicate (Charset s) =
-        function | CharsetC s' when s == s' -> true
-                 | AnyC _ -> true
+        function | { Charset = CharsetSpec.Charset (Charset s') } when s == s' -> true
+                 | { Charset = CharsetSpec.Any } -> true
                  | _ -> false
 
     let private score (Charset s) =
-        function | CharsetC s' when s == s' -> 2
-                 | AnyC _ -> 1
+        function | { Charset = CharsetSpec.Charset (Charset s') } when s == s' -> 2
+                 | { Charset = CharsetSpec.Any } -> 1
                  | _ -> 0
 
     let private weigh =
@@ -106,28 +86,16 @@ module AcceptCharset =
 
 module AcceptEncoding =
 
-    let private (|NamedE|_|) =
-        function | { Encoding = EncodingSpec.Encoding (Encoding e) } -> Some e
-                 | _ -> None
-
-    let private (|IdentityE|_|) =
-        function | { Encoding = EncodingSpec.Identity } -> Some ()
-                 | _ -> None
-
-    let private (|AnyE|_|) =
-        function | { Encoding = EncodingSpec.Any } -> Some ()
-                 | _ -> None
-
     let private predicate (Encoding e) =
-        function | NamedE e' when e == e' -> true
-                 | IdentityE _ -> true
-                 | AnyE _ -> true
+        function | { Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> true
+                 | { Encoding = EncodingSpec.Identity } -> true
+                 | { Encoding = EncodingSpec.Any } -> true
                  | _ -> false
 
     let private score (Encoding e) =
-        function | NamedE e' when e == e' -> 3
-                 | IdentityE _ -> 2
-                 | AnyE _ -> 1
+        function | { Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> 3
+                 | { Encoding = EncodingSpec.Identity } -> 2
+                 | { Encoding = EncodingSpec.Any } -> 1
                  | _ -> 0
 
     let private weigh =
