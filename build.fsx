@@ -49,11 +49,11 @@ let tags = "F# fsharp web http owin"
 let solutionFile = "Dyfrig.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "tests/**/bin/Release/*Tests*exe"
+let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
-let gitHome = "git@github.com:panesofglass"
+let gitHome = "https://github.com/panesofglass"
 // The name of the project on GitHub
 let gitName = "dyfrig"
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
@@ -119,13 +119,12 @@ Target "CopyFiles" (fun _ ->
 // Run the unit tests using test runner
 
 Target "RunTests" (fun _ ->
-    let errorCode =
-        [ for program in !!testAssemblies do
-            let p, a = if not isMono then program, null else "mono", program
-            let result = asyncShellExec { defaultParams with Program = p; CommandLine = a } |> Async.RunSynchronously
-            yield result ]
-        |> List.sum
-    if errorCode <> 0 then failwith "Error in tests"
+    !! testAssemblies
+    |> NUnit (fun p ->
+        { p with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" })
 )
 
 #if MONO
