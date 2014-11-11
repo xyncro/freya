@@ -12,13 +12,13 @@ open System.Globalization
 type private Negotiation<'a,'b> =
     { Predicate: 'a -> 'b -> bool
       Score: 'a -> 'b -> int
-      Weigh: ('a * 'b) -> float }
+      Weigh: 'b -> float }
 
 let private negotiate (n: Negotiation<'a,'b>) r =
        List.map (fun a -> a, (List.filter (n.Predicate a) >> List.tryMaxBy (n.Score a)) r)
     >> List.choose (function | (a, Some b) -> Some (a, b) | _ -> None)
-    >> List.filter (fun x -> n.Weigh x <> 0.)
-    >> List.sortBy (fun x -> n.Weigh x)
+    >> List.filter (fun (_, b) -> n.Weigh b <> 0.)
+    >> List.sortBy (fun (_, b) -> n.Weigh b)
     >> List.rev
     >> List.map fst
 
@@ -45,7 +45,7 @@ module Accept =
                  | _ -> 0
 
     let private weigh =
-        function | (_, { AcceptableMedia.Parameters = Some { Weight = weight } }) -> weight 
+        function | { AcceptableMedia.Parameters = Some { Weight = weight } } -> weight 
                  | _ -> 1.
 
     let negotiate (Accept requested) =
@@ -71,7 +71,7 @@ module AcceptCharset =
                  | _ -> 0
 
     let private weigh =
-        function | (_, { AcceptableCharset.Weight = Some weight}) -> weight 
+        function | { AcceptableCharset.Weight = Some weight } -> weight 
                  | _ -> 1.
 
     let negotiate (AcceptCharset requested) =
@@ -99,7 +99,7 @@ module AcceptEncoding =
                  | _ -> 0
 
     let private weigh =
-        function | (_, { AcceptableEncoding.Weight = Some weight}) -> weight 
+        function | { AcceptableEncoding.Weight = Some weight } -> weight 
                  | _ -> 1.
 
     let negotiate (AcceptEncoding requested) =
@@ -124,7 +124,7 @@ module AcceptLanguage =
                  | _ -> 0
 
     let private weigh =
-        function | (_, { AcceptableLanguage.Weight = Some weight}) -> weight 
+        function | { AcceptableLanguage.Weight = Some weight } -> weight 
                  | _ -> 1.
 
     let negotiate (AcceptLanguage requested) =
