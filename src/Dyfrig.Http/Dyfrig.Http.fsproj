@@ -60,6 +60,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Parsers.fs" />
     <Compile Include="Formatters.fs" />
+    <Compile Include="Isomorphisms.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Negotiation.fs" />
     <Compile Include="Presets.fs" />

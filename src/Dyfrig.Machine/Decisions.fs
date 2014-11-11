@@ -19,27 +19,27 @@ let private decision d =
 let private publicDecisionDefinitions =
     [ Decisions.Allowed,                        true,                           (Decisions.ContentTypeValid,                Operations.PreForbidden)
       Decisions.Authorized,                     true,                           (Decisions.Allowed,                         Operations.PreUnauthorized)
-      Decisions.AllowPostToGone,                false,                          (Actions.Post,                            Operations.PreGone)
-      Decisions.AllowPostToMissing,             true,                           (Actions.Post,                            Operations.PreNotFound)
+      Decisions.AllowPostToGone,                false,                          (Actions.Post,                              Operations.PreGone)
+      Decisions.AllowPostToMissing,             true,                           (Actions.Post,                              Operations.PreNotFound)
       Decisions.AllowPutToMissing,              true,                           (Decisions.Conflicts,                       Operations.PreNotImplemented)
-      Decisions.Conflicts,                      false,                          (Operations.PreConflict,                     Actions.Put)
+      Decisions.Conflicts,                      false,                          (Operations.PreConflict,                    Actions.Put)
       Decisions.ContentTypeKnown,               true,                           (Decisions.EntityLengthValid,               Operations.PreUnsupportedMediaType)
       Decisions.ContentTypeValid,               true,                           (Decisions.ContentTypeKnown,                Operations.PreNotImplemented)
-      Decisions.Created,                        true,                           (Operations.PreCreated,                      Decisions.RespondWithEntity)
+      Decisions.Created,                        true,                           (Operations.PreCreated,                     Decisions.RespondWithEntity)
       Decisions.Deleted,                        true,                           (Decisions.RespondWithEntity,               Operations.PreAccepted)
       Decisions.EntityLengthValid,              true,                           (Decisions.MethodOptions,                   Operations.PreRequestEntityTooLarge)
       Decisions.Existed,                        false,                          (Decisions.MovedPermanently,                Decisions.MethodPostToMissing)
       Decisions.Exists,                         true,                           (Decisions.IfMatchRequested,                Decisions.IfMatchExistsForMissing)
-      Decisions.Malformed,                      false,                          (Operations.PreMalformed,                    Decisions.Authorized)
-      Decisions.MovedPermanently,               false,                          (Operations.PreMovedPermanently,             Decisions.MovedTemporarily)
-      Decisions.MovedTemporarily,               false,                          (Operations.PreMovedTemporarily,             Decisions.MethodPostToGone)
-      Decisions.MultipleRepresentations,        false,                          (Operations.PreMultipleRepresentations,      Operations.PreOK)
-      Decisions.PostRedirect,                   false,                          (Operations.PreSeeOther,                     Decisions.Created)
+      Decisions.Malformed,                      false,                          (Operations.PreMalformed,                   Decisions.Authorized)
+      Decisions.MovedPermanently,               false,                          (Operations.PreMovedPermanently,            Decisions.MovedTemporarily)
+      Decisions.MovedTemporarily,               false,                          (Operations.PreMovedTemporarily,            Decisions.MethodPostToGone)
+      Decisions.MultipleRepresentations,        false,                          (Operations.PreMultipleRepresentations,     Operations.PreOK)
+      Decisions.PostRedirect,                   false,                          (Operations.PreSeeOther,                    Decisions.Created)
       Decisions.Processable,                    true,                           (Decisions.Exists,                          Operations.PreUnprocessableEntity)
-      Decisions.PutToDifferentUri,              false,                          (Operations.PreMovedPermanently,             Decisions.AllowPutToMissing)
+      Decisions.PutToDifferentUri,              false,                          (Operations.PreMovedPermanently,            Decisions.AllowPutToMissing)
       Decisions.RespondWithEntity,              true,                           (Decisions.MultipleRepresentations,         Operations.PreNoContent)
       Decisions.ServiceAvailable,               true,                           (Decisions.MethodKnown,                     Operations.PreServiceUnavailable)
-      Decisions.UriTooLong,                     false,                          (Operations.PreUriTooLong,                   Decisions.MethodSupported) ]
+      Decisions.UriTooLong,                     false,                          (Operations.PreUriTooLong,                  Decisions.MethodSupported) ]
 
 let private publicDecisions =
     publicDecisionDefinitions
