@@ -210,7 +210,7 @@ let ``Request.Headers.ifNoneMatch`` () =
 
 [<Test>]
 let ``Request.Headers.ifModifiedSince`` () =
-    let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
+    let dateTyped = IfModifiedSince (DateTime.Parse ("1994/10/29 19:43:31"))
     let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
 
     let get =
@@ -228,7 +228,7 @@ let ``Request.Headers.ifModifiedSince`` () =
 
 [<Test>]
 let ``Request.Headers.ifUnmodifiedSince`` () =
-    let dateTyped = DateTime.Parse ("1994/10/29 19:43:31")
+    let dateTyped = IfUnmodifiedSince (DateTime.Parse ("1994/10/29 19:43:31"))
     let dateString = "Sat, 29 Oct 1994 19:43:31 GMT"
 
     let get =
@@ -279,13 +279,13 @@ let ``Request.Headers.accept`` () =
 [<Test>]
 let ``Request.Headers.acceptCharset`` () =
     let acceptCharsetTyped =
-        [ { Charset = CharsetSpec.Charset (Charset "iso-8859-5")
+        [ { Charset = CharsetSpec.Charset (Charsets.Iso88591)
             Weight = None }
-          { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
+          { Charset = CharsetSpec.Charset (Charsets.Unicode)
             Weight = Some 0.8 } ] |> AcceptCharset
 
     let acceptCharsetString =
-        "iso-8859-5,unicode-1-1;q=0.8"
+        "iso-8859-1,unicode-1-1;q=0.8"
 
     let get = 
         getRequestHeaderT
@@ -303,7 +303,7 @@ let ``Request.Headers.acceptCharset`` () =
 [<Test>]
 let ``Request.Headers.acceptEncoding`` () =
     let acceptEncodingTyped =
-        [ { Encoding = EncodingSpec.Encoding (Encoding "gzip")
+        [ { Encoding = EncodingSpec.Encoding (Encodings.GZip)
             Weight = None }
           { Encoding = EncodingSpec.Identity
             Weight = Some 0.5 }
@@ -363,7 +363,7 @@ let ``Request.Headers.host`` () =
 
 [<Test>]
 let ``Request.Headers.maxForwards`` () =
-    let maxForwardsTyped = 5
+    let maxForwardsTyped = MaxForwards 5
     let maxForwardsString = "5"
 
     let get = 

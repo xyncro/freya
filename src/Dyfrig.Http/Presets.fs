@@ -5,6 +5,10 @@ module Dyfrig.Http.Presets
 [<RequireQualifiedAccess>]
 module Charsets =
 
+    /// Convenience definition for "iso-8859-1"
+    let Iso88591 =
+        Charset "iso-8859-1"
+
     /// Convenience definition for "unicode-1-1"
     let Unicode =
         Charset "unicode-1-1"
@@ -12,6 +16,10 @@ module Charsets =
 
 [<RequireQualifiedAccess>]
 module Encodings =
+
+    /// Convenience definition for "deflate"
+    let Compress =
+        Encoding "compress"
 
     /// Convenience definition for "deflate"
     let Deflate =

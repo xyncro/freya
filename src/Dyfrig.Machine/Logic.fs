@@ -24,11 +24,18 @@ let inline private (?>) (x, y) f =
 
 (* Content Negotiation *)
 
+let private negotiate f defaults =
+    function | Some r, Some a -> f r a
+             | Some r, _ -> f r defaults
+             | _, Some a -> a
+             | _ -> defaults
+
+
 [<RequireQualifiedAccess>]
 module Charset =
 
     let private defaults =
-        [ Charset "iso-8859-1" ]
+        [ Charsets.Iso88591 ]
 
     let private request =
         getPLM Request.Headers.acceptCharset
@@ -36,19 +43,11 @@ module Charset =
     let private supported =
         getPLM (definitionPLens >??> configurationPLens Configuration.CharsetsSupported)
 
-    // TODO: Refactor these to take the negotiation function.
-
-    let private negotiation =
-        function | Some requested, Some available -> AcceptCharset.negotiate requested available
-                 | Some requested, _ -> AcceptCharset.negotiate requested defaults
-                 | _, Some available -> available
-                 | _, _ -> defaults
-
     let requested : MachineDecision =
         !? request
 
     let negotiated =
-        (request, supported) ?> negotiation
+        (request, supported) ?> negotiate AcceptCharset.negotiate defaults
 
     let negotiable : MachineDecision =
         !. negotiated
@@ -66,17 +65,11 @@ module Encoding =
     let private supported =
         getPLM (definitionPLens >??> configurationPLens Configuration.EncodingsSupported)
 
-    let private negotiation =
-        function | Some requested, Some available -> AcceptEncoding.negotiate requested available
-                 | Some requested, _ -> AcceptEncoding.negotiate requested defaults
-                 | _, Some available -> available
-                 | _, _ -> defaults
-
     let requested : MachineDecision =
         !? request
 
     let negotiated =
-        (request, supported) ?> negotiation
+        (request, supported) ?> negotiate AcceptEncoding.negotiate defaults
 
     let negotiable : MachineDecision =
         !. negotiated 
@@ -94,17 +87,11 @@ module Language =
     let private supported =
         getPLM (definitionPLens >??> configurationPLens Configuration.LanguagesSupported)
 
-    let private negotiation =
-        function | Some requested, Some available -> AcceptLanguage.negotiate requested available
-                 | Some requested, _ -> AcceptLanguage.negotiate requested defaults
-                 | _, Some available -> available
-                 | _, _ -> defaults
-
     let requested : MachineDecision =
         !? request
 
     let negotiated =
-        (request, supported) ?> negotiation
+        (request, supported) ?> negotiate AcceptLanguage.negotiate defaults
 
     let negotiable : MachineDecision =
         !. negotiated
@@ -122,17 +109,11 @@ module MediaType =
     let private supported =
         getPLM (definitionPLens >??> configurationPLens Configuration.MediaTypesSupported)
 
-    let private negotiation =
-        function | Some requested, Some available -> Accept.negotiate requested available
-                 | Some requested, _ -> Accept.negotiate requested defaults
-                 | _, Some available -> available
-                 | _, _ -> defaults
-
     let requested : MachineDecision =
         !? request
 
     let negotiated =
-        (request, supported) ?> negotiation
+        (request, supported) ?> negotiate Accept.negotiate defaults
 
     let negotiable : MachineDecision =
         !. negotiated
@@ -165,7 +146,7 @@ module IfModifiedSince =
         !? ifModifiedSince
 
     let valid : MachineDecision =
-            Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false
+            Option.map (fun (IfModifiedSince x) -> x < DateTime.UtcNow) >> Option.getOrElse false
         <!> ifModifiedSince
 
     let modified =
@@ -174,7 +155,7 @@ module IfModifiedSince =
             let! ms = ifModifiedSince
 
             match lm, ms with
-            | Some lm, Some ms -> return! ((<) ms) <!> lm
+            | Some lm, Some (IfModifiedSince ms) -> return! ((<) ms) <!> lm
             | _ -> return false }
 
 
@@ -204,7 +185,7 @@ module IfUnmodifiedSince =
         !? ifUnmodifiedSince
 
     let valid : MachineDecision =
-            Option.map ((>) DateTime.UtcNow) >> Option.getOrElse false
+            Option.map (fun (IfUnmodifiedSince x ) -> x < DateTime.UtcNow) >> Option.getOrElse false
         <!> ifUnmodifiedSince
 
     let modified =
@@ -213,7 +194,7 @@ module IfUnmodifiedSince =
             let! us = ifUnmodifiedSince
 
             match lm, us with
-            | Some lm, Some us -> return! ((>) us) <!> lm
+            | Some lm, Some (IfUnmodifiedSince us) -> return! ((>) us) <!> lm
             | _ -> return true }
 
 (* Request *)
@@ -222,20 +203,20 @@ module IfUnmodifiedSince =
 module Method =
     
     let private defaultKnown =
-        Set.ofList 
-            [ DELETE
-              HEAD
-              GET
-              OPTIONS
-              PATCH
-              POST
-              PUT
-              TRACE ]
+        Set.ofList [ 
+            DELETE
+            HEAD
+            GET
+            OPTIONS
+            PATCH
+            POST
+            PUT
+            TRACE ]
 
     let private defaultSupported =
-        Set.ofList
-            [ GET
-              HEAD ]
+        Set.ofList [ 
+            GET
+            HEAD ]
 
     let private meth =
         getLM Request.meth

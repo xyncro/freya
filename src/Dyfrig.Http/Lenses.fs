@@ -114,10 +114,10 @@ module Request =
             header "Content-MD5"
 
         let contentType =
-            header "Content-Type" <??> Isomorphisms.RFC7231.mediaTypePIso
+            header "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
 
         let date =
-            header "Date" <??> Isomorphisms.Generic.dateTimePIso
+            header "Date" <??> Isomorphisms.RFC7231.datePIso
 
         // TODO: typed Expect
 
@@ -138,7 +138,7 @@ module Request =
             header"If-Match" <??> Isomorphisms.RFC7232.ifMatchPIso
 
         let ifModifiedSince =
-            header "If-Modified-Since" <??> Isomorphisms.Generic.dateTimePIso
+            header "If-Modified-Since" <??> Isomorphisms.RFC7232.ifModifiedSincePIso
 
         let ifNoneMatch =
             header "If-None-Match" <??> Isomorphisms.RFC7232.ifNoneMatchPIso
@@ -149,10 +149,10 @@ module Request =
             header "If-Range"
 
         let ifUnmodifiedSince =
-            header "If-Unmodified-Since" <??> Isomorphisms.Generic.dateTimePIso
+            header "If-Unmodified-Since" <??> Isomorphisms.RFC7232.ifUnmodifiedSincePIso
 
         let maxForwards =
-            header "Max-Forwards" <??> Isomorphisms.Generic.intPIso
+            header "Max-Forwards" <??> Isomorphisms.RFC7231.maxForwardsPIso
 
         // TODO: typed Pragma
 
@@ -279,19 +279,19 @@ module Response =
             header "Content-Range"
 
         let contentType =
-            header "Content-Type" <??> Isomorphisms.RFC7231.mediaTypePIso
+            header "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
 
         let date =
-            header "Date" <??> Isomorphisms.Generic.dateTimePIso
+            header "Date" <??> Isomorphisms.RFC7231.datePIso
 
         let eTag =
             header "ETag" <??> Isomorphisms.RFC7232.eTagPIso
 
         let expires =
-            header "Expires" <??> Isomorphisms.Generic.dateTimePIso
+            header "Expires" <??> Isomorphisms.RFC7234.expiresPIso
 
         let lastModified =
-            header "Last-Modified" <??> Isomorphisms.Generic.dateTimePIso
+            header "Last-Modified" <??> Isomorphisms.RFC7232.lastModifiedPIso
 
         // TODO: typed Location
 

@@ -114,10 +114,6 @@ type Scheme =
     | HTTPS 
     | Custom of string
 
-(* Media Types/Ranges *)
-
-// TODO: Move these in to their proper places with types etc. not with ranges...
-
 (* Charsets *)
 
 type CharsetSpec =
@@ -152,6 +148,9 @@ type ContentType =
 
 type ContentEncoding =
     | ContentEncoding of Encoding list
+
+type MaxForwards =
+    | MaxForwards of int
 
 (* Accept
 
@@ -217,15 +216,23 @@ and AcceptableLanguage =
     { Language: CultureInfo
       Weight: float option }
 
+(* Date *)
+
+type Date =
+    | Date of DateTime
+
 (* Allow
 
-   Taken from RFC 7231, Section 3.1.2.2. Content-Encoding
-   [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+   Taken from RFC 7231, Section 7.4.1 Allow
+   [http://tools.ietf.org/html/rfc7231#section-7.4.1] *)
 
 type Allow =
     | Allow of Method list
 
 (* RFC 7232 *)
+
+type LastModified =
+    | LastModified of DateTime
 
 (* Entity Tags *)
 
@@ -253,10 +260,19 @@ type IfNoneMatch =
     | EntityTags of EntityTag list
     | Any
 
+type IfModifiedSince =
+    | IfModifiedSince of DateTime
+
+type IfUnmodifiedSince =
+    | IfUnmodifiedSince of DateTime
+
 (* RFC 7234 *)
 
 type Age =
     | Age of TimeSpan
+
+type Expires =
+    | Expires of DateTime
 
 (* RFC 7235 *)
 

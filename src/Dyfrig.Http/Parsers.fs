@@ -219,9 +219,6 @@ module RFC7231 =
     open RFC5234
     open RFC7230
 
-    // TODO: Parameters parser!
-    // TODO: MediaType parser!
-
     (* Media-Type
 
        Includes the common definition of parameter as defined within this
@@ -241,12 +238,14 @@ module RFC7231 =
         token .>> skipChar '/' .>>. token .>>. parameters
         |>> (fun ((x, y), p) -> MediaType (Types.Type x, SubType y, p))
 
-
     (* Content-Type
 
        Taken from RFC 7231, Section 3.1.1.5 Content-Type
        [http://tools.ietf.org/html/rfc7231#section-3.1.1.5] *)
 
+    let contentType =
+        mediaType
+        |>> ContentType
 
     (* Content-Encoding
 
@@ -256,6 +255,12 @@ module RFC7231 =
     let contentEncoding =
         infix1 comma token
         |>> (List.map Encoding >> ContentEncoding)
+
+    (* Max-Forwards *)
+
+    let maxForwards : Parser<MaxForwards, unit> =
+        puint32
+        |>> (int >> MaxForwards)
 
     // TODO: Proper Query String Parser
     let parseQuery =
@@ -425,10 +430,32 @@ module RFC7231 =
             { Language = languageRange
               Weight = weight }) >> AcceptLanguage)
 
+    (* HTTP-Date
+
+       Taken from RFC 7231, Section 7.1.1 HTTP-Date *)
+
+    let private dateTimeFormat =
+        CultureInfo.InvariantCulture.DateTimeFormat
+
+    let private dateTimeAdjustment =
+        DateTimeStyles.AdjustToUniversal
+
+    let httpDate : Parser<DateTime, unit> =
+        restOfLine false >>= (fun s ->
+            match DateTime.TryParse (s, dateTimeFormat, dateTimeAdjustment) with
+            | true, d -> preturn d
+            | _ -> pzero)
+
+    (* Date *)
+
+    let date =
+        httpDate
+        |>> Date
+
     (* Allow
 
-       Taken from RFC 7231, Section 3.1.2.2. Content-Encoding
-       [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
+       Taken from RFC 7231, Section 7.4.1 Allow
+       [http://tools.ietf.org/html/rfc7231#section-7.4.1] *)
 
     let allow =
         infix comma meth
@@ -440,6 +467,11 @@ module RFC7232 =
     open Generic
     open RFC5234
     open RFC7230
+    open RFC7231
+
+    let lastModified =
+        httpDate
+        |>> LastModified
 
     (* TODO: This is a naive formulation of an entity tag and does not
        properly support the grammar, particularly weak references, which
@@ -469,8 +501,18 @@ module RFC7232 =
             skipChar '*' >>% IfNoneMatch.Any
             infix comma eTag |>> IfNoneMatch.EntityTags ]
 
+    let ifModifiedSince =
+        httpDate
+        |>> IfModifiedSince
+
+    let ifUnmodifiedSince =
+        httpDate
+        |>> IfUnmodifiedSince
+
 
 module RFC7234 =
+
+    open RFC7231
 
     (* Age
 
@@ -480,3 +522,7 @@ module RFC7234 =
     let age : Parser<Age, unit> =
         puint32
         |>> (float >> TimeSpan.FromSeconds >> Age)
+
+    let expires =
+        httpDate
+        |>> Expires

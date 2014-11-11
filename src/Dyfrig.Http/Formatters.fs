@@ -79,8 +79,8 @@ module RFC7230 =
     let private connectionOption =
         function | ConnectionOption x -> append x
 
-    let connection (Connection options) =
-        join connectionOption comma options
+    let connection =
+        function | Connection x -> join connectionOption comma x
 
 
 module RFC7231 =
@@ -100,8 +100,14 @@ module RFC7231 =
     let private encoding =
         function | Encoding x -> append x
 
-    let contentEncoding (ContentEncoding values) =
-        join encoding comma values
+    let contentType =
+        function | ContentType x -> mediaType x
+
+    let contentEncoding =
+        function | ContentEncoding x -> join encoding comma x
+
+    let maxForwards =
+        function | MaxForwards value -> append (string value)
 
     (* Section 5 *)
 
@@ -131,8 +137,8 @@ module RFC7231 =
     let private acceptableMedia (value: AcceptableMedia) =
         mediaRange value.MediaRange >> acceptParameters value.Parameters
 
-    let accept (Accept values) =
-        join acceptableMedia comma values
+    let accept =
+        function | Accept x -> join acceptableMedia comma x
 
     let private charsetSpec =
         function | CharsetSpec.Charset (Charset x) -> append x
@@ -141,38 +147,44 @@ module RFC7231 =
     let private acceptableCharset (value: AcceptableCharset) =
         charsetSpec value.Charset >> weight value.Weight
 
-    let acceptCharset (AcceptCharset values) =
-        join acceptableCharset comma values
+    let acceptCharset =
+        function | AcceptCharset x -> join acceptableCharset comma x
 
     let private encodingSpec =
         function | EncodingSpec.Encoding (Encoding.Encoding x) -> append x
                  | EncodingSpec.Identity -> append "identity"
                  | EncodingSpec.Any -> append "*" 
 
-    let private acceptableEncoding (value: AcceptableEncoding) =
-        encodingSpec value.Encoding >> weight value.Weight
+    let private acceptableEncoding x =
+        encodingSpec x.Encoding >> weight x.Weight
 
-    let acceptEncoding (AcceptEncoding values) =
-        join acceptableEncoding comma values
+    let acceptEncoding =
+        function | AcceptEncoding x -> join acceptableEncoding comma x
 
-    let private cultureInfo (value: CultureInfo) =
-        append value.Name
+    let private cultureInfo (x: CultureInfo) =
+        append x.Name
 
-    let private acceptableLanguage (value: AcceptableLanguage) =
-        cultureInfo value.Language >> weight value.Weight
+    let private acceptableLanguage x =
+        cultureInfo x.Language >> weight x.Weight
 
-    let acceptLanguage (AcceptLanguage values) =
-        join acceptableLanguage comma values
+    let acceptLanguage =
+        function | AcceptLanguage x -> join acceptableLanguage comma x
 
     (* Section 7 *)
 
-    let allow (Allow values) =
-        join RFC7230.meth comma values
+    let date =
+        function | Date x -> append (x.ToString "r")
+
+    let allow =
+        function | Allow x -> join RFC7230.meth comma x
 
 
 module RFC7232 =
 
     (* Section 2 *)
+
+    let lastModified =
+        function | LastModified x -> append (x.ToString "r")
 
     let eTag =
         function | Strong x -> appendf1 "\"{0}\"" x
@@ -188,6 +200,12 @@ module RFC7232 =
         function | IfNoneMatch.EntityTags x -> join eTag comma x
                  | IfNoneMatch.Any -> append "*"
 
+    let ifModifiedSince =
+        function | IfModifiedSince x -> append (x.ToString "r")
+
+    let ifUnmodifiedSince =
+        function | IfUnmodifiedSince x -> append (x.ToString "r")
+
 
 module RFC7234 =
 
@@ -195,3 +213,6 @@ module RFC7234 =
 
     let age =
         function | Age x -> append (string x.Seconds)
+
+    let expires =
+        function | Expires x -> append (x.ToString "r")

@@ -12,11 +12,11 @@ open Dyfrig.Http
    Handler nodes, to make sure that correct header values are set (though the
    handler could override them). Operation nodes cannot be user overridden. *)
 
-let operation statusCode reasonPhrase =
+let private operation statusCode reasonPhrase =
        setPLM Response.statusCode statusCode
     *> setPLM Response.reasonPhrase reasonPhrase
 
-let options =
+let private options =
        operation 200 "Options"
     *> setPLM (Response.headersKey "Access-Control-Allow-Origin") [| "*" |]
     *> setPLM (Response.headersKey "Access-Control-Allow-Headers") [| "Content-Type" |]

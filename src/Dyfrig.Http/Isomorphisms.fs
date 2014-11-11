@@ -20,21 +20,6 @@ module Generic =
     let boxIso<'a> : Iso<obj, 'a> =
         unbox<'a>, box
 
-    (* DateTime *)
-
-    let private dateTimeFormat =
-        CultureInfo.InvariantCulture.DateTimeFormat
-
-    let private dateTimeAdjustment =
-        DateTimeStyles.AdjustToUniversal
-
-    let dateTimePIso : PIso<string, DateTime> =
-        (fun s ->
-            match DateTime.TryParse (s, dateTimeFormat, dateTimeAdjustment) with
-            | true, x -> Some x
-            | _ -> None),
-        (fun d -> d.ToString ("r"))
-
     (* Header
         
        Headers in OWIN dictionaries are represented by an array of strings, which
@@ -45,25 +30,10 @@ module Generic =
         (fun s -> String.concat "," s),
         (fun s -> [| s |])
 
-    (* Integer *)
-
-    let intPIso : PIso<string, int> =
-        (fun s ->
-            match Int32.TryParse s with
-            | true, x -> Some x
-            | _ -> None),
-        (string)
-
     (* Scheme *)
 
     let schemeIso =
         iso Parsers.Generic.scheme Formatters.Generic.scheme
-
-    (* TimeSpan *)
-
-    let timeSpanIso : Iso<int, TimeSpan> =
-        (fun s -> TimeSpan.FromSeconds (float s)),
-        (fun t -> t.Seconds)
 
 
 module RFC7230 =
@@ -81,9 +51,6 @@ module RFC7230 =
     let contentLengthPIso =
         isoP Parsers.RFC7230.contentLength Formatters.RFC7230.contentLength
 
-//    let mediaTypePIso =
-//        isoP Parsers.RFC7230.m
-
     (* Section 6 *)
 
     let connectionPIso =
@@ -97,8 +64,11 @@ module RFC7231 =
     let contentEncodingPIso =
         isoP Parsers.RFC7231.contentEncoding Formatters.RFC7231.contentEncoding
 
-    let mediaTypePIso =
-        isoP Parsers.RFC7231.mediaType Formatters.RFC7231.mediaType
+    let contentTypePIso =
+        isoP Parsers.RFC7231.contentType Formatters.RFC7231.contentType
+
+    let maxForwardsPIso =
+        isoP Parsers.RFC7231.maxForwards Formatters.RFC7231.maxForwards
 
     (* Section 5 *)
 
@@ -116,6 +86,9 @@ module RFC7231 =
 
     (* Section 7 *)
 
+    let datePIso =
+        isoP Parsers.RFC7231.date Formatters.RFC7231.date
+
     let allowPIso =
         isoP Parsers.RFC7231.allow Formatters.RFC7231.allow
 
@@ -123,6 +96,9 @@ module RFC7231 =
 module RFC7232 =
 
     (* Section 2 *)
+
+    let lastModifiedPIso =
+        isoP Parsers.RFC7232.lastModified Formatters.RFC7232.lastModified
 
     let eTagPIso =
         isoP Parsers.RFC7232.eTag Formatters.RFC7232.eTag
@@ -135,6 +111,12 @@ module RFC7232 =
     let ifNoneMatchPIso =
         isoP Parsers.RFC7232.ifNoneMatch Formatters.RFC7232.ifNoneMatch
 
+    let ifModifiedSincePIso =
+        isoP Parsers.RFC7232.ifModifiedSince Formatters.RFC7232.ifModifiedSince
+
+    let ifUnmodifiedSincePIso =
+        isoP Parsers.RFC7232.ifUnmodifiedSince Formatters.RFC7232.ifUnmodifiedSince
+
 
 module RFC7234 =
 
@@ -142,3 +124,6 @@ module RFC7234 =
 
     let agePIso =
         isoP Parsers.RFC7234.age Formatters.RFC7234.age
+
+    let expiresPIso =
+        isoP Parsers.RFC7234.expires Formatters.RFC7234.expires

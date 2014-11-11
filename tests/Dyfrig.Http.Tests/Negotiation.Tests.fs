@@ -54,47 +54,47 @@ let ``negotiateAccept`` =
 [<Test>]
 let ``negotiateAcceptCharset`` () =
     let available =
-        [ Charset "unicode-1-1"
-          Charset "iso-8859-1" ]
+        [ Charsets.Unicode
+          Charsets.Iso88591 ]
 
     let requested1 =
-        [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
+        [ { Charset = CharsetSpec.Charset (Charsets.Unicode)
             Weight = Some 0.8 }
-          { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
+          { Charset = CharsetSpec.Charset (Charsets.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let requested2 =
-        [ { Charset = CharsetSpec.Charset (Charset "unicode-1-1")
+        [ { Charset = CharsetSpec.Charset (Charsets.Unicode)
             Weight = None }
-          { Charset = CharsetSpec.Charset (Charset "iso-8859-1")
+          { Charset = CharsetSpec.Charset (Charsets.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let negotiated1 = AcceptCharset.negotiate requested1 available
     let negotiated2 = AcceptCharset.negotiate requested2 available
 
     negotiated1 =? 
-        [ Charset "iso-8859-1"  
-          Charset "unicode-1-1" ]
+        [ Charsets.Iso88591 
+          Charsets.Unicode ]
 
     negotiated2 =? 
-        [ Charset "unicode-1-1"
-          Charset "iso-8859-1" ]
+        [ Charsets.Unicode
+          Charsets.Iso88591 ]
 
 [<Test>]
 let ``negotiateAcceptEncoding`` () =
     let available =
-        [ Encoding.Encoding "gzip" ]
+        [ Encodings.GZip ]
 
     let requested1 =
-        [ { Encoding = EncodingSpec.Encoding (Encoding "gzip")
+        [ { Encoding = EncodingSpec.Encoding (Encodings.GZip)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let requested2 =
-        [ { Encoding = EncodingSpec.Encoding (Encoding "compress")
+        [ { Encoding = EncodingSpec.Encoding (Encodings.Compress)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let negotiated1 = AcceptEncoding.negotiate requested1 available
     let negotiated2 = AcceptEncoding.negotiate requested2 available
 
-    negotiated1 =? [ Encoding "gzip" ]
+    negotiated1 =? [ Encodings.GZip ]
     negotiated2 =? []
