@@ -369,4 +369,4 @@ module Monad =
 
     /// Modifies part of the OwinEnv using a partial Aether lens within an OWIN monad
     let modPLM l f = 
-        modL l f |> modM
+        modPL l f |> modM

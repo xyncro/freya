@@ -60,6 +60,7 @@
     <Compile Include="Constants.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Monad.fs" />
+    <Compile Include="Inspection.fs" />
     <Compile Include="Logic.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Actions.fs" />
@@ -71,6 +72,11 @@
     <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Dyfrig.Inspector\Dyfrig.Inspector.fsproj">
+      <Name>Dyfrig.Inspector</Name>
+      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Dyfrig.Pipeline\Dyfrig.Pipeline.fsproj">
       <Name>Dyfrig.Pipeline</Name>
       <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
@@ -95,16 +101,28 @@
     </ProjectReference>
   </ItemGroup>
   <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
-        <Reference Include="Aether">
-          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+      <Choose>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoAndroid'">
       <ItemGroup>
         <Reference Include="Aether">
           <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
@@ -113,5 +131,50 @@
         </Reference>
       </ItemGroup>
     </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoTouch'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'Silverlight'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'Windows'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'WindowsPhoneApp'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
   </Choose>
 </Project>

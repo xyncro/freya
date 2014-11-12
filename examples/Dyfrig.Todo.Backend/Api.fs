@@ -4,7 +4,10 @@ open System
 open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
+open Dyfrig.Inspector
 open Dyfrig.Machine
+open Dyfrig.Pipeline
+open Dyfrig.Pipeline.Operators
 open Dyfrig.Router
 open Dyfrig.Todo.Backend.Storage
 
@@ -13,7 +16,7 @@ open Dyfrig.Todo.Backend.Storage
 let asJSON =
     toJSON >> RepresentationResponse.Default
 
-// Machine Functions
+// Functions
 
 let clearTodos =
     liftAsync (clear ())
@@ -33,7 +36,7 @@ let todoProcessable =
 let todoLastModified =
     returnM (DateTime.Now.Subtract (TimeSpan.FromDays 100.))
 
-// Resource Configuration
+// Configuration
 
 let json =
     machine {
@@ -71,8 +74,13 @@ let api =
         route Any "/" todos
         route Any "/:id" todo } |> reifyRoutes
 
+// Pipeline
+
+let pipeline =
+    inspector { History = 10 } >?= api
+
 // Katana
 
 type TodoBackend () =
     member __.Configuration () =
-        OwinAppFunc.fromOwinMonad (api)
+        OwinAppFunc.fromOwinMonad (pipeline)

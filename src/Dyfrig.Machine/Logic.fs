@@ -8,7 +8,7 @@ open Dyfrig.Core
 open Dyfrig.Core.Operators
 open Dyfrig.Http
 
-(* Helpers *)
+(* Operators *)
 
 let inline private (!?) x =
     Option.isSome <!> x
@@ -22,7 +22,12 @@ let inline private (=?) x y =
 let inline private (?>) (x, y) f =
     (fun x y -> f (x, y)) <!> x <*> y
 
-(* Content Negotiation *)
+(* Configuration *)
+
+let private config key =
+    getPLM (definitionPLens >??> configurationPLens key)
+
+(* Negotiation *)
 
 let private negotiate f defaults =
     function | Some r, Some a -> f r a
@@ -41,7 +46,7 @@ module Charset =
         getPLM Request.Headers.acceptCharset
 
     let private supported =
-        getPLM (definitionPLens >??> configurationPLens Configuration.CharsetsSupported)
+        config Configuration.CharsetsSupported
 
     let requested : MachineDecision =
         !? request
@@ -63,7 +68,7 @@ module Encoding =
         getPLM Request.Headers.acceptEncoding
 
     let private supported =
-        getPLM (definitionPLens >??> configurationPLens Configuration.EncodingsSupported)
+        config Configuration.EncodingsSupported
 
     let requested : MachineDecision =
         !? request
@@ -85,7 +90,7 @@ module Language =
         getPLM Request.Headers.acceptLanguage
 
     let private supported =
-        getPLM (definitionPLens >??> configurationPLens Configuration.LanguagesSupported)
+        config Configuration.LanguagesSupported
 
     let requested : MachineDecision =
         !? request
@@ -107,7 +112,7 @@ module MediaType =
         getPLM Request.Headers.accept
 
     let private supported =
-        getPLM (definitionPLens >??> configurationPLens Configuration.MediaTypesSupported)
+        config Configuration.MediaTypesSupported
 
     let requested : MachineDecision =
         !? request
@@ -140,7 +145,7 @@ module IfModifiedSince =
         getPLM Request.Headers.ifModifiedSince
 
     let private lastModified =
-        getPLM (definitionPLens >??> configurationPLens Configuration.LastModified)
+        config Configuration.LastModified
 
     let requested : MachineDecision =
         !? ifModifiedSince
@@ -179,7 +184,7 @@ module IfUnmodifiedSince =
         getPLM Request.Headers.ifUnmodifiedSince
 
     let private lastModified =
-        getPLM (definitionPLens >??> configurationPLens Configuration.LastModified)
+        config Configuration.LastModified
 
     let requested : MachineDecision =
         !? ifUnmodifiedSince
@@ -222,14 +227,14 @@ module Method =
         getLM Request.meth
 
     let private methodsKnown =
-        getPLM (definitionPLens >??> configurationPLens Configuration.MethodsKnown)
+        config Configuration.MethodsKnown
 
     let private negotiateKnown =
         function | x, Some y -> Set.contains x y
                  | x, _ -> Set.contains x defaultKnown
 
     let private methodsSupported =
-        getPLM (definitionPLens >??> configurationPLens Configuration.MethodsSupported)
+        config Configuration.MethodsSupported
 
     let private negotiateSupported =
         function | x, Some y -> Set.contains x y

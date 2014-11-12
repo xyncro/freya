@@ -3,6 +3,7 @@ module internal Dyfrig.Machine.Graph
 
 open Aether
 open Dyfrig.Core
+open Dyfrig.Core.Operators
 
 (* Graph
         
@@ -85,25 +86,3 @@ let construct (definition: MachineDefinition) nodes =
             x.Id, n)
     |> Map.ofList
 
-let execute (graph: Graph) =
-    let rec traverse from =
-        owin {
-            match Map.find from graph with
-            | Action action ->
-                do! action.Action
-                printfn "action: %s (overridden? %b)" action.Id action.Override.Overridden
-                return! traverse action.Next
-            | Decision decision ->
-                let! p = decision.Decision
-                let next = p |> function | true -> decision.True | _ -> decision.False
-                printfn "decision: %s = %b (overridden? %b)" from p decision.Override.Overridden
-                return! traverse next
-            | Handler handler ->
-                printfn "handler: %s (overridden? %b)" handler.Id handler.Override.Overridden
-                return handler.Handler
-            | Operation operation ->
-                do! operation.Operation
-                printfn "operation: %s" operation.Id
-                return! traverse operation.Next }
-
-    traverse Decisions.ServiceAvailable

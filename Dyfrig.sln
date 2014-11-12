@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", 
 		tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj.paket.references = tests\Dyfrig.Core.Tests\Dyfrig.Core.Tests.fsproj.paket.references
 		src\Dyfrig.Http\Dyfrig.Http.fsproj.paket.references = src\Dyfrig.Http\Dyfrig.Http.fsproj.paket.references
 		tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references = tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references
+		src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj.paket.references = src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj.paket.references
 		src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references = src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references
 		tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references = tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references
 		src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references = src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references

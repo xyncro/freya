@@ -28,58 +28,103 @@ open Dyfrig.Pipeline
 //                return created }
 
 
-[<AutoOpen>]
-module internal Invocation =
+(* Traversal *)
 
-    let private request =
+let private action a =
+    owin {
+        do! a.Action
+        do! executionI (ExecutionLog.Action {
+            Name = a.Id
+            Overridden = a.Override.Overridden })
+
+        return a.Next }
+
+let private decision d =
+    owin {
+        let! result = d.Decision
+        let next = (function | true -> d.True | _ -> d.False) result
+
+        do! executionI (ExecutionLog.Decision { 
+                    Name = d.Id
+                    Overridden = d.Override.Overridden
+                    Result = result
+                    Next = next })
+
+        return next }
+
+let private handler (h: HandlerNode) =
+    owin {
+        do! executionI (ExecutionLog.Handler {
+            Name = h.Id
+            Overridden = h.Override.Overridden })
+
+        return h.Handler }
+
+let private operation o =
+    owin {
+        do! o.Operation
+        do! executionI (ExecutionLog.Operation {
+            Name = o.Id })
+
+        return o.Next }
+
+let private traverse (graph: Graph) =
+    let rec eval from =
         owin {
-            let! charsets = Charset.negotiated
-            let! encodings = Encoding.negotiated
-            let! mediaTypes = MediaType.negotiated
-            let! languages = Language.negotiated
+            match Map.find from graph with
+            | Action a -> return! action a >>= eval
+            | Decision d -> return! decision d >>= eval
+            | Handler h -> return! handler h
+            | Operation o -> return! operation o >>= eval  }
 
-            return 
-                { Charsets = charsets
-                  Encodings = encodings
-                  MediaTypes = mediaTypes
-                  Languages = languages } }
+    eval Decisions.ServiceAvailable
 
-    let private write (req: RepresentationRequest) (res: RepresentationResponse) =
-        owin {
-//            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.Languages) res.Language with
-//            | Some _ -> do! setPLM (Response.Headers.contentLanguage) "Language!"
-//            | _ -> ()
-//
-//            match Option.getOrElseOptionF (fun () -> List.tryFind (fun _ -> true) req.MediaTypes) res.MediaType with
-//            | Some _ -> do! setPLM (Response.Headers.contentType) "MediaType!"
-//            | _ -> ()
+(* Invocation *)
 
-            do! setPLM (Response.Headers.contentLength) (ContentLength res.Representation.Length)
-            do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }
+let private request =
+    owin {
+        let! charsets = Charset.negotiated
+        let! encodings = Encoding.negotiated
+        let! mediaTypes = MediaType.negotiated
+        let! languages = Language.negotiated
 
-    let invoke handler =
-        owin {    
-            let! req = request
-            let! res = handler req
+        return 
+            { Charsets = charsets
+              Encodings = encodings
+              MediaTypes = mediaTypes
+              Languages = languages } }
 
-            do! write req res }
+let private write (req: RepresentationRequest) (res: RepresentationResponse) =
+    owin {
+        do! setPLM (Response.Headers.contentLength) (ContentLength res.Representation.Length)
+        do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }
 
+let invoke handler =
+    owin {    
+        let! req = request
+        let! res = handler req
 
-[<AutoOpen>]
-module Reification =
+        do! write req res }
 
-    let private nodes =
-          actions
-        @ decisions
-        @ handlers
-        @ operations
+(* Reification *)
+
+let private nodes =
+      actions
+    @ decisions
+    @ handlers
+    @ operations
     
-    let reifyMachine (machine: MachineMonad) : Pipeline =
-        let _, definition = machine Map.empty
-        let graph = construct definition nodes
+let reifyMachine (machine: MachineMonad) : Pipeline =
+    let _, definition = machine Map.empty
+    let graph = construct definition nodes
 
-        owin {
-            do! setPLM definitionPLens definition
-            do! execute graph >>= invoke
+    owin {
+        do! initI
+        do! setPLM definitionPLens definition
+        do! traverse graph >>= invoke
 
-            return Halt }
+        let! insp = readI
+
+        printfn "insp: %A" insp
+
+        return Halt }

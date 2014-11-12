@@ -63,6 +63,11 @@
       <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj">
+      <Name>Dyfrig.Inspector</Name>
+      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Dyfrig.Machine\Dyfrig.Machine.fsproj">
       <Name>Dyfrig.Machine</Name>
       <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
@@ -103,293 +108,281 @@
   </Target>
   -->
   <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+      <Choose>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
+          <ItemGroup>
+            <Reference Include="LinqBridge">
+              <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsExtensions">
+              <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET20\ReadOnlyCollectionsExtensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsInterfaces">
+              <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
+          <ItemGroup>
+            <Reference Include="LinqBridge">
+              <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsExtensions">
+              <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET35\ReadOnlyCollectionsExtensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsInterfaces">
+              <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
+          <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FSharpPlus">
+              <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Fleece">
+              <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FsControl.Core">
+              <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="LinqBridge">
+              <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Owin">
+              <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsExtensions">
+              <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET40-client\ReadOnlyCollectionsExtensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsInterfaces">
+              <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET40-client\ReadOnlyCollectionsInterfaces.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="System.Json">
+              <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v4.0'">
+          <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FSharpPlus">
+              <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Fleece">
+              <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FsControl.Core">
+              <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="LinqBridge">
+              <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Owin">
+              <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsExtensions">
+              <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET40-client\ReadOnlyCollectionsExtensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsInterfaces">
+              <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET40-client\ReadOnlyCollectionsInterfaces.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="System.Json">
+              <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FSharpPlus">
+              <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Fleece">
+              <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="FsControl.Core">
+              <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="LinqBridge">
+              <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Microsoft.Owin.Diagnostics">
+              <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Microsoft.Owin.Host.HttpListener">
+              <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Microsoft.Owin.Hosting">
+              <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Microsoft.Owin">
+              <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="Owin">
+              <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsExtensions">
+              <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="ReadOnlyCollectionsInterfaces">
+              <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="System.Json">
+              <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoAndroid'">
       <ItemGroup>
         <Reference Include="Aether">
           <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Aether">
-          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
         <Reference Include="FSharpPlus">
           <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="FSharpPlus">
-          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
         <Reference Include="Fleece">
           <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Fleece">
-          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
         <Reference Include="FsControl.Core">
           <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="FsControl.Core">
-          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
-      <ItemGroup>
         <Reference Include="LinqBridge">
           <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="LinqBridge">
-          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
-        <Reference Include="Microsoft.Owin">
-          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Microsoft.Owin">
-          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
         <Reference Include="Microsoft.Owin.Diagnostics">
           <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Microsoft.Owin.Diagnostics">
-          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
         <Reference Include="Microsoft.Owin.Host.HttpListener">
           <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Microsoft.Owin.Host.HttpListener">
-          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
         <Reference Include="Microsoft.Owin.Hosting">
           <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Microsoft.Owin.Hosting">
-          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
         <Reference Include="Owin">
           <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="Owin">
-          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsExtensions">
-          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET20\ReadOnlyCollectionsExtensions.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsExtensions">
-          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET35\ReadOnlyCollectionsExtensions.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsExtensions">
-          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET40-client\ReadOnlyCollectionsExtensions.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
         <Reference Include="ReadOnlyCollectionsExtensions">
           <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsExtensions">
-          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsInterfaces">
-          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET20\ReadOnlyCollectionsInterfaces.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsInterfaces">
-          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET40-client\ReadOnlyCollectionsInterfaces.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
-      <ItemGroup>
         <Reference Include="ReadOnlyCollectionsInterfaces">
           <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-      <ItemGroup>
-        <Reference Include="ReadOnlyCollectionsInterfaces">
-          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.0'">
-      <ItemGroup>
         <Reference Include="System.Json">
           <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
           <Private>True</Private>
@@ -397,8 +390,68 @@
         </Reference>
       </ItemGroup>
     </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoTouch'">
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FSharpPlus">
+          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Fleece">
+          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsControl.Core">
+          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="LinqBridge">
+          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Diagnostics">
+          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Host.HttpListener">
+          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Hosting">
+          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Owin">
+          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsExtensions">
+          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsInterfaces">
+          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="System.Json">
           <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
           <Private>True</Private>
@@ -406,5 +459,281 @@
         </Reference>
       </ItemGroup>
     </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'Silverlight'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FSharpPlus">
+          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Fleece">
+          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsControl.Core">
+          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="LinqBridge">
+          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Diagnostics">
+          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Host.HttpListener">
+          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Hosting">
+          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Owin">
+          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsExtensions">
+          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsInterfaces">
+          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="System.Json">
+          <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'Windows'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FSharpPlus">
+          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Fleece">
+          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsControl.Core">
+          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="LinqBridge">
+          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Diagnostics">
+          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Host.HttpListener">
+          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Hosting">
+          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Owin">
+          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsExtensions">
+          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsInterfaces">
+          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="System.Json">
+          <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'WindowsPhoneApp'">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FSharpPlus">
+          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Fleece">
+          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsControl.Core">
+          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="LinqBridge">
+          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Diagnostics">
+          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Host.HttpListener">
+          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Hosting">
+          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Owin">
+          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsExtensions">
+          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsInterfaces">
+          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="System.Json">
+          <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FSharpPlus">
+          <HintPath>..\..\packages\FSharpPlus\lib\net40\FSharpPlus.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Fleece">
+          <HintPath>..\..\packages\Fleece\lib\NET40\Fleece.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="FsControl.Core">
+          <HintPath>..\..\packages\FsControl\lib\net40\FsControl.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="LinqBridge">
+          <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Diagnostics">
+          <HintPath>..\..\packages\Microsoft.Owin.Diagnostics\lib\net45\Microsoft.Owin.Diagnostics.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Host.HttpListener">
+          <HintPath>..\..\packages\Microsoft.Owin.Host.HttpListener\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin.Hosting">
+          <HintPath>..\..\packages\Microsoft.Owin.Hosting\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Microsoft.Owin">
+          <HintPath>..\..\packages\Microsoft.Owin\lib\net45\Microsoft.Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Owin">
+          <HintPath>..\..\packages\Owin\lib\net40\Owin.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsExtensions">
+          <HintPath>..\..\packages\ReadOnlyCollectionExtensions\lib\NET45\ReadOnlyCollectionsExtensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="ReadOnlyCollectionsInterfaces">
+          <HintPath>..\..\packages\ReadOnlyCollectionInterfaces\lib\NET45\ReadOnlyCollectionsInterfaces.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="System.Json">
+          <HintPath>..\..\packages\System.Json\lib\net40\System.Json.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
   </Choose>
 </Project>
