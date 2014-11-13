@@ -42,6 +42,12 @@ type StorageProxy =
 let private logsLens =
     (fun x -> x.Logs), (fun l x -> { x with Logs = l })
 
+let private dataLens =
+    (fun x -> x.Data), (fun d x -> { x with Data = d })
+
+let itemPLens<'a> k =
+    dataLens >-?> mapPLens k <?-> boxIso<'a>
+
 let proxyPLens =
     dictPLens "dyfrig.inspector.proxy" <?-> boxIso<StorageProxy>
 

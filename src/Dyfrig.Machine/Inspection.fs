@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module internal Dyfrig.Machine.Inspection
+module Dyfrig.Machine.Inspection
 
 open Aether
 open Aether.Operators
@@ -8,7 +8,7 @@ open Dyfrig.Inspector
 
 (* Literals *)
 
-let [<Literal>] key = 
+let [<Literal>] machineInspectionKey = 
     "dyfrig.machine"
 
 (* Types *)
@@ -46,13 +46,13 @@ let private machineInspection =
 
 (* Lenses *)
 
-let executionLens =
+let internal executionLens =
     (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Functions *)
 
-let initI : OwinMonad<unit> =
-    setI key machineInspection
+let internal initI : OwinMonad<unit> =
+    setI machineInspectionKey machineInspection
 
-let executionI e =
-    modI key (modL executionLens (fun es -> e :: es))
+let internal executionI e =
+    modI machineInspectionKey (modL executionLens (fun es -> e :: es))

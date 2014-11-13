@@ -6,6 +6,7 @@ open Dyfrig.Core.Operators
 open Dyfrig.Http
 open Dyfrig.Inspector
 open Dyfrig.Machine
+open Dyfrig.Machine.Inspector
 open Dyfrig.Pipeline
 open Dyfrig.Pipeline.Operators
 open Dyfrig.Router
@@ -76,8 +77,13 @@ let api =
 
 // Pipeline
 
+let config =
+    { Path = "/inspect"
+      History = 10
+      Inspectors = [ machineInspector ] }
+
 let pipeline =
-    inspector { History = 10 } >?= api
+    inspector config >?= api
 
 // Katana
 

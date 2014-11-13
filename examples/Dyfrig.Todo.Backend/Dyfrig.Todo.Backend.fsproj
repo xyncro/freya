@@ -68,6 +68,11 @@
       <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Dyfrig.Machine.Inspector\Dyfrig.Machine.Inspector.fsproj">
+      <Name>Dyfrig.Machine.Inspector</Name>
+      <Project>{63c07538-e910-4156-9c31-d7b6e9e5d85b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Dyfrig.Machine\Dyfrig.Machine.fsproj">
       <Name>Dyfrig.Machine</Name>
       <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>

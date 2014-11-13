@@ -9,20 +9,21 @@ open Dyfrig.Pipeline
 (* Types *)
 
 type InspectorConfiguration =
-    { History: int }
+    { Path: string
+      History: int
+      Inspectors: Inspector list }
 
 (* Pipeline *)
 
-let inspector configuration : Pipeline =
-    let storageConfiguration = 
-        { BufferSize = configuration.History }
+let inspector config : Pipeline =
+    let displayConfig = { DisplayConfiguration.Inspectors = config.Inspectors }
+    let storageConfig = { StorageConfiguration.BufferSize = config.History }
 
-    let storage = 
-        storage (storageConfiguration)
+    let storage = storage (storageConfig)
 
     owin {
         let! path = getLM Request.path
 
         match path with
-        | "/inspector" -> return! display storage
+        | x when x = config.Path -> return! display storage displayConfig
         | _ -> return! store storage }
