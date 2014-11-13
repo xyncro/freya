@@ -123,8 +123,4 @@ let reifyMachine (machine: MachineMonad) : Pipeline =
         do! setPLM definitionPLens definition
         do! traverse graph >>= invoke
 
-        let! insp = readI
-
-        printfn "insp: %A" insp
-
         return Halt }

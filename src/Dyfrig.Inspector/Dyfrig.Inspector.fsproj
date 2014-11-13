@@ -51,8 +51,9 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="Storage.fs" />
-    <Compile Include="Pipeline.fs" />
+    <Compile Include="Display.fs" />
     <Compile Include="Inspection.fs" />
+    <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

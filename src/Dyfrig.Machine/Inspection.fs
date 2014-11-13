@@ -54,8 +54,5 @@ let executionLens =
 let initI : OwinMonad<unit> =
     setI key machineInspection
 
-let readI : OwinMonad<MachineInspection option> =
-    getI key
-
 let executionI e =
     modI key (modL executionLens (fun es -> e :: es))
