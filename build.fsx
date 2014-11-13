@@ -3,22 +3,19 @@
 // --------------------------------------------------------------------------------------
 
 #I "packages/FAKE/tools"
+#r "Nuget.Core.dll"
 #r "FakeLib.dll"
-
-#if MONO
-#else
-#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
-#endif
-
 open System
 open System.IO
 open Fake 
-open Fake.AssemblyInfoFile
 open Fake.Git
+open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
-
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let (!!) includes = (!! includes).SetBaseDirectory __SOURCE_DIRECTORY__
+#if MONO
+#else
+#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
+open SourceLink
+#endif
 
 // --------------------------------------------------------------------------------------
 // Provide project-specific details below
@@ -43,32 +40,39 @@ let summary = "F# support for the Open Web Interface for .NET"
 let description = """
   F# support for the Open Web Interface for .NET"""
 // List of author names (for NuGet package)
-let authors = [ "Ryan Riley" ]
+let authors = [ "Ryan Riley"; "Andrew Cherry" ]
 // Tags for your project (for NuGet package)
 let tags = "F# fsharp web http owin"
 
 // File system information 
-// (<projectFile>.*proj is built during the building process)
-let projectFile = "Dyfrig"
+// (<solutionFile>.sln is built during the building process)
+let solutionFile = "Dyfrig.sln"
+
 // Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "bin/Dyfrig*Tests*exe"
+let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
-let gitHome = "git@github.com:fsprojects"
+let gitHome = "https://github.com/panesofglass"
 // The name of the project on GitHub
 let gitName = "dyfrig"
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/fsprojects"
+let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
 
 // --------------------------------------------------------------------------------------
 // The rest of the file includes standard build steps 
 // --------------------------------------------------------------------------------------
 
 // Read additional information from the release notes document
+Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+let (!!) includes = (!! includes).SetBaseDirectory __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 let isAppVeyorBuild = environVar "APPVEYOR" <> null
-let nugetVersion = 
-    if isAppVeyorBuild then sprintf "%s.%s" release.NugetVersion buildVersion
+let nugetVersion =
+    if isAppVeyorBuild then
+        // If `release.NugetVersion` includes a pre-release suffix, just append the `buildVersion`.
+        if release.NugetVersion.Contains("-") then
+            sprintf "%s%s" release.NugetVersion buildVersion
+        else sprintf "%s.%s" release.NugetVersion buildVersion
     else release.NugetVersion
 
 // Generate assembly info files with the right version & up-to-date information
@@ -88,8 +92,6 @@ Target "BuildVersion" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
-Target "RestorePackages" RestorePackages
-
 Target "Clean" (fun _ ->
     CleanDirs ["bin"; "temp"]
 )
@@ -102,46 +104,50 @@ Target "CleanDocs" (fun _ ->
 // Build library & test project
 
 Target "Build" (fun _ ->
-    !! ("*/**/" + projectFile + "*.*proj")
-    |> MSBuildRelease "bin" "Rebuild"
+    !! solutionFile
+    |> MSBuildRelease "" "Rebuild"
     |> ignore
 )
 
-#if MONO
-Target "SourceLink" id
-#else
-open SourceLink
-Target "SourceLink" (fun _ ->
-    use repo = new GitRepo(__SOURCE_DIRECTORY__)
-    !! ("*/**/" + projectFile + "*.*proj")
-    |> Seq.iter (fun f ->
-        let proj = VsProj.Load f ["Configuration", "Release"; "OutputPath", Path.combine __SOURCE_DIRECTORY__ "bin"]
-        logfn "source linking %s" proj.OutputFilePdb
-        let files = proj.Compiles -- "**/AssemblyInfo.fs"
-        repo.VerifyChecksums files
-        proj.VerifyPdbChecksums files
-        proj.CreateSrcSrv (sprintf "%s/%s/{0}/%%var2%%" gitRaw gitName) repo.Revision (repo.Paths files)
-        Pdbstr.exec proj.OutputFilePdb proj.OutputFilePdbSrcSrv
-    )
-)
-#endif
-
-Target "CopyLicense" (fun _ ->
+Target "CopyFiles" (fun _ ->
     [ "LICENSE.txt" ] |> CopyTo "bin"
+    !! ("src/" + project + "/bin/Release/Dyfrig*.*")
+    |> CopyTo "bin"
 )
 
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
 
 Target "RunTests" (fun _ ->
-    let errorCode =
-        [ for program in !!testAssemblies do
-            let p, a = if not isMono then program, null else "mono", program
-            let result = asyncShellExec { defaultParams with Program = p; CommandLine = a } |> Async.RunSynchronously
-            yield result ]
-        |> List.sum
-    if errorCode <> 0 then failwith "Error in tests"
+    !! testAssemblies
+    |> NUnit (fun p ->
+        { p with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" })
 )
+
+#if MONO
+#else
+// --------------------------------------------------------------------------------------
+// SourceLink allows Source Indexing on the PDB generated by the compiler, this allows
+// the ability to step through the source code of external libraries https://github.com/ctaggart/SourceLink
+
+Target "SourceLink" (fun _ ->
+    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" gitRaw (project.ToLower())
+    use repo = new GitRepo(__SOURCE_DIRECTORY__)
+    !! "src/**/*.fsproj"
+    |> Seq.iter (fun f ->
+        let proj = VsProj.LoadRelease f
+        logfn "source linking %s" proj.OutputFilePdb
+        let files = proj.Compiles -- "**/AssemblyInfo.fs"
+        repo.VerifyChecksums files
+        proj.VerifyPdbChecksums files
+        proj.CreateSrcSrv baseUrl repo.Revision (repo.Paths files)
+        Pdbstr.exec proj.OutputFilePdb proj.OutputFilePdbSrcSrv
+    )
+)
+#endif
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
@@ -153,7 +159,7 @@ Target "NuGet" (fun _ ->
             Project = project
             Summary = summary
             Description = description
-            Version = nugetVersion
+            Version = release.NugetVersion
             ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
             Tags = tags
             OutputPath = "bin"
@@ -171,9 +177,17 @@ Target "NuGet" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Generate the documentation
 
-Target "GenerateDocs" (fun _ ->
-    executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"] [] |> ignore
+Target "GenerateReferenceDocs" (fun _ ->
+    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:REFERENCE"] [] then
+      failwith "generating reference documentation failed"
 )
+
+Target "GenerateHelp" (fun _ ->
+    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:HELP"] [] then
+      failwith "generating help documentation failed"
+)
+
+Target "GenerateDocs" DoNothing
 
 // --------------------------------------------------------------------------------------
 // Release Scripts
@@ -183,14 +197,22 @@ Target "ReleaseDocs" (fun _ ->
     CleanDir tempDocsDir
     Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
 
-    fullclean tempDocsDir
     CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
     StageAll tempDocsDir
     Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
     Branches.push tempDocsDir
 )
 
-Target "Release" DoNothing
+Target "Release" (fun _ ->
+    StageAll ""
+    Commit "" (sprintf "Bump version to %s" release.NugetVersion)
+    Branches.push ""
+
+    Branches.tag "" release.NugetVersion
+    Branches.pushTag "" "origin" release.NugetVersion
+)
+
+Target "BuildPackage" DoNothing
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
@@ -199,19 +221,32 @@ Target "All" DoNothing
 
 "Clean"
   =?> ("BuildVersion", isAppVeyorBuild)
-  ==> "RestorePackages"
   ==> "AssemblyInfo"
   ==> "Build"
-  =?> ("SourceLink", not isMono && not (hasBuildParam "skipSourceLink"))
-  ==> "CopyLicense"
   ==> "RunTests"
-  =?> ("NuGet", not isMono)
+  ==> "CopyFiles"
   ==> "All"
+  =?> ("GenerateReferenceDocs",isLocalBuild && not isMono)
+  =?> ("GenerateDocs",isLocalBuild && not isMono)
+  =?> ("ReleaseDocs",isLocalBuild && not isMono)
 
 "All" 
-  ==> "CleanDocs"
+#if MONO
+#else
+  =?> ("SourceLink", Pdbstr.tryFind().IsSome )
+#endif
+  ==> "NuGet"
+  ==> "BuildPackage"
+
+"CleanDocs"
+  ==> "GenerateHelp"
+  ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
-  ==> "ReleaseDocs"
+    
+"ReleaseDocs"
+  ==> "Release"
+
+"BuildPackage"
   ==> "Release"
 
 RunTargetOrDefault "All"

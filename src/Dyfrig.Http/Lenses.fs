@@ -60,7 +60,6 @@ module Request =
 //    let queryKey key =
 //        query >-?> mapPLens key
 
-
     [<RequireQualifiedAccess>]
     module Headers =
 
@@ -203,7 +202,6 @@ module Request =
 
         let via =
             header "Via"
-
 
 [<RequireQualifiedAccess>]
 module Response =
