@@ -4,12 +4,6 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Core", "src\Dyfrig.Core\Dyfrig.Core.fsproj", "{1AAE3D8F-196F-4868-88AB-47D860CF091F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{500020E1-325C-46AB-9E93-9FFC6B1F0D5D}"
-	ProjectSection(SolutionItems) = preProject
-		paket.dependencies = paket.dependencies
-		paket.lock = paket.lock
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ABE59DEA-56DB-4354-9754-0E4074360A9B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{87F63A63-9BE7-408B-937D-A4174FCE5734}"
@@ -39,10 +33,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", 
 		tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references = tests\Dyfrig.Http.Tests\Dyfrig.Http.Tests.fsproj.paket.references
 		src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj.paket.references = src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj.paket.references
 		src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references = src\Dyfrig.Machine\Dyfrig.Machine.fsproj.paket.references
+		src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj.paket.references = src\Dyfrig.Net.Http\Dyfrig.Net.Http.fsproj.paket.references
 		tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references = tests\Dyfrig.Pipeline.Tests\Dyfrig.Pipeline.Tests.fsproj.paket.references
 		src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references = src\Dyfrig.Router\Dyfrig.Router.fsproj.paket.references
 		examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references = examples\Dyfrig.Todo.Backend\Dyfrig.Todo.Backend.fsproj.paket.references
-		docs\tools\generate.fsx = docs\tools\generate.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Machine", "src\Dyfrig.Machine\Dyfrig.Machine.fsproj", "{0A570763-69E7-4E5B-8640-A848A4E2239F}"
@@ -63,6 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140
 		build.cmd = build.cmd
 		build.fsx = build.fsx
 		build.sh = build.sh
+		docs\tools\generate.fsx = docs\tools\generate.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dyfrig.Inspector", "src\Dyfrig.Inspector\Dyfrig.Inspector.fsproj", "{27EC7C3C-DAFC-48FC-9953-42C58BF85354}"

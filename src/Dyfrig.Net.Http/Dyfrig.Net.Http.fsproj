@@ -57,7 +57,6 @@
   </Target>
   -->
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="Adapter.fsi" />
     <Compile Include="Adapter.fs" />
   </ItemGroup>
@@ -102,11 +101,6 @@
         </When>
         <When Condition="$(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
           <ItemGroup>
-            <Reference Include="FSharpx.Core">
-              <HintPath>..\..\packages\FSharpx.Core\lib\35\FSharpx.Core.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
             <Reference Include="System.Net.Http.WebRequest">
               <HintPath>..\..\packages\Microsoft.Net.Http\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
               <Private>True</Private>
