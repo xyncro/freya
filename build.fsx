@@ -29,7 +29,7 @@ open SourceLink
 
 // The name of the project 
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "Dyfrig"
+let project = "Freya"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
@@ -46,7 +46,7 @@ let tags = "F# fsharp web http owin"
 
 // File system information 
 // (<solutionFile>.sln is built during the building process)
-let solutionFile = "Dyfrig.sln"
+let solutionFile = "Freya.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
 let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
@@ -111,7 +111,7 @@ Target "Build" (fun _ ->
 
 Target "CopyFiles" (fun _ ->
     [ "LICENSE.txt" ] |> CopyTo "bin"
-    !! ("src/" + project + "/bin/Release/Dyfrig*.*")
+    !! ("src/" + project + "/bin/Release/Freya*.*")
     |> CopyTo "bin"
 )
 
@@ -168,9 +168,9 @@ Target "NuGet" (fun _ ->
             Dependencies = 
                 [ "Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http" |> RequireExactly
                   "FSharpx.Core", GetPackageVersion "package" "FSharpx.Core" ]
-            Files = [ (@"..\bin\Dyfrig.dll", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.xml", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.pdb", Some "lib/net40", None) ] })
+            Files = [ (@"..\bin\Freya.dll", Some "lib/net40", None)
+                      (@"..\bin\Freya.xml", Some "lib/net40", None)
+                      (@"..\bin\Freya.pdb", Some "lib/net40", None) ] })
         ("nuget/" + project + ".nuspec")
 )
 
