@@ -67,6 +67,9 @@ module RFC7231 =
     let contentTypePIso =
         isoP Parsers.RFC7231.contentType Formatters.RFC7231.contentType
 
+    let expectPIso =
+        isoP Parsers.RFC7231.expect Formatters.RFC7231.expect
+
     let maxForwardsPIso =
         isoP Parsers.RFC7231.maxForwards Formatters.RFC7231.maxForwards
 
@@ -88,6 +91,9 @@ module RFC7231 =
 
     let datePIso =
         isoP Parsers.RFC7231.date Formatters.RFC7231.date
+
+    let retryAfterPIso =
+        isoP Parsers.RFC7231.retryAfter Formatters.RFC7231.retryAfter
 
     let allowPIso =
         isoP Parsers.RFC7231.allow Formatters.RFC7231.allow

@@ -32,6 +32,14 @@ let getRequestHeaderT (k, h) f =
     Async.RunSynchronously (f env) 
     |> fst
 
+let getResponseHeaderT (k, h) f =
+    let headers = dict [ k, [| h |] ]
+    let data = dict [ Constants.responseHeaders, box headers ]
+    let env = Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
+
+    Async.RunSynchronously (f env) 
+    |> fst
+
 // Set
 
 let setT f k =
@@ -49,6 +57,15 @@ let setRequestHeaderT f k =
     Async.RunSynchronously (f env) 
     |> snd 
     |> getPL (Request.headersKey k)
+
+let setResponseHeaderT f k =
+    let headers = Dictionary<string, string []> (StringComparer.OrdinalIgnoreCase)
+    let data = dict [ Constants.responseHeaders, box headers ]
+    let env = Dictionary<string, obj> (data, StringComparer.OrdinalIgnoreCase)
+
+    Async.RunSynchronously (f env) 
+    |> snd 
+    |> getPL (Response.headersKey k)
 
 // Tests
 
@@ -383,3 +400,36 @@ let ``Request.Headers.maxForwards`` () =
 
     get.Value =? maxForwardsTyped
     set.Value =? maxForwardsString
+
+[<Test>]
+let ``Response.Headers.retryAfter`` () =
+    let retryAfterTyped1 = RetryAfter.Date (DateTime.Parse ("1994/10/29 19:43:31"))
+    let retryAfterTyped2 = RetryAfter.Delay 30
+    let retryAfterString1 = "Sat, 29 Oct 1994 19:43:31 GMT"
+    let retryAfterString2 = "30"
+
+    let get1 = 
+        getResponseHeaderT
+            ("Retry-After", retryAfterString1)
+            (getPLM Response.Headers.retryAfter)
+
+    let get2 = 
+        getResponseHeaderT
+            ("Retry-After", retryAfterString2)
+            (getPLM Response.Headers.retryAfter)
+
+    let set1 =
+        setResponseHeaderT
+            (setPLM (Response.Headers.retryAfter) retryAfterTyped1)
+            "Retry-After"
+
+    let set2 =
+        setResponseHeaderT
+            (setPLM (Response.Headers.retryAfter) retryAfterTyped2)
+            "Retry-After"
+
+    get1.Value =? retryAfterTyped1
+    set1.Value =? retryAfterString1
+
+    get2.Value =? retryAfterTyped2
+    set2.Value =? retryAfterString2

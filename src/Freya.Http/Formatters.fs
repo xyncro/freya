@@ -106,6 +106,9 @@ module RFC7231 =
     let contentEncoding =
         function | ContentEncoding x -> join encoding comma x
 
+    let expect =
+        function | Expect Continue -> append "100-continue"
+
     let maxForwards =
         function | MaxForwards value -> append (string value)
 
@@ -173,7 +176,11 @@ module RFC7231 =
     (* Section 7 *)
 
     let date =
+        function | Date.Date x -> append (x.ToString "r")
+
+    let retryAfter =
         function | Date x -> append (x.ToString "r")
+                 | Delay x -> append (string x)
 
     let allow =
         function | Allow x -> join RFC7230.meth comma x

@@ -16,6 +16,11 @@ let parseP p s =
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None
 
+(* Types *)
+
+type private FParser<'a> = 
+    Parser<'a, unit>
+
 (* Character Ranges *)
 
 let private charRange x y =
@@ -29,7 +34,7 @@ let private (?>) xs x =
 
 module Generic =
 
-    let scheme : Parser<Scheme, unit> =
+    let scheme : FParser<Scheme> =
         choice [
             skipStringCI "http" >>% HTTP
             skipStringCI "https" >>% HTTPS
@@ -188,7 +193,7 @@ module RFC7230 =
        Taken from RFC 7230, Section 3.1 Request Line
        [http://tools.ietf.org/html/rfc7230#section-3.1] *)
 
-    let httpVersion : Parser<HttpVersion, unit> =
+    let httpVersion : FParser<HttpVersion> =
         choice [
             skipString "HTTP/1.0" >>% HttpVersion.HTTP 1.0
             skipString "HTTP/1.1" >>% HttpVersion.HTTP 1.1
@@ -199,7 +204,7 @@ module RFC7230 =
        Taken from RFC 7230, Section 3.3.2 Content-Length
        [http://tools.ietf.org/html/rfc7230#section-3.3.2] *)
 
-    let contentLength : Parser<ContentLength, unit> =
+    let contentLength : FParser<ContentLength> =
         puint32
         |>> (int >> ContentLength)
 
@@ -231,8 +236,7 @@ module RFC7231 =
         token .>> skipChar '=' .>>. (quotedString <|> token)
 
     let parameters =
-        prefix semicolon parameter
-        |>> Map.ofList
+        prefix semicolon parameter |>> Map.ofList
 
     let mediaType =
         token .>> skipChar '/' .>>. token .>>. parameters
@@ -244,8 +248,7 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-3.1.1.5] *)
 
     let contentType =
-        mediaType
-        |>> ContentType
+        mediaType |>> ContentType
 
     (* Content-Encoding
 
@@ -253,14 +256,17 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
 
     let contentEncoding =
-        infix1 comma token
-        |>> (List.map Encoding >> ContentEncoding)
+        infix1 comma token |>> (List.map Encoding >> ContentEncoding)
+
+    (* Expect *)
+
+    let expect : FParser<Expect> =
+        skipStringCI "100-continue" >>% Expect Continue
 
     (* Max-Forwards *)
 
-    let maxForwards : Parser<MaxForwards, unit> =
-        puint32
-        |>> (int >> MaxForwards)
+    let maxForwards : FParser<MaxForwards> =
+        puint32 |>> (int >> MaxForwards)
 
     // TODO: Proper Query String Parser
     let parseQuery =
@@ -307,8 +313,7 @@ module RFC7231 =
         token .>>. opt (skipChar '=' >>. (quotedString <|> token))
 
     let private acceptExts =
-        prefix (skipChar ';') acceptExt
-        |>> Map.ofList
+        prefix (skipChar ';') acceptExt |>> Map.ofList
 
     let private acceptParams =
         weight .>> ows .>>. acceptExts
@@ -320,13 +325,10 @@ module RFC7231 =
         notFollowedBy (ows >>. skipStringCI "q=") >>. token .>> skipChar '=' .>>. token
 
     let private mediaRangeParameters =
-        prefix semicolon mediaRangeParameter 
-        |>> Map.ofList
+        prefix semicolon mediaRangeParameter |>> Map.ofList
 
     let private openMediaRange = 
-        skipString "*/*" >>. ows >>. mediaRangeParameters
-        |>> fun parameters -> 
-                MediaRange.Open parameters
+        skipString "*/*" >>. ows >>. mediaRangeParameters |>> MediaRange.Open
 
     let private partialMediaRange = 
         token .>> skipString "/*" .>> ows .>>. mediaRangeParameters
@@ -344,15 +346,14 @@ module RFC7231 =
             attempt partialMediaRange
             closedMediaRange ]
 
-    let private acceptableMedia : Parser<AcceptableMedia, unit> = 
+    let private acceptableMedia : FParser<AcceptableMedia> = 
         mediaRange .>>. opt acceptParams
         |>> (fun (mediaRangeSpec, parameters) ->
                 { MediaRange = mediaRangeSpec
                   Parameters = parameters })
 
     let accept =
-        infix comma acceptableMedia
-        |>> Accept
+        infix comma acceptableMedia |>> Accept
 
     (* Accept-Charset
 
@@ -360,12 +361,10 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
 
     let private charsetSpecAny =
-        skipChar '*' 
-        >>% CharsetSpec.Any
+        skipChar '*' >>% CharsetSpec.Any
 
     let private charsetSpecCharset =
-        token
-        |>> fun s -> CharsetSpec.Charset (Charset s)
+        token |>> fun s -> CharsetSpec.Charset (Charset s)
 
     let private charsetSpec = 
         choice [
@@ -384,16 +383,13 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
 
     let private encodingSpecAny =
-        skipChar '*'
-        >>% EncodingSpec.Any
+        skipChar '*' >>% EncodingSpec.Any
 
     let private encodingSpecIdentity =
-        skipStringCI "identity"
-        |>> fun _ -> EncodingSpec.Identity
+        skipStringCI "identity" >>% EncodingSpec.Identity
 
     let private encodingSpecEncoding =
-        token
-        |>> fun s -> EncodingSpec.Encoding (Encoding s)
+        token |>> fun s -> EncodingSpec.Encoding (Encoding s)
 
     let private encoding =
         choice [
@@ -440,7 +436,7 @@ module RFC7231 =
     let private dateTimeAdjustment =
         DateTimeStyles.AdjustToUniversal
 
-    let httpDate : Parser<DateTime, unit> =
+    let httpDate : FParser<DateTime> =
         restOfLine false >>= (fun s ->
             match DateTime.TryParse (s, dateTimeFormat, dateTimeAdjustment) with
             | true, d -> preturn d
@@ -449,8 +445,14 @@ module RFC7231 =
     (* Date *)
 
     let date =
-        httpDate
-        |>> Date
+        httpDate |>> Date.Date
+
+    (* Retry-After *)
+
+    let retryAfter =
+        choice [
+            attempt httpDate |>> Date
+            puint32 |>> (int >> Delay) ]
 
     (* Allow
 
@@ -458,8 +460,7 @@ module RFC7231 =
        [http://tools.ietf.org/html/rfc7231#section-7.4.1] *)
 
     let allow =
-        infix comma meth
-        |>> Allow
+        infix comma meth |>> Allow
 
 
 module RFC7232 =
@@ -470,16 +471,14 @@ module RFC7232 =
     open RFC7231
 
     let lastModified =
-        httpDate
-        |>> LastModified
+        httpDate |>> LastModified
 
     (* TODO: This is a naive formulation of an entity tag and does not
        properly support the grammar, particularly weak references, which
        should be implemented ASAP *)
 
     let eTag =
-        skipChar dquote >>. token .>> skipChar dquote
-        |>> Strong
+        skipChar dquote >>. token .>> skipChar dquote |>> Strong
 
     (* If-Match
 
@@ -502,12 +501,10 @@ module RFC7232 =
             infix comma eTag |>> IfNoneMatch.EntityTags ]
 
     let ifModifiedSince =
-        httpDate
-        |>> IfModifiedSince
+        httpDate |>> IfModifiedSince
 
     let ifUnmodifiedSince =
-        httpDate
-        |>> IfUnmodifiedSince
+        httpDate |>> IfUnmodifiedSince
 
 
 module RFC7234 =
@@ -519,10 +516,8 @@ module RFC7234 =
        Taken from RFC 7234, Section 5.1, Age
        [http://tools.ietf.org/html/rfc7234#section-5.1] *)
 
-    let age : Parser<Age, unit> =
-        puint32
-        |>> (float >> TimeSpan.FromSeconds >> Age)
+    let age : FParser<Age> =
+        puint32 |>> (float >> TimeSpan.FromSeconds >> Age)
 
     let expires =
-        httpDate
-        |>> Expires
+        httpDate |>> Expires

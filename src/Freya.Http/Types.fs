@@ -149,6 +149,22 @@ type ContentType =
 type ContentEncoding =
     | ContentEncoding of Encoding list
 
+(* Expect
+
+   Taken from RFC 7231, Section 5.1.1. Expect
+   [http://tools.ietf.org/html/rfc7231#section-5.1.1] *)
+
+type Expect =
+    | Expect of Continue
+
+and Continue =
+    | Continue
+
+(* Max-Forwards
+
+   Taken from RFC 7231, Section 5.1.2. Max-Forwards
+   [http://tools.ietf.org/html/rfc7231#section-5.1.2] *)
+
 type MaxForwards =
     | MaxForwards of int
 
@@ -216,10 +232,22 @@ and AcceptableLanguage =
     { Language: CultureInfo
       Weight: float option }
 
-(* Date *)
+(* Date
+
+   Taken from RFC 7231, Section 7.1.1.2 Date
+   [http://tools.ietf.org/html/rfc7231#section-7.1.1.2] *)
 
 type Date =
     | Date of DateTime
+
+(* Retry-After
+
+   Taken from RFC 7231, Section 7.1.3. Retry-After
+   [http://tools.ietf.org/html/rfc7231#section-7.1.3] *)
+
+type RetryAfter =
+    | Date of DateTime
+    | Delay of int
 
 (* Allow
 

@@ -104,21 +104,14 @@ module Request =
         let contentLocation =
             headersKey "Content-Location"
 
-        // TODO: typed ContentMD5
-
-        let contentMD5 =
-            headersKey "Content-MD5"
-
         let contentType =
             headersKey "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
 
         let date =
             headersKey "Date" <??> Isomorphisms.RFC7231.datePIso
 
-        // TODO: typed Expect
-
         let expect =
-            headersKey "Expect"
+            headersKey "Expect" <??> Isomorphisms.RFC7231.expectPIso
 
         // TODO: typed From
 
@@ -260,11 +253,6 @@ module Response =
         let contentLocation =
             headersKey "Content-Location"
 
-        // TODO: typed ContentMD5
-
-        let contentMD5 =
-            headersKey "Content-MD5"
-
         // TODO: typed ContentRange
 
         let contentRange =
@@ -298,7 +286,7 @@ module Response =
         // TODO: typed RetryAfter
 
         let retryAfter =
-            headersKey "Retry-After"
+            headersKey "Retry-After" <??> Isomorphisms.RFC7231.retryAfterPIso
 
         // TODO: typed Server
 
