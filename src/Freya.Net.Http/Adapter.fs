@@ -72,7 +72,7 @@ open Freya.Core
 [<CompiledName("FreyaEnvironment")>]
 let [<Literal>] dyfrigEnvironment = "dyfrig.Environment"
 
-let mapEnvToRequest (requestUri: string) (env: OwinEnv) =
+let mapEnvToRequest (requestUri: string) (env: FreyaEnvironment) =
     let content = new StreamContent(new ProtectedStream(unbox<Stream> env.[Constants.requestBody]))
     let request = new HttpRequestMessage(HttpMethod(unbox<string> env.[Constants.requestMethod]), requestUri, Content = content)
     let requestHeaders = unbox<IDictionary<string, string[]>> env.[Constants.requestHeaders]
@@ -86,7 +86,7 @@ let mapEnvToRequest (requestUri: string) (env: OwinEnv) =
 
 // TODO: Replace with Lens-based approach
 
-let requestHeaders (env: OwinEnv) =
+let requestHeaders (env: FreyaEnvironment) =
     unbox<IDictionary<string, string[]>> env.[Constants.requestHeaders]
 
 let baseUri env =
@@ -98,7 +98,7 @@ let baseUri env =
         |> Some
     else None
 
-let requestUri (env: OwinEnv) =
+let requestUri (env: FreyaEnvironment) =
     let requestHeaders = requestHeaders env
     if requestHeaders.ContainsKey("Host") then
         (unbox env.[Constants.requestScheme]) + "://" +
@@ -110,7 +110,7 @@ let requestUri (env: OwinEnv) =
     else None
 
 [<CompiledName("ToHttpRequestMesage")>]
-let toHttpRequestMessage (environment: OwinEnv) =
+let toHttpRequestMessage (environment: FreyaEnvironment) =
     assert(environment <> null)
 
     match requestUri environment with
@@ -118,7 +118,7 @@ let toHttpRequestMessage (environment: OwinEnv) =
     | None -> None
 
 [<CompiledName("InvokeHttpResponseMessage")>]
-let invokeHttpResponseMessage (environment: OwinEnv) (response: HttpResponseMessage) =
+let invokeHttpResponseMessage (environment: FreyaEnvironment) (response: HttpResponseMessage) =
     assert(environment <> null)
     assert(response <> null)
     assert(response.RequestMessage <> null)

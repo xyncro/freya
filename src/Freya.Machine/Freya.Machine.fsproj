@@ -56,51 +56,6 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <Compile Include="Prelude.fs" />
-    <Compile Include="Constants.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="Monad.fs" />
-    <Compile Include="Inspection.fs" />
-    <Compile Include="Logic.fs" />
-    <Compile Include="Graph.fs" />
-    <Compile Include="Actions.fs" />
-    <Compile Include="Decisions.fs" />
-    <Compile Include="Handlers.fs" />
-    <Compile Include="Operations.fs" />
-    <Compile Include="Execution.fs" />
-    <Compile Include="Syntax.fs" />
-    <Content Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
-      <Name>Freya.Inspector</Name>
-      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
-      <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Http\Freya.Http.fsproj">
-      <Name>Freya.Http</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
       <Choose>
@@ -178,4 +133,49 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
+  <ItemGroup>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Monad.fs" />
+    <Compile Include="Inspection.fs" />
+    <Compile Include="Logic.fs" />
+    <Compile Include="Graph.fs" />
+    <Compile Include="Actions.fs" />
+    <Compile Include="Decisions.fs" />
+    <Compile Include="Handlers.fs" />
+    <Compile Include="Operations.fs" />
+    <Compile Include="Execution.fs" />
+    <Compile Include="Syntax.fs" />
+    <Content Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
+      <Name>Freya.Inspector</Name>
+      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Http\Freya.Http.fsproj">
+      <Name>Freya.Http</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

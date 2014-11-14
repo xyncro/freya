@@ -59,7 +59,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Inspector", "src\Frey
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Net.Http", "src\Freya.Net.Http\Freya.Net.Http.fsproj", "{3533610C-F45A-4791-AA3D-33E1DDA0416A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "inspector", "inspector", "{E2A18C0A-8C20-492F-94CA-4CF96B982E33}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "inspectors", "inspectors", "{E2A18C0A-8C20-492F-94CA-4CF96B982E33}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Inspector", "src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj", "{63C07538-E910-4156-9C31-D7B6E9E5D85B}"
 EndProject

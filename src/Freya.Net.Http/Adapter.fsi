@@ -23,11 +23,11 @@ open Freya.Core
 
 /// Converts the `OwinEnv` into an `HttpRequestMessage`.
 [<CompiledName("ToHttpRequestMesage")>]
-val toHttpRequestMessage : environment:OwinEnv -> System.Net.Http.HttpRequestMessage option
+val toHttpRequestMessage : environment:FreyaEnvironment -> System.Net.Http.HttpRequestMessage option
 
 /// Invokes an `HttpResponseMessage` in an OWIN handler.
 [<CompiledName("InvokeHttpResponseMessage")>]
-val invokeHttpResponseMessage : environment:OwinEnv -> response:System.Net.Http.HttpResponseMessage -> Async<unit>
+val invokeHttpResponseMessage : environment:FreyaEnvironment -> response:System.Net.Http.HttpResponseMessage -> Async<unit>
 
 /// Adapts a function of type `HttpRequestMessage -> Async<HttpResponseMessage>` to an OWIN handler.
 [<CompiledName("FromAsyncSystemNetHttp")>]
