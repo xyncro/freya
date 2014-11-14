@@ -18,8 +18,8 @@ let private operation statusCode reasonPhrase =
 
 let private options =
        operation 200 "Options"
-    *> setPLM (Response.headersKey "Access-Control-Allow-Origin") [| "*" |]
-    *> setPLM (Response.headersKey "Access-Control-Allow-Headers") [| "Content-Type" |]
+    *> setPLM (Response.headersKey "Access-Control-Allow-Origin") "*"
+    *> setPLM (Response.headersKey "Access-Control-Allow-Headers") "Content-Type"
 
 let private operationDefinitions =
     [ Operations.PreOK,                          (operation 200 "OK"),                          Handlers.OK

@@ -1,10 +1,7 @@
 ﻿[<AutoOpen>]
 module internal Freya.Http.Prelude
 
-open System.Runtime.CompilerServices
-
-[<assembly:InternalsVisibleTo ("Freya.Http.Tests")>]
-do ()
+(* List Module Extensions *)
 
 [<RequireQualifiedAccess>]
 module List =
@@ -13,6 +10,7 @@ module List =
         function | [] -> None
                  | xs -> Some (List.maxBy projection xs)
 
+(* Option Module Extensions *)
 
 [<RequireQualifiedAccess>]
 module Option =

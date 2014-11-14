@@ -27,7 +27,7 @@ let inline private (?>) (x, y) f =
 let private config key =
     getPLM (definitionPLens >??> configurationPLens key)
 
-(* Negotiation *)
+(* Content Negotiation *)
 
 let private negotiate f defaults =
     function | Some r, Some a -> f r a

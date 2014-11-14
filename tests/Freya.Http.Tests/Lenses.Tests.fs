@@ -10,6 +10,11 @@ open Aether.Operators
 open Freya.Core
 open Freya.Http
 
+// Isomorphisms
+
+let boxIso<'a> : Iso<obj, 'a> =
+    unbox<'a>, box
+
 // Get
 
 let getT (k, v) f =
@@ -34,7 +39,7 @@ let setT f k =
 
     Async.RunSynchronously (f env) 
     |> snd 
-    |> getL ((dictLens k) <--> Isomorphisms.Generic.boxIso<string>)
+    |> getL ((dictLens k) <--> boxIso<string>)
 
 let setRequestHeaderT f k =
     let headers = Dictionary<string, string []> (StringComparer.OrdinalIgnoreCase)
@@ -43,7 +48,7 @@ let setRequestHeaderT f k =
 
     Async.RunSynchronously (f env) 
     |> snd 
-    |> getPL (Request.headersKey k <?-> Isomorphisms.Generic.headerIso)
+    |> getPL (Request.headersKey k)
 
 // Tests
 
