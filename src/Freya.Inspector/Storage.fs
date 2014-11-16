@@ -49,7 +49,7 @@ let itemPLens<'a> k =
     dataLens >-?> mapPLens k <?-> boxIso<'a>
 
 let proxyPLens =
-    dictPLens "freya.inspector.proxy" <?-> boxIso<StorageProxy>
+    dictPLens "freya.InspectorProxy" <?-> boxIso<StorageProxy>
 
 (* Constructors *)
 

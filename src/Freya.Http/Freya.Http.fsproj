@@ -205,10 +205,13 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="Parsers.fs" />
-    <Compile Include="Formatters.fs" />
-    <Compile Include="Isomorphisms.fs" />
+    <Compile Include="Types\Generic.fs" />
+    <Compile Include="Types\RFC5234.fs" />
+    <Compile Include="Types\RFC7230.fs" />
+    <Compile Include="Types\RFC7231.fs" />
+    <Compile Include="Types\RFC7232.fs" />
+    <Compile Include="Types\RFC7234.fs" />
+    <Compile Include="Types\RFC7235.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Negotiation.fs" />
     <Compile Include="Presets.fs" />

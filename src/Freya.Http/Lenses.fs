@@ -19,10 +19,10 @@ let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
     (fun v d -> d.[k] <- v; d)
 
 let private itemLens<'a> key =
-    dictLens key <--> Isomorphisms.Generic.boxIso<'a>
+    dictLens key <--> boxIso<'a>
 
 let private itemPLens<'a> key =
-    dictPLens key <?-> Isomorphisms.Generic.boxIso<'a>
+    dictPLens key <?-> boxIso<'a>
 
 
 [<RequireQualifiedAccess>]
@@ -35,10 +35,10 @@ module Request =
         itemLens<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
-        headers >-?> dictPLens key <?-> Isomorphisms.Generic.headerIso
+        headers >-?> dictPLens key <?-> ((String.concat ","), (Array.create 1))
 
     let meth = 
-        itemLens<string> Constants.requestMethod <--> Isomorphisms.RFC7230.methodIso
+        itemLens<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
 
     let path = 
         itemLens<string> Constants.requestPath
@@ -47,10 +47,10 @@ module Request =
         itemLens<string> Constants.requestPathBase
 
     let httpVersion =
-        itemLens<string> Constants.requestProtocol <--> Isomorphisms.RFC7230.httpVersionIso
+        itemLens<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
 
     let scheme =
-        itemLens<string> Constants.requestScheme <--> Isomorphisms.Generic.schemeIso
+        itemLens<string> Constants.requestScheme <--> (Scheme.Parse, Scheme.Format)
 
     let query =
         itemLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
@@ -64,16 +64,16 @@ module Request =
     module Headers =
 
         let accept =
-            headersKey "Accept" <??> Isomorphisms.RFC7231.acceptPIso
+            headersKey "Accept" <??> (Accept.TryParse, Accept.Format)
 
         let acceptCharset =
-            headersKey "Accept-Charset" <??> Isomorphisms.RFC7231.acceptCharsetPIso
+            headersKey "Accept-Charset" <??> (AcceptCharset.TryParse, AcceptCharset.Format)
 
         let acceptEncoding =
-            headersKey "Accept-Encoding" <??> Isomorphisms.RFC7231.acceptEncodingPIso
+            headersKey "Accept-Encoding" <??> (AcceptEncoding.TryParse, AcceptEncoding.Format)
 
         let acceptLanguage =
-            headersKey "Accept-Language" <??> Isomorphisms.RFC7231.acceptLanguagePIso
+            headersKey "Accept-Language" <??> (AcceptLanguage.TryParse, AcceptLanguage.Format)
 
         // TODO: typed Authorization
 
@@ -86,10 +86,10 @@ module Request =
             headersKey "Cache-Control"
 
         let connection =
-            headersKey "Connection" <??> Isomorphisms.RFC7230.connectionPIso
+            headersKey "Connection" <??> (Connection.TryParse, Connection.Format)
 
         let contentEncoding =
-            headersKey "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
+            headersKey "Content-Encoding" <??> (ContentEncoding.TryParse, ContentEncoding.Format)
 
         // TODO: typed ContentLanguage
 
@@ -97,7 +97,7 @@ module Request =
             headersKey "Content-Language"
 
         let contentLength =
-            headersKey "Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
+            headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)
 
         // TODO: typed ContentLocation
 
@@ -105,13 +105,13 @@ module Request =
             headersKey "Content-Location"
 
         let contentType =
-            headersKey "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
+            headersKey "Content-Type" <??> (ContentType.TryParse, ContentType.Format)
 
         let date =
-            headersKey "Date" <??> Isomorphisms.RFC7231.datePIso
+            headersKey "Date" <??> (Date.TryParse, Date.Format)
 
         let expect =
-            headersKey "Expect" <??> Isomorphisms.RFC7231.expectPIso
+            headersKey "Expect" <??> (Expect.TryParse, Expect.Format)
 
         // TODO: typed From
 
@@ -124,13 +124,13 @@ module Request =
             headersKey "Host"
 
         let ifMatch =
-            headersKey "If-Match" <??> Isomorphisms.RFC7232.ifMatchPIso
+            headersKey "If-Match" <??> (IfMatch.TryParse, IfMatch.Format)
 
         let ifModifiedSince =
-            headersKey "If-Modified-Since" <??> Isomorphisms.RFC7232.ifModifiedSincePIso
+            headersKey "If-Modified-Since" <??> (IfModifiedSince.TryParse, IfModifiedSince.Format)
 
         let ifNoneMatch =
-            headersKey "If-None-Match" <??> Isomorphisms.RFC7232.ifNoneMatchPIso
+            headersKey "If-None-Match" <??> (IfNoneMatch.TryParse, IfNoneMatch.Format)
 
         // TODO: typed IfRange
 
@@ -138,10 +138,10 @@ module Request =
             headersKey "If-Range"
 
         let ifUnmodifiedSince =
-            headersKey "If-Unmodified-Since" <??> Isomorphisms.RFC7232.ifUnmodifiedSincePIso
+            headersKey "If-Unmodified-Since" <??> (IfUnmodifiedSince.TryParse, IfUnmodifiedSince.Format)
 
         let maxForwards =
-            headersKey "Max-Forwards" <??> Isomorphisms.RFC7231.maxForwardsPIso
+            headersKey "Max-Forwards" <??> (MaxForwards.TryParse, MaxForwards.Format)
 
         // TODO: typed Pragma
 
@@ -203,10 +203,10 @@ module Response =
         itemLens<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
-        headers >-?> dictPLens key <?-> Isomorphisms.Generic.headerIso
+        headers >-?> dictPLens key <?-> ((String.concat ","), (Array.create 1))
 
     let httpVersion =
-        itemPLens<string> Constants.responseProtocol <?-> Isomorphisms.RFC7230.httpVersionIso
+        itemPLens<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
 
     let reasonPhrase =
         itemPLens<string> Constants.responseReasonPhrase
@@ -224,10 +224,10 @@ module Response =
             headersKey "Accept-Ranges"
 
         let age =
-            headersKey "Age" <??> Isomorphisms.RFC7234.agePIso
+            headersKey "Age" <??> (Age.TryParse, Age.Format)
 
         let allow =
-            headersKey "Allow" <??> Isomorphisms.RFC7231.allowPIso
+            headersKey "Allow" <??> (Allow.TryParse, Allow.Format)
 
         // TODO: typed CacheControl
 
@@ -235,10 +235,10 @@ module Response =
             headersKey "Cache-Control"
 
         let connection =
-            headersKey "Connection" <??> Isomorphisms.RFC7230.connectionPIso
+            headersKey "Connection" <??> (Connection.TryParse, Connection.Format)
 
         let contentEncoding =
-            headersKey "Content-Encoding" <??> Isomorphisms.RFC7231.contentEncodingPIso
+            headersKey "Content-Encoding" <??> (ContentEncoding.TryParse, ContentEncoding.Format)
 
         // TODO: typed ContentLanguage
 
@@ -246,7 +246,7 @@ module Response =
             headersKey "Content-Language"
 
         let contentLength =
-            headersKey "Content-Length" <??> Isomorphisms.RFC7230.contentLengthPIso
+            headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)
 
         // TODO: typed ContentLocation
 
@@ -259,19 +259,19 @@ module Response =
             headersKey "Content-Range"
 
         let contentType =
-            headersKey "Content-Type" <??> Isomorphisms.RFC7231.contentTypePIso
+            headersKey "Content-Type" <??> (ContentType.TryParse, ContentType.Format)
 
         let date =
-            headersKey "Date" <??> Isomorphisms.RFC7231.datePIso
+            headersKey "Date" <??> (Date.TryParse, Date.Format)
 
         let eTag =
-            headersKey "ETag" <??> Isomorphisms.RFC7232.eTagPIso
+            headersKey "ETag" <??> (EntityTag.TryParse, EntityTag.Format)
 
         let expires =
-            headersKey "Expires" <??> Isomorphisms.RFC7234.expiresPIso
+            headersKey "Expires" <??> (Expires.TryParse, Expires.Format)
 
         let lastModified =
-            headersKey "Last-Modified" <??> Isomorphisms.RFC7232.lastModifiedPIso
+            headersKey "Last-Modified" <??> (LastModified.TryParse, LastModified.Format)
 
         // TODO: typed Location
 
@@ -286,7 +286,7 @@ module Response =
         // TODO: typed RetryAfter
 
         let retryAfter =
-            headersKey "Retry-After" <??> Isomorphisms.RFC7231.retryAfterPIso
+            headersKey "Retry-After" <??> (RetryAfter.TryParse, RetryAfter.Format)
 
         // TODO: typed Server
 
