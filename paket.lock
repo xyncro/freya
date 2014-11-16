@@ -1,7 +1,7 @@
 NUGET
   remote: http://nuget.org/api/v2
   specs:
-    Aether (4.1.1)
+    Aether (5.0.0)
     FAKE (3.9.9)
     Fleece (0.4.0)
       FSharpPlus (>= 0.0.4)

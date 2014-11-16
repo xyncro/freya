@@ -30,7 +30,7 @@ type Parameters =
 let private pairF =
     (<||) (appendf2 "{0}={1}")
 
-let private parametersF =
+let internal parametersF =
     function | (x: Map<string, string>) when Map.isEmpty x -> id
              | (x) -> append ";" >> join pairF semicolonF (Map.toList x |> List.rev)
 

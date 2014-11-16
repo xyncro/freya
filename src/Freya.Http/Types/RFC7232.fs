@@ -38,33 +38,43 @@ type LastModified with
     override x.ToString () =
         LastModified.Format x
 
-(* Entity Tag *)
+// TODO: Reference
 
-type EntityTag =
+(* ETag *)
+
+type ETag =
+    | ETag of EntityTag
+
+and EntityTag =
     | Strong of string
     | Weak of string
 
-let private entityTagF =
+let internal entityTagF =
     function | Strong x -> appendf1 "\"{0}\"" x
              | Weak x -> appendf1 "W/\"{0}\"" x
 
-(* TODO: This is a naive formulation of an entity tag and does not
-   properly support the grammar, particularly weak references, which
-   should be implemented ASAP *)
+let private eTagF =
+    function | ETag x -> entityTagF x
 
-let private entityTagP =
+// TODO: Move def of EntityTag?
+// TODO: Full weak/strong parser for EntityTag
+
+let internal entityTagP =
     skipChar dquote >>. tokenP .>> skipChar dquote |>> Strong
 
-type EntityTag with
+let private eTagP =
+    entityTagP |>> ETag
+
+type ETag with
 
     static member Format =
-        Formatting.format entityTagF
+        Formatting.format eTagF
 
     static member TryParse =
-        Parsing.parseP entityTagP
+        Parsing.parseP eTagP
 
     override x.ToString () =
-        EntityTag.Format x
+        ETag.Format x
 
 (* If-Match
 

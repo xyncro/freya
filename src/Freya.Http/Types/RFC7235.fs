@@ -13,13 +13,54 @@ open FParsec
    
    See [http://tools.ietf.org/html/rfc7235] *)
 
+(* Access Authentication Framework
+    
+   Taken from RFC 7235, Section 2. Access Authentication Framework
+   [http://tools.ietf.org/html/rfc7235#section-2] *)
+
+type Credentials =
+    | Token of AuthorizationScheme * string
+    | Parameters of AuthorizationScheme * Map<string, string>
+
+and AuthorizationScheme =
+    | AuthorizationScheme of string
+
+(* Formatting *)
+
+let private authorizationSchemeF =
+    function | AuthorizationScheme x -> append x
+
+let private credentialsF =
+    function | Token (x, y) -> authorizationSchemeF x >> append y
+             | Parameters (x, y) -> authorizationSchemeF x >> parametersF y
+
+(* Parsing *)
+
+let private authorizationSchemeP =
+    tokenP
+
+let private authorizationParameterP =
+    tokenP .>> bwsP .>> skipChar '=' .>>. (tokenP <|> quotedStringP)
+
+// TODO: Parsers 
+
 (* Authorization
     
    Taken from RFC 7235, Section 4.2. Authorization
    [http://tools.ietf.org/html/rfc7235#section-4.2] *)
 
 type Authorization =
-    { Scheme: AuthorizationScheme }
+    | Authorization of Credentials list
 
-and AuthorizationScheme =
-    | AuthorizationScheme of string
+let private authorizationF =
+    function | Authorization x -> join credentialsF commaF x
+
+// TODO: Parser
+
+type Authorization with
+
+    static member Format =
+        Formatting.format authorizationF
+
+    override x.ToString () =
+        Authorization.Format x

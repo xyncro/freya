@@ -24,6 +24,7 @@ let private itemLens<'a> key =
 let private itemPLens<'a> key =
     dictPLens key <?-> boxIso<'a>
 
+(* Request Lenses *)
 
 [<RequireQualifiedAccess>]
 module Request =
@@ -60,6 +61,8 @@ module Request =
 //    let queryKey key =
 //        query >-?> mapPLens key
 
+    (* Request Header Lenses *)
+
     [<RequireQualifiedAccess>]
     module Headers =
 
@@ -80,10 +83,8 @@ module Request =
         let authorization =
             headersKey "Authorization"
 
-        // TODO: typed CacheControl
-
         let cacheControl =
-            headersKey "Cache-Control"
+            headersKey "Cache-Control" <??> (CacheControl.TryParse, CacheControl.Format)
 
         let connection =
             headersKey "Connection" <??> (Connection.TryParse, Connection.Format)
@@ -132,10 +133,8 @@ module Request =
         let ifNoneMatch =
             headersKey "If-None-Match" <??> (IfNoneMatch.TryParse, IfNoneMatch.Format)
 
-        // TODO: typed IfRange
-
         let ifRange =
-            headersKey "If-Range"
+            headersKey "If-Range" <??> (IfRange.TryParse, IfRange.Format)
 
         let ifUnmodifiedSince =
             headersKey "If-Unmodified-Since" <??> (IfUnmodifiedSince.TryParse, IfUnmodifiedSince.Format)
@@ -193,6 +192,8 @@ module Request =
         let via =
             headersKey "Via"
 
+(* Response Lenses *)
+
 [<RequireQualifiedAccess>]
 module Response =
 
@@ -214,6 +215,7 @@ module Response =
     let statusCode =
         itemPLens<int> Constants.responseStatusCode
 
+    (* Response Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
@@ -229,10 +231,8 @@ module Response =
         let allow =
             headersKey "Allow" <??> (Allow.TryParse, Allow.Format)
 
-        // TODO: typed CacheControl
-
         let cacheControl =
-            headersKey "Cache-Control"
+            headersKey "Cache-Control" <??> (CacheControl.TryParse, CacheControl.Format)
 
         let connection =
             headersKey "Connection" <??> (Connection.TryParse, Connection.Format)
@@ -265,7 +265,7 @@ module Response =
             headersKey "Date" <??> (Date.TryParse, Date.Format)
 
         let eTag =
-            headersKey "ETag" <??> (EntityTag.TryParse, EntityTag.Format)
+            headersKey "ETag" <??> (ETag.TryParse, ETag.Format)
 
         let expires =
             headersKey "Expires" <??> (Expires.TryParse, Expires.Format)

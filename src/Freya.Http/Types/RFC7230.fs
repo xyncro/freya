@@ -24,8 +24,8 @@ let internal owsP =
 //    let rws =
 //        skipMany1Satisfy (fun c -> Set.contains c wsp)
 
-//    let bws =
-//        ows
+let internal bwsP =
+    owsP
 
 (* Field Value Components
 

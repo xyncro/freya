@@ -1,6 +1,6 @@
 source "http://nuget.org/api/v2"
 
-nuget Aether ~> 4.0
+nuget Aether ~> 5.0
 nuget Fleece ~> 0.4
 nuget FParsec ~> 1.0
 nuget Microsoft.Net.Http ~> 2.2
