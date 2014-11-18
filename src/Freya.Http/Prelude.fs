@@ -55,7 +55,7 @@ module Formatting =
     let appendf2 (s: string) (v1: obj) (v2: obj) (b: StringBuilder) =
         b.AppendFormat (s, v1, v2)
 
-    let join<'a> (f: Formatter<'a>) (s: Separator) =
+    let join<'a> (s: Separator) (f: Formatter<'a>) =
         let rec join values (b: StringBuilder) =
             match values with
             | [] -> b
@@ -80,12 +80,12 @@ module Parsing =
 
     (* Parsing *)
 
-    let parse p s =
+    let parseExact p s =
         match run p s with
         | Success (x, _, _) -> x
         | Failure (e, _, _) -> failwith e
 
-    let parseP p s =
+    let parseOption p s =
         match run p s with
         | Success (x, _, _) -> Some x
         | Failure (_, _, _) -> None

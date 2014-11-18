@@ -19,7 +19,7 @@ open FParsec
    See [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
 
 let internal owsP = 
-    skipManySatisfy ((?>) wsp)
+    skipManySatisfy ((?>) RFC5234.wsp)
 
 //    let rws =
 //        skipMany1Satisfy (fun c -> Set.contains c wsp)
@@ -36,7 +36,7 @@ let internal tchar =
     Set.unionMany [ 
         set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
               '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
-        alpha
+        RFC5234.alpha
         RFC5234.digit ]
 
 let internal tokenP = 
@@ -47,7 +47,7 @@ let internal obsText =
 
 let internal qdtext =
     Set.unionMany [
-        set [ htab; sp; char 0x21 ]
+        set [ RFC5234.htab; RFC5234.sp; char 0x21 ]
         charRange 0x23 0x5b
         charRange 0x5d 0x7e
         obsText ]
@@ -62,8 +62,8 @@ let internal qdtext =
 
 let internal quotedPairChars =
     Set.unionMany [
-        set [ htab; sp ]
-        vchar
+        set [ RFC5234.htab; RFC5234.sp ]
+        RFC5234.vchar
         obsText ]
 
 let internal quotedPairP : Parser<char, unit> =
@@ -71,9 +71,9 @@ let internal quotedPairP : Parser<char, unit> =
     >>. satisfy ((?>) quotedPairChars)
 
 let internal quotedStringP : Parser<string, unit> =
-        skipChar dquote 
+        skipChar RFC5234.dquote 
     >>. many (quotedPairP <|> satisfy ((?>) qdtext)) |>> (fun x -> string (String (List.toArray x)))
-    .>> skipChar dquote
+    .>> skipChar RFC5234.dquote
 
 (* ABNF List Extension: #rule
 
@@ -123,10 +123,10 @@ let private httpVersionP =
 type HttpVersion with
 
     static member Format =
-        Formatting.format httpVersionF
+        format httpVersionF
 
     static member Parse =
-        Parsing.parse httpVersionP
+        parseExact httpVersionP
 
     override x.ToString () =
         HttpVersion.Format x
@@ -148,10 +148,10 @@ let private contentLengthP =
 type ContentLength with
 
     static member Format =
-        Formatting.format contentLengthF
+        format contentLengthF
 
     static member TryParse =
-        Parsing.parseP contentLengthP
+        parseOption contentLengthP
 
     override x.ToString () =
         ContentLength.Format x
@@ -171,7 +171,7 @@ let private connectionOptionF =
     function | ConnectionOption x -> append x
 
 let private connectionF =
-    function | Connection x -> join connectionOptionF commaF x
+    function | Connection x -> join commaF connectionOptionF x
 
 let private connectionP =
     infix1P (skipChar ',') tokenP |>> (List.map ConnectionOption >> Connection)
@@ -179,10 +179,10 @@ let private connectionP =
 type Connection with
 
     static member Format =
-        Formatting.format connectionF
+        format connectionF
 
     static member TryParse =
-        Parsing.parseP connectionP
+        parseOption connectionP
 
     override x.ToString () =
         Connection.Format x

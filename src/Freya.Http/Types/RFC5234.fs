@@ -1,11 +1,11 @@
-﻿[<AutoOpen>]
+﻿[<RequireQualifiedAccess>]
 module internal Freya.Http.RFC5234
 
 (* RFC 5234
 
-   Core grammar rules as defined in RFC 5234.
+   Core ABNF grammar rules as defined in RFC 5234.
 
-   Taken from RFC 5234, Appendix B.1. Core Rules
+   Taken from RFC 5234, Appendix B.1 Core Rules
    See [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
 let alpha = 
@@ -28,5 +28,12 @@ let sp =
 let vchar =
     charRange 0x21 0x7e
 
+let hexdig =
+    Set.unionMany [
+        digit
+        set [ 'A'; 'B'; 'C'; 'D'; 'E'; 'F'
+              'a'; 'b'; 'c'; 'd'; 'e'; 'f' ] ]
+
 let wsp = 
     set [ sp; htab ]
+

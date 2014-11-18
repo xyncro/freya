@@ -205,8 +205,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="Types\Generic.fs" />
     <Compile Include="Types\RFC5234.fs" />
+    <Compile Include="Types\RFC3986.fs" />
     <Compile Include="Types\RFC7230.fs" />
     <Compile Include="Types\RFC7231.fs" />
     <Compile Include="Types\RFC7232.fs" />

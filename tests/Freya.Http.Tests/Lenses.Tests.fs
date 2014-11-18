@@ -164,23 +164,23 @@ let ``Request.httpVersion`` () =
 //    get =? queryTyped
 //    set =? queryString
 
-[<Test>]
-let ``Request.scheme`` () =
-    let schemeTyped = Scheme.HTTP
-    let schemeString = "http"
-
-    let get = 
-        getT
-            (Constants.requestScheme, schemeString)
-            (getLM Request.scheme)
-
-    let set =
-        setT
-            (setLM Request.scheme schemeTyped)
-            Constants.requestScheme
-
-    get =? schemeTyped
-    set =? schemeString
+//[<Test>]
+//let ``Request.scheme`` () =
+//    let schemeTyped = Scheme.HTTP
+//    let schemeString = "http"
+//
+//    let get = 
+//        getT
+//            (Constants.requestScheme, schemeString)
+//            (getLM Request.scheme)
+//
+//    let set =
+//        setT
+//            (setLM Request.scheme schemeTyped)
+//            Constants.requestScheme
+//
+//    get =? schemeTyped
+//    set =? schemeString
 
 [<Test>]
 let ``Request.Headers.ifMatch`` () =

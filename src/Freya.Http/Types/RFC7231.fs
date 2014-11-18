@@ -32,13 +32,13 @@ let private pairF =
 
 let internal parametersF =
     function | (x: Map<string, string>) when Map.isEmpty x -> id
-             | (x) -> append ";" >> join pairF semicolonF (Map.toList x |> List.rev)
+             | (x) -> append ";" >> join semicolonF pairF (Map.toList x |> List.rev)
 
 let private parameterP =
     tokenP .>> skipChar '=' .>>. (quotedStringP <|> tokenP)
 
 let private parametersP =
-    prefixP semicolonP parameterP |>> Map.ofList
+    prefixP (skipChar ';') parameterP |>> Map.ofList
 
 (* Media-Type *)
 
@@ -61,10 +61,10 @@ let private mediaTypeP =
 type MediaType with
 
     static member Format =
-        Formatting.format mediaTypeF
+        format mediaTypeF
 
     static member TryParse =
-        Parsing.parseP mediaTypeP
+        parseOption mediaTypeP
 
     override x.ToString () =
         MediaType.Format x
@@ -86,10 +86,10 @@ let private contentTypeP =
 type ContentType with
 
     static member Format =
-        Formatting.format contentTypeF
+        format contentTypeF
 
     static member TryParse =
-        Parsing.parseP contentTypeP
+        parseOption contentTypeP
 
     override x.ToString () =
         ContentType.Format x
@@ -114,18 +114,18 @@ let private encodingF =
     function | Encoding x -> append x
 
 let private contentEncodingF =
-    function | ContentEncoding x -> join encodingF commaF x
+    function | ContentEncoding x -> join commaF encodingF x
 
 let private contentEncodingP =
-    infix1P commaP tokenP |>> (List.map Encoding >> ContentEncoding)
+    infix1P (skipChar ',') tokenP |>> (List.map Encoding >> ContentEncoding)
 
 type ContentEncoding with
 
     static member Format =
-        Formatting.format contentEncodingF
+        format contentEncodingF
 
     static member TryParse =
-        Parsing.parseP contentEncodingP
+        parseOption contentEncodingP
 
     override x.ToString () =
         ContentEncoding.Format x
@@ -172,10 +172,10 @@ let private methodP =
 type Method with
 
     static member Format =
-        Formatting.format methodF
+        format methodF
 
     static member Parse =
-        Parsing.parse methodP
+        parseExact methodP
 
     override x.ToString () =
         Method.Format x
@@ -200,10 +200,10 @@ let private expectP =
 type Expect with
 
     static member Format =
-        Formatting.format expectF
+        format expectF
 
     static member TryParse =
-        Parsing.parseP expectP
+        parseOption expectP
 
     override x.ToString () =
         Expect.Format x
@@ -225,10 +225,10 @@ let private maxForwardsP =
 type MaxForwards with
 
     static member Format =
-        Formatting.format maxForwardsF
+        format maxForwardsF
 
     static member TryParse =
-        Parsing.parseP maxForwardsP
+        parseOption maxForwardsP
 
     override x.ToString () =
         MaxForwards.Format x
@@ -260,7 +260,7 @@ let private qvalueP =
         skipChar '1' >>. optional (skipChar '.' >>. d03P) >>% 1. ]
 
 let private weightP =
-    semicolonP >>. owsP >>. skipStringCI "q=" >>. qvalueP .>> owsP
+    skipChar ';' >>. owsP >>. skipStringCI "q=" >>. qvalueP .>> owsP
 
 (* Accept
 
@@ -307,7 +307,7 @@ let private acceptableMediaF (value: AcceptableMedia) =
     mediaRangeF value.MediaRange >> acceptParametersF value.Parameters
 
 let private acceptF =
-    function | Accept x -> join acceptableMediaF commaF x
+    function | Accept x -> join commaF acceptableMediaF x
 
 (* Parsing *)
 
@@ -327,7 +327,7 @@ let private mediaRangeParameterP =
     notFollowedBy (owsP >>. skipStringCI "q=") >>. tokenP .>> skipChar '=' .>>. tokenP
 
 let private mediaRangeParametersP =
-    prefixP semicolonP mediaRangeParameterP |>> Map.ofList
+    prefixP (skipChar ';') mediaRangeParameterP |>> Map.ofList
 
 let private openMediaRangeP = 
     skipString "*/*" >>. owsP >>. mediaRangeParametersP |>> MediaRange.Open
@@ -355,17 +355,17 @@ let private acceptableMediaP : FParser<AcceptableMedia> =
               Parameters = parameters })
 
 let private acceptP =
-    infixP commaP acceptableMediaP |>> Accept
+    infixP (skipChar ',') acceptableMediaP |>> Accept
 
 (* Augmentation *)
 
 type Accept with
 
     static member Format =
-        Formatting.format acceptF
+        format acceptF
 
     static member TryParse =
-        Parsing.parseP acceptP
+        parseOption acceptP
 
     override x.ToString () =
         Accept.Format x
@@ -399,7 +399,7 @@ let private acceptableCharsetF (value: AcceptableCharset) =
     charsetSpecF value.Charset >> weightF value.Weight
 
 let acceptCharsetF =
-    function | AcceptCharset x -> join acceptableCharsetF commaF x
+    function | AcceptCharset x -> join commaF acceptableCharsetF x
 
 (* Parsing *)
 
@@ -425,10 +425,10 @@ let private acceptCharsetP =
 type AcceptCharset with
 
     static member Format =
-        Formatting.format acceptCharsetF
+        format acceptCharsetF
 
     static member TryParse =
-        Parsing.parseP acceptCharsetP
+        parseOption acceptCharsetP
 
     override x.ToString () =
         AcceptCharset.Format x
@@ -456,7 +456,7 @@ let private acceptableEncodingF x =
     encodingSpecF x.Encoding >> weightF x.Weight
 
 let private acceptEncodingF =
-    function | AcceptEncoding x -> join acceptableEncodingF commaF x
+    function | AcceptEncoding x -> join commaF acceptableEncodingF x
 
 (* Parsing *)
 
@@ -476,7 +476,7 @@ let private encodingP =
         encodingSpecEncodingP ]
 
 let private acceptEncodingP =
-    infixP commaP (encodingP .>> owsP .>>. opt weightP)
+    infixP (skipChar ',') (encodingP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (encoding, weight) ->
         { Encoding = encoding
           Weight = weight }) >> AcceptEncoding)
@@ -486,10 +486,10 @@ let private acceptEncodingP =
 type AcceptEncoding with
 
     static member Format =
-        Formatting.format acceptEncodingF
+        format acceptEncodingF
 
     static member TryParse =
-        Parsing.parseP acceptEncodingP
+        parseOption acceptEncodingP
 
     override x.ToString () =
         AcceptEncoding.Format x
@@ -515,7 +515,7 @@ let private acceptableLanguageF x =
     cultureInfoF x.Language >> weightF x.Weight
 
 let private acceptLanguageF =
-    function | AcceptLanguage x -> join acceptableLanguageF commaF x
+    function | AcceptLanguage x -> join commaF acceptableLanguageF x
 
 (* Parsing *)
 
@@ -523,7 +523,7 @@ let private acceptLanguageF =
     definition from RFC 4647, Section 3.1.3.1 *)
 
 let private languageRangeComponentP =
-    manyMinMaxSatisfy 1 8 (fun c -> Set.contains c alpha)
+    manyMinMaxSatisfy 1 8 ((?>) RFC5234.alpha)
 
 let private languageRangeP =
     languageRangeComponentP .>>. opt (skipChar '-' >>. languageRangeComponentP)
@@ -532,7 +532,7 @@ let private languageRangeP =
         | range, _ -> CultureInfo (range)
 
 let private acceptLanguageP =
-    infixP commaP (languageRangeP .>> owsP .>>. opt weightP)
+    infixP (skipChar ',') (languageRangeP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (languageRange, weight) ->
         { Language = languageRange
           Weight = weight }) >> AcceptLanguage)
@@ -542,10 +542,10 @@ let private acceptLanguageP =
 type AcceptLanguage with
 
     static member Format =
-        Formatting.format acceptLanguageF
+        format acceptLanguageF
 
     static member TryParse =
-        Parsing.parseP acceptLanguageP
+        parseOption acceptLanguageP
 
     override x.ToString () =
         AcceptLanguage.Format x
@@ -583,10 +583,10 @@ let private dateP =
 type Date with
 
     static member Format =
-        Formatting.format dateF
+        format dateF
 
     static member TryParse =
-        Parsing.parseP dateP
+        parseOption dateP
 
     override x.ToString () =
         Date.Format x
@@ -612,10 +612,10 @@ let private retryAfterP =
 type RetryAfter with
 
     static member Format =
-        Formatting.format retryAfterF
+        format retryAfterF
 
     static member TryParse =
-        Parsing.parseP retryAfterP
+        parseOption retryAfterP
 
     override x.ToString () =
         RetryAfter.Format x
@@ -629,18 +629,18 @@ type Allow =
     | Allow of Method list
 
 let private allowF =
-    function | Allow x -> join methodF commaF x
+    function | Allow x -> join commaF methodF x
 
 let private allowP =
-    infixP commaP methodP |>> Allow
+    infixP (skipChar ',') methodP |>> Allow
 
 type Allow with
 
     static member Format =
-        Formatting.format allowF
+        format allowF
 
     static member TryParse =
-        Parsing.parseP allowP
+        parseOption allowP
 
     override x.ToString () =
         Allow.Format x

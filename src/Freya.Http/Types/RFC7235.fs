@@ -53,14 +53,14 @@ type Authorization =
     | Authorization of Credentials list
 
 let private authorizationF =
-    function | Authorization x -> join credentialsF commaF x
+    function | Authorization x -> join commaF credentialsF x
 
 // TODO: Parser
 
 type Authorization with
 
     static member Format =
-        Formatting.format authorizationF
+        format authorizationF
 
     override x.ToString () =
         Authorization.Format x

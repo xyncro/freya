@@ -51,7 +51,7 @@ module Request =
         itemLens<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
 
     let scheme =
-        itemLens<string> Constants.requestScheme <--> (Scheme.Parse, Scheme.Format)
+        itemLens<string> Constants.requestScheme
 
     let query =
         itemLens<string> Constants.requestQueryString // <--> TODO: Isomorphism

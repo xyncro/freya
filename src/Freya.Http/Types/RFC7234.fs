@@ -30,10 +30,10 @@ let private ageP : FParser<Age> =
 type Age with
 
     static member Format =
-        Formatting.format ageF
+        format ageF
 
     static member TryParse =
-        Parsing.parseP ageP
+        parseOption ageP
 
     override x.ToString () =
         Age.Format x
@@ -85,7 +85,7 @@ let private cacheDirectiveF =
              | Custom (x, _) -> append x
 
 let private cacheControlF =
-    function | CacheControl x -> join cacheDirectiveF commaF x
+    function | CacheControl x -> join commaF cacheDirectiveF x
 
 (* Parsing *)
 
@@ -96,17 +96,17 @@ let private cacheDirectiveP =
         attempt (skipStringCI "max-age=" >>. puint32 |>> (int >> MaxAge)) ] 
 
 let private cacheControlP =
-    infix1P commaP cacheDirectiveP |>> CacheControl
+    infix1P (skipChar ',') cacheDirectiveP |>> CacheControl
 
 (* Augmentation *)
 
 type CacheControl with
 
     static member Format =
-        Formatting.format cacheControlF
+        format cacheControlF
 
     static member TryParse =
-        Parsing.parseP cacheControlP
+        parseOption cacheControlP
 
     override x.ToString () =
         CacheControl.Format x
@@ -128,10 +128,10 @@ let private expiresP =
 type Expires with
 
     static member Format =
-        Formatting.format expiresF
+        format expiresF
 
     static member TryParse =
-        Parsing.parseP expiresP
+        parseOption expiresP
 
     override x.ToString () =
         Expires.Format x

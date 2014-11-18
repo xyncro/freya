@@ -32,10 +32,10 @@ let private ifRangeP =
 type IfRange with
 
     static member Format =
-        Formatting.format ifRangeF
+        format ifRangeF
 
     static member TryParse =
-        Parsing.parseP ifRangeP
+        parseOption ifRangeP
 
     override x.ToString () =
         IfRange.Format x

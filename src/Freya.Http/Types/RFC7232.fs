@@ -30,10 +30,10 @@ let private lastModifiedP =
 type LastModified with
 
     static member Format =
-        Formatting.format lastModifiedF
+        format lastModifiedF
 
     static member TryParse =
-        Parsing.parseP lastModifiedP
+        parseOption lastModifiedP
 
     override x.ToString () =
         LastModified.Format x
@@ -60,7 +60,7 @@ let private eTagF =
 // TODO: Full weak/strong parser for EntityTag
 
 let internal entityTagP =
-    skipChar dquote >>. tokenP .>> skipChar dquote |>> Strong
+    skipChar RFC5234.dquote >>. tokenP .>> skipChar RFC5234.dquote |>> Strong
 
 let private eTagP =
     entityTagP |>> ETag
@@ -68,10 +68,10 @@ let private eTagP =
 type ETag with
 
     static member Format =
-        Formatting.format eTagF
+        format eTagF
 
     static member TryParse =
-        Parsing.parseP eTagP
+        parseOption eTagP
 
     override x.ToString () =
         ETag.Format x
@@ -86,21 +86,21 @@ type IfMatch =
     | Any
 
 let private ifMatchF =
-    function | IfMatch.EntityTags x -> join entityTagF commaF x
+    function | IfMatch.EntityTags x -> join commaF entityTagF x
              | IfMatch.Any -> append "*"
 
 let private ifMatchP =
     choice [
         skipChar '*' >>% IfMatch.Any
-        infixP commaP entityTagP |>> IfMatch.EntityTags ]
+        infixP (skipChar ',') entityTagP |>> IfMatch.EntityTags ]
 
 type IfMatch with
 
     static member Format =
-        Formatting.format ifMatchF
+        format ifMatchF
 
     static member TryParse =
-        Parsing.parseP ifMatchP
+        parseOption ifMatchP
 
     override x.ToString () =
         IfMatch.Format x
@@ -115,21 +115,21 @@ type IfNoneMatch =
     | Any
 
 let private ifNoneMatchF =
-    function | IfNoneMatch.EntityTags x -> join entityTagF commaF x
+    function | IfNoneMatch.EntityTags x -> join commaF entityTagF x
              | IfNoneMatch.Any -> append "*"
 
 let private ifNoneMatchP =
     choice [
         skipChar '*' >>% IfNoneMatch.Any
-        infixP commaP entityTagP |>> IfNoneMatch.EntityTags ]
+        infixP (skipChar ',') entityTagP |>> IfNoneMatch.EntityTags ]
 
 type IfNoneMatch with
 
     static member Format =
-        Formatting.format ifNoneMatchF
+        format ifNoneMatchF
 
     static member TryParse =
-        Parsing.parseP ifNoneMatchP
+        parseOption ifNoneMatchP
 
     override x.ToString () =
         IfNoneMatch.Format x
@@ -151,10 +151,10 @@ let private ifModifiedSinceP =
 type IfModifiedSince with
 
     static member Format =
-        Formatting.format ifModifiedSinceF
+        format ifModifiedSinceF
 
     static member TryParse =
-        Parsing.parseP ifModifiedSinceP
+        parseOption ifModifiedSinceP
 
     override x.ToString () =
         IfModifiedSince.Format x
@@ -176,10 +176,10 @@ let private ifUnmodifiedSinceP =
 type IfUnmodifiedSince with
 
     static member Format =
-        Formatting.format ifUnmodifiedSinceF
+        format ifUnmodifiedSinceF
 
     static member TryParse =
-        Parsing.parseP ifUnmodifiedSinceP
+        parseOption ifUnmodifiedSinceP
 
     override x.ToString () =
         IfUnmodifiedSince.Format x
