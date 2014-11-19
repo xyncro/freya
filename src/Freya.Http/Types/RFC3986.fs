@@ -81,7 +81,7 @@ type Authority =
 and Host =
     | IPv4 of IPAddress
     | IPv6 of IPAddress
-    | RegName of string
+    | Name of string
 
 and Port =
     | Port of int
@@ -115,7 +115,7 @@ let private userInfoP =
 let private hostF =
     function | IPv4 x -> append (string x)
              | IPv6 x -> append "[" >> append (string x) >> append "]"
-             | RegName x -> append x
+             | Name x -> append x
 
 let private ipv6Chars =
     Set.unionMany [
@@ -145,7 +145,7 @@ let private regNameChars =
         subDelims ]
 
 let private regNameP =
-    manySatisfy ((?>) regNameChars) |>> RegName
+    manySatisfy ((?>) regNameChars) |>> Name
 
 let private hostP =
     choice [
@@ -163,6 +163,12 @@ let private portP =
 
 (* Section 3.2 *)
 
+let private authorityF =
+    function | { Host = h; Port = Some p; UserInfo = Some u } -> hostF h >> portF p >> userInfoF u
+             | { Host = h; Port = Some p } -> hostF h >> portF p
+             | { Host = h; UserInfo = Some u} -> hostF h >> userInfoF u
+             | { Host = h } -> hostF h
+
 let private authorityP =
     opt (attempt userInfoP) .>>. hostP .>>. opt portP
     |>> fun ((user, host), port) ->
@@ -171,6 +177,107 @@ let private authorityP =
           UserInfo = user }
 
 type Authority with
+
+    static member Format =
+        format authorityF
     
     static member TryParse =
         parseOption authorityP
+
+    override x.ToString () =
+        Authority.Format x
+
+(* Path
+
+   Taken from RFC 3986, Section 3.3 Path
+   See [http://tools.ietf.org/html/rfc3986#section-3.3] *)
+
+type PathAbsoluteOrEmpty =
+    | PathAbsoluteOrEmpty of string list
+
+type PathAbsolute =
+    | PathAbsolute of string list
+
+type PathNoScheme =
+    | PathNoScheme of string list
+
+type PathRootless =
+    | PathRootless of string list
+
+type PathEmpty =
+    | PathEmpty
+
+let private pchar =
+    Set.unionMany [
+        unreserved
+        subDelims
+        set [ ':'; '@' ] ]
+
+let private segmentF =
+    manySatisfy ((?>) pchar)
+
+let private segmentNzF =
+    many1Satisfy ((?>) pchar)
+
+let private pathAbEmptyF =
+    many (skipChar '/' >>. segmentF) |>> PathAbsoluteOrEmpty
+
+let private pathAbsoluteF =
+    skipChar '/' >>. opt (segmentNzF .>>. many (skipChar '/' >>. segmentF))
+    |>> function | Some (x, xs) -> PathAbsolute (x :: xs)
+                 | _ -> PathAbsolute []
+
+let private pathRootlessF =
+    segmentNzF .>>. many (skipChar '/' >>. segmentF)
+    |>> fun (x, xs) -> PathRootless (x :: xs)
+
+(* URI
+
+   Taken from RFC 3986, Section 3 URI
+   See [http://tools.ietf.org/html/rfc3986#section-3] *)
+
+(* Note: In the case of absolute paths in the hierarchy, which the parser
+   will correctly determine, the type system cannot adequately protect
+   against an absolute path being created with two initial empty
+   segments (and in the absence of a strong dependent system, it's likely
+   to stay that way without extreme convolution). (Created in this case
+   refers to direct instance creation).
+
+   It is therefore possible to create an invalid URI string using the URI
+   type if some care is not taken. For now this will simply have to stand
+   as an allowed but "known not ideal" behaviour, under review.
+   
+   It is of course also possible to create invalid paths by creating strings
+   which are invalid segments. Though the parser will reject these, manual
+   creation will still allow this case. *)
+
+type Uri =
+    { Scheme: Scheme
+      Hierarchy: Hierarchy }
+
+and Hierarchy =
+    | Authority of Authority * PathAbsoluteOrEmpty
+    | Absolute of PathAbsolute
+    | Rootless of PathRootless
+    | Empty
+
+let private hierPartP =
+    choice [
+        skipString "//" >>. authorityP .>>. pathAbEmptyF |>> Authority
+        pathAbsoluteF |>> Absolute
+        pathRootlessF |>> Rootless
+        preturn Empty ]
+
+let private uriP =
+    schemeP .>> skipChar ':' .>>. hierPartP
+    |>> fun (scheme, hierarchy) ->
+        { Scheme = scheme
+          Hierarchy = hierarchy }
+
+type Uri with
+
+    static member Parse =
+        parseExact uriP
+
+    static member TryParse =
+        parseOption uriP
