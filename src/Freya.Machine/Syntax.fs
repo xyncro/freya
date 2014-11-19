@@ -4,7 +4,7 @@ module Freya.Machine.Syntax
 open System
 open System.Globalization
 open Freya.Core
-open Freya.Http
+open Freya.Typed
 
 
 [<AutoOpen>]

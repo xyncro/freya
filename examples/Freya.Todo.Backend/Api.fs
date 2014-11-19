@@ -3,13 +3,13 @@
 open System
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Http
 open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Inspector
 open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Router
+open Freya.Typed
 open Freya.Todo.Backend.Storage
 
 // Helpers
@@ -72,8 +72,8 @@ let todo =
 
 let api =
     freyaRouter {
-        route Any "/" todos
-        route Any "/:id" todo } |> compileFreyaRouter
+        route All "/" todos
+        route All "/:id" todo } |> compileFreyaRouter
 
 // Pipeline
 

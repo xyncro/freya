@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module internal Freya.Http.RFC5234
+module internal Freya.Typed.RFC5234
 
 (* RFC 5234
 

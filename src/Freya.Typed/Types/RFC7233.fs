@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7233
+module Freya.Typed.RFC7233
 
 #nowarn "60"
 
@@ -33,6 +33,9 @@ type IfRange with
 
     static member Format =
         format ifRangeF
+
+    static member Parse =
+        parseExact ifRangeP
 
     static member TryParse =
         parseOption ifRangeP

@@ -4,7 +4,7 @@ module Freya.Inspector.Integration
 open Aether
 open Aether.Operators
 open Freya.Core.Operators
-open Freya.Http
+open Freya.Typed
 
 (* Functions *)
 

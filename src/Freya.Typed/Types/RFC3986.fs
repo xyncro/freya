@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC3986
+module Freya.Typed.RFC3986
 
 #nowarn "60"
 
@@ -61,6 +61,9 @@ type Scheme with
 
     static member Format =
         format schemeF
+
+    static member Parse =
+        parseExact schemeP
 
     static member TryParse =
         parseOption schemeP
@@ -164,10 +167,15 @@ let private portP =
 (* Section 3.2 *)
 
 let private authorityF =
-    function | { Host = h; Port = Some p; UserInfo = Some u } -> hostF h >> portF p >> userInfoF u
-             | { Host = h; Port = Some p } -> hostF h >> portF p
-             | { Host = h; UserInfo = Some u} -> hostF h >> userInfoF u
-             | { Host = h } -> hostF h
+    function | { Host = h
+                 Port = p
+                 UserInfo = u } ->
+                    let formatters =
+                        [ hostF h
+                          (function | Some p -> portF p | _ -> id) p
+                          (function | Some u -> userInfoF u | _ -> id) u ]
+
+                    fun b -> List.fold (fun b f -> f b)b formatters
 
 let private authorityP =
     opt (attempt userInfoP) .>>. hostP .>>. opt portP
@@ -180,6 +188,9 @@ type Authority with
 
     static member Format =
         format authorityF
+
+    static member Parse =
+        parseExact authorityP
     
     static member TryParse =
         parseOption authorityP
@@ -192,44 +203,172 @@ type Authority with
    Taken from RFC 3986, Section 3.3 Path
    See [http://tools.ietf.org/html/rfc3986#section-3.3] *)
 
-type PathAbsoluteOrEmpty =
-    | PathAbsoluteOrEmpty of string list
-
-type PathAbsolute =
-    | PathAbsolute of string list
-
-type PathNoScheme =
-    | PathNoScheme of string list
-
-type PathRootless =
-    | PathRootless of string list
-
-type PathEmpty =
-    | PathEmpty
-
 let private pchar =
     Set.unionMany [
         unreserved
         subDelims
         set [ ':'; '@' ] ]
 
-let private segmentF =
+let private segmentP =
     manySatisfy ((?>) pchar)
 
-let private segmentNzF =
+let private segmentNzP =
     many1Satisfy ((?>) pchar)
 
-let private pathAbEmptyF =
-    many (skipChar '/' >>. segmentF) |>> PathAbsoluteOrEmpty
+(* Absolute Or Empty *)
+
+type PathAbsoluteOrEmpty =
+    | PathAbsoluteOrEmpty of string list
+
+let private pathAbsoluteOrEmptyF =
+    function | PathAbsoluteOrEmpty [] -> id
+             | PathAbsoluteOrEmpty xs -> slashF >> join slashF append xs
+
+let private pathAbsoluteOrEmptyP =
+    many (skipChar '/' >>. segmentP) |>> PathAbsoluteOrEmpty
+
+type PathAbsoluteOrEmpty with
+
+    static member Format =
+        format pathAbsoluteOrEmptyF
+
+    static member Parse =
+        parseExact pathAbsoluteOrEmptyP
+
+    static member TryParse =
+        parseOption pathAbsoluteOrEmptyP
+
+    override x.ToString () =
+        PathAbsoluteOrEmpty.Format x
+
+(* Absolute *)
+
+type PathAbsolute =
+    | PathAbsolute of string list
 
 let private pathAbsoluteF =
-    skipChar '/' >>. opt (segmentNzF .>>. many (skipChar '/' >>. segmentF))
+    function | PathAbsolute xs -> slashF >> join slashF append xs
+
+let private pathAbsoluteP =
+    skipChar '/' >>. opt (segmentNzP .>>. many (skipChar '/' >>. segmentP))
     |>> function | Some (x, xs) -> PathAbsolute (x :: xs)
                  | _ -> PathAbsolute []
 
+type PathAbsolute with
+
+    static member Format =
+        format pathAbsoluteF
+
+    static member Parse =
+        parseExact pathAbsoluteP
+
+    static member TryParse =
+        parseOption pathAbsoluteP
+
+    override x.ToString () =
+        PathAbsolute.Format x
+
+(* No Scheme *)
+
+type PathNoScheme =
+    | PathNoScheme of string list
+
+(* Rootless *)
+
+type PathRootless =
+    | PathRootless of string list
+
 let private pathRootlessF =
-    segmentNzF .>>. many (skipChar '/' >>. segmentF)
+    function | PathRootless xs -> join slashF append xs
+
+let private pathRootlessP =
+    segmentNzP .>>. many (skipChar '/' >>. segmentP)
     |>> fun (x, xs) -> PathRootless (x :: xs)
+
+type PathRootless with
+
+    static member Format =
+        format pathRootlessF
+
+    static member Parse =
+        parseExact pathRootlessP
+
+    static member TryParse =
+        parseOption pathRootlessP
+
+    override x.ToString () =
+        PathRootless.Format x
+
+(* Empty *)
+
+type PathEmpty =
+    | PathEmpty
+
+(* Query
+
+   Taken from RFC 3986, Section 3.4 Query
+   See [http://tools.ietf.org/html/rfc3986#section-3.4] *)
+
+type Query =
+    | Query of string
+
+let private queryF =
+    function | Query x -> append "?" >> append x
+
+let private queryChars =
+    Set.unionMany [
+        pchar
+        set [ '/'; '?' ] ]
+
+let private queryP =
+    skipChar '?' >>. manySatisfy ((?>) queryChars) |>> Query
+
+type Query with
+
+    static member Format =
+        format queryF
+
+    static member Parse =
+        parseExact queryP
+
+    static member TryParse =
+        parseOption queryP
+
+    override x.ToString () =
+        Query.Format x
+
+(* Fragment
+
+   Taken from RFC 3986, Section 3.5 Fragment
+   See [http://tools.ietf.org/html/rfc3986#section-3.5] *)
+
+type Fragment =
+    | Fragment of string
+
+let private fragmentF =
+    function | Fragment x -> append "#" >> append x
+
+let private fragmentChars =
+    Set.unionMany [
+        pchar
+        set [ '/'; '?' ] ]
+
+let private fragmentP =
+    skipChar '#' >>. manySatisfy ((?>) fragmentChars) |>> Fragment
+
+type Fragment with
+
+    static member Format =
+        format fragmentF
+
+    static member Parse =
+        parseExact fragmentP
+
+    static member TryParse =
+        parseOption fragmentP
+
+    override x.ToString () =
+        Fragment.Format x
 
 (* URI
 
@@ -253,7 +392,9 @@ let private pathRootlessF =
 
 type Uri =
     { Scheme: Scheme
-      Hierarchy: Hierarchy }
+      Hierarchy: Hierarchy
+      Query: Query option
+      Fragment: Fragment option }
 
 and Hierarchy =
     | Authority of Authority * PathAbsoluteOrEmpty
@@ -261,23 +402,51 @@ and Hierarchy =
     | Rootless of PathRootless
     | Empty
 
+let private hierPartF =
+    function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
+             | Absolute p -> pathAbsoluteF p
+             | Rootless p -> pathRootlessF p
+             | Empty -> id
+
+let private uriF =
+    function | { Scheme = s
+                 Hierarchy = h
+                 Query = q
+                 Fragment = f } -> 
+                    let formatters =
+                        [ schemeF s
+                          append ":"
+                          hierPartF h
+                          (function | Some q -> queryF q | _ -> id) q
+                          (function | Some f -> fragmentF f | _ -> id) f ]
+
+                    fun b -> List.fold (fun b f -> f b) b formatters
+
 let private hierPartP =
     choice [
-        skipString "//" >>. authorityP .>>. pathAbEmptyF |>> Authority
-        pathAbsoluteF |>> Absolute
-        pathRootlessF |>> Rootless
+        skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
+        pathAbsoluteP |>> Absolute
+        pathRootlessP |>> Rootless
         preturn Empty ]
 
 let private uriP =
-    schemeP .>> skipChar ':' .>>. hierPartP
-    |>> fun (scheme, hierarchy) ->
+    schemeP .>> skipChar ':' .>>. hierPartP .>>. opt queryP .>>. opt fragmentP
+    |>> fun (((scheme, hierarchy), query), fragment) ->
         { Scheme = scheme
-          Hierarchy = hierarchy }
+          Hierarchy = hierarchy
+          Query = query
+          Fragment = fragment }
 
 type Uri with
+
+    static member Format =
+        format uriF
 
     static member Parse =
         parseExact uriP
 
     static member TryParse =
         parseOption uriP
+
+    override x.ToString () =
+        Uri.Format x

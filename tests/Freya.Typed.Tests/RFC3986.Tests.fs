@@ -1,9 +1,9 @@
-﻿module Freya.Http.Tests.RFC3986
+﻿module Freya.Typed.Tests.RFC3986
 
 open System.Net
 open NUnit.Framework
 open Swensen.Unquote
-open Freya.Http
+open Freya.Typed
 
 [<Test>]
 let ``Authority parses correctly`` () =
@@ -30,12 +30,13 @@ let ``Authority parses correctly`` () =
 
 [<Test>]
 let ``Uri parses correctly`` () =
-    let uri1 = Uri.Parse "http://user:pass@www.example.com:8080/seg1/seg2"
+    let uri1 = Uri.Parse "http://user:pass@www.example.com:8080/seg1/seg2?key=val"
     uri1.Scheme =? Scheme "http"
     uri1.Hierarchy =? Authority ({ Host = Name "www.example.com"
                                    Port = Some (Port 8080)
                                    UserInfo = Some (UserInfo "user:pass") }, 
                                  PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
+    uri1.Query =? Some (Query "key=val")
 
     let uri2 = Uri.Parse "urn:example:animal:ferret:nose"
     uri2.Scheme =? Scheme "urn"

@@ -5,7 +5,7 @@ open System.Globalization
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Http
+open Freya.Typed
 
 (* Representations *)
 

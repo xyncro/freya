@@ -1,8 +1,8 @@
-﻿module Freya.Http.Tests.Negotiation
+﻿module Freya.Typed.Tests.Negotiation
 
 open NUnit.Framework
 open Swensen.Unquote
-open Freya.Http
+open Freya.Typed
 
 
 [<Test>]

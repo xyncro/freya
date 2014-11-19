@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.Lenses
+module Freya.Typed.Lenses
 
 open System.Collections.Generic
 open System.IO

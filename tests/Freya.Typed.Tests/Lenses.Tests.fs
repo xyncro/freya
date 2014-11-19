@@ -1,4 +1,4 @@
-﻿module Freya.Http.Tests.Lenses
+﻿module Freya.Typed.Tests.Lenses
 
 open System
 open System.Collections.Generic
@@ -8,7 +8,7 @@ open Swensen.Unquote
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Http
+open Freya.Typed
 
 // Isomorphisms
 

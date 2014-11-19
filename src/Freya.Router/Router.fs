@@ -4,9 +4,8 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Http
 open Freya.Pipeline
-
+open Freya.Typed
 
 
 

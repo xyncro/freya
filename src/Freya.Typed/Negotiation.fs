@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.Negotiation
+module Freya.Typed.Negotiation
 
 open System
 open System.Globalization

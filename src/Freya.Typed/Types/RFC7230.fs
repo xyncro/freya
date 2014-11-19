@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7230
+module Freya.Typed.RFC7230
 
 #nowarn "60"
 
@@ -120,6 +120,9 @@ let private httpVersionP =
         skipString "HTTP/1.1" >>% HttpVersion.HTTP 1.1
         restOfLine false |>> HttpVersion.Custom ]
 
+let formatHttpVersion =
+    format httpVersionF
+
 type HttpVersion with
 
     static member Format =
@@ -150,6 +153,9 @@ type ContentLength with
     static member Format =
         format contentLengthF
 
+    static member Parse =
+        parseExact contentLengthP
+
     static member TryParse =
         parseOption contentLengthP
 
@@ -174,12 +180,15 @@ let private connectionF =
     function | Connection x -> join commaF connectionOptionF x
 
 let private connectionP =
-    infix1P (skipChar ',') tokenP |>> (List.map ConnectionOption >> Connection)
+    infix1P commaP tokenP |>> (List.map ConnectionOption >> Connection)
 
 type Connection with
 
     static member Format =
         format connectionF
+
+    static member Parse =
+        parseExact connectionP
 
     static member TryParse =
         parseOption connectionP

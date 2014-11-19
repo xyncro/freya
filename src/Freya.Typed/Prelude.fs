@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module internal Freya.Http.Prelude
+module internal Freya.Typed.Prelude
 
 open System.Text
 open Aether
@@ -64,14 +64,20 @@ module Formatting =
 
         join
 
+    (* Common *)
+
     let ampersandF : Separator =
-        fun b -> b.Append "&"
+        append "&"
 
     let commaF : Separator =
-        fun b -> b.Append ","
+        append ","
 
     let semicolonF : Separator =
-        fun b -> b.Append ";"
+        append ";"
+
+    let slashF : Separator =
+        append "/"
+
 
 (* Parsing *)
 
@@ -90,11 +96,6 @@ module Parsing =
         | Success (x, _, _) -> Some x
         | Failure (_, _, _) -> None
 
-    (* Types *)
-
-    type FParser<'a> = 
-        Parser<'a, unit>
-
     (* Helpers *)
 
     let charRange x y =
@@ -102,3 +103,17 @@ module Parsing =
 
     let (?>) xs x =
         Set.contains x xs
+
+    (* Common *)
+
+    let ampersandP : Parser<unit, unit> =
+        skipChar '&'
+
+    let commaP : Parser<unit, unit> =
+        skipChar ','
+
+    let semicolonP : Parser<unit, unit> =
+        skipChar ';'
+
+    let slashP : Parser<unit, unit> =
+        skipChar '/'

@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7232
+module Freya.Typed.RFC7232
 
 #nowarn "60"
 
@@ -31,6 +31,9 @@ type LastModified with
 
     static member Format =
         format lastModifiedF
+
+    static member Parse =
+        parseExact lastModifiedP
 
     static member TryParse =
         parseOption lastModifiedP
@@ -70,6 +73,9 @@ type ETag with
     static member Format =
         format eTagF
 
+    static member Parse =
+        parseExact eTagP
+
     static member TryParse =
         parseOption eTagP
 
@@ -92,12 +98,15 @@ let private ifMatchF =
 let private ifMatchP =
     choice [
         skipChar '*' >>% IfMatch.Any
-        infixP (skipChar ',') entityTagP |>> IfMatch.EntityTags ]
+        infixP commaP entityTagP |>> IfMatch.EntityTags ]
 
 type IfMatch with
 
     static member Format =
         format ifMatchF
+
+    static member Parse =
+        parseExact ifMatchP
 
     static member TryParse =
         parseOption ifMatchP
@@ -121,12 +130,15 @@ let private ifNoneMatchF =
 let private ifNoneMatchP =
     choice [
         skipChar '*' >>% IfNoneMatch.Any
-        infixP (skipChar ',') entityTagP |>> IfNoneMatch.EntityTags ]
+        infixP commaP entityTagP |>> IfNoneMatch.EntityTags ]
 
 type IfNoneMatch with
 
     static member Format =
         format ifNoneMatchF
+
+    static member Parse =
+        parseExact ifNoneMatchP
 
     static member TryParse =
         parseOption ifNoneMatchP
@@ -153,6 +165,9 @@ type IfModifiedSince with
     static member Format =
         format ifModifiedSinceF
 
+    static member Parse =
+        parseExact ifModifiedSinceP
+
     static member TryParse =
         parseOption ifModifiedSinceP
 
@@ -177,6 +192,9 @@ type IfUnmodifiedSince with
 
     static member Format =
         format ifUnmodifiedSinceF
+
+    static member Parse =
+        parseExact ifUnmodifiedSinceP
 
     static member TryParse =
         parseOption ifUnmodifiedSinceP

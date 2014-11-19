@@ -1,8 +1,8 @@
 ﻿[<AutoOpen>]
 module Freya.Router.Types
 
-open Freya.Http
 open Freya.Pipeline
+open Freya.Typed
 
 (* Types *)
 
@@ -12,5 +12,5 @@ type FreyaRoute =
       Pipeline: FreyaPipeline }
 
 and FreyaRouteMethod =
-    | Any
+    | All
     | Methods of Method list 

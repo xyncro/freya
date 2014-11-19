@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.Presets
+module Freya.Typed.Presets
 
 
 [<RequireQualifiedAccess>]

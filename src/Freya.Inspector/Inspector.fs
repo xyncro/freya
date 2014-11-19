@@ -3,8 +3,8 @@ module Freya.Inspector.Inspector
 
 open System
 open Freya.Core
-open Freya.Http
 open Freya.Pipeline
+open Freya.Typed
 
 (* Types *)
 

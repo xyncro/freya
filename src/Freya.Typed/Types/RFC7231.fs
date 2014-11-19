@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7231
+module Freya.Typed.RFC7231
 
 #nowarn "60"
 
@@ -38,7 +38,7 @@ let private parameterP =
     tokenP .>> skipChar '=' .>>. (quotedStringP <|> tokenP)
 
 let private parametersP =
-    prefixP (skipChar ';') parameterP |>> Map.ofList
+    prefixP semicolonP parameterP |>> Map.ofList
 
 (* Media-Type *)
 
@@ -55,13 +55,16 @@ let private mediaTypeF =
     function | MediaType (Type x, SubType y, p) -> appendf2 "{0}/{1}" x y >> parametersF p
 
 let private mediaTypeP =
-    tokenP .>> skipChar '/' .>>. tokenP .>>. parametersP
+    tokenP .>> slashP .>>. tokenP .>>. parametersP
     |>> (fun ((x, y), p) -> MediaType (Type x, SubType y, p))
 
 type MediaType with
 
     static member Format =
         format mediaTypeF
+
+    static member Parse =
+        parseExact mediaTypeP
 
     static member TryParse =
         parseOption mediaTypeP
@@ -87,6 +90,9 @@ type ContentType with
 
     static member Format =
         format contentTypeF
+
+    static member Parse =
+        parseExact contentTypeP
 
     static member TryParse =
         parseOption contentTypeP
@@ -117,12 +123,15 @@ let private contentEncodingF =
     function | ContentEncoding x -> join commaF encodingF x
 
 let private contentEncodingP =
-    infix1P (skipChar ',') tokenP |>> (List.map Encoding >> ContentEncoding)
+    infix1P commaP tokenP |>> (List.map Encoding >> ContentEncoding)
 
 type ContentEncoding with
 
     static member Format =
         format contentEncodingF
+
+    static member Parse =
+        parseExact contentEncodingP
 
     static member TryParse =
         parseOption contentEncodingP
@@ -202,6 +211,9 @@ type Expect with
     static member Format =
         format expectF
 
+    static member Parse =
+        parseExact expectP
+
     static member TryParse =
         parseOption expectP
 
@@ -226,6 +238,9 @@ type MaxForwards with
 
     static member Format =
         format maxForwardsF
+
+    static member Parse =
+        parseExact maxForwardsP
 
     static member TryParse =
         parseOption maxForwardsP
@@ -260,7 +275,7 @@ let private qvalueP =
         skipChar '1' >>. optional (skipChar '.' >>. d03P) >>% 1. ]
 
 let private weightP =
-    skipChar ';' >>. owsP >>. skipStringCI "q=" >>. qvalueP .>> owsP
+    semicolonP >>. owsP >>. skipStringCI "q=" >>. qvalueP .>> owsP
 
 (* Accept
 
@@ -315,7 +330,7 @@ let private acceptExtP =
     tokenP .>>. opt (skipChar '=' >>. (quotedStringP <|> tokenP))
 
 let private acceptExtsP =
-    prefixP (skipChar ';') acceptExtP |>> Map.ofList
+    prefixP semicolonP acceptExtP |>> Map.ofList
 
 let private acceptParamsP =
     weightP .>> owsP .>>. acceptExtsP
@@ -327,7 +342,7 @@ let private mediaRangeParameterP =
     notFollowedBy (owsP >>. skipStringCI "q=") >>. tokenP .>> skipChar '=' .>>. tokenP
 
 let private mediaRangeParametersP =
-    prefixP (skipChar ';') mediaRangeParameterP |>> Map.ofList
+    prefixP semicolonP mediaRangeParameterP |>> Map.ofList
 
 let private openMediaRangeP = 
     skipString "*/*" >>. owsP >>. mediaRangeParametersP |>> MediaRange.Open
@@ -348,14 +363,14 @@ let private mediaRangeP =
         attempt partialMediaRangeP
         closedMediaRangeP ]
 
-let private acceptableMediaP : FParser<AcceptableMedia> = 
+let private acceptableMediaP = 
     mediaRangeP .>>. opt acceptParamsP
     |>> (fun (mediaRangeSpec, parameters) ->
             { MediaRange = mediaRangeSpec
               Parameters = parameters })
 
 let private acceptP =
-    infixP (skipChar ',') acceptableMediaP |>> Accept
+    infixP commaP acceptableMediaP |>> Accept
 
 (* Augmentation *)
 
@@ -363,6 +378,9 @@ type Accept with
 
     static member Format =
         format acceptF
+
+    static member Parse =
+        parseExact acceptP
 
     static member TryParse =
         parseOption acceptP
@@ -415,7 +433,7 @@ let private charsetSpecP =
         charsetSpecCharsetP ]
 
 let private acceptCharsetP =
-    infix1P (skipChar ',') (charsetSpecP .>> owsP .>>. opt weightP)
+    infix1P commaP (charsetSpecP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (charsetSpec, weight) ->
         { Charset = charsetSpec
           Weight = weight }) >> AcceptCharset)
@@ -426,6 +444,9 @@ type AcceptCharset with
 
     static member Format =
         format acceptCharsetF
+
+    static member Parse =
+        parseExact acceptCharsetP
 
     static member TryParse =
         parseOption acceptCharsetP
@@ -476,7 +497,7 @@ let private encodingP =
         encodingSpecEncodingP ]
 
 let private acceptEncodingP =
-    infixP (skipChar ',') (encodingP .>> owsP .>>. opt weightP)
+    infixP commaP (encodingP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (encoding, weight) ->
         { Encoding = encoding
           Weight = weight }) >> AcceptEncoding)
@@ -487,6 +508,9 @@ type AcceptEncoding with
 
     static member Format =
         format acceptEncodingF
+
+    static member Parse =
+        parseExact acceptEncodingP
 
     static member TryParse =
         parseOption acceptEncodingP
@@ -532,7 +556,7 @@ let private languageRangeP =
         | range, _ -> CultureInfo (range)
 
 let private acceptLanguageP =
-    infixP (skipChar ',') (languageRangeP .>> owsP .>>. opt weightP)
+    infixP commaP (languageRangeP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (languageRange, weight) ->
         { Language = languageRange
           Weight = weight }) >> AcceptLanguage)
@@ -543,6 +567,9 @@ type AcceptLanguage with
 
     static member Format =
         format acceptLanguageF
+
+    static member Parse =
+        parseExact acceptLanguageP
 
     static member TryParse =
         parseOption acceptLanguageP
@@ -585,6 +612,9 @@ type Date with
     static member Format =
         format dateF
 
+    static member Parse =
+        parseExact dateP
+
     static member TryParse =
         parseOption dateP
 
@@ -614,6 +644,9 @@ type RetryAfter with
     static member Format =
         format retryAfterF
 
+    static member Parse =
+        parseExact retryAfterP
+
     static member TryParse =
         parseOption retryAfterP
 
@@ -632,12 +665,15 @@ let private allowF =
     function | Allow x -> join commaF methodF x
 
 let private allowP =
-    infixP (skipChar ',') methodP |>> Allow
+    infixP commaP methodP |>> Allow
 
 type Allow with
 
     static member Format =
         format allowF
+
+    static member Parse =
+        parseExact allowP
 
     static member TryParse =
         parseOption allowP

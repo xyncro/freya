@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7234
+module Freya.Typed.RFC7234
 
 #nowarn "60"
 
@@ -24,13 +24,16 @@ type Age =
 let private ageF =
     function | Age x -> append (string x.Seconds)
 
-let private ageP : FParser<Age> =
+let private ageP =
     puint32 |>> (float >> TimeSpan.FromSeconds >> Age)
 
 type Age with
 
     static member Format =
         format ageF
+
+    static member Parse =
+        parseExact ageP
 
     static member TryParse =
         parseOption ageP
@@ -96,7 +99,7 @@ let private cacheDirectiveP =
         attempt (skipStringCI "max-age=" >>. puint32 |>> (int >> MaxAge)) ] 
 
 let private cacheControlP =
-    infix1P (skipChar ',') cacheDirectiveP |>> CacheControl
+    infix1P commaP cacheDirectiveP |>> CacheControl
 
 (* Augmentation *)
 
@@ -104,6 +107,9 @@ type CacheControl with
 
     static member Format =
         format cacheControlF
+
+    static member Parse =
+        parseExact cacheControlP
 
     static member TryParse =
         parseOption cacheControlP
@@ -129,6 +135,9 @@ type Expires with
 
     static member Format =
         format expiresF
+
+    static member Parse =
+        parseExact expiresP
 
     static member TryParse =
         parseOption expiresP

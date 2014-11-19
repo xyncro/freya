@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Http.RFC7235
+module Freya.Typed.RFC7235
 
 #nowarn "60"
 
