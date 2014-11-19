@@ -13,6 +13,44 @@ open FParsec
 
    Taken from [http://tools.ietf.org/html/rfc7230] *)
 
+(* Uniform Resource Identifiers
+
+   Taken from RFC 7230, Section 2.7 Uniform Resource Identifiers
+   See [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
+
+type PartialUri =
+    { Relative: Relative
+      Query: Query option }
+
+let internal partialUriF =
+    function | { PartialUri.Relative = r
+                 Query = q } ->
+                    let formatters =
+                        [ relativeF r
+                          (function | Some q -> queryF q | _ -> id) q ]
+
+                    fun b -> List.fold (fun b f -> f b) b formatters
+
+let internal partialUriP =
+    relativeP .>>. opt queryP
+    |>> fun (relative, query) ->
+        { Relative = relative
+          Query = query }
+
+type PartialUri with
+
+    static member Format =
+        format partialUriF
+
+    static member Parse =
+        parseExact partialUriP
+
+    static member TryParse =
+        parseOption partialUriP
+
+    override x.ToString () =
+        PartialUri.Format x
+
 (* Whitespace
 
    Taken from RFC 7230, Section 3.2.3. Whitespace
@@ -161,6 +199,39 @@ type ContentLength with
 
     override x.ToString () =
         ContentLength.Format x
+
+(* Host
+
+   Taken from RFC 7230, Section 5.4 Host
+   See [http://tools.ietf.org/html/rfc7230#section-5.4] *)
+
+type Host =
+    | Host of RFC3986.Host * Port option
+
+let private hostF =
+    function | Host (h, p) ->
+                let formatters =
+                    [ hostF h
+                      (function | Some p -> portF p | _ -> id) p ]
+
+                fun b -> List.fold (fun b f -> f b) b formatters
+
+let private hostP =
+    hostP .>>. opt portP |>> Host
+
+type Host with
+
+    static member Format =
+        format hostF
+
+    static member Parse =
+        parseExact hostP
+
+    static member TryParse =
+        parseOption hostP
+
+    override x.ToString () =
+        Host.Format x
 
 (* Connection
 

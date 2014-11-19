@@ -139,6 +139,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Monad.fs" />
     <Compile Include="Inspection.fs" />
+    <Compile Include="Negotiation.fs" />
     <Compile Include="Logic.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Actions.fs" />

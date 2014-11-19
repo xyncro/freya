@@ -1,6 +1,16 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Prelude
 
+(* List Extensions *)
+
+[<RequireQualifiedAccess>]
+module List =
+
+    let tryMaxBy projection =
+        function | [] -> None
+                 | xs -> Some (List.maxBy projection xs)
+
+(* Option Extensions *)
 
 [<RequireQualifiedAccess>]
 module Option =

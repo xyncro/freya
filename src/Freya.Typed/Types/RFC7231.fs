@@ -139,6 +139,38 @@ type ContentEncoding with
     override x.ToString () =
         ContentEncoding.Format x
 
+(* Content-Location
+
+   Taken from RFC 7231, Section 3.1.4.2 Content-Location
+   [http://tools.ietf.org/html/rfc7231#section-3.1.4.2] *)
+
+type ContentLocation =
+    | Absolute of AbsoluteUri
+    | Partial of PartialUri
+
+let private contentLocationF =
+    function | Absolute x -> absoluteUriF x
+             | Partial x -> partialUriF x
+
+let private contentLocationP =
+    choice [
+        attempt absoluteUriP |>> Absolute
+        partialUriP |>> Partial ]
+
+type ContentLocation with
+
+    static member Format =
+        format contentLocationF
+
+    static member Parse =
+        parseExact contentLocationP
+
+    static member TryParse =
+        parseOption contentLocationP
+
+    override x.ToString () =
+        ContentLocation.Format x
+
 (* Method
 
    Taken from RFC 7231, Section 4
@@ -577,9 +609,41 @@ type AcceptLanguage with
     override x.ToString () =
         AcceptLanguage.Format x
 
+(* Referer
+
+   Taken from RFC 7231, Section 5.5.2 Referer
+   [http://tools.ietf.org/html/rfc7231#section-5.5.2] *)
+
+type Referer =
+    | Absolute of AbsoluteUri
+    | Partial of PartialUri
+
+let private refererF =
+    function | Absolute x -> absoluteUriF x
+             | Partial x -> partialUriF x
+
+let private refererP =
+    choice [
+        attempt absoluteUriP |>> Absolute
+        partialUriP |>> Partial ]
+
+type Referer with
+
+    static member Format =
+        format refererF
+
+    static member Parse =
+        parseExact refererP
+
+    static member TryParse =
+        parseOption refererP
+
+    override x.ToString () =
+        Referer.Format x
+
 (* HTTP-Date
 
-   Taken from RFC 7231, Section 7.1.1 HTTP-Date *)
+   Taken from RFC 7231, Section 7.1.1.1 HTTP-Date *)
 
 let private dateTimeFormat =
     CultureInfo.InvariantCulture.DateTimeFormat
@@ -620,6 +684,35 @@ type Date with
 
     override x.ToString () =
         Date.Format x
+
+(* Location
+
+   Taken from RFC 7231, Section 7.1.2 Location
+   [http://tools.ietf.org/html/rfc7231#section-7.1.2] *)
+
+type Location =
+    | Location of UriReference
+
+let private locationF =
+    function | Location x -> uriReferenceF x
+
+let private locationP =
+    uriReferenceP |>> Location
+
+type Location with
+
+    static member Format =
+        format locationF
+
+    static member Parse =
+        parseExact locationP
+
+    static member TryParse =
+        parseOption locationP
+
+    override x.ToString () =
+        Location.Format x
+
 
 (* Retry-After
 

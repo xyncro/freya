@@ -378,10 +378,10 @@ let ``Request.Headers.acceptLanguage`` () =
 let ``Request.Headers.host`` () =
     let get = 
         getRequestHeaderT
-            ("Host", "www.example.org:8080")
+            ("Host", "www.example.com:8080")
             (getPLM Request.Headers.host)
 
-    get.Value =? "www.example.org:8080"
+    get.Value =? Host (Name "www.example.com", Some (Port 8080))
 
 [<Test>]
 let ``Request.Headers.maxForwards`` () =

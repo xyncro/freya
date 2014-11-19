@@ -6,50 +6,133 @@ open Swensen.Unquote
 open Freya.Typed
 
 [<Test>]
-let ``Authority parses correctly`` () =
-    let auth1 = Authority.TryParse "192.168.0.1"
+let ``Scheme Formatting/Parsing`` () =
+    let schemeTyped =
+        Scheme "http"
 
-    auth1.IsSome =? true
-    auth1.Value.Host =? IPv4 (IPAddress.Parse "192.168.0.1")
-    auth1.Value.Port =? None
-    auth1.Value.UserInfo =? None
+    let schemeString =
+        "http"
 
-    let auth2 = Authority.TryParse "user:pass@www.example.com"
-
-    auth2.IsSome =? true
-    auth2.Value.Host =? Name ("www.example.com")
-    auth2.Value.UserInfo =? Some (UserInfo "user:pass")
-    auth2.Value.Port =? None
-
-    let auth3 = Authority.TryParse "user:pass@[2001:db8::ff00:42:8329]:8080"
-
-    auth3.IsSome =? true
-    auth3.Value.Host =? IPv6 (IPAddress.Parse "2001:db8::ff00:42:8329")
-    auth3.Value.UserInfo =? Some (UserInfo "user:pass")
-    auth3.Value.Port =? Some (Port 8080)
+    roundTrip (Scheme.Format, Scheme.Parse) [
+        schemeTyped, schemeString ]
 
 [<Test>]
-let ``Uri parses correctly`` () =
-    let uri1 = Uri.Parse "http://user:pass@www.example.com:8080/seg1/seg2?key=val"
-    uri1.Scheme =? Scheme "http"
-    uri1.Hierarchy =? Authority ({ Host = Name "www.example.com"
+let ``Authority Formatting/Parsing`` () =
+    
+    (* Host Only *)
+
+    let hostTyped =
+        { Host = IPv4 (IPAddress.Parse "192.168.0.1")
+          Port = None
+          UserInfo = None }
+
+    let hostString =
+        "192.168.0.1"
+
+    (* Host and Port *)
+
+    let hostPortTyped =
+        { Host = IPv6 (IPAddress.Parse "2001:db8::ff00:42:8329")
+          Port = Some (Port 8080)
+          UserInfo = None }
+
+    let hostPortString =
+        "[2001:db8::ff00:42:8329]:8080"
+
+    (* Host, Port and UserInfo *)
+
+    let hostPortUserTyped =
+        { Host = Name "www.example.com"
+          Port = Some (Port 8080)
+          UserInfo = Some (UserInfo "user:pass") }
+
+    let hostPortUserString =
+        "user:pass@www.example.com:8080"
+
+    (* Round Trip *)
+
+    roundTrip (Authority.Format, Authority.Parse) [
+        hostTyped,         hostString
+        hostPortTyped,     hostPortString
+        hostPortUserTyped, hostPortUserString ]
+
+[<Test>]
+let ``Path(s) Formatting/Parsing ()`` =
+
+    (* PathAbsoluteOrEmpty *)
+
+    let pathAbEmptyFullTyped = 
+        PathAbsoluteOrEmpty [ "some"; "path" ]
+
+    let pathAbEmptyFullString =
+        "/some/path"
+
+    let pathAbEmptyEmptyTyped = 
+        PathAbsoluteOrEmpty []
+
+    let pathAbEmptyEmptyString =
+        ""
+
+    roundTrip (PathAbsoluteOrEmpty.Format, PathAbsoluteOrEmpty.Parse) [
+        pathAbEmptyFullTyped,  pathAbEmptyFullString
+        pathAbEmptyEmptyTyped, pathAbEmptyEmptyString ]
+
+
+[<Test>]
+let ``Uri Formatting/Parsing`` () =
+
+    (* Authority Hierarchy *)
+    
+    let authorityTyped =
+        { Scheme = Scheme "http"
+          Hierarchy = 
+            Hierarchy.Authority ({ Host = Name "www.example.com"
                                    Port = Some (Port 8080)
-                                   UserInfo = Some (UserInfo "user:pass") }, 
+                                   UserInfo = Some (UserInfo "user:pass") },
                                  PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
-    uri1.Query =? Some (Query "key=val")
+          Query = Some (Query "key=val")
+          Fragment = Some (Fragment "frag1") }
 
-    let uri2 = Uri.Parse "urn:example:animal:ferret:nose"
-    uri2.Scheme =? Scheme "urn"
-    uri2.Hierarchy =? Rootless (PathRootless [ "example:animal:ferret:nose" ])
+    let authorityString =
+        "http://user:pass@www.example.com:8080/seg1/seg2?key=val#frag1"
 
-    let uri3 = Uri.Parse "mailto:fred@example.com"
-    uri3.Scheme =? Scheme "mailto"
-    uri3.Hierarchy =? Rootless (PathRootless [ "fred@example.com" ])
+    (* Rootless Hierarchy *)
 
-    let uri4 = Uri.Parse "sip:/user/example"
-    uri4.Scheme =? Scheme "sip"
-    uri4.Hierarchy =? Absolute (PathAbsolute [ "user"; "example" ])
+    let rootlessTyped =
+        { Scheme = Scheme "urn"
+          Hierarchy = Rootless (PathRootless [ "example:animal:ferret:nose" ])
+          Query = None
+          Fragment = None }
 
-[<Test>]
-let ``Uri fails correctly`` () =
-    raises<exn> <@ Uri.Parse "<invalid>" @>
+    let rootlessString =
+        "urn:example:animal:ferret:nose"
+
+    (* Absolute Hierarchy *)
+
+    let absoluteTyped =
+        { Scheme = Scheme "sip"
+          Hierarchy = Hierarchy.Absolute (PathAbsolute [ "user"; "example" ])
+          Query = None
+          Fragment = None }
+
+    let absoluteString =
+        "sip:/user/example"
+
+    (* Empty Hierarchy *)
+
+    let emptyTyped =
+        { Scheme = Scheme "test"
+          Hierarchy = Hierarchy.Empty
+          Query = None
+          Fragment = None }
+
+    let emptyString =
+        "test:"
+
+    (* Round Trip *)
+
+    roundTrip (Uri.Format, Uri.Parse) [ 
+        authorityTyped, authorityString
+        rootlessTyped,  rootlessString
+        absoluteTyped,  absoluteString
+        emptyTyped,     emptyString ]

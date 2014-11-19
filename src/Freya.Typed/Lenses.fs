@@ -100,10 +100,8 @@ module Request =
         let contentLength =
             headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)
 
-        // TODO: typed ContentLocation
-
         let contentLocation =
-            headersKey "Content-Location"
+            headersKey "Content-Location" <??> (ContentLocation.TryParse, ContentLocation.Format)
 
         let contentType =
             headersKey "Content-Type" <??> (ContentType.TryParse, ContentType.Format)
@@ -119,10 +117,8 @@ module Request =
         let from =
             headersKey "From"
 
-        // TODO: typed Host
-
         let host =
-            headersKey "Host"
+            headersKey "Host" <??> (Host.TryParse, Host.Format)
 
         let ifMatch =
             headersKey "If-Match" <??> (IfMatch.TryParse, IfMatch.Format)
@@ -157,10 +153,8 @@ module Request =
         let range =
             headersKey "Range"
 
-        // TODO: typed Referer
-
         let referer =
-            headersKey "Referer"
+            headersKey "Referer" <??> (Referer.TryParse, Referer.Format)
 
         // TODO: typed TE
 
@@ -248,10 +242,8 @@ module Response =
         let contentLength =
             headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)
 
-        // TODO: typed ContentLocation
-
         let contentLocation =
-            headersKey "Content-Location"
+            headersKey "Content-Location" <??> (ContentLocation.TryParse, ContentLocation.Format)
 
         // TODO: typed ContentRange
 
@@ -273,10 +265,8 @@ module Response =
         let lastModified =
             headersKey "Last-Modified" <??> (LastModified.TryParse, LastModified.Format)
 
-        // TODO: typed Location
-
         let location =
-            headersKey "Location"
+            headersKey "Location" <??> (Location.TryParse, Location.Format)
 
         // TODO: typed ProxyAuthenticate
 

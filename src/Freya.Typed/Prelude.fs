@@ -10,24 +10,6 @@ open FParsec
 let boxIso<'a> : Iso<obj, 'a> =
     unbox<'a>, box
 
-(* List Extensions *)
-
-[<RequireQualifiedAccess>]
-module List =
-
-    let tryMaxBy projection =
-        function | [] -> None
-                 | xs -> Some (List.maxBy projection xs)
-
-(* Option Extensions *)
-
-[<RequireQualifiedAccess>]
-module Option =
-
-    let getOrElse def =
-        function | Some x -> x
-                 | _ -> def
-
 (* Formatting *)
 
 [<AutoOpen>]

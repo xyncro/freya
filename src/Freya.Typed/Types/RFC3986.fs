@@ -115,7 +115,7 @@ let private userInfoP =
    implementing IP-literal as an IPv6 specific type, discarding IPvFuture. As
    it stands, that's unlikely to be an issue, but could perhaps be revisited. *)
 
-let private hostF =
+let internal hostF =
     function | IPv4 x -> append (string x)
              | IPv6 x -> append "[" >> append (string x) >> append "]"
              | Name x -> append x
@@ -150,7 +150,7 @@ let private regNameChars =
 let private regNameP =
     manySatisfy ((?>) regNameChars) |>> Name
 
-let private hostP =
+let internal hostP =
     choice [
         attempt ipLiteralP
         attempt ipv4AddressP
@@ -158,10 +158,10 @@ let private hostP =
 
 (* Section 3.2.3 *)
 
-let private portF =
+let internal portF =
     function | Port x -> append ":" >> append (string x)
 
-let private portP =
+let internal portP =
     skipChar ':' >>. puint32 |>> (int >> Port)
 
 (* Section 3.2 *)
@@ -171,9 +171,9 @@ let private authorityF =
                  Port = p
                  UserInfo = u } ->
                     let formatters =
-                        [ hostF h
-                          (function | Some p -> portF p | _ -> id) p
-                          (function | Some u -> userInfoF u | _ -> id) u ]
+                        [ (function | Some u -> userInfoF u | _ -> id) u
+                          hostF h
+                          (function | Some p -> portF p | _ -> id) p ]
 
                     fun b -> List.fold (fun b f -> f b)b formatters
 
@@ -209,11 +209,17 @@ let private pchar =
         subDelims
         set [ ':'; '@' ] ]
 
+let private pcharNc =
+    Set.remove ':' pchar
+
 let private segmentP =
     manySatisfy ((?>) pchar)
 
 let private segmentNzP =
     many1Satisfy ((?>) pchar)
+
+let private segmentNzNcP =
+    many1Satisfy ((?>) pcharNc)
 
 (* Absolute Or Empty *)
 
@@ -273,6 +279,27 @@ type PathAbsolute with
 type PathNoScheme =
     | PathNoScheme of string list
 
+let private pathNoSchemeF =
+    function | PathNoScheme xs -> join slashF append xs
+
+let private pathNoSchemeP =
+    segmentNzNcP .>>. many (slashP >>. segmentP)
+    |>> fun (x, xs) -> PathNoScheme (x :: xs)
+
+type PathNoScheme with
+
+    static member Format =
+        format pathNoSchemeF
+
+    static member Parse =
+        parseExact pathNoSchemeP
+
+    static member TryParse =
+        parseOption pathNoSchemeP
+
+    override x.ToString () =
+        PathNoScheme.Format x
+
 (* Rootless *)
 
 type PathRootless =
@@ -312,7 +339,7 @@ type PathEmpty =
 type Query =
     | Query of string
 
-let private queryF =
+let internal queryF =
     function | Query x -> append "?" >> append x
 
 let private queryChars =
@@ -320,7 +347,7 @@ let private queryChars =
         pchar
         set [ '/'; '?' ] ]
 
-let private queryP =
+let internal queryP =
     skipChar '?' >>. manySatisfy ((?>) queryChars) |>> Query
 
 type Query with
@@ -408,7 +435,7 @@ let private hierPartF =
              | Rootless p -> pathRootlessF p
              | Empty -> id
 
-let private uriF =
+let internal uriF =
     function | { Scheme = s
                  Hierarchy = h
                  Query = q
@@ -429,7 +456,7 @@ let private hierPartP =
         pathRootlessP |>> Rootless
         preturn Empty ]
 
-let private uriP =
+let internal uriP =
     schemeP .>> skipChar ':' .>>. hierPartP .>>. opt queryP .>>. opt fragmentP
     |>> fun (((scheme, hierarchy), query), fragment) ->
         { Scheme = scheme
@@ -450,3 +477,161 @@ type Uri with
 
     override x.ToString () =
         Uri.Format x
+
+(* Relative Reference
+
+   Taken from RFC 3986, Section 4.2 Relative Reference
+   See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
+
+type Relative =
+    | Authority of Authority * PathAbsoluteOrEmpty
+    | Absolute of PathAbsolute
+    | NoScheme of PathNoScheme
+    | Empty
+
+let internal relativeF =
+    function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
+             | Absolute p -> pathAbsoluteF p
+             | NoScheme p -> pathNoSchemeF p
+             | Empty -> id
+
+let internal relativeP =
+    choice [
+        skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
+        pathAbsoluteP |>> Absolute
+        pathNoSchemeP |>> NoScheme
+        preturn Empty ]
+
+type Relative with
+
+    static member Format =
+        format relativeF
+
+    static member Parse =
+        parseExact relativeP
+
+    static member TryParse =
+        parseOption relativeP
+
+    override x.ToString () =
+        Relative.Format x
+
+(* Relative URI
+
+   Taken from RFC 3986, Section 4.3 Relative Reference
+   See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
+
+(* Note: This type has been renamed RelativeUri to avoid confusion
+   with Relative. *)
+
+type RelativeUri =
+    { Relative: Relative
+      Query: Query option
+      Fragment: Fragment option }
+
+let internal relativeUriF =
+    function | { Relative = r
+                 Query = q
+                 Fragment = f } -> 
+                    let formatters =
+                        [ relativeF r
+                          (function | Some q -> queryF q | _ -> id) q
+                          (function | Some f -> fragmentF f | _ -> id) f ]
+
+                    fun b -> List.fold (fun b f -> f b) b formatters
+
+let internal relativeUriP =
+    relativeP .>>. opt queryP .>>. opt fragmentP
+    |>> fun ((relative, query), fragment) ->
+        { Relative = relative
+          Query = query
+          Fragment = fragment }
+
+type RelativeUri with
+
+    static member Format =
+        format relativeUriF
+
+    static member Parse =
+        parseExact relativeUriP
+
+    static member TryParse =
+        parseOption relativeUriP
+
+    override x.ToString () =
+        RelativeUri.Format x
+
+(* Absolute URI
+
+   Taken from RFC 3986, Section 4.3 Absolute URI
+   See [http://tools.ietf.org/html/rfc3986#section-4.3] *)
+
+type AbsoluteUri =
+    { Scheme: Scheme
+      Hierarchy: Hierarchy
+      Query: Query option }
+
+let internal absoluteUriF =
+    function | { AbsoluteUri.Scheme = s
+                 Hierarchy = h
+                 Query = q } -> 
+                    let formatters =
+                        [ schemeF s
+                          append ":"
+                          hierPartF h
+                          (function | Some q -> queryF q | _ -> id) q ]
+
+                    fun b -> List.fold (fun b f -> f b) b formatters
+
+let internal absoluteUriP =
+    schemeP .>> skipChar ':' .>>. hierPartP .>>. opt queryP
+    |>> fun ((scheme, hierarchy), query) ->
+        { Scheme = scheme
+          Hierarchy = hierarchy
+          Query = query }
+
+type AbsoluteUri with
+
+    static member Format =
+        format absoluteUriF
+
+    static member Parse =
+        parseExact absoluteUriP
+
+    static member TryParse =
+        parseOption absoluteUriP
+
+    override x.ToString () =
+        AbsoluteUri.Format x
+
+(* URI Reference
+
+   Taken from RFC 3986, Section 4.1 URI Reference
+   See [http://tools.ietf.org/html/rfc3986#section-4.1] *)
+
+type UriReference =
+    | Uri of Uri
+    | Relative of RelativeUri
+
+let internal uriReferenceF =
+    function | Uri x -> uriF x
+             | Relative x -> relativeUriF x
+
+let internal uriReferenceP =
+    choice [
+        attempt uriP |>> Uri
+        relativeUriP |>> Relative ]
+
+type UriReference with
+
+    static member Format =
+        format uriReferenceF
+
+    static member Parse =
+        parseExact uriReferenceP
+
+    static member TryParse =
+        parseOption uriReferenceP
+
+    override x.ToString () =
+        UriReference.Format x
