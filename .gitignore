@@ -39,3 +39,4 @@ tools/
 .paket/paket.exe
 AssemblyInfo.fs
 *.userprefs
+.DS_Store

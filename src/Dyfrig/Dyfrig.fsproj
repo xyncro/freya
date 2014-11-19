@@ -51,40 +51,12 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <ItemGroup>
-    <None Include="paket.references" />
-    <Compile Include="Constants.fs" />
-    <Compile Include="OwinApp.fsi" />
-    <Compile Include="OwinApp.fs" />
-    <Compile Include="Environment.fsi" />
-    <Compile Include="Environment.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Import Project="$(SolutionDir)\.paket\paket.targets" />
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
       <Choose>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
-        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'" />
         <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
           <ItemGroup>
             <Reference Include="FSharpx.Core">
@@ -114,11 +86,75 @@
         </Otherwise>
       </Choose>
     </When>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETPortable'">
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETPortable'" />
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoAndroid'">
+      <ItemGroup>
+        <Reference Include="FSharpx.Core">
+          <HintPath>..\..\packages\FSharpx.Core\lib\40\FSharpx.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
     </When>
-    <When Condition="$(TargetFrameworkIdentifier) == 'Windows'">
+    <When Condition="$(TargetFrameworkIdentifier) == 'MonoTouch'">
+      <ItemGroup>
+        <Reference Include="FSharpx.Core">
+          <HintPath>..\..\packages\FSharpx.Core\lib\40\FSharpx.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'Silverlight'">
+      <Choose>
+        <When Condition="$(SilverlightVersion) == 'v4.0'" />
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="FSharpx.Core">
+              <HintPath>..\..\packages\FSharpx.Core\lib\40\FSharpx.Core.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
     </When>
+    <When Condition="$(TargetFrameworkIdentifier) == 'Windows'" />
+    <When Condition="$(TargetFrameworkIdentifier) == 'WindowsPhoneApp'">
+      <ItemGroup>
+        <Reference Include="FSharpx.Core">
+          <HintPath>..\..\packages\FSharpx.Core\lib\40\FSharpx.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="FSharpx.Core">
+          <HintPath>..\..\packages\FSharpx.Core\lib\40\FSharpx.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
   </Choose>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="OwinApp.fsi" />
+    <Compile Include="OwinApp.fs" />
+    <Compile Include="Environment.fsi" />
+    <Compile Include="Environment.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(SolutionDir)\.paket\paket.targets" />
 </Project>
