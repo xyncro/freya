@@ -59,14 +59,10 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
       <Choose>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
-        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v3.5'" />
         <When Condition="$(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
           <ItemGroup>
             <Reference Include="System.IO">
@@ -326,14 +322,10 @@
             </Reference>
           </ItemGroup>
         </When>
-        <When Condition="$(TargetFrameworkProfile) == 'Profile259' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'net451+win81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'net451+win81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'win81+wp81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
+        <When Condition="$(TargetFrameworkProfile) == 'Profile259' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'net451+win81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'net451+win81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'win81+wp81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
         <Otherwise>
           <ItemGroup>
             <Reference Include="System.Net.Http.Extensions">
