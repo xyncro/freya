@@ -86,10 +86,10 @@ let ``Uri Formatting/Parsing`` () =
     let authorityTyped =
         { Scheme = Scheme "http"
           Hierarchy = 
-            Hierarchy.Authority ({ Host = Name "www.example.com"
-                                   Port = Some (Port 8080)
-                                   UserInfo = Some (UserInfo "user:pass") },
-                                 PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
+            HierarchyPart.Authority ({ Host = Name "www.example.com"
+                                       Port = Some (Port 8080)
+                                       UserInfo = Some (UserInfo "user:pass") },
+                                     PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
           Query = Some (Query "key=val")
           Fragment = Some (Fragment "frag1") }
 
@@ -100,7 +100,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let rootlessTyped =
         { Scheme = Scheme "urn"
-          Hierarchy = Rootless (PathRootless [ "example:animal:ferret:nose" ])
+          Hierarchy = HierarchyPart.Rootless (PathRootless [ "example:animal:ferret:nose" ])
           Query = None
           Fragment = None }
 
@@ -111,7 +111,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let absoluteTyped =
         { Scheme = Scheme "sip"
-          Hierarchy = Hierarchy.Absolute (PathAbsolute [ "user"; "example" ])
+          Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "user"; "example" ])
           Query = None
           Fragment = None }
 
@@ -122,7 +122,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let emptyTyped =
         { Scheme = Scheme "test"
-          Hierarchy = Hierarchy.Empty
+          Hierarchy = HierarchyPart.Empty
           Query = None
           Fragment = None }
 

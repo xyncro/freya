@@ -19,20 +19,20 @@ open FParsec
    See [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
 
 type PartialUri =
-    { Relative: Relative
+    { Relative: RelativePart
       Query: Query option }
 
 let internal partialUriF =
     function | { PartialUri.Relative = r
                  Query = q } ->
                     let formatters =
-                        [ relativeF r
+                        [ relativePartF r
                           (function | Some q -> queryF q | _ -> id) q ]
 
                     fun b -> List.fold (fun b f -> f b) b formatters
 
 let internal partialUriP =
-    relativeP .>>. opt queryP
+    relativePartP .>>. opt queryP
     |>> fun (relative, query) ->
         { Relative = relative
           Query = query }
@@ -59,7 +59,7 @@ type PartialUri with
 let internal owsP = 
     skipManySatisfy ((?>) RFC5234.wsp)
 
-//    let rws =
+//    let rwsP =
 //        skipMany1Satisfy (fun c -> Set.contains c wsp)
 
 let internal bwsP =
