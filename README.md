@@ -1,4 +1,5 @@
 # Dyfrig
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/freya-fs/freya?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 F# support for the [Open Web Interface for .NET (OWIN)](http://owin.org/)
 
