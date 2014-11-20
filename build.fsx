@@ -2,8 +2,9 @@
 // FAKE build script 
 // --------------------------------------------------------------------------------------
 
-#r "./packages/FAKE/tools/Nuget.Core.dll"
-#r "./packages/FAKE/tools/FakeLib.dll"
+#I "packages/FAKE/tools"
+#r "Nuget.Core.dll"
+#r "FakeLib.dll"
 open System
 open System.IO
 open Fake 
@@ -12,7 +13,7 @@ open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
 #if MONO
 #else
-#load "./packages/SourceLink.Fake/tools/SourceLink.fsx"
+#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
 open SourceLink
 #endif
 
@@ -168,7 +169,7 @@ Target "NuGet" (fun _ ->
             Files = [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
                       (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
                       (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ] })
-        "nuget/Freya.Core.nuspec"
+        ("nuget/Freya.Core.nuspec")
 
     // TODO: Add additional NuGet packages for each library.
 )
