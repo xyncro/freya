@@ -29,7 +29,7 @@ open SourceLink
 
 // The name of the project 
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "Dyfrig"
+let project = "Freya"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
@@ -46,14 +46,14 @@ let tags = "F# fsharp web http owin"
 
 // File system information 
 // (<solutionFile>.sln is built during the building process)
-let solutionFile = "Dyfrig.sln"
+let solutionFile = "Freya.sln"
 
 // Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "tests/**/bin/Release/*Tests*exe"
+let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
-let gitHome = "git@github.com:panesofglass"
+let gitHome = "https://github.com/panesofglass"
 // The name of the project on GitHub
 let gitName = "dyfrig"
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
@@ -111,7 +111,7 @@ Target "Build" (fun _ ->
 
 Target "CopyFiles" (fun _ ->
     [ "LICENSE.txt" ] |> CopyTo "bin"
-    !! ("src/" + project + "/bin/Release/Dyfrig*.*")
+    !! ("src/" + project + "/bin/Release/Freya*.*")
     |> CopyTo "bin"
 )
 
@@ -119,13 +119,12 @@ Target "CopyFiles" (fun _ ->
 // Run the unit tests using test runner
 
 Target "RunTests" (fun _ ->
-    let errorCode =
-        [ for program in !!testAssemblies do
-            let p, a = if not isMono then program, null else "mono", program
-            let result = asyncShellExec { defaultParams with Program = p; CommandLine = a } |> Async.RunSynchronously
-            yield result ]
-        |> List.sum
-    if errorCode <> 0 then failwith "Error in tests"
+    !! testAssemblies
+    |> NUnit (fun p ->
+        { p with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" })
 )
 
 #if MONO
@@ -157,7 +156,7 @@ Target "NuGet" (fun _ ->
     NuGet (fun p -> 
         { p with   
             Authors = authors
-            Project = project
+            Project = "Freya.Core"
             Summary = summary
             Description = description
             Version = release.NugetVersion
@@ -166,11 +165,13 @@ Target "NuGet" (fun _ ->
             OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = ["Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http"]
-            Files = [ (@"..\bin\Dyfrig.dll", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.xml", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.pdb", Some "lib/net40", None) ] })
-        ("nuget/" + project + ".nuspec")
+            Dependencies = []
+            Files = [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
+                      (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
+                      (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ] })
+        ("nuget/Freya.Core.nuspec")
+
+    // TODO: Add additional NuGet packages for each library.
 )
 
 // --------------------------------------------------------------------------------------

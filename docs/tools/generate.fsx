@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------------------
 
 // Binaries that have XML documentation (in a corresponding generated XML file)
-let referenceBinaries = [ "Dyfrig.dll" ]
+let referenceBinaries = [ "Freya.dll" ]
 // Web site location for the generated documentation
 let website = "/dyfrig"
 
@@ -12,11 +12,11 @@ let githubLink = "https://github.com/panesofglass/dyfrig"
 
 // Specify more information about your project
 let info =
-  [ "project-name", "Dyfrig"
+  [ "project-name", "Freya"
     "project-author", "Ryan Riley"
     "project-summary", "F# support for the Open Web Interface for .NET"
     "project-github", "http://github.com/panesofglass/dyfrig"
-    "project-nuget", "http://nuget.com/packages/Dyfrig" ]
+    "project-nuget", "http://nuget.com/packages/Freya" ]
 
 // --------------------------------------------------------------------------------------
 // For typical project, no changes are needed below
