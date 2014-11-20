@@ -14,8 +14,13 @@ open Freya.Todo.Backend.Storage
 
 // Helpers
 
-let asJSON =
-    toJSON >> FreyaRepresentationResponse.Default
+let inline representation n x =
+    { Metadata =
+        { Charset = Some Charsets.UTF8
+          Encodings = None
+          MediaType = Some MediaTypes.JSON
+          Languages = None }
+      Data = toJSON x }
 
 // Functions
 
@@ -25,11 +30,11 @@ let clearTodos =
 let createTodo =
     returnM ()
 
-let createdTodo _ =
-    FreyaRepresentationResponse.Default <!> returnM Array.empty
+let createdTodo n =
+    representation n <!> returnM Array.empty<Todo>
 
-let getTodos _ =
-    asJSON <!> liftAsync (getAll ())
+let getTodos n =
+    representation n <!> liftAsync (getAll ())
 
 let todoProcessable =
     returnM true

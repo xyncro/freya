@@ -13,6 +13,10 @@ module Charsets =
     let Unicode =
         Charset "unicode-1-1"
 
+    /// Convenience definition for "utf-8"
+    let UTF8 =
+        Charset "utf-8"
+
 
 [<RequireQualifiedAccess>]
 module Encodings =

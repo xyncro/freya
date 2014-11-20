@@ -336,6 +336,8 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="RFC3986.Tests.fs" />
+    <Compile Include="RFC5646.Tests.fs" />
+    <Compile Include="RFC7230.Tests.fs" />
     <Compile Include="Lenses.Tests.fs" />
     <Content Include="app.config" />
   </ItemGroup>

@@ -57,9 +57,7 @@ let ``Authority Formatting/Parsing`` () =
         hostPortUserTyped, hostPortUserString ]
 
 [<Test>]
-let ``Path(s) Formatting/Parsing ()`` =
-
-    (* PathAbsoluteOrEmpty *)
+let ``PathAbsoluteOrEmpty Formatting/Parsing`` () =
 
     let pathAbEmptyFullTyped = 
         PathAbsoluteOrEmpty [ "some"; "path" ]
@@ -77,6 +75,24 @@ let ``Path(s) Formatting/Parsing ()`` =
         pathAbEmptyFullTyped,  pathAbEmptyFullString
         pathAbEmptyEmptyTyped, pathAbEmptyEmptyString ]
 
+[<Test>]
+let ``PathAbsolute Formatting/Parsing`` () =
+
+    let pathAbsoluteFullTyped = 
+        PathAbsolute [ "some"; "path" ]
+
+    let pathAbsoluteFullString =
+        "/some/path"
+
+    let pathAbsoluteEmptyTyped = 
+        PathAbsolute []
+
+    let pathAbsoluteEmptyString =
+        "/"
+
+    roundTrip (PathAbsolute.Format, PathAbsolute.Parse) [
+        pathAbsoluteFullTyped,  pathAbsoluteFullString
+        pathAbsoluteEmptyTyped, pathAbsoluteEmptyString ]
 
 [<Test>]
 let ``Uri Formatting/Parsing`` () =
