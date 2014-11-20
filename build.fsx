@@ -156,7 +156,7 @@ Target "NuGet" (fun _ ->
     NuGet (fun p -> 
         { p with   
             Authors = authors
-            Project = project
+            Project = "Freya.Core"
             Summary = summary
             Description = description
             Version = release.NugetVersion
@@ -165,13 +165,13 @@ Target "NuGet" (fun _ ->
             OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = 
-                [ "Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http" |> RequireExactly
-                  "FSharpx.Core", GetPackageVersion "package" "FSharpx.Core" ]
-            Files = [ (@"..\bin\Freya.dll", Some "lib/net40", None)
-                      (@"..\bin\Freya.xml", Some "lib/net40", None)
-                      (@"..\bin\Freya.pdb", Some "lib/net40", None) ] })
-        ("nuget/" + project + ".nuspec")
+            Dependencies = []
+            Files = [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
+                      (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
+                      (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ] })
+        ("nuget/Freya.Core.nuspec")
+
+    // TODO: Add additional NuGet packages for each library.
 )
 
 // --------------------------------------------------------------------------------------
