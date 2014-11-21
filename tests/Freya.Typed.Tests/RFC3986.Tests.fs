@@ -57,9 +57,7 @@ let ``Authority Formatting/Parsing`` () =
         hostPortUserTyped, hostPortUserString ]
 
 [<Test>]
-let ``Path(s) Formatting/Parsing ()`` =
-
-    (* PathAbsoluteOrEmpty *)
+let ``PathAbsoluteOrEmpty Formatting/Parsing`` () =
 
     let pathAbEmptyFullTyped = 
         PathAbsoluteOrEmpty [ "some"; "path" ]
@@ -77,6 +75,24 @@ let ``Path(s) Formatting/Parsing ()`` =
         pathAbEmptyFullTyped,  pathAbEmptyFullString
         pathAbEmptyEmptyTyped, pathAbEmptyEmptyString ]
 
+[<Test>]
+let ``PathAbsolute Formatting/Parsing`` () =
+
+    let pathAbsoluteFullTyped = 
+        PathAbsolute [ "some"; "path" ]
+
+    let pathAbsoluteFullString =
+        "/some/path"
+
+    let pathAbsoluteEmptyTyped = 
+        PathAbsolute []
+
+    let pathAbsoluteEmptyString =
+        "/"
+
+    roundTrip (PathAbsolute.Format, PathAbsolute.Parse) [
+        pathAbsoluteFullTyped,  pathAbsoluteFullString
+        pathAbsoluteEmptyTyped, pathAbsoluteEmptyString ]
 
 [<Test>]
 let ``Uri Formatting/Parsing`` () =
@@ -86,10 +102,10 @@ let ``Uri Formatting/Parsing`` () =
     let authorityTyped =
         { Scheme = Scheme "http"
           Hierarchy = 
-            Hierarchy.Authority ({ Host = Name "www.example.com"
-                                   Port = Some (Port 8080)
-                                   UserInfo = Some (UserInfo "user:pass") },
-                                 PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
+            HierarchyPart.Authority ({ Host = Name "www.example.com"
+                                       Port = Some (Port 8080)
+                                       UserInfo = Some (UserInfo "user:pass") },
+                                     PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
           Query = Some (Query "key=val")
           Fragment = Some (Fragment "frag1") }
 
@@ -100,7 +116,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let rootlessTyped =
         { Scheme = Scheme "urn"
-          Hierarchy = Rootless (PathRootless [ "example:animal:ferret:nose" ])
+          Hierarchy = HierarchyPart.Rootless (PathRootless [ "example:animal:ferret:nose" ])
           Query = None
           Fragment = None }
 
@@ -111,7 +127,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let absoluteTyped =
         { Scheme = Scheme "sip"
-          Hierarchy = Hierarchy.Absolute (PathAbsolute [ "user"; "example" ])
+          Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "user"; "example" ])
           Query = None
           Fragment = None }
 
@@ -122,7 +138,7 @@ let ``Uri Formatting/Parsing`` () =
 
     let emptyTyped =
         { Scheme = Scheme "test"
-          Hierarchy = Hierarchy.Empty
+          Hierarchy = HierarchyPart.Empty
           Query = None
           Fragment = None }
 

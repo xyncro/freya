@@ -77,7 +77,7 @@ module Encoding =
         (request, supported) ?> negotiate AcceptEncoding.negotiate defaults
 
     let negotiable : FreyaMachineDecision =
-        !. negotiated 
+        !. negotiated
 
 
 [<RequireQualifiedAccess>]

@@ -9,31 +9,21 @@ open Freya.Typed
 
 (* Representations *)
 
-type FreyaRepresentationRequest =
+type FreyaMachineNegotiation =
     { Charsets: Charset list
       Encodings: Encoding list
       MediaTypes: MediaType list
       Languages: CultureInfo list }
 
-    static member Create charsets encodings mediaTypes languages =
-        { Charsets = charsets
-          Encodings = encodings
-          MediaTypes = mediaTypes
-          Languages = languages }
+type FreyaMachineRepresentation =
+    { Metadata: FreyaMachineRepresentationMetadata
+      Data: byte [] }
 
-type FreyaRepresentationResponse =
+and FreyaMachineRepresentationMetadata =
     { Charset: Charset option
-      Encoding: Encoding list option
+      Encodings: Encoding list option
       MediaType: MediaType option
-      Language: CultureInfo list option
-      Representation: byte [] }
-
-    static member Default representation =
-        { Charset = None
-          Encoding = None
-          MediaType = None
-          Language = None
-          Representation = representation }
+      Languages: CultureInfo list option }
 
 (* Signatures
         
@@ -48,7 +38,7 @@ type FreyaMachineDecision =
     Freya<bool>
 
 type FreyaMachineHandler = 
-    FreyaRepresentationRequest -> Freya<FreyaRepresentationResponse>
+    FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
 
 type FreyaMachineOperation =
     Freya<unit>

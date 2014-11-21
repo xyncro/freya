@@ -4,7 +4,7 @@ module internal Freya.Machine.Handlers
 open Freya.Core.Operators
 
 (* Handlers
-       
+
    Handler nodes represent the function which will return some response
    to the client. They are responsible for returning data in an appropriate
    form to Freya.Machine to be sent as part of the response. They always
@@ -12,11 +12,12 @@ open Freya.Core.Operators
    so do not include any form of "next" node data. *)
 
 let private handler _ =
-    returnM { Charset = None
-              Encoding = None
-              MediaType = None
-              Language = None
-              Representation = Array.empty }
+    returnM { Metadata =
+                { Charset = None
+                  Encodings = None
+                  MediaType = None
+                  Languages = None }
+              Data = Array.empty }
 
 let private handlerDefinitions =
     [ Handlers.OK

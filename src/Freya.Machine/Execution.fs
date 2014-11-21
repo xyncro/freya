@@ -78,33 +78,6 @@ let private traverse (graph: FreyaMachineGraph) =
 
     eval Decisions.ServiceAvailable
 
-(* Invocation *)
-
-let private request =
-    freya {
-        let! charsets = Charset.negotiated
-        let! encodings = Encoding.negotiated
-        let! mediaTypes = MediaType.negotiated
-        let! languages = Language.negotiated
-
-        return 
-            { Charsets = charsets
-              Encodings = encodings
-              MediaTypes = mediaTypes
-              Languages = languages } }
-
-let private write (req: FreyaRepresentationRequest) (res: FreyaRepresentationResponse) =
-    freya {
-        do! setPLM (Response.Headers.contentLength) (ContentLength res.Representation.Length)
-        do! modLM  (Response.body) (fun b -> b.Write (res.Representation, 0, res.Representation.Length); b) }
-
-let invoke handler =
-    freya {    
-        let! req = request
-        let! res = handler req
-
-        do! write req res }
-
 (* Compilation *)
 
 let private nodes =
@@ -120,6 +93,6 @@ let compileFreyaMachine (m: FreyaMachine) : FreyaPipeline =
     freya {
         do! initI
         do! setPLM definitionPLens definition
-        do! traverse graph >>= invoke
+        do! traverse graph >>= represent
 
         return Halt }

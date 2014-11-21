@@ -419,17 +419,19 @@ type Fragment with
 
 type Uri =
     { Scheme: Scheme
-      Hierarchy: Hierarchy
+      Hierarchy: HierarchyPart
       Query: Query option
       Fragment: Fragment option }
 
-and Hierarchy =
+and HierarchyPart =
     | Authority of Authority * PathAbsoluteOrEmpty
     | Absolute of PathAbsolute
     | Rootless of PathRootless
     | Empty
 
-let private hierPartF =
+(* Formatting *)
+
+let private hierarchyPartF =
     function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
              | Absolute p -> pathAbsoluteF p
              | Rootless p -> pathRootlessF p
@@ -443,13 +445,15 @@ let internal uriF =
                     let formatters =
                         [ schemeF s
                           append ":"
-                          hierPartF h
+                          hierarchyPartF h
                           (function | Some q -> queryF q | _ -> id) q
                           (function | Some f -> fragmentF f | _ -> id) f ]
 
                     fun b -> List.fold (fun b f -> f b) b formatters
 
-let private hierPartP =
+(* Parsing *)
+
+let private hierarchyPartP =
     choice [
         skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
         pathAbsoluteP |>> Absolute
@@ -457,12 +461,14 @@ let private hierPartP =
         preturn Empty ]
 
 let internal uriP =
-    schemeP .>> skipChar ':' .>>. hierPartP .>>. opt queryP .>>. opt fragmentP
+    schemeP .>> skipChar ':' .>>. hierarchyPartP .>>. opt queryP .>>. opt fragmentP
     |>> fun (((scheme, hierarchy), query), fragment) ->
         { Scheme = scheme
           Hierarchy = hierarchy
           Query = query
           Fragment = fragment }
+
+(* Augmentation *)
 
 type Uri with
 
@@ -483,83 +489,63 @@ type Uri with
    Taken from RFC 3986, Section 4.2 Relative Reference
    See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
 
-type Relative =
+type RelativeReference =
+    { Relative: RelativePart
+      Query: Query option
+      Fragment: Fragment option }
+
+and RelativePart =
     | Authority of Authority * PathAbsoluteOrEmpty
     | Absolute of PathAbsolute
     | NoScheme of PathNoScheme
     | Empty
 
-let internal relativeF =
+let internal relativePartF =
     function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
              | Absolute p -> pathAbsoluteF p
              | NoScheme p -> pathNoSchemeF p
              | Empty -> id
 
-let internal relativeP =
+let internal relativeReferenceF =
+    function | { Relative = r
+                 Query = q
+                 Fragment = f } -> 
+                    let formatters =
+                        [ relativePartF r
+                          (function | Some q -> queryF q | _ -> id) q
+                          (function | Some f -> fragmentF f | _ -> id) f ]
+
+                    fun b -> List.fold (fun b f -> f b) b formatters
+
+let internal relativePartP =
     choice [
         skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
         pathAbsoluteP |>> Absolute
         pathNoSchemeP |>> NoScheme
         preturn Empty ]
 
-type Relative with
-
-    static member Format =
-        format relativeF
-
-    static member Parse =
-        parseExact relativeP
-
-    static member TryParse =
-        parseOption relativeP
-
-    override x.ToString () =
-        Relative.Format x
-
-(* Relative URI
-
-   Taken from RFC 3986, Section 4.3 Relative Reference
-   See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
-
-(* Note: This type has been renamed RelativeUri to avoid confusion
-   with Relative. *)
-
-type RelativeUri =
-    { Relative: Relative
-      Query: Query option
-      Fragment: Fragment option }
-
-let internal relativeUriF =
-    function | { Relative = r
-                 Query = q
-                 Fragment = f } -> 
-                    let formatters =
-                        [ relativeF r
-                          (function | Some q -> queryF q | _ -> id) q
-                          (function | Some f -> fragmentF f | _ -> id) f ]
-
-                    fun b -> List.fold (fun b f -> f b) b formatters
-
-let internal relativeUriP =
-    relativeP .>>. opt queryP .>>. opt fragmentP
+let internal relativeReferenceP =
+    relativePartP .>>. opt queryP .>>. opt fragmentP
     |>> fun ((relative, query), fragment) ->
         { Relative = relative
           Query = query
           Fragment = fragment }
 
-type RelativeUri with
+(* Augmentation *)
+
+type RelativeReference with
 
     static member Format =
-        format relativeUriF
+        format relativeReferenceF
 
     static member Parse =
-        parseExact relativeUriP
+        parseExact relativeReferenceP
 
     static member TryParse =
-        parseOption relativeUriP
+        parseOption relativeReferenceP
 
     override x.ToString () =
-        RelativeUri.Format x
+        RelativeReference.Format x
 
 (* Absolute URI
 
@@ -568,7 +554,7 @@ type RelativeUri with
 
 type AbsoluteUri =
     { Scheme: Scheme
-      Hierarchy: Hierarchy
+      Hierarchy: HierarchyPart
       Query: Query option }
 
 let internal absoluteUriF =
@@ -578,13 +564,13 @@ let internal absoluteUriF =
                     let formatters =
                         [ schemeF s
                           append ":"
-                          hierPartF h
+                          hierarchyPartF h
                           (function | Some q -> queryF q | _ -> id) q ]
 
                     fun b -> List.fold (fun b f -> f b) b formatters
 
 let internal absoluteUriP =
-    schemeP .>> skipChar ':' .>>. hierPartP .>>. opt queryP
+    schemeP .>> skipChar ':' .>>. hierarchyPartP .>>. opt queryP
     |>> fun ((scheme, hierarchy), query) ->
         { Scheme = scheme
           Hierarchy = hierarchy
@@ -611,16 +597,16 @@ type AbsoluteUri with
 
 type UriReference =
     | Uri of Uri
-    | Relative of RelativeUri
+    | Relative of RelativeReference
 
 let internal uriReferenceF =
     function | Uri x -> uriF x
-             | Relative x -> relativeUriF x
+             | Relative x -> relativeReferenceF x
 
 let internal uriReferenceP =
     choice [
         attempt uriP |>> Uri
-        relativeUriP |>> Relative ]
+        relativeReferenceP |>> Relative ]
 
 type UriReference with
 
