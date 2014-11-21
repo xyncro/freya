@@ -35,13 +35,16 @@ let private isDigit =
 let private isAlphaNum x =
     (RFC5234.alpha ?> x || RFC5234.digit ?> x)
 
-let private alphaP min max =
+(* Note: We expose these internally as they're also useful for some
+   of the other RFCs, especially those dealing with Language-* formulations. *)
+
+let internal alphaP min max =
     manyMinMaxSatisfy min max isAlpha .>>? notFollowedBy (skipSatisfy isAlpha)
 
-let private digitP min max =
+let internal digitP min max =
     manyMinMaxSatisfy min max isDigit .>>? notFollowedBy (skipSatisfy isDigit)
 
-let private alphaNumP min max =
+let internal alphaNumP min max =
     manyMinMaxSatisfy min max isAlphaNum .>>? notFollowedBy (skipSatisfy isAlphaNum)
 
 (* Language *)
@@ -141,7 +144,7 @@ type LanguageTag =
       Region: Region option
       Variant: Variant }
 
-let private languageTagF =
+let internal languageTagF =
     function | { Language = language
                  Script = script
                  Region = region
@@ -154,7 +157,7 @@ let private languageTagF =
 
                  fun b -> List.fold (fun b f -> f b) b formatters
 
-let private languageTagP =
+let internal languageTagP =
     tuple4 languageP (opt (attempt scriptP)) (opt (attempt regionP)) (variantP)
     |>> fun (language, script, region, variant) ->
         { Language = language

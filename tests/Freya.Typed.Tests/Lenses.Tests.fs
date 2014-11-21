@@ -351,11 +351,11 @@ let ``Request.Headers.acceptEncoding`` () =
 [<Test>]
 let ``Request.Headers.acceptLanguage`` () =
     let acceptLanguageTyped =
-        [ { Language = CultureInfo ("da")
+        [ { Language = Range [ "da" ]
             Weight = None }
-          { Language = CultureInfo ("en-gb")
+          { Language = Range [ "en"; "GB" ]
             Weight = Some 0.8 }
-          { Language = CultureInfo ("en")
+          { Language = Range [ "en" ]
             Weight = Some 0.7 } ] |> AcceptLanguage
 
     let acceptLanguageString = 

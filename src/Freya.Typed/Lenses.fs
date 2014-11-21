@@ -92,10 +92,8 @@ module Request =
         let contentEncoding =
             headersKey "Content-Encoding" <??> (ContentEncoding.TryParse, ContentEncoding.Format)
 
-        // TODO: typed ContentLanguage
-
         let contentLanguage =
-            headersKey "Content-Language"
+            headersKey "Content-Language" <??> (ContentLanguage.TryParse, ContentLanguage.Format)
 
         let contentLength =
             headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)
@@ -234,10 +232,8 @@ module Response =
         let contentEncoding =
             headersKey "Content-Encoding" <??> (ContentEncoding.TryParse, ContentEncoding.Format)
 
-        // TODO: typed ContentLanguage
-
         let contentLanguage =
-            headersKey "Content-Language"
+            headersKey "Content-Language" <??> (ContentLanguage.TryParse, ContentLanguage.Format)
 
         let contentLength =
             headersKey "Content-Length" <??> (ContentLength.TryParse, ContentLength.Format)

@@ -13,7 +13,7 @@ type FreyaMachineNegotiation =
     { Charsets: Charset list
       Encodings: Encoding list
       MediaTypes: MediaType list
-      Languages: CultureInfo list }
+      Languages: LanguageTag list }
 
 type FreyaMachineRepresentation =
     { Metadata: FreyaMachineRepresentationMetadata
@@ -23,7 +23,7 @@ and FreyaMachineRepresentationMetadata =
     { Charset: Charset option
       Encodings: Encoding list option
       MediaType: MediaType option
-      Languages: CultureInfo list option }
+      Languages: LanguageTag list option }
 
 (* Signatures
         

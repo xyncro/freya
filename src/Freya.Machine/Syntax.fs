@@ -47,7 +47,7 @@ module Configuration =
             x.Set (monad, configurationPLens Configuration.ETag, etag)
 
         [<CustomOperation (Configuration.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.LanguagesSupported (monad, languages: CultureInfo list) = 
+        member x.LanguagesSupported (monad, languages: LanguageTag list) = 
             x.Set (monad, configurationPLens Configuration.LanguagesSupported, languages)
 
         [<CustomOperation (Configuration.LastModified, MaintainsVariableSpaceUsingBind = true)>]

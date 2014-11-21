@@ -2,13 +2,14 @@
 module Freya.Machine.Negotiation
 
 open System
-open System.Globalization
 open Freya.Typed
 
 (* Content Negotiation
 
    Taken from RFC 7231, Section 5.3
    [http://tools.ietf.org/html/rfc7231#section-5.3] *)
+
+// TODO: Review Negotiation Algorithms for type specific implementation standards
 
 type private Negotiation<'a,'b> =
     { Predicate: 'a -> 'b -> bool
@@ -115,20 +116,25 @@ module AcceptEncoding =
 
 module AcceptLanguage =
 
-    let private predicate (c: CultureInfo) =
-        function | { AcceptableLanguage.Language = c' } when c = c' || c.Parent = c' -> true
-                 | _ -> false
+// TODO: Language Tag / Language Range Matching
+// See RFC 4647
 
-    let private score (c: CultureInfo) =
-        function | { AcceptableLanguage.Language = c' } when c = c' -> 2
-                 | { Language = c' } when c.Parent = c' -> 1
-                 | _ -> 0
-
-    let private weigh =
-        function | { AcceptableLanguage.Weight = Some weight } -> weight 
-                 | _ -> 1.
+//    let private predicate (c: CultureInfo) =
+//        function | { AcceptableLanguage.Language = c' } when c = c' || c.Parent = c' -> true
+//                 | _ -> false
+//
+//    let private score (c: CultureInfo) =
+//        function | { AcceptableLanguage.Language = c' } when c = c' -> 2
+//                 | { Language = c' } when c.Parent = c' -> 1
+//                 | _ -> 0
+//
+//    let private weigh =
+//        function | { AcceptableLanguage.Weight = Some weight } -> weight 
+//                 | _ -> 1.
 
     let negotiate (AcceptLanguage requested) =
-        negotiate { Predicate = predicate
-                    Score = score
-                    Weigh = weigh } requested
+        id
+
+//        negotiate { Predicate = predicate
+//                    Score = score
+//                    Weigh = weigh } requested

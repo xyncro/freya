@@ -139,6 +139,34 @@ type ContentEncoding with
     override x.ToString () =
         ContentEncoding.Format x
 
+(* Content-Language
+
+   Taken from RFC 7231, Section 3.1.3.2 Content-Language
+   [http://tools.ietf.org/html/rfc7231#section-3.1.3.2] *)
+
+type ContentLanguage =
+    | ContentLanguage of LanguageTag list
+
+let private contentLanguageF =
+    function | ContentLanguage xs -> join commaF languageTagF xs
+
+let private contentLanguageP =
+    infix1P commaP languageTagP |>> ContentLanguage
+
+type ContentLanguage with
+
+    static member Format =
+        format contentLanguageF
+
+    static member Parse =
+        parseExact contentLanguageP
+
+    static member TryParse =
+        parseOption contentLanguageP
+
+    override x.ToString () =
+        ContentLanguage.Format x
+
 (* Content-Location
 
    Taken from RFC 7231, Section 3.1.4.2 Content-Location
@@ -559,33 +587,18 @@ type AcceptLanguage =
     | AcceptLanguage of AcceptableLanguage list
 
 and AcceptableLanguage =
-    { Language: CultureInfo
+    { Language: LanguageRange
       Weight: float option }
 
 (* Formatting *)
 
-let private cultureInfoF (x: CultureInfo) =
-    append x.Name
-
 let private acceptableLanguageF x =
-    cultureInfoF x.Language >> weightF x.Weight
+    languageRangeF x.Language >> weightF x.Weight
 
 let private acceptLanguageF =
     function | AcceptLanguage x -> join commaF acceptableLanguageF x
 
 (* Parsing *)
-
-(* Note: Language range taken as the Basic Language Range
-    definition from RFC 4647, Section 3.1.3.1 *)
-
-let private languageRangeComponentP =
-    manyMinMaxSatisfy 1 8 ((?>) RFC5234.alpha)
-
-let private languageRangeP =
-    languageRangeComponentP .>>. opt (skipChar '-' >>. languageRangeComponentP)
-    |>> function 
-        | range, Some sub -> CultureInfo (sprintf "%s-%s" range sub)
-        | range, _ -> CultureInfo (range)
 
 let private acceptLanguageP =
     infixP commaP (languageRangeP .>> owsP .>>. opt weightP)

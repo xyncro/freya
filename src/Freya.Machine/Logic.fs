@@ -84,7 +84,7 @@ module Encoding =
 module Language =
 
     let private defaults =
-        List.empty<CultureInfo>
+        List.empty<LanguageTag>
         
     let private request =
         getPLM Request.Headers.acceptLanguage

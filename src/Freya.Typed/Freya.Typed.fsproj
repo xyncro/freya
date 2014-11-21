@@ -208,6 +208,7 @@
     <Compile Include="Types\RFC5234.fs" />
     <Compile Include="Types\RFC3986.fs" />
     <Compile Include="Types\RFC5646.fs" />
+    <Compile Include="Types\RFC4647.fs" />
     <Compile Include="Types\RFC7230.fs" />
     <Compile Include="Types\RFC7231.fs" />
     <Compile Include="Types\RFC7232.fs" />
