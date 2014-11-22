@@ -2,7 +2,6 @@
 module internal Freya.Machine.Logic
 
 open System
-open System.Globalization
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
@@ -22,12 +21,30 @@ let inline private (=?) x y =
 let inline private (?>) (x, y) f =
     (fun x y -> f (x, y)) <!> x <*> y
 
-(* Configuration *)
+(* Configuration
+
+   Typed access to dynamic configuration values at runtime. These are
+   evaluated on machine execution, and so may be varied based on the
+   specific resource in question (they are a general core Freya<'T> 
+   expression). *)
 
 let private config key =
-    getPLM (definitionPLens >??> configurationPLens key)
+    freya {
+        let! value = getPLM (definitionPLens >??> configurationPLens key)
 
-(* Content Negotiation *)
+        match value with
+        | Some value -> return! Some <!> value
+        | _ -> return None }
+
+(* Content Negotiation
+
+   Logic for negotiating decisions based on Content Negotiation,
+   given suitably configured (optional) definitions of what content
+   is supported as part of the Machine Definition. 
+
+   Unlike some other "machine-type" frameworks, all configuration here
+   is dynamic not static, and so will be evaluated at runtime, allowing
+   for dynamic support based on the specific resource in question. *)
 
 let private negotiate f defaults =
     function | Some r, Some a -> f r a
@@ -62,7 +79,7 @@ module Charset =
 module Encoding =
         
     let private defaults =
-        List.empty<Encoding>
+        List.empty<ContentCoding>
 
     let private request =
         getPLM Request.Headers.acceptEncoding
@@ -123,7 +140,15 @@ module MediaType =
     let negotiable : FreyaMachineDecision =
         !. negotiated
 
-(* Control *)
+(* Content Negotiation
+
+   Logic for negotiating decisions based on Cache Control,
+   given suitably configured (optional) definitions of what cache control
+   is defined as part of the Machine Definition. 
+
+   Unlike some other "machine-type" frameworks, all configuration here
+   is dynamic not static, and so will be evaluated at runtime, allowing
+   for dynamic support based on the specific resource in question. *)
 
 [<RequireQualifiedAccess>]
 module IfMatch =
@@ -227,14 +252,16 @@ module Method =
         getLM Request.meth
 
     let private methodsKnown =
-        config Configuration.MethodsKnown
+            Option.map Set.ofList 
+        <!> config Configuration.MethodsKnown
 
     let private negotiateKnown =
         function | x, Some y -> Set.contains x y
                  | x, _ -> Set.contains x defaultKnown
 
     let private methodsSupported =
-        config Configuration.MethodsSupported
+            Option.map Set.ofList 
+        <!> config Configuration.MethodsSupported
 
     let private negotiateSupported =
         function | x, Some y -> Set.contains x y

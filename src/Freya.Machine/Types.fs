@@ -1,7 +1,6 @@
 ﻿[<AutoOpen>]
 module Freya.Machine.Types
 
-open System.Globalization
 open Aether
 open Aether.Operators
 open Freya.Core
@@ -11,7 +10,7 @@ open Freya.Typed
 
 type FreyaMachineNegotiation =
     { Charsets: Charset list
-      Encodings: Encoding list
+      Encodings: ContentCoding list
       MediaTypes: MediaType list
       Languages: LanguageTag list }
 
@@ -21,7 +20,7 @@ type FreyaMachineRepresentation =
 
 and FreyaMachineRepresentationMetadata =
     { Charset: Charset option
-      Encodings: Encoding list option
+      Encodings: ContentCoding list option
       MediaType: MediaType option
       Languages: LanguageTag list option }
 

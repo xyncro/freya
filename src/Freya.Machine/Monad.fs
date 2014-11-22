@@ -4,7 +4,7 @@ module Freya.Machine.Monad
 open Aether
 
 (* Monad
-        
+
    The monad to give Machine the declarative computation
    expression syntax for specifying Machine Definitions. Specific strongly 
    typed custom operations are defined in Machine.Syntax.fs. *)

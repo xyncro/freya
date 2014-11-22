@@ -9,8 +9,6 @@ open Freya.Typed
    Taken from RFC 7231, Section 5.3
    [http://tools.ietf.org/html/rfc7231#section-5.3] *)
 
-// TODO: Review Negotiation Algorithms for type specific implementation standards
-
 type private Negotiation<'a,'b> =
     { Predicate: 'a -> 'b -> bool
       Score: 'a -> 'b -> int
@@ -27,10 +25,7 @@ let private negotiate (n: Negotiation<'a,'b>) r =
 let private (==) s1 s2 =
     String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
 
-(* Accept
-
-   Taken from RFC 7231, Section 5.3.2. Accept
-   [http://tools.ietf.org/html/rfc7231#section-5.3.2] *)
+(* Accept *)
 
 module Accept =
 
@@ -55,21 +50,18 @@ module Accept =
                     Score = score
                     Weigh = weigh } requested
 
-(* Accept-Charset
-
-   Taken from RFC 7231, Section 5.3.3. Accept-Charset
-   [http://tools.ietf.org/html/rfc7231#section-5.3.3] *)
+(* Accept-Charset *)
 
 module AcceptCharset =
 
     let private predicate (Charset s) =
-        function | { AcceptableCharset.Charset = CharsetSpec.Charset (Charset s') } when s == s' -> true
-                 | { Charset = CharsetSpec.Any } -> true
+        function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> true
+                 | { Charset = CharsetRange.Any } -> true
                  | _ -> false
 
     let private score (Charset s) =
-        function | { AcceptableCharset.Charset = CharsetSpec.Charset (Charset s') } when s == s' -> 2
-                 | { Charset = CharsetSpec.Any } -> 1
+        function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> 2
+                 | { Charset = CharsetRange.Any } -> 1
                  | _ -> 0
 
     let private weigh =
@@ -81,23 +73,20 @@ module AcceptCharset =
                     Score = score
                     Weigh = weigh } requested
 
-(* Accept-Encoding
-
-   Taken from RFC 7231, Section 5.3.4. Accept-Encoding
-   [http://tools.ietf.org/html/rfc7231#section-5.3.4] *)
+(* Accept-Encoding *)
 
 module AcceptEncoding =
 
-    let private predicate (Encoding e) =
-        function | { AcceptableEncoding.Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> true
-                 | { Encoding = EncodingSpec.Identity } -> true
-                 | { Encoding = EncodingSpec.Any } -> true
+    let private predicate (ContentCoding e) =
+        function | { AcceptableEncoding.Encoding = Coding (ContentCoding e') } when e == e' -> true
+                 | { Encoding = Identity } -> true
+                 | { Encoding = EncodingRange.Any } -> true
                  | _ -> false
 
-    let private score (Encoding e) =
-        function | { AcceptableEncoding.Encoding = EncodingSpec.Encoding (Encoding e') } when e == e' -> 3
-                 | { Encoding = EncodingSpec.Identity } -> 2
-                 | { Encoding = EncodingSpec.Any } -> 1
+    let private score (ContentCoding e) =
+        function | { AcceptableEncoding.Encoding = Coding (ContentCoding e') } when e == e' -> 3
+                 | { Encoding = Identity } -> 2
+                 | { Encoding = EncodingRange.Any } -> 1
                  | _ -> 0
 
     let private weigh =
@@ -109,32 +98,54 @@ module AcceptEncoding =
                     Score = score
                     Weigh = weigh } requested
 
-(* Accept-Language
-
-   Taken from RFC 7231, Section 5.3.5. Accept-Language
-   [http://tools.ietf.org/html/rfc7231#section-5.3.5] *)
+(* Accept-Language *)
 
 module AcceptLanguage =
 
-// TODO: Language Tag / Language Range Matching
-// See RFC 4647
+    (* Note: This is intended to approximate (hopefully closely) the semantics
+       of Basic Filtering as specified in Section 3.3.1 of RFC 4647.
 
-//    let private predicate (c: CultureInfo) =
-//        function | { AcceptableLanguage.Language = c' } when c = c' || c.Parent = c' -> true
-//                 | _ -> false
-//
-//    let private score (c: CultureInfo) =
-//        function | { AcceptableLanguage.Language = c' } when c = c' -> 2
-//                 | { Language = c' } when c.Parent = c' -> 1
-//                 | _ -> 0
-//
-//    let private weigh =
-//        function | { AcceptableLanguage.Weight = Some weight } -> weight 
-//                 | _ -> 1.
+       See [http://tools.ietf.org/html/rfc4647#section-3.3.1] *)
+
+    let private listOfTag (tag: LanguageTag) =
+        let language, extensions =
+            (function | Language (language, Some extensions) -> [ language ], extensions
+                      | Language (language, _) -> [ language ], []) tag.Language
+
+        let script =
+            (function | Some (Script script) -> [ script ]
+                      | _ -> []) tag.Script
+
+        let region =
+            (function | Some (Region region) -> [ region ]
+                      | _ -> []) tag.Region
+
+        let variant =
+            (function | Variant variant -> variant) tag.Variant
+
+        List.concat [
+            language
+            extensions
+            script
+            region
+            variant ]
+
+    let private predicate (t: LanguageTag) =
+        function | { AcceptableLanguage.Language = Range range } -> 
+                        Seq.zip range (listOfTag t) |> Seq.forall (fun (a, b) -> a == b)
+                 | _ -> true
+
+    // TODO: Re-evaluate this scoring, potentially looking for max (tag length, range length).
+
+    let private score (t: LanguageTag) =
+        function | { AcceptableLanguage.Language = Range range } -> range.Length
+                 | _ -> 0
+
+    let private weigh =
+        function | { AcceptableLanguage.Weight = Some weight } -> weight 
+                 | _ -> 1.
 
     let negotiate (AcceptLanguage requested) =
-        id
-
-//        negotiate { Predicate = predicate
-//                    Score = score
-//                    Weigh = weigh } requested
+        negotiate { Predicate = predicate
+                    Score = score
+                    Weigh = weigh } requested

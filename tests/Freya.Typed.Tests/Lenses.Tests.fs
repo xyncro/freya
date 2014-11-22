@@ -301,9 +301,9 @@ let ``Request.Headers.accept`` () =
 [<Test>]
 let ``Request.Headers.acceptCharset`` () =
     let acceptCharsetTyped =
-        [ { Charset = CharsetSpec.Charset (Charsets.Iso88591)
+        [ { Charset = CharsetRange.Charset (Charsets.Iso88591)
             Weight = None }
-          { Charset = CharsetSpec.Charset (Charsets.Unicode)
+          { Charset = CharsetRange.Charset (Charsets.Unicode)
             Weight = Some 0.8 } ] |> AcceptCharset
 
     let acceptCharsetString =
@@ -325,11 +325,11 @@ let ``Request.Headers.acceptCharset`` () =
 [<Test>]
 let ``Request.Headers.acceptEncoding`` () =
     let acceptEncodingTyped =
-        [ { Encoding = EncodingSpec.Encoding (Encodings.GZip)
+        [ { Encoding = Coding (ContentCodings.GZip)
             Weight = None }
-          { Encoding = EncodingSpec.Identity
+          { Encoding = Identity
             Weight = Some 0.5 }
-          { Encoding = EncodingSpec.Any
+          { Encoding = EncodingRange.Any
             Weight = Some 0. } ] |> AcceptEncoding
 
     let acceptEncodingString = 

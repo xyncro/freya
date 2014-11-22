@@ -59,15 +59,15 @@ let ``negotiateAcceptCharset`` () =
           Charsets.Iso88591 ]
 
     let requested1 =
-        [ { Charset = CharsetSpec.Charset (Charsets.Unicode)
+        [ { Charset = CharsetRange.Charset (Charsets.Unicode)
             Weight = Some 0.8 }
-          { Charset = CharsetSpec.Charset (Charsets.Iso88591)
+          { Charset = CharsetRange.Charset (Charsets.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let requested2 =
-        [ { Charset = CharsetSpec.Charset (Charsets.Unicode)
+        [ { Charset = CharsetRange.Charset (Charsets.Unicode)
             Weight = None }
-          { Charset = CharsetSpec.Charset (Charsets.Iso88591)
+          { Charset = CharsetRange.Charset (Charsets.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let negotiated1 = AcceptCharset.negotiate requested1 available
@@ -84,18 +84,20 @@ let ``negotiateAcceptCharset`` () =
 [<Test>]
 let ``negotiateAcceptEncoding`` () =
     let available =
-        [ Encodings.GZip ]
+        [ ContentCodings.GZip ]
 
     let requested1 =
-        [ { Encoding = EncodingSpec.Encoding (Encodings.GZip)
+        [ { Encoding = Coding (ContentCodings.GZip)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let requested2 =
-        [ { Encoding = EncodingSpec.Encoding (Encodings.Compress)
+        [ { Encoding = Coding (ContentCodings.Compress)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let negotiated1 = AcceptEncoding.negotiate requested1 available
     let negotiated2 = AcceptEncoding.negotiate requested2 available
 
-    negotiated1 =? [ Encodings.GZip ]
+    negotiated1 =? [ ContentCodings.GZip ]
     negotiated2 =? []
+
+// TODO: Accept-Language Negotiation Tests!

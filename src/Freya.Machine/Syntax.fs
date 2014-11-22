@@ -35,11 +35,11 @@ module Configuration =
     type FreyaMachineBuilder with
 
         [<CustomOperation (Configuration.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.CharsetsSupported (monad, charsets: Charset list) = 
+        member x.CharsetsSupported (monad, charsets: Freya<Charset list>) = 
             x.Set (monad, configurationPLens Configuration.CharsetsSupported, charsets)
 
         [<CustomOperation (Configuration.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.EncodingsSupported (monad, encodings: Encoding list) = 
+        member x.EncodingsSupported (monad, encodings: Freya<ContentCoding list>) = 
             x.Set (monad, configurationPLens Configuration.EncodingsSupported, encodings)
 
         [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
@@ -47,7 +47,7 @@ module Configuration =
             x.Set (monad, configurationPLens Configuration.ETag, etag)
 
         [<CustomOperation (Configuration.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.LanguagesSupported (monad, languages: LanguageTag list) = 
+        member x.LanguagesSupported (monad, languages: Freya<LanguageTag list>) = 
             x.Set (monad, configurationPLens Configuration.LanguagesSupported, languages)
 
         [<CustomOperation (Configuration.LastModified, MaintainsVariableSpaceUsingBind = true)>]
@@ -55,16 +55,16 @@ module Configuration =
             x.Set (monad, configurationPLens Configuration.LastModified, modified)
 
         [<CustomOperation (Configuration.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.MediaTypesSupported (monad, mediaTypes: MediaType list) =
+        member x.MediaTypesSupported (monad, mediaTypes: Freya<MediaType list>) =
             x.Set (monad, configurationPLens Configuration.MediaTypesSupported, mediaTypes)
 
         [<CustomOperation (Configuration.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
-        member x.MethodsKnown (monad, methods: Method list) = 
-            x.Set (monad, configurationPLens Configuration.MethodsKnown, Set methods)
+        member x.MethodsKnown (monad, methods: Freya<Method list>) = 
+            x.Set (monad, configurationPLens Configuration.MethodsKnown, methods)
 
         [<CustomOperation (Configuration.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-        member x.MethodsSupported (monad, methods: Method list) = 
-            x.Set (monad, configurationPLens Configuration.MethodsSupported, Set methods)
+        member x.MethodsSupported (monad, methods: Freya<Method list>) = 
+            x.Set (monad, configurationPLens Configuration.MethodsSupported, methods)
 
 
 [<AutoOpen>]

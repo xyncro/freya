@@ -106,24 +106,19 @@ type ContentType with
    [http://tools.ietf.org/html/rfc7231#section-3.1.2.2] *)
 
 type ContentEncoding =
-    | ContentEncoding of Encoding list
+    | ContentEncoding of ContentCoding list
 
-and EncodingSpec =
-    | Encoding of Encoding
-    | Identity
-    | Any
+and ContentCoding =
+    | ContentCoding of string
 
-and Encoding =
-    | Encoding of string
-
-let private encodingF =
-    function | Encoding x -> append x
+let private contentCodingF =
+    function | ContentCoding x -> append x
 
 let private contentEncodingF =
-    function | ContentEncoding x -> join commaF encodingF x
+    function | ContentEncoding x -> join commaF contentCodingF x
 
 let private contentEncodingP =
-    infix1P commaP tokenP |>> (List.map Encoding >> ContentEncoding)
+    infix1P commaP tokenP |>> (List.map ContentCoding >> ContentEncoding)
 
 type ContentEncoding with
 
@@ -173,17 +168,23 @@ type ContentLanguage with
    [http://tools.ietf.org/html/rfc7231#section-3.1.4.2] *)
 
 type ContentLocation =
+    | ContentLocation of ContentLocationUri
+
+and ContentLocationUri =
     | Absolute of AbsoluteUri
     | Partial of PartialUri
 
-let private contentLocationF =
+let private contentLocationUriF =
     function | Absolute x -> absoluteUriF x
              | Partial x -> partialUriF x
 
+let private contentLocationF =
+    function | ContentLocation x -> contentLocationUriF x
+
 let private contentLocationP =
     choice [
-        attempt absoluteUriP |>> Absolute
-        partialUriP |>> Partial ]
+        attempt absoluteUriP |>> (Absolute >> ContentLocation)
+        partialUriP |>> (Partial >> ContentLocation) ]
 
 type ContentLocation with
 
@@ -375,11 +376,12 @@ let private acceptExtensionsF =
              | _ -> id
 
 let private acceptParametersF =
-    function | Some ({ Weight = w; Extensions = e }) -> weightF (Some w) >> acceptExtensionsF e
+    function | Some { Weight = w; Extensions = e } -> weightF (Some w) >> acceptExtensionsF e
              | _ -> id
 
-let private acceptableMediaF (value: AcceptableMedia) =
-    mediaRangeF value.MediaRange >> acceptParametersF value.Parameters
+let private acceptableMediaF =
+    function | { MediaRange = m
+                 Parameters = p } -> mediaRangeF m >> acceptParametersF p
 
 let private acceptF =
     function | Accept x -> join commaF acceptableMediaF x
@@ -457,10 +459,10 @@ type AcceptCharset =
     | AcceptCharset of AcceptableCharset list
 
 and AcceptableCharset =
-    { Charset: CharsetSpec
+    { Charset: CharsetRange
       Weight: float option }
 
-and CharsetSpec =
+and CharsetRange =
     | Charset of Charset
     | Any
 
@@ -469,33 +471,34 @@ and Charset =
 
 (* Formatting *)
 
-let private charsetSpecF =
-    function | CharsetSpec.Charset (Charset x) -> append x
-             | CharsetSpec.Any -> append "*"
+let private charsetRangeF =
+    function | CharsetRange.Charset (Charset x) -> append x
+             | Any -> append "*"
 
-let private acceptableCharsetF (value: AcceptableCharset) =
-    charsetSpecF value.Charset >> weightF value.Weight
+let private acceptableCharsetF =
+    function | { Charset = charset
+                 Weight = weight } -> charsetRangeF charset >> weightF weight
 
-let acceptCharsetF =
+let private acceptCharsetF =
     function | AcceptCharset x -> join commaF acceptableCharsetF x
 
 (* Parsing *)
 
-let private charsetSpecAnyP =
-    skipChar '*' >>% CharsetSpec.Any
+let private charsetRangeAnyP =
+    skipChar '*' >>% CharsetRange.Any
 
-let private charsetSpecCharsetP =
-    tokenP |>> fun s -> CharsetSpec.Charset (Charset s)
+let private charsetRangeCharsetP =
+    tokenP |>> fun s -> CharsetRange.Charset (Charset s)
 
-let private charsetSpecP = 
+let private charsetRangeP = 
     choice [
-        attempt charsetSpecAnyP
-        charsetSpecCharsetP ]
+        attempt charsetRangeAnyP
+        charsetRangeCharsetP ]
 
 let private acceptCharsetP =
-    infix1P commaP (charsetSpecP .>> owsP .>>. opt weightP)
-    |>> (List.map (fun (charsetSpec, weight) ->
-        { Charset = charsetSpec
+    infix1P commaP (charsetRangeP .>> owsP .>>. opt weightP)
+    |>> (List.map (fun (charsetRange, weight) ->
+        { Charset = charsetRange
           Weight = weight }) >> AcceptCharset)
 
 (* Augmentation *)
@@ -523,41 +526,47 @@ type AcceptEncoding =
     | AcceptEncoding of AcceptableEncoding list
 
 and AcceptableEncoding =
-    { Encoding: EncodingSpec
+    { Encoding: EncodingRange
       Weight: float option }
+
+and EncodingRange =
+    | Coding of ContentCoding
+    | Identity
+    | Any
 
 (* Formatting *)
 
-let private encodingSpecF =
-    function | EncodingSpec.Encoding (Encoding.Encoding x) -> append x
-             | EncodingSpec.Identity -> append "identity"
-             | EncodingSpec.Any -> append "*" 
+let private encodingRangeF =
+    function | Coding (ContentCoding x) -> append x
+             | Identity -> append "identity"
+             | Any -> append "*" 
 
-let private acceptableEncodingF x =
-    encodingSpecF x.Encoding >> weightF x.Weight
+let private acceptableEncodingF =
+    function | { Encoding = e
+                 Weight = w } -> encodingRangeF e >> weightF w
 
 let private acceptEncodingF =
     function | AcceptEncoding x -> join commaF acceptableEncodingF x
 
 (* Parsing *)
 
-let private encodingSpecAnyP =
-    skipChar '*' >>% EncodingSpec.Any
+let private encodingRangeAnyP =
+    skipChar '*' >>% Any
 
-let private encodingSpecIdentityP =
-    skipStringCI "identity" >>% EncodingSpec.Identity
+let private encodingRangeIdentityP =
+    skipStringCI "identity" >>% Identity
 
-let private encodingSpecEncodingP =
-    tokenP |>> fun s -> EncodingSpec.Encoding (Encoding s)
+let private encodingRangeCodingP =
+    tokenP |>> fun s -> Coding (ContentCoding s)
 
-let private encodingP =
+let private encodingRangeP =
     choice [
-        attempt encodingSpecAnyP
-        attempt encodingSpecIdentityP
-        encodingSpecEncodingP ]
+        attempt encodingRangeAnyP
+        attempt encodingRangeIdentityP
+        encodingRangeCodingP ]
 
 let private acceptEncodingP =
-    infixP commaP (encodingP .>> owsP .>>. opt weightP)
+    infixP commaP (encodingRangeP .>> owsP .>>. opt weightP)
     |>> (List.map (fun (encoding, weight) ->
         { Encoding = encoding
           Weight = weight }) >> AcceptEncoding)

@@ -44,20 +44,26 @@ let todoLastModified =
 
 // Configuration
 
+let jsonMediaTypes =
+    returnM [ MediaTypes.JSON ]
+
 let json =
     freyaMachine {
-        mediaTypesSupported [ MediaTypes.JSON ] }
+        mediaTypesSupported jsonMediaTypes }
 
-let unicode =
+let utf8Charset =
+    returnM [ Charsets.UTF8 ]
+
+let utf8 =
     freyaMachine {
-        charsetsSupported [ Charsets.Unicode ] }
+        charsetsSupported utf8Charset }
 
 // Resources
 
 let todos =
     freyaMachine {
         including json
-        including unicode
+        including utf8
 
         doDelete clearTodos
         doPost createTodo
@@ -66,7 +72,7 @@ let todos =
         handleOk getTodos
 
         lastModified todoLastModified
-        methodsSupported [ DELETE; GET; OPTIONS; POST ]
+        methodsSupported (returnM [ DELETE; GET; OPTIONS; POST ])
         processable todoProcessable } |> compileFreyaMachine
 
 let todo =

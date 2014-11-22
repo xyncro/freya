@@ -19,19 +19,19 @@ module Charsets =
 
 
 [<RequireQualifiedAccess>]
-module Encodings =
+module ContentCodings =
 
     /// Convenience definition for "deflate"
     let Compress =
-        Encoding "compress"
+        ContentCoding "compress"
 
     /// Convenience definition for "deflate"
     let Deflate =
-        Encoding "deflate"
+        ContentCoding "deflate"
 
     /// Convenience definition for "gzip"
     let GZip =
-        Encoding "gzip"
+        ContentCoding "gzip"
 
 
 [<RequireQualifiedAccess>]
