@@ -88,17 +88,20 @@ type ETag with
    [http://tools.ietf.org/html/rfc7232#section-3.1] *)
 
 type IfMatch =
+    | IfMatch of IfMatchChoice
+
+and IfMatchChoice =
     | EntityTags of EntityTag list
     | Any
 
 let private ifMatchF =
-    function | IfMatch.EntityTags x -> join commaF entityTagF x
-             | IfMatch.Any -> append "*"
+    function | IfMatch (EntityTags x) -> join commaF entityTagF x
+             | IfMatch (Any) -> append "*"
 
 let private ifMatchP =
     choice [
-        skipChar '*' >>% IfMatch.Any
-        infixP commaP entityTagP |>> IfMatch.EntityTags ]
+        skipChar '*' >>% IfMatch (Any)
+        infixP commaP entityTagP |>> (EntityTags >> IfMatch) ]
 
 type IfMatch with
 
@@ -120,17 +123,20 @@ type IfMatch with
    [http://tools.ietf.org/html/rfc7232#section-3.2] *)
 
 type IfNoneMatch =
+    | IfNoneMatch of IfNoneMatchChoice
+
+and IfNoneMatchChoice =
     | EntityTags of EntityTag list
     | Any
 
 let private ifNoneMatchF =
-    function | IfNoneMatch.EntityTags x -> join commaF entityTagF x
-             | IfNoneMatch.Any -> append "*"
+    function | IfNoneMatch (EntityTags x) -> join commaF entityTagF x
+             | IfNoneMatch (Any) -> append "*"
 
 let private ifNoneMatchP =
     choice [
-        skipChar '*' >>% IfNoneMatch.Any
-        infixP commaP entityTagP |>> IfNoneMatch.EntityTags ]
+        skipChar '*' >>% IfNoneMatch (Any)
+        infixP commaP entityTagP |>> (EntityTags >> IfNoneMatch) ]
 
 type IfNoneMatch with
 

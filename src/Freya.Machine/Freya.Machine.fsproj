@@ -149,7 +149,6 @@
     <Compile Include="Representation.fs" />
     <Compile Include="Execution.fs" />
     <Compile Include="Syntax.fs" />
-    <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">

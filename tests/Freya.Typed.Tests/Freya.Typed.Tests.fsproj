@@ -339,8 +339,9 @@
     <Compile Include="RFC5646.Tests.fs" />
     <Compile Include="RFC7230.Tests.fs" />
     <Compile Include="RFC7231.Tests.fs" />
-    <Compile Include="Lenses.Tests.fs" />
-    <Content Include="app.config" />
+    <Compile Include="RFC7233.Tests.fs" />
+    <Content Include="App.config" />
+    <Compile Include="RFC7232.Tests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Freya.Typed\Freya.Typed.fsproj">

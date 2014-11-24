@@ -215,7 +215,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Core.Tests.fs" />
-    <Content Include="app.config" />
+    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

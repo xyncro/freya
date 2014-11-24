@@ -1,5 +1,6 @@
 ﻿module Freya.Typed.Tests.RFC7231
 
+open System
 open NUnit.Framework
 open Swensen.Unquote
 open Freya.Typed
@@ -8,10 +9,10 @@ open Freya.Typed
 let ``MediaType Formatting/Parsing`` () =
 
     let mediaTypeTyped =
-        MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf8" ])
+        MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf-8" ])
 
     let mediaTypeString =
-        "application/json;charset=utf8"
+        "application/json;charset=utf-8"
 
     roundTrip (MediaType.Format, MediaType.Parse) [
         mediaTypeTyped, mediaTypeString ]
@@ -20,10 +21,10 @@ let ``MediaType Formatting/Parsing`` () =
 let ``ContentType Formatting/Parsing`` () =
 
     let contentTypeTyped =
-        ContentType (MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf8" ]))
+        ContentType (MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf-8" ]))
 
     let contentTypeString =
-        "application/json;charset=utf8"
+        "application/json;charset=utf-8"
 
     roundTrip (ContentType.Format, ContentType.Parse) [
         contentTypeTyped, contentTypeString ]
@@ -149,3 +150,83 @@ let ``AcceptEncoding Formatting/Parsing`` () =
 
     roundTrip (AcceptEncoding.Format, AcceptEncoding.Parse) [
         acceptEncodingTyped, acceptEncodingString ]
+
+[<Test>]
+let ``AcceptLanguage Formatting/Parsing`` () =
+
+    let acceptLanguageTyped =
+        AcceptLanguage [
+            { Language = Range [ "en"; "GB" ]
+              Weight = Some 0.8 }
+            { Language = Any
+              Weight = None } ]
+
+    let acceptLanguageString =
+        "en-GB;q=0.8,*"
+
+    roundTrip (AcceptLanguage.Format, AcceptLanguage.Parse) [
+        acceptLanguageTyped, acceptLanguageString ]
+
+[<Test>]
+let ``Referer Formatting/Parsing`` () =
+
+    let refererTyped =
+        Referer (Partial ({ Relative = RelativePart.Absolute (PathAbsolute ["some"; "path" ])
+                            Query = None }))
+
+    let refererString =
+        "/some/path"
+
+    roundTrip (Referer.Format, Referer.Parse) [
+        refererTyped, refererString ]
+
+[<Test>]
+let ``Date Formatting/Parsing`` () =
+
+    let dateTyped =
+        Date.Date (DateTime.Parse ("1994/10/29 19:43:31"))
+
+    let dateString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (Date.Format, Date.Parse) [
+        dateTyped, dateString ]
+
+[<Test>]
+let ``Location Formatting/Parsing`` () =
+
+    let locationTyped =
+        Location (UriReference.Uri { Scheme = Scheme "http"
+                                     Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "some"; "path" ])
+                                     Query = None
+                                     Fragment = None })
+
+    let locationString =
+        "http:/some/path"
+
+    roundTrip (Location.Format, Location.Parse) [
+        locationTyped, locationString ]
+
+[<Test>]
+let ``RetryAfter Formatting/Parsing`` () =
+
+    let retryAfterTyped =
+        RetryAfter (Delay 60)
+
+    let retryAfterString =
+        "60"
+
+    roundTrip (RetryAfter.Format, RetryAfter.Parse) [
+        retryAfterTyped, retryAfterString ]
+
+[<Test>]
+let ``Allow Formatting/Parsing`` () =
+
+    let allowTyped =
+        Allow [ DELETE; GET; POST; PUT ]
+
+    let allowString =
+        "DELETE,GET,POST,PUT"
+
+    roundTrip (Allow.Format, Allow.Parse) [
+        allowTyped, allowString ]

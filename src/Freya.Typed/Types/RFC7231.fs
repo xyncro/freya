@@ -174,12 +174,9 @@ and ContentLocationUri =
     | Absolute of AbsoluteUri
     | Partial of PartialUri
 
-let private contentLocationUriF =
-    function | Absolute x -> absoluteUriF x
-             | Partial x -> partialUriF x
-
 let private contentLocationF =
-    function | ContentLocation x -> contentLocationUriF x
+    function | ContentLocation (Absolute x) -> absoluteUriF x
+             | ContentLocation (Partial x) -> partialUriF x
 
 let private contentLocationP =
     choice [
@@ -637,17 +634,20 @@ type AcceptLanguage with
    [http://tools.ietf.org/html/rfc7231#section-5.5.2] *)
 
 type Referer =
+    | Referer of RefererUri
+    
+and RefererUri =
     | Absolute of AbsoluteUri
     | Partial of PartialUri
 
 let private refererF =
-    function | Absolute x -> absoluteUriF x
-             | Partial x -> partialUriF x
+    function | Referer (Absolute x) -> absoluteUriF x
+             | Referer (Partial x) -> partialUriF x
 
 let private refererP =
     choice [
-        attempt absoluteUriP |>> Absolute
-        partialUriP |>> Partial ]
+        attempt absoluteUriP |>> (Absolute >> Referer)
+        partialUriP |>> (Partial >> Referer) ]
 
 type Referer with
 
@@ -742,17 +742,20 @@ type Location with
    [http://tools.ietf.org/html/rfc7231#section-7.1.3] *)
 
 type RetryAfter =
+    | RetryAfter of RetryAfterChoice
+
+and RetryAfterChoice =
     | Date of DateTime
     | Delay of int
 
 let private retryAfterF =
-    function | Date x -> append (x.ToString "r")
-             | Delay x -> append (string x)
+    function | RetryAfter (Date x) -> append (x.ToString "r")
+             | RetryAfter (Delay x) -> append (string x)
 
 let private retryAfterP =
     choice [
-        attempt httpDateP |>> Date
-        puint32 |>> (int >> Delay) ]
+        attempt httpDateP |>> (Date >> RetryAfter)
+        puint32 |>> (int >> Delay >> RetryAfter) ]
 
 type RetryAfter with
 

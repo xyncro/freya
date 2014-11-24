@@ -138,7 +138,6 @@
     <Compile Include="Monad.fs" />
     <Compile Include="Router.fs" />
     <Compile Include="Syntax.fs" />
-    <Content Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Typed\Freya.Typed.fsproj">

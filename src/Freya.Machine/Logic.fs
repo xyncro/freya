@@ -160,7 +160,7 @@ module IfMatch =
         !? ifMatch
 
     let any : FreyaMachineDecision =
-        ifMatch =? Some IfMatch.Any
+        ifMatch =? Some (IfMatch IfMatchChoice.Any)
 
 
 [<RequireQualifiedAccess>]
@@ -199,7 +199,7 @@ module IfNoneMatch =
         !? ifNoneMatch
 
     let any : FreyaMachineDecision =
-        ifNoneMatch =? Some IfNoneMatch.Any
+        ifNoneMatch =? Some (IfNoneMatch IfNoneMatchChoice.Any)
 
 
 [<RequireQualifiedAccess>]

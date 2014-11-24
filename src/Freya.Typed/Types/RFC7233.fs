@@ -19,15 +19,18 @@ open FParsec
    See [http://tools.ietf.org/html/rfc7233#section-3.2] *)
 
 type IfRange =
+    | IfRange of IfRangeChoice
+
+and IfRangeChoice =
     | Date of DateTime
     | EntityTag of EntityTag
 
 let private ifRangeF =
-    function | Date x -> append (x.ToString "r")
-             | EntityTag x -> entityTagF x
+    function | IfRange (Date x) -> append (x.ToString "r")
+             | IfRange (EntityTag x) -> entityTagF x
 
 let private ifRangeP =
-    (entityTagP |>> EntityTag) <|> (httpDateP |>> Date)
+    (entityTagP |>> (EntityTag >> IfRange)) <|> (httpDateP |>> (Date >> IfRange))
 
 type IfRange with
 

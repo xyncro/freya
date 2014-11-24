@@ -7,7 +7,7 @@ open Freya.Typed
 
 
 [<Test>]
-let ``negotiateAccept`` =
+let ``negotiateAccept`` () =
     let available =
         [ MediaTypes.JSON
           MediaTypes.XML ]

@@ -208,6 +208,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Negotiation.Tests.fs" />
+    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
