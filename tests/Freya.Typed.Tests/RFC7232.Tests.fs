@@ -33,10 +33,10 @@ let ``ETag Formatting/Parsing`` () =
 let ``IfMatch Formatting/Parsing`` () =
 
     let ifMatchTyped =
-        IfMatch (IfMatchChoice.EntityTags [ Strong "sometag"; Strong "othertag" ])
+        IfMatch (IfMatchChoice.EntityTags [ Strong "sometag"; Weak "othertag" ])
 
     let ifMatchString =
-        "\"sometag\",\"othertag\""
+        "\"sometag\",W/\"othertag\""
 
     roundTrip (IfMatch.Format, IfMatch.Parse) [
         ifMatchTyped, ifMatchString ]
@@ -45,10 +45,10 @@ let ``IfMatch Formatting/Parsing`` () =
 let ``IfNoneMatch Formatting/Parsing`` () =
 
     let ifNoneMatchTyped =
-        IfNoneMatch (IfNoneMatchChoice.EntityTags [ Strong "sometag"; Strong "othertag" ])
+        IfNoneMatch (IfNoneMatchChoice.EntityTags [ Strong "sometag"; Weak "othertag" ])
 
     let ifNoneMatchString =
-        "\"sometag\",\"othertag\""
+        "\"sometag\",W/\"othertag\""
 
     roundTrip (IfNoneMatch.Format, IfNoneMatch.Parse) [
         ifNoneMatchTyped, ifNoneMatchString ]

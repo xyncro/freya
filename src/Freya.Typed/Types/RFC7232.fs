@@ -41,14 +41,14 @@ type LastModified with
     override x.ToString () =
         LastModified.Format x
 
-// TODO: Reference
+(* ETag
 
-(* ETag *)
+   Taken from RFC 7232 Section 2.3 ETag
+   [http://tools.ietf.org/html/rfc7232#section-2.3] *)
 
-type ETag =
-    | ETag of EntityTag
+(* Entity Tag *)
 
-and EntityTag =
+type EntityTag =
     | Strong of string
     | Weak of string
 
@@ -56,14 +56,27 @@ let internal entityTagF =
     function | Strong x -> appendf1 "\"{0}\"" x
              | Weak x -> appendf1 "W/\"{0}\"" x
 
-let private eTagF =
-    function | ETag x -> entityTagF x
+let private eTagChars =
+    Set.unionMany [
+        set [ char 0x21 ]
+        charRange 0x23 0x7e
+        obsText ]
 
-// TODO: Move def of EntityTag?
-// TODO: Full weak/strong parser for EntityTag
+let private opaqueTagP =
+    skipChar RFC5234.dquote >>. manySatisfy ((?>) eTagChars) .>> skipChar RFC5234.dquote
 
 let internal entityTagP =
-    skipChar RFC5234.dquote >>. tokenP .>> skipChar RFC5234.dquote |>> Strong
+    choice [
+        attempt (skipString "W/" >>. opaqueTagP |>> Weak)
+        opaqueTagP |>> Strong ]
+
+(* ETag *)
+
+type ETag =
+    | ETag of EntityTag
+
+let private eTagF =
+    function | ETag x -> entityTagF x
 
 let private eTagP =
     entityTagP |>> ETag

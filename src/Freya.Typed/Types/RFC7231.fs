@@ -746,16 +746,16 @@ type RetryAfter =
 
 and RetryAfterChoice =
     | Date of DateTime
-    | Delay of int
+    | Delay of TimeSpan
 
 let private retryAfterF =
     function | RetryAfter (Date x) -> append (x.ToString "r")
-             | RetryAfter (Delay x) -> append (string x)
+             | RetryAfter (Delay x) -> append (string (int x.TotalSeconds))
 
 let private retryAfterP =
     choice [
         attempt httpDateP |>> (Date >> RetryAfter)
-        puint32 |>> (int >> Delay >> RetryAfter) ]
+        puint32 |>> (float >> TimeSpan.FromSeconds >> Delay >> RetryAfter) ]
 
 type RetryAfter with
 

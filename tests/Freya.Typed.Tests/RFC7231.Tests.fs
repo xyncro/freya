@@ -211,7 +211,7 @@ let ``Location Formatting/Parsing`` () =
 let ``RetryAfter Formatting/Parsing`` () =
 
     let retryAfterTyped =
-        RetryAfter (Delay 60)
+        RetryAfter (Delay (TimeSpan.FromSeconds (float 60)))
 
     let retryAfterString =
         "60"

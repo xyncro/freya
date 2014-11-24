@@ -10,19 +10,19 @@ open FParsec
 
    Types, parsers and formatters implemented to mirror the semantics of
    HTTP as defined in RFC 7234.
-   
+
    See [http://tools.ietf.org/html/rfc7234] *)
 
 (* Age
 
-   Taken from RFC 7234, Section 5.1 Age
+   Taken from RFC 7234 Section 5.1 Age
    See [http://tools.ietf.org/html/rfc7234#section-5.1] *)
 
 type Age =
     | Age of TimeSpan
 
 let private ageF =
-    function | Age x -> append (string x.Seconds)
+    function | Age x -> append (string x.TotalSeconds)
 
 let private ageP =
     puint32 |>> (float >> TimeSpan.FromSeconds >> Age)
@@ -43,9 +43,9 @@ type Age with
 
 (* Cache-Control
 
-   Taken from RFC 7234, Section 5.2 Cache-Control
+   Taken from RFC 7234 Section 5.2 Cache-Control
    See [http://tools.ietf.org/html/rfc7234#section-5.2]
-   
+
    Note that from a type system perspective we don't currently
    distinguish between cache-directives that are valid for
    requests/responses or both. This may be worth changing in future,
@@ -55,9 +55,9 @@ type CacheControl =
     | CacheControl of CacheDirective list
 
 and CacheDirective =
-    | MaxAge of int
-    | MaxStale of int
-    | MinFresh of int
+    | MaxAge of TimeSpan
+    | MaxStale of TimeSpan
+    | MinFresh of TimeSpan
     | MustRevalidate
     | NoCache
     | NoStore
@@ -66,15 +66,15 @@ and CacheDirective =
     | Private
     | ProxyRevalidate
     | Public
-    | SMaxAge of int
+    | SMaxAge of TimeSpan
     | Custom of string * string option
 
 (* Formatting *)
 
 let private cacheDirectiveF =
-    function | MaxAge x -> appendf1 "max-age={0}" x
-             | MaxStale x -> appendf1 "max-stale={0}" x
-             | MinFresh x -> appendf1 "min-fresh={0}" x
+    function | MaxAge x -> appendf1 "max-age={0}" (int x.TotalSeconds)
+             | MaxStale x -> appendf1 "max-stale={0}" (int x.TotalSeconds)
+             | MinFresh x -> appendf1 "min-fresh={0}" (int x.TotalSeconds)
              | MustRevalidate -> append "must-revalidate"
              | NoCache -> append "no-cache"
              | NoStore -> append "no-store"
@@ -92,11 +92,22 @@ let private cacheControlF =
 
 (* Parsing *)
 
-// TODO: Full Set
+// TODO: Custom Directive Parsing
 
 let private cacheDirectiveP =
     choice [
-        attempt (skipStringCI "max-age=" >>. puint32 |>> (int >> MaxAge)) ] 
+        attempt (skipStringCI "max-age=" >>. puint32 |>> (float >> TimeSpan.FromSeconds >> MaxAge))
+        attempt (skipStringCI "max-stake=" >>. puint32 |>> (float >> TimeSpan.FromSeconds >> MaxStale))
+        attempt (skipStringCI "min-fresh=" >>. puint32 |>> (float >> TimeSpan.FromSeconds >> MinFresh))
+        attempt (skipStringCI "must-revalidate" >>% MustRevalidate)
+        attempt (skipStringCI "no-cache" >>% NoCache)
+        attempt (skipStringCI "no-store" >>% NoStore)
+        attempt (skipStringCI "no-transform" >>% NoTransform)
+        attempt (skipStringCI "only-if-cached" >>% OnlyIfCached)
+        attempt (skipStringCI "private" >>% Private)
+        attempt (skipStringCI "proxy-revalidate" >>% ProxyRevalidate)
+        attempt (skipStringCI "public" >>% Public)
+        attempt (skipStringCI "s-maxage=" >>. puint32 |>> (float >> TimeSpan.FromSeconds >> SMaxAge)) ] 
 
 let private cacheControlP =
     infix1P commaP cacheDirectiveP |>> CacheControl
@@ -119,7 +130,7 @@ type CacheControl with
 
 (* Expires
 
-   Taken from RFC 7234, Section 5.3 Expires
+   Taken from RFC 7234 Section 5.3 Expires
    See [http://tools.ietf.org/html/rfc7234#section-5.3] *)
 
 type Expires =
