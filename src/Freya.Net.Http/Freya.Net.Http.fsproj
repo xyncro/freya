@@ -59,14 +59,10 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
       <Choose>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
-        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v3.5'" />
         <When Condition="$(TargetFrameworkVersion) == 'v4.0' And $(TargetFrameworkProfile) == 'Client'">
           <ItemGroup>
             <Reference Include="System.IO">
@@ -145,7 +141,7 @@
             </Reference>
           </ItemGroup>
         </When>
-        <Otherwise>
+        <When Condition="$(TargetFrameworkVersion) == 'v4.5'">
           <ItemGroup>
             <Reference Include="System.Net.Http.Extensions">
               <HintPath>..\..\packages\Microsoft.Net.Http\lib\net45\System.Net.Http.Extensions.dll</HintPath>
@@ -161,6 +157,20 @@
               <Paket>True</Paket>
             </Reference>
             <Reference Include="System.Net.Http.WebRequest">
+              <Paket>True</Paket>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="System.Net.Http.Extensions">
+              <HintPath>..\..\packages\Microsoft.Net.Http\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
+            <Reference Include="System.Net.Http.Primitives">
+              <HintPath>..\..\packages\Microsoft.Net.Http\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+              <Private>True</Private>
               <Paket>True</Paket>
             </Reference>
           </ItemGroup>
@@ -312,14 +322,10 @@
             </Reference>
           </ItemGroup>
         </When>
-        <When Condition="$(TargetFrameworkProfile) == 'Profile259' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'net451+win81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'net451+win81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
-        <When Condition="$(TargetFrameworkProfile) == 'win81+wp81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'">
-        </When>
+        <When Condition="$(TargetFrameworkProfile) == 'Profile259' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'net451+win81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'net451+win81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
+        <When Condition="$(TargetFrameworkProfile) == 'win81+wp81+wpa81' And $(TargetPlatformIdentifier) == 'Portable' And $(TargetPlatformVersion) == '7.0'" />
         <Otherwise>
           <ItemGroup>
             <Reference Include="System.Net.Http.Extensions">
@@ -384,12 +390,6 @@
               <Private>True</Private>
               <Paket>True</Paket>
             </Reference>
-            <Reference Include="System.Net.Http">
-              <Paket>True</Paket>
-            </Reference>
-            <Reference Include="System.Net.Http.WebRequest">
-              <Paket>True</Paket>
-            </Reference>
           </ItemGroup>
         </When>
         <When Condition="$(SilverlightVersion) == 'v4.0'">
@@ -451,12 +451,6 @@
             <Reference Include="System.Net.Http.Primitives">
               <HintPath>..\..\packages\Microsoft.Net.Http\lib\net45\System.Net.Http.Primitives.dll</HintPath>
               <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
-            <Reference Include="System.Net.Http">
-              <Paket>True</Paket>
-            </Reference>
-            <Reference Include="System.Net.Http.WebRequest">
               <Paket>True</Paket>
             </Reference>
           </ItemGroup>
@@ -525,12 +519,6 @@
               <Private>True</Private>
               <Paket>True</Paket>
             </Reference>
-            <Reference Include="System.Net.Http">
-              <Paket>True</Paket>
-            </Reference>
-            <Reference Include="System.Net.Http.WebRequest">
-              <Paket>True</Paket>
-            </Reference>
           </ItemGroup>
         </When>
         <Otherwise>
@@ -561,12 +549,6 @@
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="System.Net.Http">
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="System.Net.Http.WebRequest">
-          <Paket>True</Paket>
-        </Reference>
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -576,9 +558,10 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(OS)' == 'Windows_NT'">
       <Private>True</Private>
     </Reference>
+    <Reference Include="FSharp.Core" Condition="'$(OS)' != 'Windows_NT'" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -587,11 +570,6 @@
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Http\Freya.Http.fsproj">
-      <Name>Freya.Http</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
