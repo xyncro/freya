@@ -73,6 +73,11 @@
         </When>
         <Otherwise>
           <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
             <Reference Include="nunit.framework">
               <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
               <Private>True</Private>
@@ -89,6 +94,11 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'MonoAndroid'">
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="nunit.framework">
           <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
@@ -103,6 +113,11 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'MonoTouch'">
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="nunit.framework">
           <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
@@ -119,6 +134,11 @@
       <Choose>
         <When Condition="$(SilverlightVersion) == 'v4.0'">
           <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
             <Reference Include="nunit.framework">
               <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
               <Private>True</Private>
@@ -133,6 +153,11 @@
         </When>
         <Otherwise>
           <ItemGroup>
+            <Reference Include="Aether">
+              <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+              <Private>True</Private>
+              <Paket>True</Paket>
+            </Reference>
             <Reference Include="nunit.framework">
               <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
               <Private>True</Private>
@@ -149,6 +174,11 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'Windows'">
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="nunit.framework">
           <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
@@ -163,6 +193,11 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'WindowsPhoneApp'">
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="nunit.framework">
           <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
@@ -177,6 +212,11 @@
     </When>
     <Otherwise>
       <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="nunit.framework">
           <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
@@ -190,15 +230,6 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -215,6 +246,40 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
+  <ItemGroup>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Router.Tests.fs" />
+    <Content Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\src\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Router\Freya.Router.fsproj">
+      <Name>Freya.Router</Name>
+      <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Typed\Freya.Typed.fsproj">
+      <Name>Freya.Typed</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
