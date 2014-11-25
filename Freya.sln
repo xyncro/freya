@@ -56,6 +56,35 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Tests", "test
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Router.Tests", "tests\Freya.Router.Tests\Freya.Router.Tests.fsproj", "{9C1BF1E2-A7F4-4EA3-BE46-2F104611508C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "references", "references", "{B0FD1DB9-A189-4963-81EC-6F55B45660DB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{C719C8B9-5AA9-44F2-A7FE-B7FFF5940998}"
+	ProjectSection(SolutionItems) = preProject
+		examples\Freya.Todo.Backend\Freya.Todo.Backend.fsproj.paket.references = examples\Freya.Todo.Backend\Freya.Todo.Backend.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44733C56-F0D3-49F7-B261-5B5EA2E5E4DE}"
+	ProjectSection(SolutionItems) = preProject
+		src\Freya.Inspector\Freya.Inspector.fsproj.paket.references = src\Freya.Inspector\Freya.Inspector.fsproj.paket.references
+		src\Freya.Machine\Freya.Machine.fsproj.paket.references = src\Freya.Machine\Freya.Machine.fsproj.paket.references
+		src\Freya.Router\Freya.Router.fsproj.paket.references = src\Freya.Router\Freya.Router.fsproj.paket.references
+		src\Freya.Typed\Freya.Typed.fsproj.paket.references = src\Freya.Typed\Freya.Typed.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experimental", "experimental", "{FDD9BDC3-4C5E-456E-900B-7D7FFD9DBEDD}"
+	ProjectSection(SolutionItems) = preProject
+		src\Freya.Net.Http\Freya.Net.Http.fsproj.paket.references = src\Freya.Net.Http\Freya.Net.Http.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1AF60757-05E6-45AA-AFDA-AE56B3F577A8}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references = tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references
+		tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references = tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references
+		tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references = tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references
+		tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references = tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references
+		tests\Freya.Typed.Tests\Freya.Typed.Tests.fsproj.paket.references = tests\Freya.Typed.Tests\Freya.Typed.Tests.fsproj.paket.references
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,5 +170,10 @@ Global
 		{D39640C6-2258-4571-830E-7028E19DB6BA} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{9C1BF1E2-A7F4-4EA3-BE46-2F104611508C} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{B0FD1DB9-A189-4963-81EC-6F55B45660DB} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
+		{C719C8B9-5AA9-44F2-A7FE-B7FFF5940998} = {B0FD1DB9-A189-4963-81EC-6F55B45660DB}
+		{44733C56-F0D3-49F7-B261-5B5EA2E5E4DE} = {B0FD1DB9-A189-4963-81EC-6F55B45660DB}
+		{FDD9BDC3-4C5E-456E-900B-7D7FFD9DBEDD} = {44733C56-F0D3-49F7-B261-5B5EA2E5E4DE}
+		{1AF60757-05E6-45AA-AFDA-AE56B3F577A8} = {B0FD1DB9-A189-4963-81EC-6F55B45660DB}
 	EndGlobalSection
 EndGlobal

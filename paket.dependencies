@@ -1,0 +1,13 @@
+source https://nuget.org/api/v2
+
+nuget Aether
+nuget Fleece
+nuget FParsec
+nuget Microsoft.Net.Http
+nuget Microsoft.Owin.SelfHost
+nuget NUnit
+nuget NUnit.Runners
+nuget Unquote
+nuget FAKE
+nuget SourceLink.Fake
+nuget Nuget.CommandLine
