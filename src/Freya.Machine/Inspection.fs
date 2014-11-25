@@ -9,7 +9,7 @@ open Freya.Inspector
 (* Literals *)
 
 let [<Literal>] freyaMachineInspectionKey = 
-    "freya.machine"
+    "Freya.Machine"
 
 (* Types *)
 

@@ -1,21 +1,21 @@
 ﻿[<AutoOpen>]
 module Freya.Router.Syntax
 
-[<AutoOpen>]
-module Registration =
+(* Custom Operations
 
-    type FreyaRouterBuilder with
+   Custom syntax operators used in the FreyaRouter computation
+   expression. Custom syntax operators are used to register routes. *)
 
-        [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
-        member x.Route (r, meth, path, pipeline) =
-            x.Update (r, (fun x -> x @ [ { Method = meth; Path = path; Pipeline = pipeline } ]))
+type FreyaRouterBuilder with
 
-    
-[<AutoOpen>]
-module Utility =
+    (* Routes *)
 
-    type FreyaRouterBuilder with
+    [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
+    member x.Route (r, meth, path, pipeline) =
+        x.Update (r, (fun x -> x @ [ { Method = meth; Path = path; Pipeline = pipeline } ]))
 
-        [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
-        member x.Including (r, routes) =
-            x.Combine (r, routes)
+    (* Utility *)
+
+    [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
+    member x.Including (r, routes) =
+        x.Combine (r, routes)

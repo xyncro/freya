@@ -6,27 +6,6 @@ open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Typed
 
-//[<AutoOpen>]
-//module Cache =
-//    
-//    let cache<'T> m =
-//        let lens =
-//                 dictPLens (string (Guid.NewGuid ()))
-//            <?-> boxIso<'T>
-//
-//        owin {
-//            let! value = getPLM lens
-//
-//            match value with
-//            | Some cached ->
-//                return cached
-//            | _ ->
-//                let! created = m
-//                do! setPLM lens created
-//
-//                return created }
-
-
 (* Traversal *)
 
 let private action a =
@@ -40,8 +19,10 @@ let private action a =
 
 let private decision d =
     freya {
-        let! result = d.Decision
-        let next = (function | true -> d.True | _ -> d.False) result
+        let! next, result = 
+               (function | true -> d.True, true 
+                         | _ -> d.False, false) 
+            <!> d.Decision
 
         do! executionI (DecisionLog { 
                     Name = d.Id

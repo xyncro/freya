@@ -9,6 +9,11 @@ open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Typed
 
+(* Keys *)
+
+let [<Literal>] proxyKey = 
+    "freya.InspectorProxy"
+
 (* Types *)
 
 type StorageConfiguration =
@@ -49,7 +54,7 @@ let itemPLens<'a> k =
     dataLens >-?> mapPLens k <?-> boxIso<'a>
 
 let proxyPLens =
-    dictPLens "freya.InspectorProxy" <?-> boxIso<StorageProxy>
+    dictPLens proxyKey <?-> boxIso<StorageProxy>
 
 (* Constructors *)
 

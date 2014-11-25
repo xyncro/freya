@@ -14,7 +14,7 @@ open Freya.Todo.Backend.Storage
 
 // Helpers
 
-let inline representation n x =
+let inline represent n x =
     { Metadata =
         { Charset = Some Charsets.UTF8
           Encodings = None
@@ -31,10 +31,10 @@ let createTodo =
     returnM ()
 
 let createdTodo n =
-    representation n <!> returnM Array.empty<Todo>
+    represent n <!> returnM Array.empty<Todo>
 
 let getTodos n =
-    representation n <!> liftAsync (getAll ())
+    represent n <!> liftAsync (getAll ())
 
 let todoProcessable =
     returnM true
@@ -44,12 +44,12 @@ let todoLastModified =
 
 // Configuration
 
-let jsonMediaTypes =
+let jsonMediaType =
     returnM [ MediaTypes.JSON ]
 
 let json =
     freyaMachine {
-        mediaTypesSupported jsonMediaTypes }
+        mediaTypesSupported jsonMediaType }
 
 let utf8Charset =
     returnM [ Charsets.UTF8 ]
