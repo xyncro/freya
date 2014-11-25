@@ -2,29 +2,31 @@
 module internal Freya.Router.Tests.Prelude
 
 open System.Collections.Generic
+open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Pipeline
 open Freya.Router
 open Freya.Typed
 
 (* Keys *)
 
-let [<Literal>] private testKey =
+let [<Literal>] testKey =
     "freya.Test"
 
 (* Lenses *)
 
 let private testLens =
-    dictLens testKey <--> (unbox<int>, box)
+    dictPLens testKey <?-> (unbox<int>, box)
 
 (* Functions *)
 
-let get : Freya<int> =
-    getLM testLens
+let get =
+    getPL testLens
 
 let set i =
-    setLM testLens i
+    setPLM testLens i *> next
 
 let private run path m =
     let state = Dictionary<string, obj> ()
@@ -35,5 +37,5 @@ let private run path m =
 let result path m =
     fst (run path m)
 
-let state path m =
-    snd (run path m)
+let value path m =
+    get (snd (run path m))
