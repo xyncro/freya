@@ -14,7 +14,7 @@ open Freya.Todo.Backend.Storage
 
 // Helpers
 
-let inline represent n x =
+let inline represent _ x =
     { Metadata =
         { Charset = Some Charsets.UTF8
           Encodings = None
@@ -60,6 +60,9 @@ let utf8 =
 
 // Resources
 
+let todosMethods =
+    returnM [ DELETE; GET; OPTIONS; POST ]
+
 let todos =
     freyaMachine {
         including json
@@ -72,7 +75,7 @@ let todos =
         handleOk getTodos
 
         lastModified todoLastModified
-        methodsSupported (returnM [ DELETE; GET; OPTIONS; POST ])
+        methodsSupported todosMethods
         processable todoProcessable } |> compileFreyaMachine
 
 let todo =
