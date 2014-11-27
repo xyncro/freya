@@ -12,7 +12,7 @@ open Freya.Typed
 
 let rec private traverse n m =
     function | h :: t -> n.Children |> pick m h |> ret t
-             | _ -> Option.map (fun x -> x, m) n.Pipeline
+             | _ -> n.Pipelines, m
 
 and private pick m h =
     function | [] -> None
@@ -25,7 +25,7 @@ and private recognize m v n =
 
 and private ret t =
     function | Some (n, m) -> traverse n m t
-             | _ -> None
+             | _ -> List.Empty, Map.empty
 
 let private lookup p trie =
     traverse trie.Root Map.empty (path p)
@@ -38,7 +38,8 @@ let compileFreyaRouter (m: FreyaRouter) : FreyaPipeline =
 
     freya {
         let! path = getLM Request.path
+        let! meth = getLM Request.meth
 
         match lookup path trie with
-        | Some (app, data) -> return! setLM Route.Values data *> app
+        | ((_, app) :: _, data) -> return! setLM Route.Values data *> app
         | _ -> return Next }
