@@ -12,7 +12,7 @@ type FreyaRouterBuilder with
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
     member x.Route (r, meth, path, pipeline) =
-        x.Update (r, (fun x -> x @ [ { Method = meth; Path = path; Pipeline = pipeline } ]))
+        x.Update (r, (fun x -> { Method = meth; Path = path; Pipeline = pipeline } :: x))
 
     (* Utility *)
 
