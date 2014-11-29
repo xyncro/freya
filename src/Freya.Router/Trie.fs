@@ -13,7 +13,7 @@ type FreyaRouterTrie =
 and FreyaRouterTrieNode =
     { Children: FreyaRouterTrieNode list
       Key: string
-      Pipeline: FreyaPipeline option
+      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
       Recognizer: FreyaRouterRecognizer }
 
 and FreyaRouterRecognizer =
@@ -29,9 +29,9 @@ let private childrenLens =
 let private childPLens i =
     childrenLens >-?> listPLens i
 
-let private pipelinePLens =
-    (fun x -> x.Pipeline), 
-    (fun p x -> { x with FreyaRouterTrieNode.Pipeline = Some p })
+let private pipelinesLens =
+    (fun x -> x.Pipelines), 
+    (fun p x -> { x with FreyaRouterTrieNode.Pipelines = p })
 
 let private rootLens =
     (fun x -> x.Root), 
@@ -49,7 +49,7 @@ let private recognizer (key: string) =
 let private node key =
     { Children = List.empty
       Key = key
-      Pipeline = None
+      Pipelines = List.empty
       Recognizer = recognizer key }
 
 let private trie =
@@ -63,24 +63,24 @@ let path (p: string) =
 (* Construction *)
 
 let rec private add n =
-    function | (h :: t, p) -> (find h n |> update h t p) n
-             | (_, p) -> setPL pipelinePLens p n
+    function | (h :: t, p, m) -> (find h n |> update h t p m) n
+             | (_, p, m) -> modL pipelinesLens (fun ps -> ps @ [ (m, p) ]) n
 
 and private find h =
     function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = h) x
 
-and private update h t p =
-    function | Some i -> extend i t p
-             | _ -> append h t p
+and private update h t p m =
+    function | Some i -> extend i t p m
+             | _ -> append h t p m
 
-and private extend i t p =
-    modPL (childPLens i) (flip add (t, p))
+and private extend i t p m =
+    modPL (childPLens i) (flip add (t, p, m))
 
-and private append h t p =
-    modL childrenLens (flip (@) [ add (node h) (t, p) ])
+and private append h t p m =
+    modL childrenLens (flip (@) [ add (node h) (t, p, m) ])
 
 let private addRoute r =
-    modL rootLens ((flip add) (path r.Path, r.Pipeline))
+    modL rootLens ((flip add) (path r.Path, r.Pipeline, r.Method))
 
 let construct =
     List.fold (flip addRoute) trie

@@ -13,4 +13,7 @@ type FreyaRoute =
 
 and FreyaRouteMethod =
     | All
-    | Methods of Method list 
+    | Methods of Method list
+
+type FreyaRouteData =
+    Map<string, string>

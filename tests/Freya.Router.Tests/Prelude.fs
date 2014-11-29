@@ -28,14 +28,16 @@ let get =
 let set i =
     setPLM testLens i *> next
 
-let private run path m =
+let private run meth path m =
     let state = Dictionary<string, obj> ()
     let router = compileFreyaRouter m
 
-    Async.RunSynchronously ((setLM Request.path path *> router) state)
+    Async.RunSynchronously ((   setLM Request.path path 
+                             *> setLM Request.meth meth 
+                             *> router) state)
 
-let result path m =
-    fst (run path m)
+let result meth path m =
+    fst (run meth path m)
 
-let value path m =
-    get (snd (run path m))
+let value meth path m =
+    get (snd (run meth path m))
