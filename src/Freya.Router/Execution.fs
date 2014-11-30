@@ -8,52 +8,80 @@ open Freya.Typed
 
 (* Traversal *)
 
-// TODO: Convert these functions to Freya monads
+let rec private tryFindNode path data node  =
+    freya {
+        match path with
+        | segment :: path -> return! (pick segment data >=> ret path) node.Children
+        | _ -> return Some (node.Pipelines, data) }
 
-let rec private tryFindNode n m =
-    function | h :: t -> n.Children |> pick m h |> ret t
-             | _ -> Some (n.Pipelines, m)
+and private ret path x =
+    freya {
+        match x with
+        | Some (node, data) -> return! tryFindNode path data node
+        | _ -> return None }
 
-and private pick m h =
-    function | [] -> None
-             | xs -> List.tryPick (fun x -> recognize m h x x.Recognizer) xs
+and private pick segment data nodes =
+    freya {
+        match nodes with
+        | [] -> return None
+        | nodes ->
+            let! env = getM
 
-and private recognize m v n =
-    function | Capture x -> Some (n, Map.add x v m)
-             | Ignore x when x = v -> Some (n, m)
-             | _ -> None
+            let x, env =
+                List.fold (fun (x, env) node -> 
+                    match x with
+                    | Some (node, data) -> (Some (node, data), env)
+                    | None -> Async.RunSynchronously (recognize segment data node env)) (None, env) nodes
 
-and private ret t =
-    function | Some (n, m) -> tryFindNode n m t
-             | _ -> None
+            do! setM env
+
+            return x }
+
+and private recognize segment data node =
+    freya {
+        match node.Recognizer with
+        | Capture x -> return Some (node, Map.add x segment data)
+        | Ignore x when x = segment -> return Some (node, data)
+        | _ -> return None }
 
 (* Match *)
 
-let private tryFindPipeline meth =
-    function | [] -> None
-             | xs -> List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m 
-                                            | _ -> true) xs
+let private tryFindPipeline meth xs =
+    freya {
+        match xs with
+        | [] -> return None
+        | xs -> return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m 
+                                              | _ -> true) xs }
 
 (* Search *)
 
-let private search trie m p =
-    match tryFindNode trie.Root Map.empty (path p) with
-    | Some (pipelines, data) -> 
-        match tryFindPipeline m pipelines with
-        | Some (_, pipeline) -> Some (pipeline, data)
-        | _ -> None
-    | _ -> None
+// TODO: Factor out nested matches.
+// Probably change tryFindPipeline so composable with tryFindNode (>=>)
+
+let private search path meth trie =
+    freya {
+        let! x = tryFindNode path Map.empty trie.Root
+
+        match x with
+        | Some (pipelines, data) ->
+            let! pipeline = tryFindPipeline meth pipelines
+
+            match pipeline with
+            | Some (_, pipeline) -> return Some (pipeline, data)
+            | _ -> return None
+        | _ -> return None }
 
 (* Compilation *)
 
 let compileFreyaRouter (m: FreyaRouter) : FreyaPipeline =
     let _, routes = m List.empty
-    let search = search (construct routes)
+    let trie = construct routes
 
     freya {
         let! m = getLM Request.meth
-        let! p = getLM Request.path
+        let! p = path <!> getLM Request.path
+        let! x = search p m trie
 
-        match search m p with
+        match x with
         | Some (pipeline, data) -> return! setLM Route.Values data *> pipeline
         | _ -> return Next }
