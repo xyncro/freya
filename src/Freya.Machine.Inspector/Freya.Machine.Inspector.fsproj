@@ -47,9 +47,9 @@
     <Compile Include="Inspector.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
-      <Name>Freya.Inspector</Name>
-      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
+    <ProjectReference Include="..\Freya.Inspector.Core\Freya.Inspector.Core.fsproj">
+      <Name>Freya.Inspector.Core</Name>
+      <Project>{062d940f-3192-49e5-8a34-56c953154a0e}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">

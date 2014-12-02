@@ -1,6 +1,6 @@
 ﻿module Freya.Machine.Inspector
 
-open Freya.Inspector
+open Freya.Inspector.Core
 open Freya.Machine
 
 let private renderMachine (data: FreyaMachineInspection) =

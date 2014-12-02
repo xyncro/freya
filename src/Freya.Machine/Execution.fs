@@ -67,8 +67,8 @@ let private nodes =
     @ handlers
     @ operations
     
-let compileFreyaMachine (m: FreyaMachine) : FreyaPipeline =
-    let _, definition = m Map.empty
+let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
+    let definition = snd (machine Map.empty)
     let graph = construct definition nodes
 
     freya {

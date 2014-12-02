@@ -1,24 +1,20 @@
 ﻿[<AutoOpen>]
-module Freya.Inspector.Interface
+module Freya.Inspector.Pipeline.Rendering
 
 open System.Text
-open Aether
 open Freya.Core
-open Freya.Core.Operators
-open Freya.Pipeline
+open Freya.Inspector.Core
 open Freya.Typed
 
 (* Types *)
 
-type FreyaInspector =
-    { Render: Map<string, obj> -> string option }
-
-type internal DisplayConfiguration =
-    { Inspectors: FreyaInspector list }
+type FreyaInspectorConfiguration =
+    { Path: string
+      Inspectors: FreyaInspector list }
 
 (* Renderers *)
 
-let private renderHeader log (b: StringBuilder) =
+let private renderHeader (log: FreyaInspectorEntry) (b: StringBuilder) =
     b.AppendFormat ("ID: {0}\nTimestamp: {1}\n", log.Id, log.Timestamp)
 
 let private renderDataItem inspector data (b: StringBuilder) =
@@ -40,7 +36,7 @@ let private renderLogs config logs =
     |> Seq.map (renderLog config)
     |> String.concat "\n"
 
-let private render config logs =
+let internal render config logs =
     freya {
         let body = Encoding.UTF8.GetBytes (renderLogs config logs)
         let length = Array.length body
@@ -48,8 +44,3 @@ let private render config logs =
         do! setPLM Response.Headers.contentLength (ContentLength length)
         do! setPLM Response.Headers.contentType (ContentType (MediaTypes.Text))
         do! modLM Response.body (fun b -> b.Write (body, 0, Array.length body); b) }
-
-(* Pipeline *)
-
-let internal display (storage: Storage) config : FreyaPipeline =
-    render config (storage.PostAndReply (fun c -> ReadAll (c))) *> halt

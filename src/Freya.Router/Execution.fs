@@ -6,9 +6,9 @@ open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Typed
 
-(* Traversal *)
+(* Find *)
 
-let rec private tryFindNode path data node  =
+let rec private findNode path data node  =
     freya {
         match path with
         | segment :: path -> return! (pick segment data >=> ret path) node.Children
@@ -17,7 +17,7 @@ let rec private tryFindNode path data node  =
 and private ret path x =
     freya {
         match x with
-        | Some (node, data) -> return! tryFindNode path data node
+        | Some (node, data) -> return! findNode path data node
         | _ -> return None }
 
 and private pick segment data nodes =
@@ -46,41 +46,37 @@ and private recognize segment data node =
 
 (* Match *)
 
-let private tryFindPipeline meth xs =
+let private find meth x =
     freya {
-        match xs with
-        | [] -> return None
-        | xs -> return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m 
-                                              | _ -> true) xs }
+        return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m
+                                      | _ -> true) x }
+
+let private pair data x =
+    freya {
+        return Option.map (fun (_, pipeline) -> pipeline, data) x }
+
+let private matchMethod meth x =
+    freya {
+        match x with
+        | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
+        | _ -> return None }
 
 (* Search *)
 
-// TODO: Factor out nested matches.
-// Probably change tryFindPipeline so composable with tryFindNode (>=>)
-
-let private search path meth trie =
+let private search path meth data trie =
     freya {
-        let! x = tryFindNode path Map.empty trie.Root
-
-        match x with
-        | Some (pipelines, data) ->
-            let! pipeline = tryFindPipeline meth pipelines
-
-            match pipeline with
-            | Some (_, pipeline) -> return Some (pipeline, data)
-            | _ -> return None
-        | _ -> return None }
+        return! (findNode path data >=> matchMethod meth) trie }
 
 (* Compilation *)
 
-let compileFreyaRouter (m: FreyaRouter) : FreyaPipeline =
-    let _, routes = m List.empty
+let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
+    let routes = snd (router List.empty)
     let trie = construct routes
 
     freya {
-        let! m = getLM Request.meth
-        let! p = path <!> getLM Request.path
-        let! x = search p m trie
+        let! meth = getLM Request.meth
+        let! path = segmentize <!> getLM Request.path
+        let! x = search path meth Map.empty trie
 
         match x with
         | Some (pipeline, data) -> return! setLM Route.Values data *> pipeline

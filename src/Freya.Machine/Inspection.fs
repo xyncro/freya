@@ -4,7 +4,7 @@ module Freya.Machine.Inspection
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Inspector
+open Freya.Inspector.Core
 
 (* Literals *)
 

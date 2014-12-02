@@ -3,7 +3,7 @@
 open System
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Inspector
+open Freya.Inspector.Pipeline
 open Freya.Machine
 open Freya.Machine.Inspector
 open Freya.Pipeline
@@ -93,8 +93,8 @@ let api =
 
 let config =
     { Path = "/inspect"
-      History = 10
-      Inspectors = [ freyaMachineInspector ] }
+      Inspectors = 
+        [ freyaMachineInspector ] }
 
 let pipeline =
     freyaInspector config >?= api
