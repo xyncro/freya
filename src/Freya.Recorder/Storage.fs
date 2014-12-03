@@ -6,7 +6,7 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Typed
+open Freya.Types
 
 (* Keys *)
 
@@ -38,7 +38,7 @@ let private recordsLens =
 let private dataLens =
     (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-let itemPLens<'a> k =
+let internal recordPLens<'a> k =
     dataLens >-?> mapPLens k <?-> boxIso<'a>
 
 let proxyPLens =

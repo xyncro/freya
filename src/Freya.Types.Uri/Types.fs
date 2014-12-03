@@ -1,11 +1,18 @@
 ﻿[<AutoOpen>]
-module Freya.Typed.RFC3986
+module Freya.Types.Uri.Types
 
 #nowarn "60"
 
 open System.Net
 open System.Net.Sockets
+open System.Runtime.CompilerServices
 open FParsec
+open Freya.Types
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
+do ()
 
 (* RFC 3986
 
@@ -21,8 +28,8 @@ open FParsec
 
 let private unreserved =
     Set.unionMany [
-        RFC5234.alpha
-        RFC5234.digit
+        Grammar.alpha
+        Grammar.digit
         set [ '-'; '.'; '_'; '~' ] ]
 
 let private genDelims =
@@ -49,12 +56,12 @@ let private schemeF =
 
 let private schemeChars =
     Set.unionMany [
-        RFC5234.alpha
-        RFC5234.digit
+        Grammar.alpha
+        Grammar.digit
         set [ '+'; '-'; '.' ] ]
 
 let private schemeP =
-    satisfy ((?>) RFC5234.alpha) .>>. manySatisfy ((?>) schemeChars)
+    satisfy ((?>) Grammar.alpha) .>>. manySatisfy ((?>) schemeChars)
     |>> ((fun (x, xs) -> sprintf "%c%s" x xs) >> Scheme)
 
 type Scheme with
@@ -122,7 +129,7 @@ let internal hostF =
 
 let private ipv6Chars =
     Set.unionMany [
-        RFC5234.hexdig
+        Grammar.hexdig
         set [ ':' ] ]
 
 let private ipLiteralP =
@@ -133,7 +140,7 @@ let private ipLiteralP =
 
 let private ipv4Chars =
     Set.unionMany [
-        RFC5234.digit
+        Grammar.digit
         set [ '.' ] ]
 
 let private ipv4AddressP =

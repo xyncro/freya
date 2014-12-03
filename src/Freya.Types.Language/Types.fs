@@ -1,9 +1,16 @@
 ﻿[<AutoOpen>]
-module Freya.Typed.RFC5646
+module Freya.Types.Language.Types
 
 #nowarn "60"
 
+open System.Runtime.CompilerServices
 open FParsec
+open Freya.Types
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
+do ()
 
 (* RFC 5646
 
@@ -27,13 +34,13 @@ open FParsec
 (* Helpers *)
 
 let private isAlpha =
-    ((?>) RFC5234.alpha)
+    ((?>) Grammar.alpha)
 
 let private isDigit =
-    ((?>) RFC5234.digit)
+    ((?>) Grammar.digit)
 
 let private isAlphaNum x =
-    (RFC5234.alpha ?> x || RFC5234.digit ?> x)
+    (Grammar.alpha ?> x || Grammar.digit ?> x)
 
 (* Note: We expose these internally as they're also useful for some
    of the other RFCs, especially those dealing with Language-* formulations. *)
@@ -178,3 +185,37 @@ type LanguageTag with
 
     override x.ToString () =
         LanguageTag.Format x
+
+(* RFC 4647
+
+   Types, parsers and formatters implemented to mirror the specification of 
+   Language Range semantics as defined in RFC 4647.
+
+   Taken from [http://tools.ietf.org/html/rfc4647] *)
+
+type LanguageRange =
+    | Range of string list
+    | Any
+
+let internal languageRangeF =
+    function | Range x -> join (append "-") append x
+             | Any -> append "*"
+
+let internal languageRangeP =
+    choice [
+        skipChar '*' >>% Any
+        alphaP 1 8 .>>. many (skipChar '-' >>. alphaNumP 1 8) |>> (fun (x, xs) -> Range (x :: xs)) ]
+
+type LanguageRange with
+
+    static member Format =
+        format languageRangeF
+
+    static member Parse =
+        parseExact languageRangeP
+
+    static member TryParse =
+        parseOption languageRangeP
+
+    override x.ToString () =
+        LanguageRange.Format x

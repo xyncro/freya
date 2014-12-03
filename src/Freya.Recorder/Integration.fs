@@ -6,7 +6,7 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Typed
+open Freya.Types
 
 (* Untyped Entry Integration *)
 
@@ -23,7 +23,7 @@ let listR () =
 (* Typed Inspection Integration *)
 
 let setR<'a> key a =
-    modPLM proxyPLens (fun p -> p.Update (setPL (itemPLens<'a> key) a); p)
+    modPLM proxyPLens (fun p -> p.Update (setPL (recordPLens<'a> key) a); p)
 
 let modR<'a> key f =
-    modPLM proxyPLens (fun p -> p.Update (modPL (itemPLens<'a> key) f); p)
+    modPLM proxyPLens (fun p -> p.Update (modPL (recordPLens<'a> key) f); p)

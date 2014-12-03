@@ -1,28 +1,12 @@
 ﻿[<AutoOpen>]
-module Freya.Typed.Lenses
+module Freya.Types.Http.Lenses
 
 open System.Collections.Generic
 open System.IO
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Core.Operators
-
-(* Lenses *)
-
-let dictLens k : Lens<IDictionary<'k,'v>, 'v> =
-    (fun d -> d.[k]),
-    (fun v d -> d.[k] <- v; d)
-
-let dictPLens k : PLens<IDictionary<'k,'v>, 'v> =
-    (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-    (fun v d -> d.[k] <- v; d)
-
-let private itemLens<'a> key =
-    dictLens key <--> boxIso<'a>
-
-let private itemPLens<'a> key =
-    dictPLens key <?-> boxIso<'a>
+open Freya.Types
 
 (* Request Lenses *)
 
@@ -36,7 +20,7 @@ module Request =
         itemLens<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
-        headers >-?> dictPLens key <?-> ((String.concat ","), (Array.create 1))
+        headers >-?> dictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let meth = 
         itemLens<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
@@ -308,31 +292,3 @@ module Response =
 
         let wwwAuthenticate =
             headersKey "WWW-Authenticate"
-
-
-[<AutoOpen>]
-module Monad =
-
-    /// Gets part of the OwinEnv using an Aether lens within an OWIN monad
-    let getLM l = 
-        getL l <!> getM
-
-    /// Sets part of the OwinEnv using an Aether lens within an OWIN monad
-    let setLM l v = 
-        setL l v |> modM
-
-    /// Modifies part of the OwinEnv using an Aether lens within an OWIN monad
-    let modLM l f = 
-        modL l f |> modM
-
-    /// Gets part of the OwinEnv using a partial Aether lens within an OWIN monad
-    let getPLM l = 
-        getPL l <!> getM
-
-    /// Sets part of the OwinEnv using a partial Aether lens within an OWIN monad
-    let setPLM l v = 
-        setPL l v |> modM
-
-    /// Modifies part of the OwinEnv using a partial Aether lens within an OWIN monad
-    let modPLM l f = 
-        modPL l f |> modM

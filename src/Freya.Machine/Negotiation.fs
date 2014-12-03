@@ -2,7 +2,8 @@
 module Freya.Machine.Negotiation
 
 open System
-open Freya.Typed
+open Freya.Types.Http
+open Freya.Types.Language
 
 (* Content Negotiation
 

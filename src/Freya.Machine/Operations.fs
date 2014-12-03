@@ -2,7 +2,8 @@
 module internal Freya.Machine.Operations
 
 open Freya.Core.Operators
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
 
 (* Operations
         

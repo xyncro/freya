@@ -3,14 +3,14 @@
 open NUnit.Framework
 open Swensen.Unquote
 open Freya.Machine
-open Freya.Typed
+open Freya.Types.Http
 
 
 [<Test>]
 let ``negotiateAccept`` () =
     let available =
-        [ MediaTypes.JSON
-          MediaTypes.XML ]
+        [ MediaType.JSON
+          MediaType.XML ]
 
     let requested1 =
         [ { MediaRange = MediaRange.Closed (Type "application", SubType "json", Map.empty)
@@ -43,61 +43,61 @@ let ``negotiateAccept`` () =
     let negotiated3 = Accept.negotiate requested3 available
         
     negotiated1 =? 
-        [ MediaTypes.JSON
-          MediaTypes.XML ]
+        [ MediaType.JSON
+          MediaType.XML ]
 
     negotiated2 =?
-        [ MediaTypes.XML
-          MediaTypes.JSON ]
+        [ MediaType.XML
+          MediaType.JSON ]
 
     negotiated3 =? []
 
 [<Test>]
 let ``negotiateAcceptCharset`` () =
     let available =
-        [ Charsets.Unicode
-          Charsets.Iso88591 ]
+        [ Charset.Unicode
+          Charset.Iso88591 ]
 
     let requested1 =
-        [ { Charset = CharsetRange.Charset (Charsets.Unicode)
+        [ { Charset = CharsetRange.Charset (Charset.Unicode)
             Weight = Some 0.8 }
-          { Charset = CharsetRange.Charset (Charsets.Iso88591)
+          { Charset = CharsetRange.Charset (Charset.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let requested2 =
-        [ { Charset = CharsetRange.Charset (Charsets.Unicode)
+        [ { Charset = CharsetRange.Charset (Charset.Unicode)
             Weight = None }
-          { Charset = CharsetRange.Charset (Charsets.Iso88591)
+          { Charset = CharsetRange.Charset (Charset.Iso88591)
             Weight = Some 0.9 } ] |> AcceptCharset
 
     let negotiated1 = AcceptCharset.negotiate requested1 available
     let negotiated2 = AcceptCharset.negotiate requested2 available
 
     negotiated1 =? 
-        [ Charsets.Iso88591 
-          Charsets.Unicode ]
+        [ Charset.Iso88591 
+          Charset.Unicode ]
 
     negotiated2 =? 
-        [ Charsets.Unicode
-          Charsets.Iso88591 ]
+        [ Charset.Unicode
+          Charset.Iso88591 ]
 
 [<Test>]
 let ``negotiateAcceptEncoding`` () =
     let available =
-        [ ContentCodings.GZip ]
+        [ ContentCoding.GZip ]
 
     let requested1 =
-        [ { Encoding = Coding (ContentCodings.GZip)
+        [ { Encoding = Coding (ContentCoding.GZip)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let requested2 =
-        [ { Encoding = Coding (ContentCodings.Compress)
+        [ { Encoding = Coding (ContentCoding.Compress)
             Weight = Some 0.7 } ] |> AcceptEncoding
 
     let negotiated1 = AcceptEncoding.negotiate requested1 available
     let negotiated2 = AcceptEncoding.negotiate requested2 available
 
-    negotiated1 =? [ ContentCodings.GZip ]
+    negotiated1 =? [ ContentCoding.GZip ]
     negotiated2 =? []
 
 // TODO: Accept-Language Negotiation Tests!

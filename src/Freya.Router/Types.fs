@@ -2,7 +2,7 @@
 module Freya.Router.Types
 
 open Freya.Pipeline
-open Freya.Typed
+open Freya.Types.Http
 
 (* Types *)
 

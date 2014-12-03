@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module internal Freya.Typed.RFC5234
+module internal Freya.Types.Grammar
 
 (* RFC 5234
 
@@ -36,4 +36,3 @@ let hexdig =
 
 let wsp = 
     set [ sp; htab ]
-

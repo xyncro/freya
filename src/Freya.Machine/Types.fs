@@ -4,7 +4,9 @@ module Freya.Machine.Types
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
+open Freya.Types.Language
 
 (* Representations *)
 

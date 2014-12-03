@@ -667,9 +667,19 @@
       <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Typed\Freya.Typed.fsproj">
-      <Name>Freya.Typed</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+    <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types\Freya.Types.fsproj">
+      <Name>Freya.Types</Name>
+      <Project>{af48f7da-f8e4-4c46-89b6-5dd9a09dbabf}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

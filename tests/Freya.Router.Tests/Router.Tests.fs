@@ -4,7 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open Freya.Pipeline
 open Freya.Router
-open Freya.Typed
+open Freya.Types.Http
 
 [<Test>]
 let ``Router With No Routes Returns Next`` () =
