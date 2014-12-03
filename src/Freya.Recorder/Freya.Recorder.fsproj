@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>a451c04f-62d3-4e3d-94cc-0d88c17be8ce</ProjectGuid>
+    <ProjectGuid>d9563cfe-4de3-4398-bae4-d103843552c0</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Inspector.Pipeline</RootNamespace>
-    <AssemblyName>Freya.Inspector.Pipeline</AssemblyName>
+    <RootNamespace>Freya.Recorder</RootNamespace>
+    <AssemblyName>Freya.Recorder</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Inspector.Pipeline</Name>
+    <Name>Freya.Recorder</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Inspector.Pipeline.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Recorder.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,8 +30,35 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Inspector.Pipeline.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Recorder.XML</DocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Storage.fs" />
+    <Compile Include="Integration.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Typed\Freya.Typed.fsproj">
+      <Name>Freya.Typed</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -121,46 +148,6 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
-  <ItemGroup>
-    <Compile Include="Rendering.fs" />
-    <Compile Include="Pipeline.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
-      <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Inspector.Core\Freya.Inspector.Core.fsproj">
-      <Name>Freya.Inspector.Core</Name>
-      <Project>{062d940f-3192-49e5-8a34-56c953154a0e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Typed\Freya.Typed.fsproj">
-      <Name>Freya.Typed</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

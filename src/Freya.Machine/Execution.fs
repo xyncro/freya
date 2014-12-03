@@ -11,7 +11,7 @@ open Freya.Typed
 let private action a =
     freya {
         do! a.Action
-        do! executionI (ActionLog {
+        do! executionR (ActionRecord {
             Name = a.Id
             Overridden = a.Override.Overridden })
 
@@ -24,7 +24,7 @@ let private decision d =
                          | _ -> d.False, false) 
             <!> d.Decision
 
-        do! executionI (DecisionLog { 
+        do! executionR (DecisionRecord { 
                     Name = d.Id
                     Overridden = d.Override.Overridden
                     Result = result
@@ -34,7 +34,7 @@ let private decision d =
 
 let private handler (h: FreyaMachineHandlerNode) =
     freya {
-        do! executionI (HandlerLog {
+        do! executionR (HandlerRecord {
             Name = h.Id
             Overridden = h.Override.Overridden })
 
@@ -43,7 +43,7 @@ let private handler (h: FreyaMachineHandlerNode) =
 let private operation o =
     freya {
         do! o.Operation
-        do! executionI (OperationLog {
+        do! executionR (OperationRecord {
             Name = o.Id })
 
         return o.Next }
@@ -72,7 +72,7 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let graph = construct definition nodes
 
     freya {
-        do! initI
+        do! initR
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

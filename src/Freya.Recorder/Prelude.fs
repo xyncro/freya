@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module internal Freya.Inspector.Core.Prelude
+module internal Freya.Recorder.Prelude
 
 open Aether
 

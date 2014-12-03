@@ -1,20 +1,14 @@
 ﻿[<AutoOpen>]
-module Freya.Inspector.Pipeline.Rendering
+module Freya.Inspector.Rendering
 
 open System.Text
 open Freya.Core
-open Freya.Inspector.Core
+open Freya.Recorder
 open Freya.Typed
-
-(* Types *)
-
-type FreyaInspectorConfiguration =
-    { Path: string
-      Inspectors: FreyaInspector list }
 
 (* Renderers *)
 
-let private renderHeader (log: FreyaInspectorEntry) (b: StringBuilder) =
+let private renderHeader (log: FreyaRecorderRecord) (b: StringBuilder) =
     b.AppendFormat ("ID: {0}\nTimestamp: {1}\n", log.Id, log.Timestamp)
 
 let private renderDataItem inspector data (b: StringBuilder) =

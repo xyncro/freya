@@ -1,17 +1,19 @@
 ﻿[<AutoOpen>]
-module Freya.Inspector.Pipeline.Pipeline
+module Freya.Inspector.Pipeline
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Inspector.Core
 open Freya.Pipeline
+open Freya.Recorder
 open Freya.Typed
 
+(* Functions *)
+
 let private init =
-    (initE ()) *> next
+    (initR ()) *> next
 
 let private display config =
-    (render config <!> listE ()) *> halt
+    (render config <!> listR ()) *> halt
 
 (* Pipeline *)
 

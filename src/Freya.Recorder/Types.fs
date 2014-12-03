@@ -1,11 +1,11 @@
 ﻿[<AutoOpen>]
-module Freya.Inspector.Core.Types
+module Freya.Recorder.Types
 
 open System
 
 (* Low Level Store *)
 
-type FreyaInspectorEntry =
+type FreyaRecorderRecord =
     { Id: Guid
       Timestamp: DateTime
       Data: Map<string, obj> }

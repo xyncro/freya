@@ -74,6 +74,8 @@ let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
     let trie = construct routes
 
     freya {
+        do! initR
+
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path
         let! x = search path meth Map.empty trie

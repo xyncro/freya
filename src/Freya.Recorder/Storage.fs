@@ -1,12 +1,11 @@
 ﻿[<AutoOpen>]
-module internal Freya.Inspector.Core.Storage
+module internal Freya.Recorder.Storage
 
 open System
 open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 open Freya.Typed
 
 (* Keys *)
@@ -18,23 +17,23 @@ let [<Literal>] private proxyKey =
 
 type StorageProtocol =
     | Create of Guid
-    | Update of Guid * FreyaInspectorEntryUpdate
-    | Read of Guid * AsyncReplyChannel<FreyaInspectorEntry option>
-    | ReadAll of AsyncReplyChannel<FreyaInspectorEntry seq>
+    | Update of Guid * FreyaRecordUpdate
+    | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>
+    | List of AsyncReplyChannel<FreyaRecorderRecord seq>
 
-and FreyaInspectorEntryUpdate =
-    FreyaInspectorEntry -> FreyaInspectorEntry
+and FreyaRecordUpdate =
+    FreyaRecorderRecord -> FreyaRecorderRecord
 
 type StorageProxy =
-    { Update: FreyaInspectorEntryUpdate -> unit }
+    { Update: FreyaRecordUpdate -> unit }
 
 type private StorageState =
-    { Entries: FreyaInspectorEntry seq }
+    { Records: FreyaRecorderRecord seq }
 
 (* Lenses *)
 
-let private entriesLens =
-    (fun x -> x.Entries), (fun e x -> { x with Entries = e })
+let private recordsLens =
+    (fun x -> x.Records), (fun r x -> { x with Records = r })
 
 let private dataLens =
     (fun x -> x.Data), (fun d x -> { x with Data = d })
@@ -48,7 +47,7 @@ let proxyPLens =
 (* Constructors *)
 
 let private state =
-    { Entries = Seq.empty }
+    { Records = Seq.empty }
 
 let private entry id =
     { Id = id
@@ -58,16 +57,16 @@ let private entry id =
 (* Handlers *)
 
 let private create id =
-    modL entriesLens (Seq.append [ entry id ] >> Seq.truncate 10)
+    modL recordsLens (Seq.append [ entry id ] >> Seq.truncate 10)
 
 let private update id f =
-    modL entriesLens (Seq.map (function | l when l.Id = id -> f l | l -> l))
+    modL recordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l))
 
-let private read id (chan: AsyncReplyChannel<FreyaInspectorEntry option>) =
-    getL entriesLens >> (Seq.tryFind (fun l -> l.Id = id)) >> chan.Reply
+let private read id (chan: AsyncReplyChannel<FreyaRecorderRecord option>) =
+    getL recordsLens >> (Seq.tryFind (fun l -> l.Id = id)) >> chan.Reply
 
-let private readAll (chan: AsyncReplyChannel<FreyaInspectorEntry seq>) =
-    getL entriesLens >> chan.Reply
+let private list (chan: AsyncReplyChannel<FreyaRecorderRecord seq>) =
+    getL recordsLens >> chan.Reply
 
 (* Storage *)
 
@@ -85,8 +84,8 @@ let private storage () =
                 | Read (id, chan) ->
                     read id chan state
                     return! loop state
-                | ReadAll (chan) ->
-                    readAll chan state
+                | List (chan) ->
+                    list chan state
                     return! loop state }
 
         loop state)
@@ -96,11 +95,3 @@ let store =
 
 let proxy id =
     { Update = fun update -> store.Post (Update (id, update)) }
-
-//(* Pipeline *)
-//
-//let store (storage: Storage) : FreyaPipeline =
-//    let i = Guid.NewGuid ()
-//    let _ = storage.Post (Create i)
-//
-//    setPLM proxyPLens (proxy storage i) *> next

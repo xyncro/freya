@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Inspector.Core.Integration
+module Freya.Recorder.Integration
 
 open System
 open Aether
@@ -10,20 +10,20 @@ open Freya.Typed
 
 (* Untyped Entry Integration *)
 
-let initE () =
+let initR () =
     let i = Guid.NewGuid ()
     let _ = store.Post (Create i)
     let p = proxy i
 
     setPLM proxyPLens p
 
-let listE () =
-    liftAsync (store.PostAndAsyncReply (fun c -> ReadAll (c)))
+let listR () =
+    liftAsync (store.PostAndAsyncReply List)
 
 (* Typed Inspection Integration *)
 
-let setI<'a> key a =
+let setR<'a> key a =
     modPLM proxyPLens (fun p -> p.Update (setPL (itemPLens<'a> key) a); p)
 
-let modI<'a> key f =
+let modR<'a> key f =
     modPLM proxyPLens (fun p -> p.Update (modPL (itemPLens<'a> key) f); p)

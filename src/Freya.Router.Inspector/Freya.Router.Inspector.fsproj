@@ -5,14 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>63c07538-e910-4156-9c31-d7b6e9e5d85b</ProjectGuid>
+    <ProjectGuid>faee6bc0-d651-4ce8-aa47-f47cac0fe932</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Machine.Inspector</RootNamespace>
-    <AssemblyName>Freya.Machine.Inspector</AssemblyName>
+    <RootNamespace>Freya.Router.Inspector</RootNamespace>
+    <AssemblyName>Freya.Router.Inspector</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Machine.Inspector</Name>
-    <TargetFrameworkProfile />
+    <Name>Freya.Router.Inspector</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Machine.Inspector.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Router.Inspector.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,20 +30,16 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Machine.Inspector.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Router.Inspector.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
-    <Reference Include="FSharp.Core" Condition="'$(OS)' != 'Windows_NT'" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Inspector.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
@@ -52,11 +47,14 @@
       <Project>{3286d6f5-c85f-44c2-9b7d-2be14b1bece6}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
+    <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
+      <Name>Freya.Router</Name>
+      <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
       <Private>True</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Inspector.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

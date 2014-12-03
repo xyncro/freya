@@ -637,14 +637,9 @@
       <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Inspector.Core\Freya.Inspector.Core.fsproj">
-      <Name>Freya.Inspector.Core</Name>
-      <Project>{062d940f-3192-49e5-8a34-56c953154a0e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Inspector.Pipeline\Freya.Inspector.Pipeline.fsproj">
-      <Name>Freya.Inspector.Pipeline</Name>
-      <Project>{a451c04f-62d3-4e3d-94cc-0d88c17be8ce}</Project>
+    <ProjectReference Include="..\..\src\Freya.Inspector\Freya.Inspector.fsproj">
+      <Name>Freya.Inspector</Name>
+      <Project>{3286d6f5-c85f-44c2-9b7d-2be14b1bece6}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj">
@@ -660,6 +655,11 @@
     <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
       <Name>Freya.Pipeline</Name>
       <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Router.Inspector\Freya.Router.Inspector.fsproj">
+      <Name>Freya.Router.Inspector</Name>
+      <Project>{faee6bc0-d651-4ce8-aa47-f47cac0fe932}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Router\Freya.Router.fsproj">
