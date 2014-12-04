@@ -1,9 +1,64 @@
-﻿module Freya.Typed.Tests.RFC7231
+﻿module Freya.Types.Http.Tests
 
 open System
 open NUnit.Framework
-open Swensen.Unquote
-open Freya.Typed
+open Freya.Types.Http
+open Freya.Types.Language
+open Freya.Types.Tests
+open Freya.Types.Uri
+
+(* RFC 7230 *)
+
+[<Test>]
+let ``PartialUri Formatting/Parsing`` () =
+
+    let partialUriTyped : PartialUri =
+        { Relative = Absolute (PathAbsolute [ "some"; "path" ])
+          Query = Some (Query "key=val") }
+
+    let partialUriString =
+        "/some/path?key=val"
+
+    roundTrip (PartialUri.Format, PartialUri.Parse) [
+        partialUriTyped, partialUriString ]
+
+[<Test>]
+let ``HttpVersion Formatting/Parsing`` () =
+    
+    let httpVersionTyped = HTTP 1.1
+    let httpVersionString = "HTTP/1.1"
+
+    roundTrip (HttpVersion.Format, HttpVersion.Parse) [
+        httpVersionTyped, httpVersionString ]
+
+[<Test>]
+let ``ContentLength Formatting/Parsing`` () =
+    
+    let contentLengthTyped = ContentLength 1024
+    let contentLengthString = "1024"
+
+    roundTrip (ContentLength.Format, ContentLength.Parse) [
+        contentLengthTyped, contentLengthString ]
+
+[<Test>]
+let ``Host Formatting/Parsing`` () =
+
+    let hostTyped = Host (Name "www.example.com", Some (Port 8080))
+    let hostString = "www.example.com:8080"
+
+    roundTrip (Host.Format, Host.Parse) [
+        hostTyped, hostString ]
+
+[<Test>]
+let ``Connection Formatting/Parsing`` () =
+
+    let connectionTyped = Connection ([ ConnectionOption "close"; ConnectionOption "test" ])
+    let connectionString = "close,test"
+
+    roundTrip (Connection.Format, Connection.Parse) [
+        connectionTyped, connectionString ]
+
+(* RFC 7231 *)
 
 [<Test>]
 let ``MediaType Formatting/Parsing`` () =
@@ -122,7 +177,7 @@ let ``AcceptCharset Formatting/Parsing`` () =
     
     let acceptCharsetTyped =
         AcceptCharset [
-            { Charset = CharsetRange.Charset (Charsets.UTF8)
+            { Charset = CharsetRange.Charset (Charset.UTF8)
               Weight = Some 0.7 }
             { Charset = CharsetRange.Any
               Weight = Some 0.2 } ]
@@ -138,7 +193,7 @@ let ``AcceptEncoding Formatting/Parsing`` () =
 
     let acceptEncodingTyped =
         AcceptEncoding [
-            { Encoding = Coding (ContentCodings.Compress)
+            { Encoding = Coding (ContentCoding.Compress)
               Weight = Some 0.8 }
             { Encoding = Identity
               Weight = None }
@@ -230,3 +285,132 @@ let ``Allow Formatting/Parsing`` () =
 
     roundTrip (Allow.Format, Allow.Parse) [
         allowTyped, allowString ]
+
+(* RFC 7232 *)
+
+[<Test>]
+let ``LastModified Formatting/Parsing`` () =
+
+    let lastModifiedTyped =
+        LastModified (DateTime.Parse ("1994/10/29 19:43:31"))
+
+    let lastModifiedString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (LastModified.Format, LastModified.Parse) [
+        lastModifiedTyped, lastModifiedString ]
+
+[<Test>]
+let ``ETag Formatting/Parsing`` () =
+
+    let eTagTyped =
+        ETag (Strong "sometag")
+
+    let eTagString =
+        "\"sometag\""
+
+    roundTrip (ETag.Format, ETag.Parse) [
+        eTagTyped, eTagString ]
+
+[<Test>]
+let ``IfMatch Formatting/Parsing`` () =
+
+    let ifMatchTyped =
+        IfMatch (IfMatchChoice.EntityTags [ Strong "sometag"; Weak "othertag" ])
+
+    let ifMatchString =
+        "\"sometag\",W/\"othertag\""
+
+    roundTrip (IfMatch.Format, IfMatch.Parse) [
+        ifMatchTyped, ifMatchString ]
+
+[<Test>]
+let ``IfNoneMatch Formatting/Parsing`` () =
+
+    let ifNoneMatchTyped =
+        IfNoneMatch (IfNoneMatchChoice.EntityTags [ Strong "sometag"; Weak "othertag" ])
+
+    let ifNoneMatchString =
+        "\"sometag\",W/\"othertag\""
+
+    roundTrip (IfNoneMatch.Format, IfNoneMatch.Parse) [
+        ifNoneMatchTyped, ifNoneMatchString ]
+
+[<Test>]
+let ``IfModifiedSince Formatting/Parsing`` () =
+
+    let ifModifiedSinceTyped =
+        IfModifiedSince (DateTime.Parse ("1994/10/29 19:43:31"))
+
+    let ifModifiedSinceString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (IfModifiedSince.Format, IfModifiedSince.Parse) [
+        ifModifiedSinceTyped, ifModifiedSinceString ]
+
+[<Test>]
+let ``IfUnmodifiedSince Formatting/Parsing`` () =
+
+    let ifUnmodifiedSinceTyped =
+        IfUnmodifiedSince (DateTime.Parse ("1994/10/29 19:43:31"))
+
+    let ifUnmodifiedSinceString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (IfUnmodifiedSince.Format, IfUnmodifiedSince.Parse) [
+        ifUnmodifiedSinceTyped, ifUnmodifiedSinceString ]
+
+(* RFC 7233 *)
+
+[<Test>]
+let ``IfRange Formatting/Parsing`` () =
+
+    let ifRangeTyped =
+        IfRange (IfRangeChoice.Date (DateTime.Parse ("1994/10/29 19:43:31")))
+
+    let ifRangeString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (IfRange.Format, IfRange.Parse) [
+        ifRangeTyped, ifRangeString ]
+
+(* RFC 7234 *)
+
+[<Test>]
+let ``Age Formatting/Parsing`` () =
+
+    let ageTyped =
+        Age (TimeSpan.FromSeconds (float 1024))
+
+    let ageString =
+        "1024"
+
+    roundTrip (Age.Format, Age.Parse) [
+        ageTyped, ageString ]
+
+[<Test>]
+let ``CacheControl Formatting/Parsing`` () =
+
+    let cacheControlTyped =
+        CacheControl [
+            MaxAge (TimeSpan.FromSeconds (float 1024))
+            NoCache
+            Private ]
+
+    let cacheControlString =
+        "max-age=1024,no-cache,private"
+
+    roundTrip (CacheControl.Format, CacheControl.Parse) [
+        cacheControlTyped, cacheControlString ]
+
+[<Test>]
+let ``Expires Formatting/Parsing`` () =
+
+    let expiresTyped =
+        Expires (DateTime.Parse ("1994/10/29 19:43:31"))
+
+    let expiresString =
+        "Sat, 29 Oct 1994 19:43:31 GMT"
+
+    roundTrip (Expires.Format, Expires.Parse) [
+        expiresTyped, expiresString ]

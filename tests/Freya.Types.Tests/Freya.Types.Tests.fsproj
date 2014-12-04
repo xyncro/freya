@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d39640c6-2258-4571-830e-7028e19db6ba</ProjectGuid>
+    <ProjectGuid>fe9175cb-9716-4e4e-9e14-5c27378d885f</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Typed.Tests</RootNamespace>
-    <AssemblyName>Freya.Typed.Tests</AssemblyName>
+    <RootNamespace>Freya.Types.Tests</RootNamespace>
+    <AssemblyName>Freya.Types.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Typed.Tests</Name>
+    <Name>Freya.Types.Tests</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Typed.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Types.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Typed.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Types.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -51,49 +51,12 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
       <Choose>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.0'">
-          <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v1.1'">
-          <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v2.0'">
-          <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <When Condition="$(TargetFrameworkVersion) == 'v3.5'">
-          <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
-          </ItemGroup>
-        </When>
+        <When Condition="$(TargetFrameworkVersion) == 'v1.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v1.1'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v2.0'" />
+        <When Condition="$(TargetFrameworkVersion) == 'v3.5'" />
         <Otherwise>
           <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
             <Reference Include="Unquote">
               <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
               <Private>True</Private>
@@ -105,11 +68,6 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'MonoAndroid'">
       <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="Unquote">
           <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
@@ -119,11 +77,6 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'MonoTouch'">
       <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="Unquote">
           <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
@@ -135,11 +88,6 @@
       <Choose>
         <When Condition="$(SilverlightVersion) == 'v4.0'">
           <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
             <Reference Include="Unquote">
               <HintPath>..\..\packages\Unquote\lib\sl4\Unquote.dll</HintPath>
               <Private>True</Private>
@@ -149,11 +97,6 @@
         </When>
         <Otherwise>
           <ItemGroup>
-            <Reference Include="nunit.framework">
-              <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-              <Private>True</Private>
-              <Paket>True</Paket>
-            </Reference>
             <Reference Include="Unquote">
               <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
               <Private>True</Private>
@@ -165,11 +108,6 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'Windows'">
       <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="Unquote">
           <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
@@ -179,11 +117,6 @@
     </When>
     <When Condition="$(TargetFrameworkIdentifier) == 'WindowsPhoneApp'">
       <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="Unquote">
           <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
@@ -193,11 +126,6 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
         <Reference Include="Unquote">
           <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
@@ -208,29 +136,15 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="RFC3986.Tests.fs" />
-    <Compile Include="RFC5646.Tests.fs" />
-    <Compile Include="RFC7230.Tests.fs" />
-    <Compile Include="RFC7231.Tests.fs" />
-    <Compile Include="RFC7232.Tests.fs" />
-    <Compile Include="RFC7233.Tests.fs" />
-    <Compile Include="RFC7234.Tests.fs" />
-    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
-    <Reference Include="FSharp.Core" Condition="'$(OS)' != 'Windows_NT'" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Core\Freya.Core.fsproj">
-      <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

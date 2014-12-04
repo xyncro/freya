@@ -1,9 +1,9 @@
-﻿module Freya.Typed.Tests.RFC3986
+﻿module Freya.Types.Uri.Tests
 
 open System.Net
 open NUnit.Framework
-open Swensen.Unquote
-open Freya.Typed
+open Freya.Types.Tests
+open Freya.Types.Uri
 
 [<Test>]
 let ``Scheme Formatting/Parsing`` () =

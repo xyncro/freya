@@ -1,8 +1,8 @@
 ﻿module Freya.Typed.Tests.RFC5646
 
 open NUnit.Framework
-open Swensen.Unquote
-open Freya.Typed
+open Freya.Types.Language
+open Freya.Types.Tests
 
 [<Test>]
 let ``LanguageTag Formatting/Parsing`` () =
