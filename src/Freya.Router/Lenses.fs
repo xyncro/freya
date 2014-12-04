@@ -3,7 +3,7 @@ module Freya.Router.Lenses
 
 open Aether
 open Aether.Operators
-open Freya.Typed
+open Freya.Types
 
 (* Keys *)
 
@@ -19,7 +19,7 @@ let [<Literal>] private valuesKey =
 module Route =
 
     let Values =
-        dictLens valuesKey <--> boxIso<FreyaRouteData>
+        dictLens<string, obj> valuesKey <--> boxIso<FreyaRouteData>
 
     let Value key = 
         Values >-?> mapPLens key

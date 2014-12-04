@@ -5,7 +5,9 @@ open System
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
+open Freya.Types.Language
 
 (* Operators *)
 
@@ -57,7 +59,7 @@ let private negotiate f defaults =
 module Charset =
 
     let private defaults =
-        [ Charsets.Iso88591 ]
+        [ Charset.Iso88591 ]
 
     let private request =
         getPLM Request.Headers.acceptCharset

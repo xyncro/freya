@@ -3,7 +3,8 @@ module Freya.Machine.Syntax
 
 open System
 open Freya.Core
-open Freya.Typed
+open Freya.Types.Http
+open Freya.Types.Language
 
 (* Custom Operations
 

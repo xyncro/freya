@@ -4,7 +4,8 @@ module Freya.Inspector.Rendering
 open System.Text
 open Freya.Core
 open Freya.Recorder
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
 
 (* Renderers *)
 
@@ -36,5 +37,5 @@ let internal render config logs =
         let length = Array.length body
 
         do! setPLM Response.Headers.contentLength (ContentLength length)
-        do! setPLM Response.Headers.contentType (ContentType (MediaTypes.Text))
+        do! setPLM Response.Headers.contentType (ContentType (MediaType.Text))
         do! modLM Response.body (fun b -> b.Write (body, 0, Array.length body); b) }

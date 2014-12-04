@@ -5,7 +5,8 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Recorder
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
 
 (* Functions *)
 

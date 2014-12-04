@@ -4,11 +4,8 @@ module internal Freya.Machine.Representation
 open System.Globalization
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Typed
-
-(* Aliases *)
-
-module H = Response.Headers
+open Freya.Types
+open Freya.Types.Http
 
 (* Negotiation *)
 
@@ -28,19 +25,19 @@ let private negotiate =
 (* Metadata *)
 
 let private charset =
-    function | Some x -> modPLM H.contentType id
+    function | Some x -> modPLM Response.Headers.contentType id
              | _ -> returnM ()
 
 let private encodings =
-    function | Some x -> setPLM H.contentEncoding (ContentEncoding x)
+    function | Some x -> setPLM Response.Headers.contentEncoding (ContentEncoding x)
              | _ -> returnM ()
 
 let private mediaType =
-    function | Some x -> setPLM H.contentType (ContentType x)
+    function | Some x -> setPLM Response.Headers.contentType (ContentType x)
              | _ -> returnM ()
 
 let private languages =
-    function | Some x -> setPLM H.contentLanguage (ContentLanguage x)
+    function | Some x -> setPLM Response.Headers.contentLanguage (ContentLanguage x)
              | _ -> returnM ()
 
 let private metadata (metadata: FreyaMachineRepresentationMetadata) =
@@ -52,7 +49,7 @@ let private metadata (metadata: FreyaMachineRepresentationMetadata) =
 (* Data *)
 
 let private data (data: byte []) =
-        setPLM H.contentLength (ContentLength data.Length)
+        setPLM Response.Headers.contentLength (ContentLength data.Length)
      *> modLM Response.body (fun b -> b.Write (data, 0, data.Length); b)
 
 (* Representation *)

@@ -10,16 +10,17 @@ open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Router
 open Freya.Router.Inspector
-open Freya.Typed
+open Freya.Types
+open Freya.Types.Http
 open Freya.Todo.Backend.Storage
 
 // Helpers
 
 let inline represent _ x =
     { Metadata =
-        { Charset = Some Charsets.UTF8
+        { Charset = Some Charset.UTF8
           Encodings = None
-          MediaType = Some MediaTypes.JSON
+          MediaType = Some MediaType.JSON
           Languages = None }
       Data = toJSON x }
 
@@ -46,14 +47,14 @@ let todoLastModified =
 // Configuration
 
 let jsonMediaType =
-    returnM [ MediaTypes.JSON ]
+    returnM [ MediaType.JSON ]
 
 let json =
     freyaMachine {
         mediaTypesSupported jsonMediaType }
 
 let utf8Charset =
-    returnM [ Charsets.UTF8 ]
+    returnM [ Charset.UTF8 ]
 
 let utf8 =
     freyaMachine {
