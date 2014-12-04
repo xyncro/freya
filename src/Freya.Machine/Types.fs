@@ -27,7 +27,7 @@ and FreyaMachineRepresentationMetadata =
       Languages: LanguageTag list option }
 
 (* Signatures
-        
+
     Common monadic signatures for the building blocks of Machine
     Definitions. Represent functions that the user of Machine should implement
     when overriding the defaults. *)
@@ -45,7 +45,7 @@ type FreyaMachineOperation =
     Freya<unit>
 
 (* Definition
-        
+
     A Definition of a Machine, encoded as the defaults to override
     and the functions (given the previously defined Signatures) provided
     to override them. *)
@@ -60,7 +60,7 @@ and FreyaMachineOverride =
     | Handler of FreyaMachineHandler
 
 (* Patterns
-        
+
     Active patterns for discriminating between varying kinds of 
     Override within a Machine Definition. *)
 
@@ -80,13 +80,8 @@ let internal (|Handler|) =
     function | Handler x -> Some x
              | _ -> None
 
-(* Isomorphisms *)
-
-let private boxIso<'a> : Iso<obj, 'a> =
-    unbox<'a>, box
-
 (* Lenses
-        
+
     Partial lenses (Aether form - see https://github.com/xyncro/aether) 
     to the Machine Definition within an OWIN monad (see Freya.Core),
     and to aspects of the machine definition. *)

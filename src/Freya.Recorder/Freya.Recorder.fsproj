@@ -115,7 +115,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Integration.fs" />

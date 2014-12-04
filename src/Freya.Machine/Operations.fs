@@ -1,8 +1,8 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Operations
 
+open Freya.Core
 open Freya.Core.Operators
-open Freya.Types
 open Freya.Types.Http
 
 (* Operations

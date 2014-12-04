@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Types.Tests.fs" />
+    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -66,6 +67,11 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\src\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
       <Project>{fe9175cb-9716-4e4e-9e14-5c27378d885f}</Project>

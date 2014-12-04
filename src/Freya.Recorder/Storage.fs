@@ -42,7 +42,7 @@ let internal recordPLens<'a> k =
     dataLens >-?> mapPLens k <?-> boxIso<'a>
 
 let proxyPLens =
-    dictPLens proxyKey <?-> boxIso<StorageProxy>
+    environmentKeyP<StorageProxy> proxyKey
 
 (* Constructors *)
 
