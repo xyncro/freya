@@ -36,3 +36,6 @@ let semicolonP : Parser<unit, unit> =
 
 let slashP : Parser<unit, unit> =
     skipChar '/'
+
+let spaceP : Parser<unit, unit> =
+    skipChar ' '

@@ -11,6 +11,7 @@ open Freya.Types
 
 (* Internals *)
 
+[<assembly:InternalsVisibleTo ("Freya.Types.Cors")>]
 [<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
 do ()
 
@@ -51,7 +52,7 @@ let private reserved =
 type Scheme =
     | Scheme of string
 
-let private schemeF =
+let internal schemeF =
     function | Scheme x -> append x
 
 let private schemeChars =
@@ -60,7 +61,7 @@ let private schemeChars =
         Grammar.digit
         set [ '+'; '-'; '.' ] ]
 
-let private schemeP =
+let internal schemeP =
     satisfy ((?>) Grammar.alpha) .>>. manySatisfy ((?>) schemeChars)
     |>> ((fun (x, xs) -> sprintf "%c%s" x xs) >> Scheme)
 

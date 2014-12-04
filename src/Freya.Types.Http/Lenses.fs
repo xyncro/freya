@@ -3,12 +3,10 @@ module Freya.Types.Http.headerPIsoes
 
 open System.Collections.Generic
 open System.IO
-open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Types
 
-(* Request headerPIsoes *)
+(* Request Lenses *)
 
 [<RequireQualifiedAccess>]
 module Request =
@@ -45,7 +43,7 @@ module Request =
 //    let queryKey key =
 //        query >-?> mapPheaderPIso key
 
-    (* Request Header headerPIsoes *)
+    (* Request Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
@@ -171,7 +169,7 @@ module Request =
         let via =
             headersKey "Via"
 
-(* Response headerPIsoes *)
+(* Response Lenses *)
 
 [<RequireQualifiedAccess>]
 module Response =
@@ -194,7 +192,7 @@ module Response =
     let statusCode =
         environmentKeyP<int> Constants.responseStatusCode
 
-    (* Response Header headerPIsoes *)
+    (* Response Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =

@@ -4,7 +4,7 @@ module internal Freya.Machine.Actions
 open Freya.Core.Operators
 
 (* Actions
-       
+
    Action nodes execute some kind of "side-effecting" logical action
    (i.e. in response to a DELETE, POST, etc. method which is generally
    non-idempotent). They will generally need overriding if the resource

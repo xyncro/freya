@@ -203,6 +203,21 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
+      <Name>Freya.Types.Uri</Name>
+      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">
       <Name>Freya.Types</Name>
       <Project>{af48f7da-f8e4-4c46-89b6-5dd9a09dbabf}</Project>

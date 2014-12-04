@@ -47,3 +47,6 @@ let semicolonF : Separator =
 
 let slashF : Separator =
     append "/"
+
+let spaceF : Separator =
+    append " "
