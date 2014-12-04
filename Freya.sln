@@ -44,8 +44,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Inspector", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experimental", "experimental", "{1347FBDF-A32B-4F5B-A2F4-4D471086BC86}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Typed.Tests", "tests\Freya.Typed.Tests\Freya.Typed.Tests.fsproj", "{D39640C6-2258-4571-830E-7028E19DB6BA}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Tests", "tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj", "{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Router.Tests", "tests\Freya.Router.Tests\Freya.Router.Tests.fsproj", "{9C1BF1E2-A7F4-4EA3-BE46-2F104611508C}"
@@ -63,6 +61,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44733C56-F0D
 		src\Freya.Recorder\Freya.Recorder.fsproj.paket.references = src\Freya.Recorder\Freya.Recorder.fsproj.paket.references
 		src\Freya.Router\Freya.Router.fsproj.paket.references = src\Freya.Router\Freya.Router.fsproj.paket.references
 		src\Freya.Typed\Freya.Typed.fsproj.paket.references = src\Freya.Typed\Freya.Typed.fsproj.paket.references
+		src\Freya.Types\Freya.Types.fsproj.paket.references = src\Freya.Types\Freya.Types.fsproj.paket.references
+		src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references = src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references
+		src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references = src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references
+		src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references = src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experimental", "experimental", "{FDD9BDC3-4C5E-456E-900B-7D7FFD9DBEDD}"
@@ -95,14 +97,6 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Language", "src\Freya.Types.Language\Freya.Types.Language.fsproj", "{105A0361-EEC8-4C47-841E-E333C47572EE}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Http", "src\Freya.Types.Http\Freya.Types.Http.fsproj", "{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "types", "types", "{397FB036-C075-422B-8ED9-3498C53DD9E7}"
-	ProjectSection(SolutionItems) = preProject
-		src\Freya.Types\Freya.Types.fsproj.paket.references = src\Freya.Types\Freya.Types.fsproj.paket.references
-		src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references = src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references
-		src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references = src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references
-		src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references = src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references
-	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Tests", "tests\Freya.Types.Tests\Freya.Types.Tests.fsproj", "{FE9175CB-9716-4E4E-9E14-5C27378D885F}"
 EndProject
@@ -154,10 +148,6 @@ Global
 		{63C07538-E910-4156-9C31-D7B6E9E5D85B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63C07538-E910-4156-9C31-D7B6E9E5D85B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63C07538-E910-4156-9C31-D7B6E9E5D85B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D39640C6-2258-4571-830E-7028E19DB6BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D39640C6-2258-4571-830E-7028E19DB6BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D39640C6-2258-4571-830E-7028E19DB6BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D39640C6-2258-4571-830E-7028E19DB6BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -227,7 +217,6 @@ Global
 		{3533610C-F45A-4791-AA3D-33E1DDA0416A} = {1347FBDF-A32B-4F5B-A2F4-4D471086BC86}
 		{63C07538-E910-4156-9C31-D7B6E9E5D85B} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 		{1347FBDF-A32B-4F5B-A2F4-4D471086BC86} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
-		{D39640C6-2258-4571-830E-7028E19DB6BA} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{9C1BF1E2-A7F4-4EA3-BE46-2F104611508C} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{B0FD1DB9-A189-4963-81EC-6F55B45660DB} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
@@ -242,7 +231,6 @@ Global
 		{8A5AC05B-CB43-43B0-A763-992D1A04D271} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 		{105A0361-EEC8-4C47-841E-E333C47572EE} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
 		{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
-		{397FB036-C075-422B-8ED9-3498C53DD9E7} = {44733C56-F0D3-49F7-B261-5B5EA2E5E4DE}
 		{FE9175CB-9716-4E4E-9E14-5C27378D885F} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{35CF4E6B-8257-4A0A-9CEC-EF98915E2455} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{7B6F727E-24C4-4D9E-9759-81D0105004D1} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
