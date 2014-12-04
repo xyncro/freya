@@ -236,7 +236,7 @@ type PathAbsoluteOrEmpty =
 
 let private pathAbsoluteOrEmptyF =
     function | PathAbsoluteOrEmpty [] -> id
-             | PathAbsoluteOrEmpty xs -> slashF >> join slashF append xs
+             | PathAbsoluteOrEmpty xs -> slashF >> join append slashF xs
 
 let private pathAbsoluteOrEmptyP =
     many (skipChar '/' >>. segmentP) |>> PathAbsoluteOrEmpty
@@ -261,7 +261,7 @@ type PathAbsolute =
     | PathAbsolute of string list
 
 let private pathAbsoluteF =
-    function | PathAbsolute xs -> slashF >> join slashF append xs
+    function | PathAbsolute xs -> slashF >> join append slashF xs
 
 let private pathAbsoluteP =
     skipChar '/' >>. opt (segmentNzP .>>. many (skipChar '/' >>. segmentP))
@@ -288,7 +288,7 @@ type PathNoScheme =
     | PathNoScheme of string list
 
 let private pathNoSchemeF =
-    function | PathNoScheme xs -> join slashF append xs
+    function | PathNoScheme xs -> join append slashF xs
 
 let private pathNoSchemeP =
     segmentNzNcP .>>. many (slashP >>. segmentP)
@@ -314,7 +314,7 @@ type PathRootless =
     | PathRootless of string list
 
 let private pathRootlessF =
-    function | PathRootless xs -> join slashF append xs
+    function | PathRootless xs -> join append slashF xs
 
 let private pathRootlessP =
     segmentNzP .>>. many (skipChar '/' >>. segmentP)

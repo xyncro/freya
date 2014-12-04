@@ -60,7 +60,7 @@ let private extF =
     function | x -> append "-" >> append x
 
 let private extLangF =
-    function | xs -> join id extF xs
+    function | xs -> join extF id xs
 
 let private languageF =
     function | Language (x, Some e) -> append x >> extLangF e
@@ -126,7 +126,7 @@ let private varF =
     function | x -> append "-" >> append x
 
 let private variantF =
-    function | Variant xs -> join id varF xs
+    function | Variant xs -> join varF id xs
 
 let private alphaPrefixVariantP =
     alphaNumP 5 8
@@ -195,7 +195,7 @@ type LanguageRange =
     | Any
 
 let internal languageRangeF =
-    function | Range x -> join (append "-") append x
+    function | Range x -> join append (append "-") x
              | Any -> append "*"
 
 let internal languageRangeP =

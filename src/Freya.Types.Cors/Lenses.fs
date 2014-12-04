@@ -40,7 +40,7 @@ module Response =
             Response.headersKey key <??> (tryParse, format)
 
         let accessControlAllowCredentials =
-            Request.headersKey "Access-Control-Allow-Credentials"
+            headerPIso "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
 
         let accessControlAllowHeaders =
             Request.headersKey "Access-Control-Allow-Headers"
@@ -49,10 +49,10 @@ module Response =
             Request.headersKey "Access-Control-Allow-Methods"
 
         let accessControlAllowOrigin =
-            Request.headersKey "Access-Control-Allow-Origin"
+            headerPIso "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
 
         let accessControlExposeHeaders =
-            Request.headersKey "Access-Control-Expose-Headers"
+            headerPIso "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
 
         let accessControlMaxAge =
             Request.headersKey "Access-Control-Max-Age"
