@@ -29,25 +29,8 @@ and FreyaMachineGraphEdgeRecord =
 
 (* Execution *)
 
-//and FreyaMachineExecutionRecord =
-//    | ActionRecord of FreyaMachineActionRecord
-//    | DecisionRecord of FreyaMachineDecisionRecord
-//    | HandlerRecord of FreyaMachineHandlerRecord
-//    | OperationRecord of FreyaMachineOperationRecord
-
 and FreyaMachineExecutionRecord =
     { Id: string }
-
-//and FreyaMachineDecisionRecord =
-//    { Id: string
-//      Result: bool
-//      Next: string }
-//
-//and FreyaMachineHandlerRecord =
-//    { Id: string }
-//
-//and FreyaMachineOperationRecord =
-//    { Id: string }
 
 (* Constructors *)
 
@@ -61,8 +44,8 @@ let executionLens =
 
 (* Functions *)
 
-let initR () =
+let initFreyaMachineR () =
     setR "freya.Machine" machineRecord
 
-let executionR e =
-    modR "freya.Machine" (modL executionLens (fun es -> e :: es))
+let executeFreyaMachineR id =
+    modR "freya.Machine" (modL executionLens (fun es -> { Id = id } :: es))

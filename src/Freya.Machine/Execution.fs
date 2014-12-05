@@ -11,7 +11,7 @@ open Freya.Types
 let private action a =
     freya {
         do! a.Action
-        do! executionR { Id = a.Id }
+        do! executeFreyaMachineR a.Id
 
         return a.Next }
 
@@ -22,20 +22,20 @@ let private decision d =
                          | _ -> d.False)
             <!> d.Decision
 
-        do! executionR { Id = d.Id }
+        do! executeFreyaMachineR d.Id
 
         return next }
 
 let private handler (h: FreyaMachineHandlerNode) =
     freya {
-        do! executionR { Id = h.Id }
+        do! executeFreyaMachineR h.Id
 
         return h.Handler }
 
 let private operation o =
     freya {
         do! o.Operation
-        do! executionR { Id = o.Id }
+        do! executeFreyaMachineR o.Id
 
         return o.Next }
 
@@ -63,7 +63,7 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let graph = construct definition nodes
 
     freya {
-        do! initR ()
+        do! initFreyaMachineR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

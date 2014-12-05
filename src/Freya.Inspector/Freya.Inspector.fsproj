@@ -148,9 +148,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
-    <Compile Include="Rendering.fs" />
-    <Compile Include="Inspector.fs" />
     <Compile Include="Recording.fs" />
+    <Compile Include="Content.fs" />
+    <Compile Include="Data.fs" />
     <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <PropertyGroup>

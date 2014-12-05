@@ -14,7 +14,7 @@ type FreyaRecord =
 
 and FreyaRequestRecord =
     { Method: Method
-      Path: string } // TODO: Perhaps a stronger typed path or something here?
+      Path: string }
 
 (* Constructors *)
 

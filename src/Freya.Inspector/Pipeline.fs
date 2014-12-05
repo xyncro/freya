@@ -6,22 +6,28 @@ open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Recorder
-open Freya.Router
 open Freya.Types.Http
 
-(* Initialization *)
+(* Functions *)
 
-let private init =
+let private initialize =
+    freya {
+        return! initR () *> next }
+
+let private record =
     freya {
         let! meth = getLM Request.meth
         let! path = getLM Request.path
 
-        do! initR ()
-        do! initFreyaR meth path
+        return! initFreyaR meth path *> next }
 
-        return Next }
+(* Pipelines *)
 
-(* Pipeline *)
+let private inspect config =
+        content config 
+    >?= data config
 
 let freyaInspector config =
-    inspector config >?= init
+        inspect config 
+    >?= initialize 
+    >?= record
