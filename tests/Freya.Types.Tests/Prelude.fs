@@ -1,15 +1,7 @@
 ﻿[<AutoOpen>]
-module internal Freya.Types.Tests.Prelude
+module Freya.Types.Tests.Prelude
 
-open System.Runtime.CompilerServices
 open Swensen.Unquote
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Types.Http.Tests")>]
-[<assembly:InternalsVisibleTo ("Freya.Types.Language.Tests")>]
-[<assembly:InternalsVisibleTo ("Freya.Types.Uri.Tests")>]
-do ()
 
 (* Helpers *)
 

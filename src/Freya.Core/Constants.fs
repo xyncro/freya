@@ -19,7 +19,8 @@
 module Freya.Core.Constants
 
 (* OWIN 1.1.0
-   See [https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md] *)
+
+   Taken from [https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md] *)
 
 (* 3.2.1 Request Data *)
 
@@ -143,6 +144,7 @@ module SendFiles =
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Opaque =
+
     (* 3.1. Startup *)
 
     [<CompiledName ("Version")>]

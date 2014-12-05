@@ -4,12 +4,12 @@ module internal Freya.Machine.Decisions
 open Freya.Core.Operators
 
 (* Decisions (Public)
-        
+
    Decision nodes are (or should be) side effect free and represent some
    choice to be made (depending generally on the form of the request). The
    decision returns a bool, which is then used to select which node to
    invoke next.
-       
+
    Public decisions may be overridden by the resource programmer
    using declarative machine monad syntax. *)
 
@@ -53,12 +53,12 @@ let private publicDecisions =
                            False = f })
 
 (* Decisions (Internal)
-        
+
    Decision nodes are (or should be) side effect free and represent some
    choice to be made (depending generally on the form of the request). The
    decision returns a bool, which is then used to select which node to
    invoke next.
-       
+
    Internal decisions cannot be overridden. *)
 
 let private ifETagMatchesIf =

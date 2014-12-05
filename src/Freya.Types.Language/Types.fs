@@ -42,16 +42,13 @@ let private isDigit =
 let private isAlphaNum x =
     (Grammar.alpha ?> x || Grammar.digit ?> x)
 
-(* Note: We expose these internally as they're also useful for some
-   of the other RFCs, especially those dealing with Language-* formulations. *)
-
-let internal alphaP min max =
+let private alphaP min max =
     manyMinMaxSatisfy min max isAlpha .>>? notFollowedBy (skipSatisfy isAlpha)
 
-let internal digitP min max =
+let private digitP min max =
     manyMinMaxSatisfy min max isDigit .>>? notFollowedBy (skipSatisfy isDigit)
 
-let internal alphaNumP min max =
+let private alphaNumP min max =
     manyMinMaxSatisfy min max isAlphaNum .>>? notFollowedBy (skipSatisfy isAlphaNum)
 
 (* Language *)
@@ -63,7 +60,7 @@ let private extF =
     function | x -> append "-" >> append x
 
 let private extLangF =
-    function | xs -> join id extF xs
+    function | xs -> join extF id xs
 
 let private languageF =
     function | Language (x, Some e) -> append x >> extLangF e
@@ -129,7 +126,7 @@ let private varF =
     function | x -> append "-" >> append x
 
 let private variantF =
-    function | Variant xs -> join id varF xs
+    function | Variant xs -> join varF id xs
 
 let private alphaPrefixVariantP =
     alphaNumP 5 8
@@ -198,7 +195,7 @@ type LanguageRange =
     | Any
 
 let internal languageRangeF =
-    function | Range x -> join (append "-") append x
+    function | Range x -> join append (append "-") x
              | Any -> append "*"
 
 let internal languageRangeP =

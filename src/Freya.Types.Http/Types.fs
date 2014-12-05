@@ -5,10 +5,16 @@ module Freya.Types.Http.Types
 
 open System
 open System.Globalization
+open System.Runtime.CompilerServices
 open FParsec
 open Freya.Types
 open Freya.Types.Language
 open Freya.Types.Uri
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Types.Cors")>]
+do ()
 
 (* RFC 7230
 
@@ -122,10 +128,10 @@ let internal quotedStringP : Parser<string, unit> =
    Taken from RFC 7230, Section 7. ABNF List Extension: #rule
    [http://tools.ietf.org/html/rfc7230#section-7] *)
 
-let private infixHeadP s p =
+let private infixHeadP p s =
     (attempt p |>> Some) <|> (s >>% None)
 
-let private infixTailP s p =
+let private infixTailP p s =
     many (owsP >>? s >>? owsP >>? opt p)
 
 (* Note:
@@ -134,13 +140,13 @@ let private infixTailP s p =
    compatibility. Whether they are a perfectly true representation is open to debate, 
    but they should perform sensibly under normal conditions. *)
 
-let internal infixP s p = 
-    infixHeadP s p .>>. infixTailP s p .>> owsP |>> fun (x, xs) -> x :: xs |> List.choose id
+let internal infixP p s = 
+    infixHeadP p s .>>. infixTailP p s .>> owsP |>> fun (x, xs) -> x :: xs |> List.choose id
 
-let internal infix1P s p =
-    notEmpty (infixP s p)
+let internal infix1P p s =
+    notEmpty (infixP p s)
 
-let internal prefixP s p =
+let internal prefixP p s =
     many (owsP >>? s >>? owsP >>? p)
 
 (* HTTP Version
@@ -252,10 +258,10 @@ let private connectionOptionF =
     function | ConnectionOption x -> append x
 
 let private connectionF =
-    function | Connection x -> join commaF connectionOptionF x
+    function | Connection x -> join connectionOptionF commaF x
 
 let private connectionP =
-    infix1P commaP tokenP |>> (List.map ConnectionOption >> Connection)
+    infix1P tokenP commaP |>> (List.map ConnectionOption >> Connection)
 
 type Connection with
 
@@ -296,13 +302,13 @@ let private pairF =
 
 let internal parametersF =
     function | (x: Map<string, string>) when Map.isEmpty x -> id
-             | (x) -> append ";" >> join semicolonF pairF (Map.toList x |> List.rev)
+             | (x) -> append ";" >> join pairF semicolonF (Map.toList x |> List.rev)
 
 let private parameterP =
     tokenP .>> skipChar '=' .>>. (quotedStringP <|> tokenP)
 
 let private parametersP =
-    prefixP semicolonP parameterP |>> Map.ofList
+    prefixP parameterP semicolonP |>> Map.ofList
 
 (* Media-Type *)
 
@@ -418,12 +424,12 @@ let private contentCodingF =
     function | ContentCoding x -> append x
 
 let private contentEncodingF =
-    function | ContentEncoding x -> join commaF contentCodingF x
+    function | ContentEncoding x -> join contentCodingF commaF x
 
 (* Parsing *)
 
 let private contentEncodingP =
-    infix1P commaP tokenP |>> (List.map ContentCoding >> ContentEncoding)
+    infix1P tokenP commaP |>> (List.map ContentCoding >> ContentEncoding)
 
 (* Augmentation *)
 
@@ -450,10 +456,10 @@ type ContentLanguage =
     | ContentLanguage of LanguageTag list
 
 let private contentLanguageF =
-    function | ContentLanguage xs -> join commaF languageTagF xs
+    function | ContentLanguage xs -> join languageTagF commaF xs
 
 let private contentLanguageP =
-    infix1P commaP languageTagP |>> ContentLanguage
+    infix1P languageTagP commaP |>> ContentLanguage
 
 type ContentLanguage with
 
@@ -520,7 +526,7 @@ type Method =
     | TRACE 
     | Custom of string
 
-let private methodF =
+let internal methodF =
     function | DELETE -> append "DELETE" 
              | HEAD -> append "HEAD" 
              | GET -> append "GET" 
@@ -531,7 +537,7 @@ let private methodF =
              | TRACE -> append "TRACE"
              | Method.Custom x -> append x
 
-let private methodP =
+let internal methodP =
     choice [
         skipStringCI "delete" >>% DELETE
         skipStringCI "head" >>% HEAD
@@ -688,7 +694,7 @@ let private acceptableMediaF =
                  Parameters = p } -> mediaRangeF m >> acceptParametersF p
 
 let private acceptF =
-    function | Accept x -> join commaF acceptableMediaF x
+    function | Accept x -> join acceptableMediaF commaF x
 
 (* Parsing *)
 
@@ -696,7 +702,7 @@ let private acceptExtP =
     tokenP .>>. opt (skipChar '=' >>. (quotedStringP <|> tokenP))
 
 let private acceptExtsP =
-    prefixP semicolonP acceptExtP |>> Map.ofList
+    prefixP acceptExtP semicolonP |>> Map.ofList
 
 let private acceptParamsP =
     weightP .>> owsP .>>. acceptExtsP
@@ -708,7 +714,7 @@ let private mediaRangeParameterP =
     notFollowedBy (owsP >>. skipStringCI "q=") >>. tokenP .>> skipChar '=' .>>. tokenP
 
 let private mediaRangeParametersP =
-    prefixP semicolonP mediaRangeParameterP |>> Map.ofList
+    prefixP mediaRangeParameterP semicolonP |>> Map.ofList
 
 let private openMediaRangeP = 
     skipString "*/*" >>. owsP >>. mediaRangeParametersP |>> MediaRange.Open
@@ -736,7 +742,7 @@ let private acceptableMediaP =
               Parameters = parameters })
 
 let private acceptP =
-    infixP commaP acceptableMediaP |>> Accept
+    infixP acceptableMediaP commaP |>> Accept
 
 (* Augmentation *)
 
@@ -800,7 +806,7 @@ let private acceptableCharsetF =
                  Weight = weight } -> charsetRangeF charset >> weightF weight
 
 let private acceptCharsetF =
-    function | AcceptCharset x -> join commaF acceptableCharsetF x
+    function | AcceptCharset x -> join acceptableCharsetF commaF x
 
 (* Parsing *)
 
@@ -816,7 +822,7 @@ let private charsetRangeP =
         charsetRangeCharsetP ]
 
 let private acceptCharsetP =
-    infix1P commaP (charsetRangeP .>> owsP .>>. opt weightP)
+    infix1P (charsetRangeP .>> owsP .>>. opt weightP) commaP
     |>> (List.map (fun (charsetRange, weight) ->
         { Charset = charsetRange
           Weight = weight }) >> AcceptCharset)
@@ -866,7 +872,7 @@ let private acceptableEncodingF =
                  Weight = w } -> encodingRangeF e >> weightF w
 
 let private acceptEncodingF =
-    function | AcceptEncoding x -> join commaF acceptableEncodingF x
+    function | AcceptEncoding x -> join acceptableEncodingF commaF x
 
 (* Parsing *)
 
@@ -886,7 +892,7 @@ let private encodingRangeP =
         encodingRangeCodingP ]
 
 let private acceptEncodingP =
-    infixP commaP (encodingRangeP .>> owsP .>>. opt weightP)
+    infixP (encodingRangeP .>> owsP .>>. opt weightP) commaP
     |>> (List.map (fun (encoding, weight) ->
         { Encoding = encoding
           Weight = weight }) >> AcceptEncoding)
@@ -925,12 +931,12 @@ let private acceptableLanguageF x =
     languageRangeF x.Language >> weightF x.Weight
 
 let private acceptLanguageF =
-    function | AcceptLanguage x -> join commaF acceptableLanguageF x
+    function | AcceptLanguage x -> join acceptableLanguageF commaF x
 
 (* Parsing *)
 
 let private acceptLanguageP =
-    infixP commaP (languageRangeP .>> owsP .>>. opt weightP)
+    infixP (languageRangeP .>> owsP .>>. opt weightP) commaP
     |>> (List.map (fun (languageRange, weight) ->
         { Language = languageRange
           Weight = weight }) >> AcceptLanguage)
@@ -1102,10 +1108,10 @@ type Allow =
     | Allow of Method list
 
 let private allowF =
-    function | Allow x -> join commaF methodF x
+    function | Allow x -> join methodF commaF x
 
 let private allowP =
-    infixP commaP methodP |>> Allow
+    infixP methodP commaP |>> Allow
 
 type Allow with
 
@@ -1223,13 +1229,13 @@ and IfMatchChoice =
     | Any
 
 let private ifMatchF =
-    function | IfMatch (EntityTags x) -> join commaF entityTagF x
+    function | IfMatch (EntityTags x) -> join entityTagF commaF x
              | IfMatch (Any) -> append "*"
 
 let private ifMatchP =
     choice [
         skipChar '*' >>% IfMatch (Any)
-        infixP commaP entityTagP |>> (EntityTags >> IfMatch) ]
+        infixP entityTagP commaP |>> (EntityTags >> IfMatch) ]
 
 type IfMatch with
 
@@ -1258,13 +1264,13 @@ and IfNoneMatchChoice =
     | Any
 
 let private ifNoneMatchF =
-    function | IfNoneMatch (EntityTags x) -> join commaF entityTagF x
+    function | IfNoneMatch (EntityTags x) -> join entityTagF commaF x
              | IfNoneMatch (Any) -> append "*"
 
 let private ifNoneMatchP =
     choice [
         skipChar '*' >>% IfNoneMatch (Any)
-        infixP commaP entityTagP |>> (EntityTags >> IfNoneMatch) ]
+        infixP entityTagP commaP |>> (EntityTags >> IfNoneMatch) ]
 
 type IfNoneMatch with
 
@@ -1458,7 +1464,7 @@ let private cacheDirectiveF =
              | Custom (x, _) -> append x
 
 let private cacheControlF =
-    function | CacheControl x -> join commaF cacheDirectiveF x
+    function | CacheControl x -> join cacheDirectiveF commaF x
 
 (* Parsing *)
 
@@ -1480,7 +1486,7 @@ let private cacheDirectiveP =
         attempt (skipStringCI "s-maxage=" >>. puint32 |>> (float >> TimeSpan.FromSeconds >> SMaxAge)) ] 
 
 let private cacheControlP =
-    infix1P commaP cacheDirectiveP |>> CacheControl
+    infix1P cacheDirectiveP commaP |>> CacheControl
 
 (* Augmentation *)
 
@@ -1573,7 +1579,7 @@ type Authorization =
     | Authorization of Credentials list
 
 let private authorizationF =
-    function | Authorization x -> join commaF credentialsF x
+    function | Authorization x -> join credentialsF commaF x
 
 // TODO: Parser
 

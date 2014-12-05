@@ -6,7 +6,7 @@ open Freya.Core
 open Freya.Core.Operators
 
 (* Graph
-        
+
     Execution runs as a graph of nodes of specific meaning,
     Each node may (depending on type) run some kind of action and
     then provide a way of indicating which node in the graph should
@@ -46,7 +46,7 @@ and FreyaMachineOperationNode =
       Next: string }
 
 (* Override
-       
+
     Override data is used to be able to provide sensible runtime
     introspection and debugging capabilities,such as integration with future 
     Freya tracing/inspection tools. *)
@@ -55,7 +55,9 @@ and Override =
     { Allow: bool
       Overridden: bool }
 
-(* Construction: TODO - Tidy! *)
+(* Construction *)
+
+// TODO: Tidy Construction
 
 let construct (definition: FreyaMachineDefinition) nodes =
     nodes

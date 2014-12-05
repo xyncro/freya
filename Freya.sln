@@ -57,10 +57,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{C7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44733C56-F0D3-49F7-B261-5B5EA2E5E4DE}"
 	ProjectSection(SolutionItems) = preProject
+		src\Freya.Core\Freya.Core.fsproj.paket.references = src\Freya.Core\Freya.Core.fsproj.paket.references
 		src\Freya.Machine\Freya.Machine.fsproj.paket.references = src\Freya.Machine\Freya.Machine.fsproj.paket.references
 		src\Freya.Recorder\Freya.Recorder.fsproj.paket.references = src\Freya.Recorder\Freya.Recorder.fsproj.paket.references
 		src\Freya.Router\Freya.Router.fsproj.paket.references = src\Freya.Router\Freya.Router.fsproj.paket.references
 		src\Freya.Typed\Freya.Typed.fsproj.paket.references = src\Freya.Typed\Freya.Typed.fsproj.paket.references
+		src\Freya.Types.Cors\Freya.Types.Cors.fsproj.paket.references = src\Freya.Types.Cors\Freya.Types.Cors.fsproj.paket.references
 		src\Freya.Types\Freya.Types.fsproj.paket.references = src\Freya.Types\Freya.Types.fsproj.paket.references
 		src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references = src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references
 		src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references = src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references
@@ -78,6 +80,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1AF60757
 		tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references = tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references
 		tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references = tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references
 		tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references = tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references
+		tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references = tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references
 		tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references = tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references
 		tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references = tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references
 		tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references = tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references
@@ -105,6 +108,10 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Language.Tests", "tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj", "{7B6F727E-24C4-4D9E-9759-81D0105004D1}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Http.Tests", "tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj", "{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Cors", "src\Freya.Types.Cors\Freya.Types.Cors.fsproj", "{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Cors.Tests", "tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj", "{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -200,6 +207,14 @@ Global
 		{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -235,5 +250,7 @@ Global
 		{35CF4E6B-8257-4A0A-9CEC-EF98915E2455} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{7B6F727E-24C4-4D9E-9759-81D0105004D1} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2} = {ABE59DEA-56DB-4354-9754-0E4074360A9B}
+		{98A74F15-7AAE-46BE-8E94-C5A2B85BD900} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 	EndGlobalSection
 EndGlobal

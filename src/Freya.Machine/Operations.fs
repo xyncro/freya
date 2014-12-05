@@ -1,12 +1,13 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Operations
 
+open Freya.Core
 open Freya.Core.Operators
-open Freya.Types
+open Freya.Types.Cors
 open Freya.Types.Http
 
 (* Operations
-        
+
    Operation nodes represent some consistent action (such as setting headers
    or similar which must take place as part of the execution but does not need
    to be overridden as it will always apply. They are most commonly seen before
@@ -17,10 +18,12 @@ let private operation statusCode reasonPhrase =
        setPLM Response.statusCode statusCode
     *> setPLM Response.reasonPhrase reasonPhrase
 
+// TODO: Check this fits with the correct CORS operations when designed...
+
 let private options =
        operation 200 "Options"
-    *> setPLM (Response.headersKey "Access-Control-Allow-Origin") "*"
-    *> setPLM (Response.headersKey "Access-Control-Allow-Headers") "Content-Type"
+    *> setPLM Response.Headers.accessControlAllowHeaders (AccessControlAllowHeaders [ "Content-Type" ])
+    *> setPLM Response.Headers.accessControlAllowOrigin  (AccessControlAllowOrigin (AccessControlAllowOriginRange.Any))
 
 let private operationDefinitions =
     [ Operations.PreOK,                          (operation 200 "OK"),                          Handlers.OK

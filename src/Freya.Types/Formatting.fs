@@ -25,7 +25,7 @@ let appendf1 (s: string) (v1: obj) (b: StringBuilder) =
 let appendf2 (s: string) (v1: obj) (v2: obj) (b: StringBuilder) =
     b.AppendFormat (s, v1, v2)
 
-let join<'a> (s: Separator) (f: Formatter<'a>) =
+let join<'a> (f: Formatter<'a>) (s: Separator) =
     let rec join values (b: StringBuilder) =
         match values with
         | [] -> b
@@ -47,3 +47,6 @@ let semicolonF : Separator =
 
 let slashF : Separator =
     append "/"
+
+let spaceF : Separator =
+    append " "

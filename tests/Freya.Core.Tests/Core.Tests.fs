@@ -31,7 +31,7 @@ module Functions =
     let ``getM, setM behave correctly`` () =
         let m =
             freya {
-                do! setM (Dictionary<string, obj> (dict ["value", box 1]))
+                do! setM (Dictionary<string, obj> (dict ["value", box 1]) :> IDictionary<string, obj>)
                 return! getM }
 
         let value, env = test m
@@ -63,7 +63,7 @@ module Operators =
     [<Test>]
     let ``bind and map operators behave correctly`` () =
         let m1 = (fun (x: FreyaEnvironment) -> unbox x.["value"]) <!> getM
-        let m2 = fun v -> modM (fun x -> x.["newvalue"] <- (v + 1); x)
+        let m2 = fun v -> modM (fun (x: FreyaEnvironment) -> x.["newvalue"] <- (v + 1); x)
 
         let _, env = test (m1 >>= m2)
 

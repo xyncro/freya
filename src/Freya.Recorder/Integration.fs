@@ -8,7 +8,7 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Types
 
-(* Untyped Entry Integration *)
+(* Record Integration *)
 
 let initR () =
     let i = Guid.NewGuid ()
@@ -20,7 +20,7 @@ let initR () =
 let listR () =
     liftAsync (store.PostAndAsyncReply List)
 
-(* Typed Inspection Integration *)
+(* Inspection Integration *)
 
 let setR<'a> key a =
     modPLM proxyPLens (fun p -> p.Update (setPL (recordPLens<'a> key) a); p)

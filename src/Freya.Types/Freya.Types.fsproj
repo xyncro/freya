@@ -196,7 +196,6 @@
     <Compile Include="Formatting.fs" />
     <Compile Include="Parsing.fs" />
     <Compile Include="Grammar.fs" />
-    <Compile Include="Lenses.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

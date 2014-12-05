@@ -3,33 +3,12 @@ module Freya.Core.Monad
 
 open System
 open System.Collections.Generic
+open Aether
 
-(* Helpers *)
-
-let inline internal returnM builder x = 
-    (^M: (member Return: 'b -> 'c) (builder, x))
-
-let inline internal bindM builder m f = 
-    (^M: (member Bind: 'd -> ('e -> 'c) -> 'c) (builder, m, f))
-
-let inline internal liftM builder f m =
-    let inline ret x = returnM builder (f x)
-    bindM builder m ret
-
-let inline internal applyM (builder1: ^M1) (builder2: ^M2) f m =
-    bindM builder1 f <| fun f' ->
-        bindM builder2 m <| fun m' ->
-            returnM builder2 (f' m')
-
-(* Types *)
-
-type FreyaEnvironment =
-    IDictionary<string, obj>
+(* Monad *)
 
 type Freya<'T> = 
     FreyaEnvironment -> Async<'T * FreyaEnvironment>
-
-(* Builder *)
 
 type FreyaBuilder () =
 
@@ -54,8 +33,8 @@ type FreyaBuilder () =
     
     member __.TryWith (m: Freya<'T>, handler: exn -> Freya<'T>) : Freya<'T> =
         fun env ->
-                try m env
-                with e -> (handler e) env
+            try m env
+            with e -> (handler e) env
     
     member __.TryFinally (m: Freya<'T>, compensation) : Freya<'T> =
         fun env -> 
@@ -81,17 +60,21 @@ type FreyaBuilder () =
             this.While (enum.MoveNext, this.Delay (fun () -> 
                 body enum.Current)))
 
-(* Monad *)
-
 let freya = new FreyaBuilder ()
 
-(* Functions *)
+(* Helpers *)
 
-let getM : Freya<FreyaEnvironment> =
-    fun e -> async { return e, e }
+let inline internal returnM builder x = 
+    (^M: (member Return: 'b -> 'c) (builder, x))
 
-let setM e : Freya<unit> =
-    fun _ -> async { return (), e }
+let inline internal bindM builder m f = 
+    (^M: (member Bind: 'd -> ('e -> 'c) -> 'c) (builder, m, f))
 
-let modM f : Freya<unit> =
-    fun e -> async { return (), f e }
+let inline internal liftM builder f m =
+    let inline ret x = returnM builder (f x)
+    bindM builder m ret
+
+let inline internal applyM (builder1: ^M1) (builder2: ^M2) f m =
+    bindM builder1 f <| fun f' ->
+        bindM builder2 m <| fun m' ->
+            returnM builder2 (f' m')
