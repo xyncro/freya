@@ -526,7 +526,7 @@ type Method =
     | TRACE 
     | Custom of string
 
-let private methodF =
+let internal methodF =
     function | DELETE -> append "DELETE" 
              | HEAD -> append "HEAD" 
              | GET -> append "GET" 
@@ -537,7 +537,7 @@ let private methodF =
              | TRACE -> append "TRACE"
              | Method.Custom x -> append x
 
-let private methodP =
+let internal methodP =
     choice [
         skipStringCI "delete" >>% DELETE
         skipStringCI "head" >>% HEAD

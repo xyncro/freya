@@ -22,8 +22,8 @@ let private operation statusCode reasonPhrase =
 
 let private options =
        operation 200 "Options"
-    *> setPLM Response.Headers.accessControlAllowHeaders "Content-Type"
-    *> setPLM Response.Headers.accessControlAllowOrigin (AccessControlAllowOrigin (AccessControlAllowOriginRange.Any))
+    *> setPLM Response.Headers.accessControlAllowHeaders (AccessControlAllowHeaders [ "Content-Type" ])
+    *> setPLM Response.Headers.accessControlAllowOrigin  (AccessControlAllowOrigin (AccessControlAllowOriginRange.Any))
 
 let private operationDefinitions =
     [ Operations.PreOK,                          (operation 200 "OK"),                          Handlers.OK
