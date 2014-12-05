@@ -1,6 +1,13 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Prelude
 
+open System.Runtime.CompilerServices
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
+do ()
+
 (* List Extensions *)
 
 [<RequireQualifiedAccess>]

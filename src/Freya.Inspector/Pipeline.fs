@@ -4,24 +4,24 @@ module Freya.Inspector.Pipeline
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
+open Freya.Pipeline.Operators
 open Freya.Recorder
-open Freya.Types
+open Freya.Router
 open Freya.Types.Http
 
-(* Functions *)
+(* Initialization *)
 
 let private init =
-    (initR ()) *> next
+    freya {
+        let! meth = getLM Request.meth
+        let! path = getLM Request.path
 
-let private display config =
-    (render config <!> listR ()) *> halt
+        do! initR ()
+        do! initFreyaR meth path
+
+        return Next }
 
 (* Pipeline *)
 
-let freyaInspector config : FreyaPipeline =
-    freya {
-        let! path = getLM Request.path
-
-        match path with
-        | x when x = config.Path -> return! display config
-        | _ -> return! init }
+let freyaInspector config =
+    inspector config >?= init

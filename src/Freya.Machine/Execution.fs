@@ -11,40 +11,31 @@ open Freya.Types
 let private action a =
     freya {
         do! a.Action
-        do! executionR (ActionRecord {
-            Name = a.Id
-            Overridden = a.Override.Overridden })
+        do! executionR { Id = a.Id }
 
         return a.Next }
 
 let private decision d =
     freya {
-        let! next, result = 
-               (function | true -> d.True, true 
-                         | _ -> d.False, false) 
+        let! next =
+               (function | true -> d.True
+                         | _ -> d.False)
             <!> d.Decision
 
-        do! executionR (DecisionRecord { 
-                    Name = d.Id
-                    Overridden = d.Override.Overridden
-                    Result = result
-                    Next = next })
+        do! executionR { Id = d.Id }
 
         return next }
 
 let private handler (h: FreyaMachineHandlerNode) =
     freya {
-        do! executionR (HandlerRecord {
-            Name = h.Id
-            Overridden = h.Override.Overridden })
+        do! executionR { Id = h.Id }
 
         return h.Handler }
 
 let private operation o =
     freya {
         do! o.Operation
-        do! executionR (OperationRecord {
-            Name = o.Id })
+        do! executionR { Id = o.Id }
 
         return o.Next }
 
@@ -55,7 +46,7 @@ let private traverse (graph: FreyaMachineGraph) =
             | ActionNode a -> return! action a >>= eval
             | DecisionNode d -> return! decision d >>= eval
             | HandlerNode h -> return! handler h
-            | OperationNode o -> return! operation o >>= eval  }
+            | OperationNode o -> return! operation o >>= eval }
 
     eval Decisions.ServiceAvailable
 
@@ -66,13 +57,13 @@ let private nodes =
     @ decisions
     @ handlers
     @ operations
-    
+
 let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let definition = snd (machine Map.empty)
     let graph = construct definition nodes
 
     freya {
-        do! initR
+        do! initR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 
