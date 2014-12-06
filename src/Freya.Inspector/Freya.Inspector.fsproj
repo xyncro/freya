@@ -105,6 +105,31 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '11.0'">
+      <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')">
+        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets</FSharpTargetsPath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets')">
+        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <Import Project="$(FSharpTargetsPath)" />
+  <ItemGroup>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Recording.fs" />
+    <Compile Include="Content.fs" />
+    <Compile Include="Data.fs" />
+    <Compile Include="Pipeline.fs" />
+    <EmbeddedResource Include="content\html\index.html" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -113,11 +138,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
+      <Name>Freya.Machine</Name>
+      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
@@ -140,35 +168,17 @@
       <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">
       <Name>Freya.Types</Name>
       <Project>{af48f7da-f8e4-4c46-89b6-5dd9a09dbabf}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Types.fs" />
-    <Compile Include="Recording.fs" />
-    <Compile Include="Content.fs" />
-    <Compile Include="Data.fs" />
-    <Compile Include="Pipeline.fs" />
-  </ItemGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '11.0'">
-      <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')">
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets')">
-        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

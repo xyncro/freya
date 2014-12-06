@@ -22,6 +22,9 @@ let private decision d =
                          | _ -> d.False)
             <!> d.Decision
 
+        printfn "executing %s" d.Id
+        printfn "next %s" next
+
         do! executeFreyaMachineR d.Id
 
         return next }
