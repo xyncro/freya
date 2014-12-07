@@ -2,8 +2,6 @@
 module Freya.Core.Monad
 
 open System
-open System.Collections.Generic
-open Aether
 
 (* Monad *)
 

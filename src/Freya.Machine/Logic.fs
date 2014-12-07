@@ -5,23 +5,24 @@ open System
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types
 open Freya.Types.Http
-open Freya.Types.Language
 
-(* Operators *)
+(* Functions *)
 
-let inline private (!?) x =
-    Option.isSome <!> x
+let private applyTupleM f (x, y) =
+    (fun x y -> f (x, y)) <!> x <*> y
 
-let inline private (!.) x =
-    List.isEmpty >> not <!> x
-
-let inline private (=?) x y =
+let private eqM x y =
     (=) y <!> x
 
-let inline private (?>) (x, y) f =
-    (fun x y -> f (x, y)) <!> x <*> y
+let private inM x y =
+    flip Set.contains y <!> x
+
+let private someM x =
+    Option.isSome <!> x
+
+let private someNotEmptyM x =
+    (function | Some x -> not (List.isEmpty x) | _ -> false) <!> x
 
 (* Configuration
 
@@ -30,13 +31,16 @@ let inline private (?>) (x, y) f =
    specific resource in question (they are a general core Freya<'T> 
    expression). *)
 
-let private config key =
+let private configM key =
     freya {
         let! value = getPLM (definitionPLens >??> configurationPLens key)
 
         match value with
         | Some value -> return! Some <!> value
         | _ -> return None }
+
+let private configOrElseM key def =
+    (function | Some x -> Some x | _ -> Some def ) <!> configM key
 
 (* Content Negotiation
 
@@ -48,13 +52,6 @@ let private config key =
    is dynamic not static, and so will be evaluated at runtime, allowing
    for dynamic support based on the specific resource in question. *)
 
-let private negotiate f defaults =
-    function | Some r, Some a -> f r a
-             | Some r, _ -> f r defaults
-             | _, Some a -> a
-             | _ -> defaults
-
-
 [<RequireQualifiedAccess>]
 module Charset =
 
@@ -65,60 +62,77 @@ module Charset =
         getPLM Request.Headers.acceptCharset
 
     let private supported =
-        config Configuration.CharsetsSupported
+        configOrElseM Configuration.CharsetsSupported defaults
 
     let requested : FreyaMachineDecision =
-        !? request
+        someM request
 
     let negotiated =
-        (request, supported) ?> negotiate AcceptCharset.negotiate defaults
+        applyTupleM AcceptCharset.negotiate (supported, request)
 
     let negotiable : FreyaMachineDecision =
-        !. negotiated
+        someNotEmptyM negotiated
 
 
 [<RequireQualifiedAccess>]
 module Encoding =
-        
-    let private defaults =
-        List.empty<ContentCoding>
 
     let private request =
         getPLM Request.Headers.acceptEncoding
 
     let private supported =
-        config Configuration.EncodingsSupported
+        configM Configuration.EncodingsSupported
 
     let requested : FreyaMachineDecision =
-        !? request
+        someM request
 
     let negotiated =
-        (request, supported) ?> negotiate AcceptEncoding.negotiate defaults
+        applyTupleM AcceptEncoding.negotiate (supported, request)
 
     let negotiable : FreyaMachineDecision =
-        !. negotiated
+        someNotEmptyM negotiated
 
 
 [<RequireQualifiedAccess>]
 module Language =
 
-    let private defaults =
-        List.empty<LanguageTag>
-        
+    (* Language Logic
+    
+       In the case of language negotiation, Freya.Machine will negotiate in 
+       the following ways:
+
+       If languages supported are specified as part of the resource,
+       and acceptable languages are included as part of the request, language
+       negotiation will occur. The result of this negotiation will be returned
+       as Some <results> where results is the list of supported language tags
+       which have been negotiated as acceptable, ordered by the priorities (if any)
+       specified as part of the acceptable languages requested.
+
+       If languages supported, or languages acceptable are not specified,
+       as part of the resource or request respectively, no negotiation will
+       be attempted, and None will be returned as the result of negotiation,
+       signifying that no languages have been negotiated.
+
+       Note that in the case of negotiation being defined as "non-strict",
+       the default for language support, this may result in an empty negotiation
+       result when it comes to deciding on the representation. This is valid, and
+       signifies the valid HTTP case where the wishes of the client cannot be fulfilled,
+       but the request will be honored with the best intention of the server. *)
+
     let private request =
         getPLM Request.Headers.acceptLanguage
 
     let private supported =
-        config Configuration.LanguagesSupported
+        configM Configuration.LanguagesSupported
 
     let requested : FreyaMachineDecision =
-        !? request
+        someM request
 
     let negotiated =
-        (request, supported) ?> negotiate AcceptLanguage.negotiate defaults
+        applyTupleM AcceptLanguage.negotiate (supported, request)
 
     let negotiable : FreyaMachineDecision =
-        !. negotiated
+        someNotEmptyM negotiated
 
 
 [<RequireQualifiedAccess>]
@@ -131,18 +145,18 @@ module MediaType =
         getPLM Request.Headers.accept
 
     let private supported =
-        config Configuration.MediaTypesSupported
+        configM Configuration.MediaTypesSupported
 
     let requested : FreyaMachineDecision =
-        !? request
+        someM request
 
     let negotiated =
-        (request, supported) ?> negotiate Accept.negotiate defaults
+        applyTupleM Accept.negotiate (supported, request)
 
     let negotiable : FreyaMachineDecision =
-        !. negotiated
+        someNotEmptyM negotiated
 
-(* Content Negotiation
+(* Cache Control
 
    Logic for negotiating decisions based on Cache Control,
    given suitably configured (optional) definitions of what cache control
@@ -159,10 +173,10 @@ module IfMatch =
         getPLM Request.Headers.ifMatch
 
     let requested : FreyaMachineDecision =
-        !? ifMatch
+        someM ifMatch
 
     let any : FreyaMachineDecision =
-        ifMatch =? Some (IfMatch IfMatchChoice.Any)
+        eqM ifMatch (Some (IfMatch IfMatchChoice.Any))
 
 
 [<RequireQualifiedAccess>]
@@ -172,10 +186,10 @@ module IfModifiedSince =
         getPLM Request.Headers.ifModifiedSince
 
     let private lastModified =
-        config Configuration.LastModified
+        configM Configuration.LastModified
 
     let requested : FreyaMachineDecision =
-        !? ifModifiedSince
+        someM ifModifiedSince
 
     let valid : FreyaMachineDecision =
             Option.map (fun (IfModifiedSince x) -> x < DateTime.UtcNow) >> Option.getOrElse false
@@ -198,10 +212,10 @@ module IfNoneMatch =
         getPLM Request.Headers.ifNoneMatch
 
     let requested : FreyaMachineDecision =
-        !? ifNoneMatch
+        someM ifNoneMatch
 
     let any : FreyaMachineDecision =
-        ifNoneMatch =? Some (IfNoneMatch IfNoneMatchChoice.Any)
+        eqM ifNoneMatch (Some (IfNoneMatch IfNoneMatchChoice.Any))
 
 
 [<RequireQualifiedAccess>]
@@ -211,10 +225,10 @@ module IfUnmodifiedSince =
         getPLM Request.Headers.ifUnmodifiedSince
 
     let private lastModified =
-        config Configuration.LastModified
+        configM Configuration.LastModified
 
     let requested : FreyaMachineDecision =
-        !? ifUnmodifiedSince
+        someM ifUnmodifiedSince
 
     let valid : FreyaMachineDecision =
             Option.map (fun (IfUnmodifiedSince x ) -> x < DateTime.UtcNow) >> Option.getOrElse false
@@ -254,42 +268,39 @@ module Method =
         getLM Request.meth
 
     let private methodsKnown =
-            Option.map Set.ofList 
-        <!> config Configuration.MethodsKnown
+        Option.map Set.ofList <!> configM Configuration.MethodsKnown
 
     let private negotiateKnown =
         function | x, Some y -> Set.contains x y
                  | x, _ -> Set.contains x defaultKnown
 
     let private methodsSupported =
-            Option.map Set.ofList 
-        <!> config Configuration.MethodsSupported
+        Option.map Set.ofList <!> configM Configuration.MethodsSupported
 
     let private negotiateSupported =
         function | x, Some y -> Set.contains x y
                  | x, _ -> Set.contains x defaultSupported
 
     let known : FreyaMachineDecision =
-        (meth, methodsKnown) ?> negotiateKnown
+        applyTupleM negotiateKnown (meth, methodsKnown)
 
     let supported : FreyaMachineDecision =
-        (meth, methodsSupported) ?> negotiateSupported
+        applyTupleM negotiateSupported (meth, methodsSupported)
 
     let delete : FreyaMachineDecision =
-        meth =? DELETE 
+        eqM meth DELETE 
 
     let getOrHead : FreyaMachineDecision =
-            (fun x -> x = GET || x = HEAD) 
-        <!> meth
+        inM meth (set [ GET; HEAD ])
 
     let options : FreyaMachineDecision =
-        meth =? OPTIONS
+        eqM meth OPTIONS
 
     let patch : FreyaMachineDecision =
-        meth =? PATCH
+        eqM meth PATCH
 
     let post : FreyaMachineDecision =
-        meth =? POST
+        eqM meth POST
 
     let put : FreyaMachineDecision =
-        meth =? PUT
+        eqM meth PUT

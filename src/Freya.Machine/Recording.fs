@@ -2,7 +2,6 @@
 module Freya.Machine.Recording
 
 open Aether
-open Aether.Operators
 open Freya.Core
 open Freya.Recorder
 
