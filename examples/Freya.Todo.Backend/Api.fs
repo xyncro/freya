@@ -96,8 +96,7 @@ let api =
 // Pipeline
 
 let config =
-    { Path = "/inspect"
-      Inspectors = 
+    { Inspectors = 
         [ freyaMachineInspector
           freyaRouterInspector ] }
 

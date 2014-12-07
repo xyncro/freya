@@ -5,11 +5,11 @@ open Aether
 
 (* Graph
 
-    Execution runs as a graph of nodes of specific meaning,
-    Each node may (depending on type) run some kind of action and
-    then provide a way of indicating which node in the graph should
-    be invoked next (forming the essential characteristic of processing
-    requests as a statemachine).  *)
+   Execution runs as a graph of nodes of specific meaning,
+   Each node may (depending on type) run some kind of action and
+   then provide a way of indicating which node in the graph should
+   be invoked next (forming the essential characteristic of processing
+   requests as a statemachine). *)
 
 type FreyaMachineGraph =
     Map<string, FreyaMachineNode>
@@ -45,9 +45,9 @@ and FreyaMachineOperationNode =
 
 (* Override
 
-    Override data is used to be able to provide sensible runtime
-    introspection and debugging capabilities,such as integration with future 
-    Freya tracing/inspection tools. *)
+   Override data is used to be able to provide sensible runtime
+   introspection and debugging capabilities,such as integration with future 
+   Freya tracing/inspection tools. *)
 
 and Override =
     { Allow: bool

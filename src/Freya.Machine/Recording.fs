@@ -10,28 +10,26 @@ open Freya.Recorder
 type FreyaMachineRecord =
     { Execution: FreyaMachineExecutionRecord list }
 
+(* Graph *)
+
+and FreyaMachineGraphRecord =
+    { Nodes: FreyaMachineGraphNodeRecord
+      Edges: FreyaMachineGraphEdgeRecord }
+
+and FreyaMachineGraphNodeRecord =
+    { Id: string
+      Type: string
+      AllowOverride: bool
+      HasOverride: bool }
+
+and FreyaMachineGraphEdgeRecord =
+    { From: string
+      To: string }
+
+(* Execution *)
+
 and FreyaMachineExecutionRecord =
-    | ActionRecord of FreyaMachineActionRecord
-    | DecisionRecord of FreyaMachineDecisionRecord
-    | HandlerRecord of FreyaMachineHandlerRecord
-    | OperationRecord of FreyaMachineOperationRecord
-
-and FreyaMachineActionRecord =
-    { Name: string
-      Overridden: bool }
-
-and FreyaMachineDecisionRecord =
-    { Name: string
-      Overridden: bool
-      Result: bool
-      Next: string }
-
-and FreyaMachineHandlerRecord =
-    { Name: string
-      Overridden: bool }
-
-and FreyaMachineOperationRecord =
-    { Name: string }
+    { Id: string }
 
 (* Constructors *)
 
@@ -45,6 +43,11 @@ let executionLens =
 
 (* Functions *)
 
+let initFreyaMachineR () =
+    setR "freya.Machine" machineRecord
+
+let executeFreyaMachineR id =
+    modR "freya.Machine" (modL executionLens (fun es -> { Id = id } :: es))
 let initR () =
     setR "freya.Machine" machineRecord
 

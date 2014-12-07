@@ -325,6 +325,9 @@ and SubType =
 
 type MediaType with
 
+    static member HTML =
+        MediaType (Type "text", SubType "html", Map.empty)
+
     static member JSON =
         MediaType (Type "application", SubType "json", Map.empty)
 
