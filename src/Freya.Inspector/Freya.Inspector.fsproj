@@ -122,13 +122,14 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <EmbeddedResource Include="content\css\site.css" />
+    <EmbeddedResource Include="content\html\index.html" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Recording.fs" />
     <Compile Include="Content.fs" />
     <Compile Include="Data.fs" />
     <Compile Include="Pipeline.fs" />
-    <EmbeddedResource Include="content\html\index.html" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

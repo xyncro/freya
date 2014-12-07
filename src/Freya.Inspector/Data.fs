@@ -15,4 +15,4 @@ let xs =
 
 let data (config: FreyaInspectorConfiguration) =
     freyaRouter {
-        route All config.Path xs } |> compileFreyaRouter
+        route All "/freya/inspect/api" xs } |> compileFreyaRouter

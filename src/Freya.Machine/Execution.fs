@@ -19,13 +19,7 @@ let private decision d =
         let! next =
                (function | true -> d.True
                          | _ -> d.False)
-        let! next, result = 
-                (function | true -> d.True, true 
-                          | _ -> d.False, false) 
             <!> d.Decision
-
-        printfn "executing %s" d.Id
-        printfn "next %s" next
 
         do! executeFreyaMachineR d.Id
 

@@ -9,5 +9,4 @@ type FreyaInspector =
 (* Configuration *)
 
 type FreyaInspectorConfiguration =
-    { Path: string
-      Inspectors: FreyaInspector list }
+    { Inspectors: FreyaInspector list }
