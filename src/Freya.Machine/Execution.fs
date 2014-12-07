@@ -19,8 +19,8 @@ let private action a =
 let private decision d =
     freya {
         let! next, result = 
-               (function | true -> d.True, true 
-                         | _ -> d.False, false) 
+                (function | true -> d.True, true 
+                          | _ -> d.False, false) 
             <!> d.Decision
 
         do! executionR (DecisionRecord { 
@@ -71,7 +71,7 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let graph = construct definition nodes
 
     freya {
-        do! initR
+        do! initR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

@@ -57,7 +57,7 @@ module Charset =
         <*> acceptCharset
 
     let negotiable : FreyaMachineDecision =
-            (function | Some x when List.isEmpty x = false -> true
+            (function | Negotiated x when List.isEmpty x = false -> true
                       | _ -> false)
         <!> negotiated
 
@@ -86,7 +86,7 @@ module Encoding =
         <*> acceptEncoding
 
     let negotiable : FreyaMachineDecision =
-            (function | Some x when List.isEmpty x = false -> true
+            (function | Negotiated x when List.isEmpty x = false -> true
                       | _ -> false)
         <!> negotiated
 
@@ -138,7 +138,7 @@ module Language =
         <*> acceptLanguage
 
     let negotiable : FreyaMachineDecision =
-            (function | Some x when List.isEmpty x = false -> true
+            (function | Negotiated x when List.isEmpty x = false -> true
                       | _ -> false)
         <!> negotiated
 
@@ -167,7 +167,7 @@ module MediaType =
         <*> accept
 
     let negotiable : FreyaMachineDecision =
-            (function | Some x when List.isEmpty x = false -> true
+            (function | Negotiated x when List.isEmpty x = false -> true
                       | _ -> false)
         <!> negotiated
 

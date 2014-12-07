@@ -40,8 +40,8 @@ module Accept =
         >> choose
 
     let negotiate supported =
-        function | Some (Accept requested) -> Some (run requested supported)
-                 | _ -> None
+        function | Some (Accept requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Charset *)
 
@@ -73,8 +73,8 @@ module AcceptCharset =
         >> choose
 
     let negotiate supported =
-        function | Some (AcceptCharset requested) -> Some (run requested supported)
-                 | _ -> None
+        function | Some (AcceptCharset requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Encoding *)
 
@@ -108,8 +108,8 @@ module AcceptEncoding =
         >> choose
 
     let negotiate supported=
-        function | Some (AcceptEncoding requested) -> Some (run requested supported)
-                 | _ -> None
+        function | Some (AcceptEncoding requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Language *)
 
@@ -167,5 +167,5 @@ module AcceptLanguage =
         >> Seq.toList
 
     let negotiate supported =
-        function | Some (AcceptLanguage requested) -> Some (run supported requested)
-                 | _ -> None
+        function | Some (AcceptLanguage requested) -> Negotiated (run supported requested)
+                 | _ -> Free

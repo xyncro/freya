@@ -10,10 +10,14 @@ open Freya.Types.Language
 (* Representations *)
 
 type FreyaMachineNegotiation =
-    { Charsets: Charset list option
-      Encodings: ContentCoding list option
-      MediaTypes: MediaType list option
-      Languages: LanguageTag list option }
+    { Charsets: FreyaMachineNegotiationResult<Charset>
+      Encodings: FreyaMachineNegotiationResult<ContentCoding>
+      MediaTypes: FreyaMachineNegotiationResult<MediaType>
+      Languages: FreyaMachineNegotiationResult<LanguageTag> }
+
+and FreyaMachineNegotiationResult<'a> =
+    | Negotiated of 'a list
+    | Free
 
 type FreyaMachineRepresentation =
     { Metadata: FreyaMachineRepresentationMetadata

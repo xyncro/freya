@@ -17,12 +17,12 @@ open Freya.Todo.Backend.Storage
 
 // Helpers
 
-let inline represent (n: FreyaMachineNegotiation) x =
+let inline represent x =
     { Metadata =
-        { Charset = Some n.Charsets.Head
+        { Charset = Some Charset.UTF8
           Encodings = None
-          MediaType = Some n.MediaTypes.Head
-          Languages = Option.map (fun x -> [ List.head x ]) n.Languages }
+          MediaType = Some MediaType.JSON
+          Languages = Some [ LanguageTag.Parse "en-GB" ] }
       Data = toJSON x }
 
 // Functions
@@ -33,11 +33,11 @@ let clearTodos =
 let createTodo =
     returnM ()
 
-let createdTodo n =
-    represent n <!> returnM Array.empty<Todo>
+let createdTodo _ =
+    represent <!> returnM Array.empty<Todo>
 
-let getTodos n =
-    represent n <!> liftAsync (getAll ())
+let getTodos _ =
+    represent <!> liftAsync (getAll ())
 
 let todoProcessable =
     returnM true

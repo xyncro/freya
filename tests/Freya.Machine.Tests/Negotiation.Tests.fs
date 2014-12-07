@@ -26,15 +26,15 @@ let ``MediaType Negotiation`` () =
     let negotiated3 = Accept.negotiate supported (Some requested3)
         
     negotiated1 =? 
-        Some ([ MediaType.JSON
-                MediaType.XML ])
+        Negotiated ([ MediaType.JSON
+                      MediaType.XML ])
 
     negotiated2 =?
-        Some ([ MediaType.XML
-                MediaType.JSON ])
+        Negotiated ([ MediaType.XML
+                      MediaType.JSON ])
 
     negotiated3 =? 
-        Some ([])
+        Negotiated ([])
 
 [<Test>]
 let ``Charset Negotiation`` () =
@@ -52,12 +52,12 @@ let ``Charset Negotiation`` () =
     let negotiated2 = AcceptCharset.negotiate supported (Some requested2)
 
     negotiated1 =? 
-        Some ([ Charset.Iso88591 
-                Charset.Unicode ])
+        Negotiated ([ Charset.Iso88591 
+                      Charset.Unicode ])
 
     negotiated2 =? 
-        Some ([ Charset.Unicode
-                Charset.Iso88591 ])
+        Negotiated ([ Charset.Unicode
+                      Charset.Iso88591 ])
 
 [<Test>]
 let ``Encoding Negotiation`` () =
@@ -74,8 +74,8 @@ let ``Encoding Negotiation`` () =
     let negotiated1 = AcceptEncoding.negotiate supported (Some requested1)
     let negotiated2 = AcceptEncoding.negotiate supported (Some requested2)
 
-    negotiated1 =? Some ([ ContentCoding.GZip ])
-    negotiated2 =? Some ([])
+    negotiated1 =? Negotiated ([ ContentCoding.GZip ])
+    negotiated2 =? Negotiated ([])
 
 [<Test>]
 let ``Language Negotiation`` () =
@@ -89,5 +89,5 @@ let ``Language Negotiation`` () =
 
     let negotiated1 = AcceptLanguage.negotiate supported (Some requested1)
 
-    negotiated1 =? Some ([ LanguageTag.Parse "en-GB"
-                           LanguageTag.Parse "en" ])
+    negotiated1 =? Negotiated ([ LanguageTag.Parse "en-GB"
+                                 LanguageTag.Parse "en" ])

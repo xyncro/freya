@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Machine.Recording
+module internal Freya.Machine.Recording
 
 open Aether
 open Freya.Core
@@ -40,13 +40,13 @@ let private machineRecord =
 
 (* Lenses *)
 
-let internal executionLens =
+let executionLens =
     (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Functions *)
 
-let internal initR : Freya<unit> =
+let initR () =
     setR "freya.Machine" machineRecord
 
-let internal executionR e =
+let executionR e =
     modR "freya.Machine" (modL executionLens (fun es -> e :: es))
