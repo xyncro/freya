@@ -39,8 +39,8 @@ module Accept =
         >> sort
         >> choose
 
-    let negotiate =
-        function | Some (x), Some (Accept y) -> Some (run y x)
+    let negotiate supported =
+        function | Some (Accept requested) -> Some (run requested supported)
                  | _ -> None
 
 (* Accept-Charset *)
@@ -72,15 +72,15 @@ module AcceptCharset =
         >> sort
         >> choose
 
-    let negotiate =
-        function | Some (x), Some (AcceptCharset y) -> Some (run y x)
+    let negotiate supported =
+        function | Some (AcceptCharset requested) -> Some (run requested supported)
                  | _ -> None
 
 (* Accept-Encoding *)
 
 module AcceptEncoding =
 
-    // TODO: Better Content-Coding Negotiation
+    // TODO: Better Content-Coding Negotiation - proper support of identity, etc.
 
     let private max (ContentCoding c) =
         function | { AcceptableEncoding.Encoding = EncodingRange.Coding (ContentCoding c') } when c == c' -> Some 0
@@ -107,8 +107,8 @@ module AcceptEncoding =
         >> sort
         >> choose
 
-    let negotiate =
-        function | Some (x), Some (AcceptEncoding y) -> Some (run y x)
+    let negotiate supported=
+        function | Some (AcceptEncoding requested) -> Some (run requested supported)
                  | _ -> None
 
 (* Accept-Language *)
@@ -166,6 +166,6 @@ module AcceptLanguage =
         >> Seq.distinct
         >> Seq.toList
 
-    let negotiate =
-        function | Some (x), Some (AcceptLanguage y) -> Some (run x y)
+    let negotiate supported =
+        function | Some (AcceptLanguage requested) -> Some (run supported requested)
                  | _ -> None
