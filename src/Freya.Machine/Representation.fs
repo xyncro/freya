@@ -1,10 +1,8 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Representation
 
-open System.Globalization
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types
 open Freya.Types.Http
 
 (* Negotiation *)
@@ -23,6 +21,8 @@ let private negotiate =
     <*> Language.negotiated
 
 (* Metadata *)
+
+// TODO: Set the Charset on the MediaType!
 
 let private charset =
     function | Some x -> modPLM Response.Headers.contentType id

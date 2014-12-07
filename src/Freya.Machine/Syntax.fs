@@ -88,6 +88,10 @@ type FreyaMachineBuilder with
     member x.Authorized (monad, m) = 
         x.Set (monad, decisionPLens Decisions.Authorized, m)
 
+    [<CustomOperation (Decisions.CharsetsStrict, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CharsetsStrict (monad, m) = 
+        x.Set (monad, decisionPLens Decisions.CharsetsStrict, m)
+
     [<CustomOperation (Decisions.Conflicts, MaintainsVariableSpaceUsingBind = true)>]
     member x.Conflicts (monad, m) = 
         x.Set (monad, decisionPLens Decisions.Conflicts, m)
@@ -108,6 +112,10 @@ type FreyaMachineBuilder with
     member x.Deleted (monad, m) = 
         x.Set (monad, decisionPLens Decisions.Deleted, m)
 
+    [<CustomOperation (Decisions.EncodingsStrict, MaintainsVariableSpaceUsingBind = true)>]
+    member x.EncodingsStrict (monad, m) = 
+        x.Set (monad, decisionPLens Decisions.EncodingsStrict, m)
+
     [<CustomOperation (Decisions.EntityLengthValid, MaintainsVariableSpaceUsingBind = true)>]
     member x.EntityLengthValid (monad, m) = 
         x.Set (monad, decisionPLens Decisions.EntityLengthValid, m)
@@ -120,9 +128,17 @@ type FreyaMachineBuilder with
     member x.Exists (monad, m) = 
         x.Set (monad, decisionPLens Decisions.Exists, m)
 
+    [<CustomOperation (Decisions.LanguagesStrict, MaintainsVariableSpaceUsingBind = true)>]
+    member x.LanguagesStrict (monad, m) = 
+        x.Set (monad, decisionPLens Decisions.LanguagesStrict, m)
+
     [<CustomOperation (Decisions.Malformed, MaintainsVariableSpaceUsingBind = true)>]
     member x.Malformed (monad, m) = 
         x.Set (monad, decisionPLens Decisions.Malformed, m)
+
+    [<CustomOperation (Decisions.MediaTypesStrict, MaintainsVariableSpaceUsingBind = true)>]
+    member x.MediaTypesStrict (monad, m) = 
+        x.Set (monad, decisionPLens Decisions.MediaTypesStrict, m)
 
     [<CustomOperation (Decisions.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
     member x.MovedPermanently (monad, m) = 

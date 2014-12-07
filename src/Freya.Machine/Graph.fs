@@ -2,8 +2,6 @@
 module internal Freya.Machine.Graph
 
 open Aether
-open Freya.Core
-open Freya.Core.Operators
 
 (* Graph
 
