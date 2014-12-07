@@ -4,7 +4,6 @@ module Freya.Machine.Execution
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
-open Freya.Types
 
 (* Traversal *)
 
@@ -20,6 +19,9 @@ let private decision d =
         let! next =
                (function | true -> d.True
                          | _ -> d.False)
+        let! next, result = 
+                (function | true -> d.True, true 
+                          | _ -> d.False, false) 
             <!> d.Decision
 
         printfn "executing %s" d.Id
@@ -67,6 +69,7 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
 
     freya {
         do! initFreyaMachineR ()
+        do! initR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

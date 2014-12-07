@@ -1,6 +1,7 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Prelude
 
+open System
 open System.Runtime.CompilerServices
 
 (* Internals *)
@@ -8,14 +9,27 @@ open System.Runtime.CompilerServices
 [<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
 do ()
 
+(* Operators *)
+
+let (==) s1 s2 =
+    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+(* Functions *)
+
+let inline flip f a b = 
+    f b a
+
 (* List Extensions *)
 
 [<RequireQualifiedAccess>]
 module List =
 
-    let tryMaxBy projection =
-        function | [] -> None
-                 | xs -> Some (List.maxBy projection xs)
+    let chooseMaxBy projection =
+           List.map (fun x -> x, projection x)
+        >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
+        >> List.sortBy (fun (_, y) -> y)
+        >> List.map fst
+        >> function | [] -> None | x :: _ -> Some x
 
 (* Option Extensions *)
 

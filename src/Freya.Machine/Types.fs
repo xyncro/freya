@@ -4,17 +4,20 @@ module Freya.Machine.Types
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Types
 open Freya.Types.Http
 open Freya.Types.Language
 
 (* Representations *)
 
 type FreyaMachineNegotiation =
-    { Charsets: Charset list
-      Encodings: ContentCoding list
-      MediaTypes: MediaType list
-      Languages: LanguageTag list }
+    { Charsets: FreyaMachineNegotiationResult<Charset>
+      Encodings: FreyaMachineNegotiationResult<ContentCoding>
+      MediaTypes: FreyaMachineNegotiationResult<MediaType>
+      Languages: FreyaMachineNegotiationResult<LanguageTag> }
+
+and FreyaMachineNegotiationResult<'a> =
+    | Negotiated of 'a list
+    | Free
 
 type FreyaMachineRepresentation =
     { Metadata: FreyaMachineRepresentationMetadata

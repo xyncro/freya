@@ -2,13 +2,12 @@
 module Freya.Core.Integration
 
 open System
-open System.Collections.Generic
 open System.Threading.Tasks
 
 (* OWIN Types *)
 
 type OwinEnvironment =
-    IDictionary<string, obj>
+    FreyaEnvironment
 
 type OwinApp = 
     OwinEnvironment -> Async<unit>

@@ -2,7 +2,6 @@
 module internal Freya.Machine.Recording
 
 open Aether
-open Aether.Operators
 open Freya.Core
 open Freya.Recorder
 
@@ -49,3 +48,8 @@ let initFreyaMachineR () =
 
 let executeFreyaMachineR id =
     modR "freya.Machine" (modL executionLens (fun es -> { Id = id } :: es))
+let initR () =
+    setR "freya.Machine" machineRecord
+
+let executionR e =
+    modR "freya.Machine" (modL executionLens (fun es -> e :: es))

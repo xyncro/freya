@@ -12,16 +12,17 @@ open Freya.Router
 open Freya.Router.Inspector
 open Freya.Types
 open Freya.Types.Http
+open Freya.Types.Language
 open Freya.Todo.Backend.Storage
 
 // Helpers
 
-let inline represent _ x =
+let inline represent x =
     { Metadata =
         { Charset = Some Charset.UTF8
           Encodings = None
           MediaType = Some MediaType.JSON
-          Languages = None }
+          Languages = Some [ LanguageTag.Parse "en-GB" ] }
       Data = toJSON x }
 
 // Functions
@@ -32,11 +33,11 @@ let clearTodos =
 let createTodo =
     returnM ()
 
-let createdTodo n =
-    represent n <!> returnM Array.empty<Todo>
+let createdTodo _ =
+    represent <!> returnM Array.empty<Todo>
 
-let getTodos n =
-    represent n <!> liftAsync (getAll ())
+let getTodos _ =
+    represent <!> liftAsync (getAll ())
 
 let todoProcessable =
     returnM true
@@ -46,19 +47,21 @@ let todoLastModified =
 
 // Configuration
 
-let jsonMediaType =
-    returnM [ MediaType.JSON ]
+let en =
+    returnM [ LanguageTag.Parse "en-GB"
+              LanguageTag.Parse "en" ]
 
 let json =
-    freyaMachine {
-        mediaTypesSupported jsonMediaType }
-
-let utf8Charset =
-    returnM [ Charset.UTF8 ]
+    returnM [ MediaType.JSON ]
 
 let utf8 =
+    returnM [ Charset.UTF8 ]
+
+let defaults =
     freyaMachine {
-        charsetsSupported utf8Charset }
+        charsetsSupported utf8
+        languagesSupported en
+        mediaTypesSupported json }
 
 // Resources
 
@@ -67,8 +70,7 @@ let todosMethods =
 
 let todos =
     freyaMachine {
-        including json
-        including utf8
+        including defaults
 
         doDelete clearTodos
         doPost createTodo
@@ -82,7 +84,7 @@ let todos =
 
 let todo =
     freyaMachine {
-        including json } |> compileFreyaMachine
+        including defaults } |> compileFreyaMachine
 
 // Routes
 

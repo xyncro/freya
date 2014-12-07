@@ -1,7 +1,6 @@
 ﻿[<AutoOpen>]
 module Freya.Machine.Negotiation
 
-open System
 open Freya.Types.Http
 open Freya.Types.Language
 
@@ -10,117 +9,127 @@ open Freya.Types.Language
    Taken from RFC 7231, Section 5.3
    [http://tools.ietf.org/html/rfc7231#section-5.3] *)
 
-type private Negotiation<'a,'b> =
-    { Predicate: 'a -> 'b -> bool
-      Score: 'a -> 'b -> int
-      Weigh: 'b -> float }
-
-let private negotiate (n: Negotiation<'a,'b>) r =
-       List.map (fun a -> a, (List.filter (n.Predicate a) >> List.tryMaxBy (n.Score a)) r)
-    >> List.choose (function | (a, Some b) -> Some (a, b) | _ -> None)
-    >> List.filter (fun (_, b) -> n.Weigh b <> 0.)
-    >> List.sortBy (fun (_, b) -> n.Weigh b)
-    >> List.rev
-    >> List.map fst
-
-let private (==) s1 s2 =
-    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
 (* Accept *)
 
 module Accept =
 
-    let private predicate (MediaType (Type t, SubType s, _)) =
-        function | { AcceptableMedia.MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> true
-                 | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> true
-                 | { MediaRange = Open _ } -> true
-                 | _ -> false
+    let private max (MediaType (Type t, SubType s, _)) =
+        function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> Some 0
+                 | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> Some 1
+                 | { MediaRange = Open _ } -> Some 2
+                 | _ -> None
 
-    let private score (MediaType (Type t, SubType s, _)) =
-        function | { AcceptableMedia.MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> 3
-                 | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> 2
-                 | { MediaRange = Open _ } -> 1
-                 | _ -> 0
+    let private map requested =
+        List.map (fun (x: MediaType) ->
+            x, List.chooseMaxBy (max x) requested)
 
-    let private weigh =
-        function | { AcceptableMedia.Parameters = Some { Weight = weight } } -> weight 
-                 | _ -> 1.
+    let private sort =
+        List.sortBy (fun (x, y) ->
+            (function | Some { Parameters = Some { Weight = weight } } -> 1. - weight
+                      | _ -> 0.) y)
 
-    let negotiate (Accept requested) =
-        negotiate { Predicate = predicate
-                    Score = score
-                    Weigh = weigh } requested
+    let private choose =
+        List.choose (fun (x, y) ->
+            (function | Some { Parameters = Some { Weight = weight } } when weight > 0. -> Some x
+                      | Some { Parameters = None } -> Some x
+                      | _ -> None) y)
+
+    let private run requested =
+           map requested 
+        >> sort
+        >> choose
+
+    let negotiate supported =
+        function | Some (Accept requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Charset *)
 
 module AcceptCharset =
 
-    let private predicate (Charset s) =
-        function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> true
-                 | { Charset = CharsetRange.Any } -> true
-                 | _ -> false
+    let private max (Charset s) =
+        function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> Some 0
+                 | { Charset = CharsetRange.Any } -> Some 1
+                 | _ -> None
 
-    let private score (Charset s) =
-        function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> 2
-                 | { Charset = CharsetRange.Any } -> 1
-                 | _ -> 0
+    let private map requested =
+        List.map (fun (x: Charset) ->
+            x, List.chooseMaxBy (max x) requested)
 
-    let private weigh =
-        function | { AcceptableCharset.Weight = Some weight } -> weight 
-                 | _ -> 1.
+    let private sort =
+        List.sortBy (fun (x, y) ->
+            (function | Some { AcceptableCharset.Weight = Some weight } -> 1. - weight
+                      | _ -> 0.) y)
 
-    let negotiate (AcceptCharset requested) =
-        negotiate { Predicate = predicate
-                    Score = score
-                    Weigh = weigh } requested
+    let private choose =
+        List.choose (fun (x, y) ->
+            (function | Some { AcceptableCharset.Weight = Some weight } when weight > 0. -> Some x
+                      | Some { AcceptableCharset.Weight = None } -> Some x
+                      | _ -> None) y)
+
+    let private run requested =
+           map requested 
+        >> sort
+        >> choose
+
+    let negotiate supported =
+        function | Some (AcceptCharset requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Encoding *)
 
 module AcceptEncoding =
 
-    let private predicate (ContentCoding e) =
-        function | { AcceptableEncoding.Encoding = Coding (ContentCoding e') } when e == e' -> true
-                 | { Encoding = Identity } -> true
-                 | { Encoding = EncodingRange.Any } -> true
-                 | _ -> false
+    // TODO: Better Content-Coding Negotiation - proper support of identity, etc.
 
-    let private score (ContentCoding e) =
-        function | { AcceptableEncoding.Encoding = Coding (ContentCoding e') } when e == e' -> 3
-                 | { Encoding = Identity } -> 2
-                 | { Encoding = EncodingRange.Any } -> 1
-                 | _ -> 0
+    let private max (ContentCoding c) =
+        function | { AcceptableEncoding.Encoding = EncodingRange.Coding (ContentCoding c') } when c == c' -> Some 0
+                 | { Encoding = EncodingRange.Any } -> Some 1
+                 | _ -> None
 
-    let private weigh =
-        function | { AcceptableEncoding.Weight = Some weight } -> weight 
-                 | _ -> 1.
+    let private map requested =
+        List.map (fun (x: ContentCoding) ->
+            x, List.chooseMaxBy (max x) requested)
 
-    let negotiate (AcceptEncoding requested) =
-        negotiate { Predicate = predicate
-                    Score = score
-                    Weigh = weigh } requested
+    let private sort =
+        List.sortBy (fun (x, y) ->
+            (function | Some { AcceptableEncoding.Weight = Some weight } -> 1. - weight
+                      | _ -> 0.) y)
+
+    let private choose =
+        List.choose (fun (x, y) ->
+            (function | Some { AcceptableEncoding.Weight = Some weight } when weight > 0. -> Some x
+                      | Some { AcceptableEncoding.Weight = None } -> Some x
+                      | _ -> None) y)
+
+    let private run requested =
+           map requested 
+        >> sort
+        >> choose
+
+    let negotiate supported=
+        function | Some (AcceptEncoding requested) -> Negotiated (run requested supported)
+                 | _ -> Free
 
 (* Accept-Language *)
 
 module AcceptLanguage =
 
-    (* Note: This is intended to approximate (hopefully closely) the semantics
+    (* Note: This is intended to approximate the semantics
        of Basic Filtering as specified in Section 3.3.1 of RFC 4647.
 
        See [http://tools.ietf.org/html/rfc4647#section-3.3.1] *)
 
-    let private listOfTag (tag: LanguageTag) =
+    let private toList tag =
         let language, extensions =
             (function | Language (language, Some extensions) -> [ language ], extensions
                       | Language (language, _) -> [ language ], []) tag.Language
-
         let script =
             (function | Some (Script script) -> [ script ]
                       | _ -> []) tag.Script
-
         let region =
             (function | Some (Region region) -> [ region ]
                       | _ -> []) tag.Region
-
         let variant =
             (function | Variant variant -> variant) tag.Variant
 
@@ -131,22 +140,32 @@ module AcceptLanguage =
             region
             variant ]
 
-    let private predicate (t: LanguageTag) =
-        function | { AcceptableLanguage.Language = Range range } -> 
-                        Seq.zip range (listOfTag t) |> Seq.forall (fun (a, b) -> a == b)
-                 | _ -> true
+    let private eq tag =
+        Seq.zip (toList tag) >> Seq.forall ((<||) (==))
 
-    // TODO: Re-evaluate this scoring, potentially looking for max (tag length, range length).
+    let private sort =
+        List.sortBy (fun (x: AcceptableLanguage) -> 
+            (function | Some x -> 1. - x
+                      | _ -> 0. ) x.Weight)
 
-    let private score (t: LanguageTag) =
-        function | { AcceptableLanguage.Language = Range range } -> range.Length
-                 | _ -> 0
+    let private filter =
+        List.filter (fun (x: AcceptableLanguage) ->
+            (function | Some 0. -> false
+                      | _ -> true) x.Weight)
 
-    let private weigh =
-        function | { AcceptableLanguage.Weight = Some weight } -> weight 
-                 | _ -> 1.
+    let private map supported =
+        List.map (fun (x: AcceptableLanguage) ->
+            (function | Range x -> List.filter (flip eq x) supported
+                      | Any -> supported) x.Language)
+    
+    let private run supported =
+           sort
+        >> filter
+        >> map supported
+        >> Seq.concat
+        >> Seq.distinct
+        >> Seq.toList
 
-    let negotiate (AcceptLanguage requested) =
-        negotiate { Predicate = predicate
-                    Score = score
-                    Weigh = weigh } requested
+    let negotiate supported =
+        function | Some (AcceptLanguage requested) -> Negotiated (run supported requested)
+                 | _ -> Free
