@@ -3,6 +3,7 @@ NUGET
   specs:
     Aether (5.0.0)
     FAKE (3.11.0)
+    FAKE (3.11.3)
     Fleece (0.4.0)
       FSharpPlus (>= 0.0.4)
       ReadOnlyCollectionExtensions (>= 1.2.0)
@@ -10,6 +11,7 @@ NUGET
       System.Json (>= 4.0.20126.16343)
     FParsec (1.0.1)
     FsControl (1.0.9)
+    FSharp.Core (3.1.2)
     FSharpPlus (0.0.4)
       FsControl (>= 1.0.9)
     LinqBridge (1.3.0) - net20

@@ -8,7 +8,6 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Router
-open Freya.Types
 open Freya.Types.Http
 
 (* Keys *)

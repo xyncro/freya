@@ -18,5 +18,5 @@ let private routerRecord =
 
 (* Functions *)
 
-let internal initR : Freya<unit> =
+let internal initR () =
     setR "freya.Router" routerRecord
