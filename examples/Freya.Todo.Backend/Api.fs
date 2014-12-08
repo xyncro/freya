@@ -97,7 +97,8 @@ let api =
 
 let config =
     { Inspectors = 
-        [ freyaMachineInspector
+        [ freyaRequestInspector
+          freyaMachineInspector
           freyaRouterInspector ] }
 
 let pipeline =

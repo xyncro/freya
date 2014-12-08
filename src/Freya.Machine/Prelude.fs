@@ -2,6 +2,12 @@
 module internal Freya.Machine.Prelude
 
 open System
+open System.Runtime.CompilerServices
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
+do ()
 
 (* Operators *)
 

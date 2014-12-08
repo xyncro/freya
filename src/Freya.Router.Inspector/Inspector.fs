@@ -1,15 +1,28 @@
 ﻿module Freya.Router.Inspector
 
+open Aether
+open Fleece
 open Freya.Inspector
-open Freya.Router
 
-let private renderRouter (data: FreyaRouterRecord) =
-    sprintf "Router execution count: %i" data.Execution.Length
+(* Runtime *)
 
-let private render (data: Map<string, obj>) =
-    Map.tryFind "freya.Machine" data
-    |> Option.bind (function | :? FreyaRouterRecord as x -> Some x | _ -> None)
-    |> Option.map renderRouter
+let private init =
+    initFreyaRouterR ()
 
-let freyaRouterInspector : FreyaInspector =
-    { Render = render }
+let private runtime =
+    { Initialize = init }
+
+(* Inspection *)
+
+let private data =
+    getPL freyaRouterRecordPLens >> Option.map toJSON
+
+let private inspection =
+    { Data = data }
+
+(* Inspector *)
+
+let freyaRouterInspector =
+    { Id = routerKey
+      Runtime = runtime
+      Inspection = inspection }

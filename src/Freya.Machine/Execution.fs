@@ -62,7 +62,6 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let graph = construct definition nodes
 
     freya {
-        do! initFreyaMachineR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

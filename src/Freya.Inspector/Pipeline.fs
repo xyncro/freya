@@ -14,12 +14,12 @@ let private initialize =
     freya {
         return! initR () *> next }
 
-let private record =
+let private record config =
     freya {
-        let! meth = getLM Request.meth
-        let! path = getLM Request.path
+        for inspector in (config.Inspectors) do
+            do! inspector.Runtime.Initialize
 
-        return! initFreyaRequestR meth path *> next }
+        return! next }
 
 (* Pipelines *)
 
@@ -30,4 +30,4 @@ let private inspect config =
 let freyaInspector config =
         inspect config 
     >?= initialize 
-    >?= record
+    >?= record config

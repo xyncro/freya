@@ -74,10 +74,8 @@ let private firstNegotiatedOrElse def =
     function | Negotiated (x :: _) -> x
              | _ -> def
 
-let inline private toJSON x=
-    toJSON x 
-    |> string 
-    |> Encoding.UTF8.GetBytes
+let private encode =
+    string >> Encoding.UTF8.GetBytes
 
 let represent n x =
     { Metadata =
@@ -87,10 +85,10 @@ let represent n x =
           Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
       Data = x }
 
-let inline representJSON x =
+let representJSON x =
     { Metadata =
         { Charset = Some Charset.UTF8
           Encodings = None
           MediaType = Some MediaType.JSON
           Languages = Some [ LanguageTag.Parse "en" ] }
-      Data = toJSON x }
+      Data = encode x }

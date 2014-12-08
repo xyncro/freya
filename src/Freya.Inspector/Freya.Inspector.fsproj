@@ -60,9 +60,10 @@
     <EmbeddedResource Include="content\html\index.html" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Recording.fs" />
     <Compile Include="Content.fs" />
     <Compile Include="Data.fs" />
+    <Compile Include="Recording.fs" />
+    <Compile Include="Inspector.fs" />
     <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>

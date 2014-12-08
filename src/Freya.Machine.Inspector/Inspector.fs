@@ -1,15 +1,28 @@
 ﻿module Freya.Machine.Inspector
 
+open Aether
+open Fleece
 open Freya.Inspector
-open Freya.Machine
 
-let private renderMachine (data: FreyaMachineRecord) =
-    sprintf "Machine execution count: %i" data.Execution.Length
+(* Runtime *)
 
-let private render (data: Map<string, obj>) =
-    Map.tryFind "freya.Machine" data
-    |> Option.bind (function | :? FreyaMachineRecord as x -> Some x | _ -> None)
-    |> Option.map renderMachine
+let private init =
+    initFreyaMachineR ()
 
-let freyaMachineInspector : FreyaInspector =
-    { Render = render }
+let private runtime =
+    { Initialize = init }
+
+(* Inspection *)
+
+let private data =
+    getPL freyaMachineRecordPLens >> Option.map toJSON
+
+let private inspection =
+    { FreyaInspectorInspection.Data = data }
+
+(* Inspector *)
+
+let freyaMachineInspector =
+    { Id = machineKey
+      Runtime = runtime
+      Inspection = inspection }

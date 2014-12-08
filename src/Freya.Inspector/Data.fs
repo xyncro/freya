@@ -2,55 +2,64 @@
 module internal Freya.Inspector.Data
 
 open System
-open Aether
+open System.Json
+open Fleece
+open Fleece.Operators
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
-open Freya.Pipeline
 open Freya.Recorder
 open Freya.Router
 
-(* Mappings *)
+(* Request *)
 
-let private mapRecord x =
-    { Id = x.Id
-      Timestamp = x.Timestamp
-      Inspections = x.Data |> Map.toList |> List.map fst }
+let private requestId =
+    (Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id")
 
-let private mapRequest x =
-    getPL freyaRequestRecordPLens x
+let private requestInspection =
+    (Option.get) <!> getPLM (Route.valuesKey "inspection")
 
 (* Data *)
-
-let private id =
-    (Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id")
 
 let private recordsData =
     freya {
         let! records = listR ()
 
-        return List.map mapRecord records }
+        return toJSON records }
 
 let private recordData =
     freya {
-        let! id = id
+        let! id = requestId
         let! record = getR id
 
-        return Option.map mapRecord record }
+        return Option.map toJSON record }
+
+let private inspectionData inspectors =
+    freya {
+        let! id = requestId        
+        let! inspection = requestInspection
+        let! record = getR id
+
+        match Map.tryFind inspection inspectors with
+        | Some inspector -> return Option.bind inspector.Inspection.Data record
+        | _ -> return None }
 
 (* Functions *)
 
-let inline private getData data _ =
-    representJSON <!> data
+let private recordsGet _ =
+    representJSON <!> recordsData
 
-let private recordsGet =
-    getData recordsData
-
-let private recordGet =
-    getData recordData
+let private recordGet _ =
+    (Option.get >> representJSON) <!> recordData
 
 let private recordExists =
     Option.isSome <!> recordData
+
+let private inspectionGet inspectors _=
+    (Option.get >> representJSON) <!> (inspectionData inspectors)
+
+let private inspectionExists inspectors =
+    Option.isSome <!> (inspectionData inspectors)
 
 (* Resources *)
 
@@ -67,9 +76,23 @@ let private record =
         mediaTypesSupported json
         handleOk recordGet } |> compileFreyaMachine
 
+let private inspection inspectors =
+    freyaMachine {
+        including defaults
+        exists (inspectionExists inspectors)
+        mediaTypesSupported json
+        handleOk (inspectionGet inspectors) } |> compileFreyaMachine
+
 (* Routes *)
 
-let data (config: FreyaInspectorConfiguration) =
+let private root =
+    sprintf "/freya/api/requests%s"
+
+let private inspectors =
+    List.map (fun (x: FreyaInspector) -> x.Id, x) >> Map.ofList
+
+let data config =
     freyaRouter {
-        route All "/freya/inspect/api/requests" records
-        route All "/freya/inspect/api/requests/:id/" record } |> compileFreyaRouter
+        route All (root "") records
+        route All (root "/:id") record
+        route All (root "/:id/inspections/:inspection") (inspection (inspectors config.Inspectors)) } |> compileFreyaRouter

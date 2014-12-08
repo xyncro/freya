@@ -2,18 +2,24 @@
 module Freya.Router.Recording
 
 open Aether
+open Fleece
+open Fleece.Operators
 open Freya.Core
 open Freya.Recorder
 
 (* Keys *)
 
-let [<Literal>] private routerRecordKey =
+let [<Literal>] internal routerKey =
     "router"
 
 (* Types *)
 
 type FreyaRouterRecord =
     { Execution: string list }
+
+    static member ToJSON (x: FreyaRouterRecord) =
+        jobj [
+            "execution" .= x.Execution ]
 
 (* Contructors *)
 
@@ -22,8 +28,8 @@ let private freyaRouterRecord =
 
 (* Lenses *)
 
-let freyaRouterRecordPLens =
-    recordDataPLens<FreyaRouterRecord> routerRecordKey
+let internal freyaRouterRecordPLens =
+    recordDataPLens<FreyaRouterRecord> routerKey
 
 (* Functions *)
 
