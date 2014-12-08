@@ -1,31 +1,44 @@
 ﻿[<AutoOpen>]
-module internal Freya.Inspector.Recording
+module Freya.Inspector.Recording
 
-open System
+open Aether
+open Fleece
+open Fleece.Operators
 open Freya.Recorder
 open Freya.Types.Http
 
+(* Keys *)
+
+let [<Literal>] private requestRecordKey =
+    "request"
+
 (* Types *)
 
-type FreyaRecord =
-    { Id: Guid
-      Timestamp: DateTime
-      Request: FreyaRequestRecord }
-
-and FreyaRequestRecord =
+type FreyaRequestRecord =
     { Method: Method
       Path: string }
 
 (* Constructors *)
 
-let freyaRecord meth path =
-    { Id = Guid.NewGuid ()
-      Timestamp = DateTime.UtcNow
-      Request =
-        { Method = meth
-          Path = path } }
+let private freyaRequestRecord meth path =
+    { Method = meth
+      Path = path }
+
+(* Lenses *)
+
+let internal freyaRequestRecordPLens =
+    recordDataPLens<FreyaRequestRecord> requestRecordKey
+
+(* Serialization *)
+
+type FreyaRequestRecord with
+
+    static member ToJSON (x: FreyaRequestRecord) =
+        jobj [
+            "method" .= Method.Format (x.Method)
+            "path" .= x.Path ]
 
 (* Functions *)
 
-let initFreyaR meth path =
-    setR "freya" (freyaRecord meth path)
+let internal initFreyaRequestR meth path =
+    modR (setPL freyaRequestRecordPLens (freyaRequestRecord meth path))

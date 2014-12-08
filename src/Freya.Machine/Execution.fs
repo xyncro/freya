@@ -63,7 +63,6 @@ let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
 
     freya {
         do! initFreyaMachineR ()
-        do! initR ()
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 

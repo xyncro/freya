@@ -11,16 +11,19 @@ open Freya.Types.Http
 let private cssContent =
     resource "site.css"
 
-let private pageContent =
+let private htmlContent = 
     resource "index.html"
 
 (* Functions *)
 
-let private getCss n =
-    represent n <!> returnM cssContent
+let private getContent content n =
+    represent n <!> returnM content
 
-let private getPage n =
-    represent n <!> returnM pageContent
+let private getCss =
+    getContent cssContent
+
+let private getHtml =
+    getContent htmlContent
 
 (* Resources *)
 
@@ -30,11 +33,11 @@ let private css =
         mediaTypesSupported css
         handleOk getCss } |> compileFreyaMachine
 
-let private page =
+let private html =
     freyaMachine {
         including defaults
         mediaTypesSupported html
-        handleOk getPage } |> compileFreyaMachine
+        handleOk getHtml } |> compileFreyaMachine
 
 (* Routes *)
 
@@ -43,5 +46,5 @@ let private GET =
 
 let content (config: FreyaInspectorConfiguration) =
     freyaRouter {
-        route GET "/freya/inspect" page
+        route GET "/freya/inspect" html
         route GET "/freya/inspect/css" css } |> compileFreyaRouter

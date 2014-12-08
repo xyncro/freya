@@ -10,7 +10,7 @@ open Freya.Core
 let [<Literal>] private valuesKey =
     "freya.RouterValues"
 
-(* Route Value Lenses
+(* Lenses
 
    Access to values stored as part of the routing process
    are accessible via these lenses in to the OWIN state. *)

@@ -5,32 +5,27 @@ open System
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Core.Operators
-open Freya.Types
 
 (* Keys *)
 
-let [<Literal>] private proxyKey = 
-    "freya.InspectorProxy"
+let [<Literal>] private requestIdKey = 
+    "freya.Inspector.RequestId"
 
 (* Types *)
 
 type StorageProtocol =
-    | Create of Guid
-    | Update of Guid * FreyaRecordUpdate
+    | Create of AsyncReplyChannel<Guid>
+    | Update of Guid * (FreyaRecorderRecord -> FreyaRecorderRecord)
     | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>
-    | List of AsyncReplyChannel<FreyaRecorderRecord seq>
-
-and FreyaRecordUpdate =
-    FreyaRecorderRecord -> FreyaRecorderRecord
-
-type StorageProxy =
-    { Update: FreyaRecordUpdate -> unit }
+    | List of AsyncReplyChannel<FreyaRecorderRecord list>
 
 type private StorageState =
     { Records: FreyaRecorderRecord seq }
 
 (* Lenses *)
+
+let internal requestIdPLens =
+    environmentKeyP<Guid> requestIdKey
 
 let private recordsLens =
     (fun x -> x.Records), (fun r x -> { x with Records = r })
@@ -40,9 +35,6 @@ let private dataLens =
 
 let internal recordPLens<'a> k =
     dataLens >-?> mapPLens k <?-> boxIso<'a>
-
-let proxyPLens =
-    environmentKeyP<StorageProxy> proxyKey
 
 (* Constructors *)
 
@@ -54,44 +46,37 @@ let private entry id =
       Timestamp = DateTime.UtcNow
       Data = Map.empty }
 
-(* Handlers *)
+(* Protocol Handling *)
 
-let private create id =
-    modL recordsLens (Seq.append [ entry id ] >> Seq.truncate 10)
-
-let private update id f =
-    modL recordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l))
-
-let private read id (chan: AsyncReplyChannel<FreyaRecorderRecord option>) =
-    getL recordsLens >> (Seq.tryFind (fun l -> l.Id = id)) >> chan.Reply
-
-let private list (chan: AsyncReplyChannel<FreyaRecorderRecord seq>) =
-    getL recordsLens >> chan.Reply
+let private handle proto (state: StorageState) =
+    match proto with
+    | Create (chan) ->
+        let id = Guid.NewGuid ()
+        let state = modL recordsLens (Seq.append [ entry id ] >> Seq.truncate 10) state
+        chan.Reply (id)
+        state
+    | Update (id, f) ->
+        let state = modL recordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
+        state
+    | Read (id, chan) ->
+        let x = (getL recordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
+        chan.Reply (x)
+        state
+    | List (chan) ->
+        let x = getL recordsLens state
+        chan.Reply (List.ofSeq x)
+        state
 
 (* Storage *)
 
 let private storage () =
     MailboxProcessor.Start (fun mbox ->
-        let rec loop (state: StorageState) =
+        let rec loop state =
             async {
                 let! proto = mbox.Receive ()
-
-                match proto with
-                | Create id -> 
-                    return! loop (create id state)
-                | Update (id, f) -> 
-                    return! loop (update id f state)
-                | Read (id, chan) ->
-                    read id chan state
-                    return! loop state
-                | List (chan) ->
-                    list chan state
-                    return! loop state }
+                return! loop (handle proto state) }
 
         loop state)
 
 let store =
     storage ()
-
-let proxy id =
-    { Update = fun update -> store.Post (Update (id, update)) }

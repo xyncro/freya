@@ -1,9 +1,15 @@
 ﻿[<AutoOpen>]
-module internal Freya.Machine.Recording
+module Freya.Machine.Recording
 
 open Aether
+open Aether.Operators
 open Freya.Core
 open Freya.Recorder
+
+(* Keys *)
+
+let [<Literal>] private machineRecordKey =
+    "machine"
 
 (* Types *)
 
@@ -33,23 +39,21 @@ and FreyaMachineExecutionRecord =
 
 (* Constructors *)
 
-let private machineRecord =
+let private freyaMachineRecord =
     { Execution = List.empty }
 
 (* Lenses *)
 
-let executionLens =
+let private executionLens =
     (fun x -> x.Execution), (fun e x -> { x with Execution = e })
+
+let freyaMachineRecordPLens =
+    recordDataPLens<FreyaMachineRecord> machineRecordKey
 
 (* Functions *)
 
-let initFreyaMachineR () =
-    setR "freya.Machine" machineRecord
+let internal initFreyaMachineR () =
+    modR (setPL freyaMachineRecordPLens freyaMachineRecord)
 
-let executeFreyaMachineR id =
-    modR "freya.Machine" (modL executionLens (fun es -> { Id = id } :: es))
-let initR () =
-    setR "freya.Machine" machineRecord
-
-let executionR e =
-    modR "freya.Machine" (modL executionLens (fun es -> e :: es))
+let internal executeFreyaMachineR id =
+    modR (modPL (freyaMachineRecordPLens >?-> executionLens) (fun es -> { Id = id } :: es))

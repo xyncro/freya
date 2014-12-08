@@ -19,7 +19,7 @@ let private record =
         let! meth = getLM Request.meth
         let! path = getLM Request.path
 
-        return! initFreyaR meth path *> next }
+        return! initFreyaRequestR meth path *> next }
 
 (* Pipelines *)
 
