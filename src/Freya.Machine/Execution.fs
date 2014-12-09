@@ -5,36 +5,34 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
 
-(* Traversal *)
+(* Execution *)
 
 let private action a =
     freya {
         do! a.Action
-        do! executeFreyaMachineR a.Id
+        do! executionFreyaMachineR a.Id
 
         return a.Next }
 
 let private decision d =
     freya {
-        let! next =
-               (function | true -> d.True
-                         | _ -> d.False)
-            <!> d.Decision
+        let! result = d.Decision
+        do! executionFreyaMachineR d.Id
 
-        do! executeFreyaMachineR d.Id
-
-        return next }
+        match result with
+        | true -> return d.True
+        | _ -> return d.False }
 
 let private handler (h: FreyaMachineHandlerNode) =
     freya {
-        do! executeFreyaMachineR h.Id
+        do! executionFreyaMachineR h.Id
 
         return h.Handler }
 
 let private operation o =
     freya {
         do! o.Operation
-        do! executeFreyaMachineR o.Id
+        do! executionFreyaMachineR o.Id
 
         return o.Next }
 
@@ -60,8 +58,10 @@ let private nodes =
 let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let definition = snd (machine Map.empty)
     let graph = construct definition nodes
+    let graphRecord = graphR graph
 
     freya {
+        do! graphFreyaMachineR graphRecord
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent
 
