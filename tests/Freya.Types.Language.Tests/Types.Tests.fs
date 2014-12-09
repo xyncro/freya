@@ -1,4 +1,4 @@
-﻿module Freya.Typed.Tests.RFC5646
+﻿module Freya.Types.Language.Tests
 
 open NUnit.Framework
 open Freya.Types.Language
