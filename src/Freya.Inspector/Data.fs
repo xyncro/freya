@@ -66,21 +66,18 @@ let private inspectionExists inspectors =
 let private records =
     freyaMachine {
         including defaults
-        mediaTypesSupported json
         handleOk recordsGet } |> compileFreyaMachine
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
-        mediaTypesSupported json
         handleOk recordGet } |> compileFreyaMachine
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
-        mediaTypesSupported json
         handleOk (inspectionGet inspectors) } |> compileFreyaMachine
 
 (* Routes *)
@@ -88,11 +85,11 @@ let private inspection inspectors =
 let private root =
     sprintf "/freya/api/requests%s"
 
-let private inspectors =
+let private map =
     List.map (fun (x: FreyaInspector) -> x.Id, x) >> Map.ofList
 
 let data config =
     freyaRouter {
         route All (root "") records
         route All (root "/:id") record
-        route All (root "/:id/inspections/:inspection") (inspection (inspectors config.Inspectors)) } |> compileFreyaRouter
+        route All (root "/:id/inspections/:inspection") (inspection (map config.Inspectors)) } |> compileFreyaRouter

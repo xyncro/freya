@@ -5,23 +5,9 @@ open System
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
-
-(* Configuration
-
-   Typed access to dynamic configuration values at runtime. These are
-   evaluated on machine execution, and so may be varied based on the
-   specific resource in question (they are a general core Freya<'T> 
-   expression). *)
-
-let private config key =
-    freya {
-        let! value = getPLM (definitionPLens >??> configurationPLens key)
-
-        match value with
-        | Some value -> return! Some <!> value
-        | _ -> return None }
 
 (* Content Negotiation
 
@@ -93,29 +79,6 @@ module Encoding =
 
 [<RequireQualifiedAccess>]
 module Language =
-
-    (* Language Logic
-    
-       In the case of language negotiation, Freya.Machine will negotiate in 
-       the following ways:
-
-       If languages supported are specified as part of the resource,
-       and acceptable languages are included as part of the request, language
-       negotiation will occur. The result of this negotiation will be returned
-       as Some <results> where results is the list of supported language tags
-       which have been negotiated as acceptable, ordered by the priorities (if any)
-       specified as part of the acceptable languages requested.
-
-       If languages supported, or languages acceptable are not specified,
-       as part of the resource or request respectively, no negotiation will
-       be attempted, and None will be returned as the result of negotiation,
-       signifying that no languages have been negotiated.
-
-       Note that in the case of negotiation being defined as "non-strict",
-       the default for language support, this may result in an empty negotiation
-       result when it comes to deciding on the representation. This is valid, and
-       signifies the valid HTTP case where the wishes of the client cannot be fulfilled,
-       but the request will be honored with the best intention of the server. *)
 
     let private defaults =
         List.empty<LanguageTag>
@@ -291,24 +254,24 @@ module Method =
         getLM Request.meth
 
     let private methodsKnown =
-            Option.map Set.ofList 
+            (function | Some x -> Set.ofList x
+                      | _ -> defaultKnown) 
         <!> config Configuration.MethodsKnown
 
     let private methodsSupported =
-            Option.map Set.ofList 
+            (function | Some x -> Set.ofList x
+                      | _ -> defaultSupported)
         <!> config Configuration.MethodsSupported
 
     let known : FreyaMachineDecision =
-            (function | Some x -> flip Set.contains x
-                      | _ -> flip Set.contains defaultKnown)
-        <!> methodsKnown 
-        <*> meth
+            Set.contains
+        <!> meth 
+        <*> methodsKnown
 
     let supported : FreyaMachineDecision =
-            (function | Some x -> flip Set.contains x
-                      | _ -> flip Set.contains defaultSupported)
-        <!> methodsSupported
-        <*> meth
+            Set.contains
+        <!> meth
+        <*> methodsSupported
 
     let delete : FreyaMachineDecision =
             (=) DELETE 
@@ -333,3 +296,43 @@ module Method =
     let put : FreyaMachineDecision =
             (=) PUT 
         <!> meth
+
+(* CORS
+
+   Logic for negotiating decisions based on CORS (Cross-Origin Resource Sharing),
+   properly supporting per-resource responses based on genuinely allowable requests,
+   available methods outside of the simple set, etc. *)
+
+[<RequireQualifiedAccess>]
+module Cors =
+
+    let private accessControlRequestMethod =
+        getPLM Request.Headers.accessControlRequestMethod
+
+    let private origin' =
+        getPLM Request.Headers.origin
+
+    let private corsOrigins =
+        config Configuration.CorsOriginsSupported
+
+    let enabled : FreyaMachineDecision =
+            Option.isSome
+        <!> corsOrigins
+
+    let origin : FreyaMachineDecision =
+            (fun origin origins ->
+                match origin, origins with
+                | Some _, 
+                  Some (AccessControlAllowOriginRange.Any) -> true
+                | Some (Origin (OriginListOrNull.Origins (x :: []))), 
+                  Some (Origins (OriginListOrNull.Origins xs)) -> List.exists ((=) x) xs
+                | _ -> false)
+        <!> origin'
+        <*> corsOrigins
+
+    let options : FreyaMachineDecision =
+        Method.options
+
+    let preflight : FreyaMachineDecision =
+            Option.isSome
+        <!> accessControlRequestMethod

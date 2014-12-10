@@ -4,6 +4,7 @@ module Freya.Machine.Types
 open Aether
 open Aether.Operators
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Types.Http
 open Freya.Types.Language
 
@@ -103,3 +104,18 @@ let internal decisionPLens k =
 
 let internal handlerPLens k =
     mapPLens k <??> ((|Handler|), Handler) 
+
+(* Configuration
+
+   Typed access to dynamic configuration values at runtime. These are
+   evaluated on machine execution, and so may be varied based on the
+   specific resource in question (they are a general core Freya<'T>
+   expression). *)
+
+let internal config key =
+    freya {
+        let! value = getPLM (definitionPLens >??> configurationPLens key)
+
+        match value with
+        | Some value -> return! Some <!> value
+        | _ -> return None }

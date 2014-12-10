@@ -3,6 +3,7 @@ module Freya.Machine.Syntax
 
 open System
 open Freya.Core
+open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
 
@@ -37,6 +38,22 @@ type FreyaMachineBuilder with
     [<CustomOperation (Configuration.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.CharsetsSupported (monad, charsets: Freya<Charset list>) = 
         x.Set (monad, configurationPLens Configuration.CharsetsSupported, charsets)
+
+    [<CustomOperation (Configuration.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CorsHeadersExposed (monad, headers: Freya<string list>) = 
+        x.Set (monad, configurationPLens Configuration.CorsHeadersExposed, headers)
+
+    [<CustomOperation (Configuration.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CorsHeadersSupported (monad, headers: Freya<string list>) = 
+        x.Set (monad, configurationPLens Configuration.CorsHeadersSupported, headers)
+
+    [<CustomOperation (Configuration.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CorsMethodsSupported (monad, methods: Freya<Method list>) = 
+        x.Set (monad, configurationPLens Configuration.CorsMethodsSupported, methods)
+
+    [<CustomOperation (Configuration.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CorsOriginsSupported (monad, origins: Freya<AccessControlAllowOriginRange>) = 
+        x.Set (monad, configurationPLens Configuration.CorsOriginsSupported, origins)
 
     [<CustomOperation (Configuration.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.EncodingsSupported (monad, encodings: Freya<ContentCoding list>) = 
@@ -277,10 +294,6 @@ type FreyaMachineBuilder with
         x.Set (monad, handlerPLens Handlers.UnprocessableEntity, m)
 
     // 500
-
-    [<CustomOperation (Handlers.Exception, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleException (monad, m) = 
-        x.Set (monad, handlerPLens Handlers.Exception, m)
 
     [<CustomOperation (Handlers.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
     member x.HandleNotImplemented (monad, m) = 

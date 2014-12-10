@@ -43,7 +43,6 @@ let private handlerDefinitions =
       Handlers.UriTooLong
       Handlers.UnsupportedMediaType
       Handlers.UnprocessableEntity
-      Handlers.Exception
       Handlers.NotImplemented
       Handlers.UnknownMethod
       Handlers.ServiceUnavailable ]

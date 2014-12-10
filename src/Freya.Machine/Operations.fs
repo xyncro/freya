@@ -6,6 +6,11 @@ open Freya.Core.Operators
 open Freya.Types.Cors
 open Freya.Types.Http
 
+(* Abbreviations *)
+
+module Req = Request.Headers
+module Res = Response.Headers
+
 (* Operations
 
    Operation nodes represent some consistent action (such as setting headers
@@ -14,45 +19,127 @@ open Freya.Types.Http
    Handler nodes, to make sure that correct header values are set (though the
    handler could override them). Operation nodes cannot be user overridden. *)
 
-let private operation statusCode reasonPhrase =
-       setPLM Response.statusCode statusCode
-    *> setPLM Response.reasonPhrase reasonPhrase
+(* Handlers *)
 
-// TODO: Check this fits with the correct CORS operations when designed...
+[<RequireQualifiedAccess>]
+module private Handlers =
 
-let private options =
-       operation 200 "Options"
-    *> setPLM Response.Headers.accessControlAllowHeaders (AccessControlAllowHeaders [ "Content-Type" ])
-    *> setPLM Response.Headers.accessControlAllowOrigin  (AccessControlAllowOrigin AccessControlAllowOriginRange.Any)
+    let operation statusCode reasonPhrase =
+           setPLM Response.statusCode statusCode
+        *> setPLM Response.reasonPhrase reasonPhrase
 
-let private operationDefinitions =
-    [ Operations.PreOK,                          (operation 200 "OK"),                          Handlers.OK
-      Operations.PreOptions,                     (options),                                     Handlers.Options
-      Operations.PreCreated,                     (operation 201 "Created"),                     Handlers.Created
-      Operations.PreAccepted,                    (operation 202 "Accepted"),                    Handlers.Accepted
-      Operations.PreNoContent,                   (operation 204 "No Content"),                  Handlers.NoContent
-      Operations.PreMovedPermanently,            (operation 301 "Moved Permanently"),           Handlers.MovedPermanently
-      Operations.PreSeeOther,                    (operation 303 "See Other"),                   Handlers.SeeOther
-      Operations.PreNotModified,                 (operation 304 "Not Modified"),                Handlers.NotModified
-      Operations.PreMovedTemporarily,            (operation 307 "Moved Temporarily"),           Handlers.MovedTemporarily
-      Operations.PreMultipleRepresentations,     (operation 310 "Multiple Representations"),    Handlers.MultipleRepresentations
-      Operations.PreMalformed,                   (operation 400 "Bad Request"),                 Handlers.Malformed
-      Operations.PreUnauthorized,                (operation 401 "Unauthorized"),                Handlers.Unauthorized
-      Operations.PreForbidden,                   (operation 403 "Forbidden"),                   Handlers.Forbidden
-      Operations.PreNotFound,                    (operation 404 "Not Found"),                   Handlers.NotFound
-      Operations.PreMethodNotAllowed,            (operation 405 "Method Not Allowed"),          Handlers.MethodNotAllowed
-      Operations.PreNotAcceptable,               (operation 406 "Not Acceptable"),              Handlers.NotAcceptable
-      Operations.PreConflict,                    (operation 409 "Conflict"),                    Handlers.Conflict
-      Operations.PreGone,                        (operation 410 "Gone"),                        Handlers.Gone
-      Operations.PrePreconditionFailed,          (operation 412 "Precondition Failed"),         Handlers.PreconditionFailed
-      Operations.PreRequestEntityTooLarge,       (operation 413 "Request Entity Too Large"),    Handlers.RequestEntityTooLarge
-      Operations.PreUriTooLong,                  (operation 414 "URI Too Long"),                Handlers.UriTooLong
-      Operations.PreUnsupportedMediaType,        (operation 415 "Unsupported Media Type"),      Handlers.UnsupportedMediaType
-      Operations.PreUnprocessableEntity,         (operation 422 "Unprocessable Entity"),        Handlers.UnprocessableEntity
-      Operations.PreException,                   (operation 500 "Internal Server Error"),       Handlers.Exception
-      Operations.PreNotImplemented,              (operation 501 "Not Implemented"),             Handlers.NotImplemented
-      Operations.PreUnknownMethod,               (operation 501 "Unknown Method"),              Handlers.UnknownMethod
-      Operations.PreServiceUnavailable,          (operation 503 "Service Unavailable"),         Handlers.ServiceUnavailable ] 
+(* CORS *)
+
+[<RequireQualifiedAccess>]
+module private Cors =
+
+    (* Configuration *)
+
+    let private headersExposed =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> config Configuration.CorsHeadersExposed
+
+    let private headersSupported =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> config Configuration.CorsHeadersSupported
+
+    let private methodsSupported =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> config Configuration.CorsMethodsSupported
+
+    (* Requested *)
+
+    let private accessControlRequestHeaders =
+            (function | Some (AccessControlRequestHeaders x) -> x
+                      | _ -> [])
+        <!> getPLM Req.accessControlRequestHeaders
+
+    let private accessControlRequestMethod =
+            (Option.map (fun (AccessControlRequestMethod x) -> x) >> Option.get)
+        <!> getPLM Req.accessControlRequestMethod
+
+    let private origin' =
+            (Option.map (fun (Origin x) -> x) >> Option.get) 
+        <!> getPLM Req.origin
+
+    (* Allowed *)
+
+    let private headersAllowed =
+            (fun headers supported ->
+                match List.forall (fun x -> List.exists ((=) x) supported) headers with
+                | true -> headers
+                | _ -> [])
+        <!> accessControlRequestHeaders
+        <*> headersSupported
+
+    let private methodsAllowed =
+            (fun meth supported ->
+                match List.exists ((=) meth) supported with
+                | true -> [ meth ]
+                | _ -> [])
+        <!> accessControlRequestMethod
+        <*> methodsSupported
+
+    (* Headers *)
+
+    let private setAccessControlAllowMethods =
+        setPLM Res.accessControlAllowMethods =<< (AccessControlAllowMethods <!> methodsAllowed)
+
+    let private setAccessControlExposeHeaders =
+        setPLM Res.accessControlExposeHeaders =<< (AccessControlExposeHeaders <!> headersExposed)
+
+    let private setAccessControlAllowHeaders =
+        setPLM Res.accessControlAllowHeaders =<< (AccessControlAllowHeaders <!> headersAllowed)
+
+    let private setOrigin =
+        setPLM Res.accessControlAllowOrigin =<< ((Origins >> AccessControlAllowOrigin) <!> origin')
+
+    (* Operations *)
+
+    let actual =
+        setAccessControlExposeHeaders
+
+    let origin =
+        setOrigin
+
+    let preflight =
+        setAccessControlAllowMethods *> setAccessControlAllowHeaders
+
+
+let private operationDefinitions = 
+    [ Operations.SetOK,                          (Handlers.operation 200 "OK"),                          Handlers.OK
+      Operations.SetOptions,                     (Handlers.operation 200 "Options"),                     Handlers.Options
+      Operations.SetCreated,                     (Handlers.operation 201 "Created"),                     Handlers.Created
+      Operations.SetAccepted,                    (Handlers.operation 202 "Accepted"),                    Handlers.Accepted
+      Operations.SetNoContent,                   (Handlers.operation 204 "No Content"),                  Handlers.NoContent
+      Operations.SetMovedPermanently,            (Handlers.operation 301 "Moved Permanently"),           Handlers.MovedPermanently
+      Operations.SetSeeOther,                    (Handlers.operation 303 "See Other"),                   Handlers.SeeOther
+      Operations.SetNotModified,                 (Handlers.operation 304 "Not Modified"),                Handlers.NotModified
+      Operations.SetMovedTemporarily,            (Handlers.operation 307 "Moved Temporarily"),           Handlers.MovedTemporarily
+      Operations.SetMultipleRepresentations,     (Handlers.operation 310 "Multiple Representations"),    Handlers.MultipleRepresentations
+      Operations.SetMalformed,                   (Handlers.operation 400 "Bad Request"),                 Handlers.Malformed
+      Operations.SetUnauthorized,                (Handlers.operation 401 "Unauthorized"),                Handlers.Unauthorized
+      Operations.SetForbidden,                   (Handlers.operation 403 "Forbidden"),                   Handlers.Forbidden
+      Operations.SetNotFound,                    (Handlers.operation 404 "Not Found"),                   Handlers.NotFound
+      Operations.SetMethodNotAllowed,            (Handlers.operation 405 "Method Not Allowed"),          Handlers.MethodNotAllowed
+      Operations.SetNotAcceptable,               (Handlers.operation 406 "Not Acceptable"),              Handlers.NotAcceptable
+      Operations.SetConflict,                    (Handlers.operation 409 "Conflict"),                    Handlers.Conflict
+      Operations.SetGone,                        (Handlers.operation 410 "Gone"),                        Handlers.Gone
+      Operations.SetPreconditionFailed,          (Handlers.operation 412 "Precondition Failed"),         Handlers.PreconditionFailed
+      Operations.SetRequestEntityTooLarge,       (Handlers.operation 413 "Request Entity Too Large"),    Handlers.RequestEntityTooLarge
+      Operations.SetUriTooLong,                  (Handlers.operation 414 "URI Too Long"),                Handlers.UriTooLong
+      Operations.SetUnsupportedMediaType,        (Handlers.operation 415 "Unsupported Media Type"),      Handlers.UnsupportedMediaType
+      Operations.SetUnprocessableEntity,         (Handlers.operation 422 "Unprocessable Entity"),        Handlers.UnprocessableEntity
+      Operations.SetNotImplemented,              (Handlers.operation 501 "Not Implemented"),             Handlers.NotImplemented
+      Operations.SetUnknownMethod,               (Handlers.operation 501 "Unknown Method"),              Handlers.UnknownMethod
+      Operations.SetServiceUnavailable,          (Handlers.operation 503 "Service Unavailable"),         Handlers.ServiceUnavailable
+      
+      Operations.SetCorsActual,                  Cors.actual,                                            Operations.SetCorsOrigin
+      Operations.SetCorsOrigin,                  Cors.origin,                                            Decisions.MethodOptions
+      Operations.SetCorsPreflight,               Cors.preflight,                                         Operations.SetCorsOrigin ] 
         
 let operations =
     operationDefinitions

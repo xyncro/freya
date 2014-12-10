@@ -6,11 +6,10 @@ open Freya.Core.Operators
 open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Inspector
-open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Router
 open Freya.Router.Inspector
-open Freya.Types
+open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
 open Freya.Todo.Backend.Storage
@@ -47,6 +46,9 @@ let todoLastModified =
 
 // Configuration
 
+let any =
+    returnM AccessControlAllowOriginRange.Any
+
 let en =
     returnM [ LanguageTag.Parse "en-GB"
               LanguageTag.Parse "en" ]
@@ -60,13 +62,18 @@ let utf8 =
 let defaults =
     freyaMachine {
         charsetsSupported utf8
+        corsOriginsSupported any
         languagesSupported en
         mediaTypesSupported json }
 
 // Resources
 
 let todosMethods =
-    returnM [ DELETE; GET; OPTIONS; POST ]
+    returnM [ 
+        DELETE
+        GET
+        OPTIONS
+        POST ]
 
 let todos =
     freyaMachine {
@@ -78,6 +85,7 @@ let todos =
         handleCreated createdTodo
         handleOk getTodos
 
+        corsMethodsSupported todosMethods
         lastModified todoLastModified
         methodsSupported todosMethods
         processable todoProcessable } |> compileFreyaMachine

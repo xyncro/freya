@@ -107,6 +107,11 @@
       <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types.Cors\Freya.Types.Cors.fsproj">
+      <Name>Freya.Types.Cors</Name>
+      <Project>{43cc0142-cffa-4e50-a3bd-12c9f59ce8d2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
       <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>

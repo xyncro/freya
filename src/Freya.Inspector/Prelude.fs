@@ -37,18 +37,13 @@ let html : Freya<MediaType list> =
 let json : Freya<MediaType list> =
     returnM [ MediaType.JSON ]
 
-(* Methods *)
-
-let get : Freya<Method list> =
-    returnM [ GET ]
-
 (* Defaults *)
 
 let defaults =
     freyaMachine {
         charsetsSupported utf8
         languagesSupported en
-        methodsSupported get }
+        mediaTypesSupported json }
 
 (* Functions
 

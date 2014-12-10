@@ -47,7 +47,7 @@ let private store = MailboxProcessor.Start (fun mailbox ->
             let! operation = mailbox.Receive ()
 
             match operation with
-            | Add (todo) -> 
+            | Add (todo) ->
                 return! loop (todo :: storage)
             | Clear (c) ->
                 c.Reply ()

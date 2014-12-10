@@ -17,6 +17,10 @@ module Actions =
 module Configuration =
 
     let [<Literal>] CharsetsSupported = "charsetsSupported"
+    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
+    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
+    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
+    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
     let [<Literal>] EncodingsSupported = "encodingsSupported"
     let [<Literal>] ETag = "etag"
     let [<Literal>] LanguagesSupported = "languagesSupported"
@@ -63,6 +67,10 @@ module Decisions =
 
     let [<Literal>] CharsetNegotiable = "charsetNegotiable"
     let [<Literal>] CharsetRequested = "charsetRequested"
+    let [<Literal>] CorsEnabled = "corsEnabled"
+    let [<Literal>] CorsOptions = "corsOptions"
+    let [<Literal>] CorsOrigin = "corsOrigin"
+    let [<Literal>] CorsPreflight = "corsPreflight"
     let [<Literal>] EncodingNegotiable = "encodingNegotiable"
     let [<Literal>] EncodingRequested = "encodingRequested"
     let [<Literal>] IfMatchAny = "ifMatchAny"
@@ -77,7 +85,7 @@ module Decisions =
     let [<Literal>] IfUnmodifiedSinceRequested = "ifUnmodifiedSinceRequested"
     let [<Literal>] IfUnmodifiedSinceValid = "ifUmodifiedSinceValid"
     let [<Literal>] LanguageNegotiable = "languageNegotiable"
-    let [<Literal>] LanguageRequested = "languageRequested"        
+    let [<Literal>] LanguageRequested = "languageRequested"
     let [<Literal>] MediaTypeNegotiable = "mediaTypeNegotiable"
     let [<Literal>] MediaTypeRequested = "mediaTypeRequested"
     let [<Literal>] MethodDelete = "methodDelete"
@@ -135,7 +143,6 @@ module Handlers =
 
     (* 500 *)
 
-    let [<Literal>] Exception = prefix + "Exception"
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] UnknownMethod = prefix + "UnknownMethod"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
@@ -144,43 +151,48 @@ module Handlers =
 [<RequireQualifiedAccess>]
 module Operations =
 
-    let [<Literal>] private prefix = "pre"
+    let [<Literal>] private prefix = "set"
 
     (* 200 *)
 
-    let [<Literal>] PreOK = prefix + "Ok"
-    let [<Literal>] PreCreated = prefix + "Created"
-    let [<Literal>] PreOptions = prefix + "Options"
-    let [<Literal>] PreAccepted = prefix + "Accepted"
-    let [<Literal>] PreNoContent = prefix + "NoContent"
+    let [<Literal>] SetOK = prefix + "Ok"
+    let [<Literal>] SetCreated = prefix + "Created"
+    let [<Literal>] SetOptions = prefix + "Options"
+    let [<Literal>] SetAccepted = prefix + "Accepted"
+    let [<Literal>] SetNoContent = prefix + "NoContent"
 
     (* 300 *)
 
-    let [<Literal>] PreMovedPermanently = prefix + "MovedPermanently"
-    let [<Literal>] PreSeeOther = prefix + "SeeOther"
-    let [<Literal>] PreNotModified = prefix + "NotModified"
-    let [<Literal>] PreMovedTemporarily = prefix + "MovedTemporarily"
-    let [<Literal>] PreMultipleRepresentations = prefix + "MultipleRepresentations"
+    let [<Literal>] SetMovedPermanently = prefix + "MovedPermanently"
+    let [<Literal>] SetSeeOther = prefix + "SeeOther"
+    let [<Literal>] SetNotModified = prefix + "NotModified"
+    let [<Literal>] SetMovedTemporarily = prefix + "MovedTemporarily"
+    let [<Literal>] SetMultipleRepresentations = prefix + "MultipleRepresentations"
 
     (* 400 *)
 
-    let [<Literal>] PreMalformed = prefix + "Malformed"
-    let [<Literal>] PreUnauthorized = prefix + "Unauthorized"
-    let [<Literal>] PreForbidden = prefix + "Forbidden"
-    let [<Literal>] PreNotFound = prefix + "NotFound"
-    let [<Literal>] PreMethodNotAllowed = prefix + "MethodNotAllowed"
-    let [<Literal>] PreNotAcceptable = prefix + "NotAcceptable"
-    let [<Literal>] PreConflict = prefix + "Conflict"
-    let [<Literal>] PreGone = prefix + "Gone"
-    let [<Literal>] PrePreconditionFailed = prefix + "PreconditionFailed"
-    let [<Literal>] PreRequestEntityTooLarge = prefix + "RequestEntityTooLarge"
-    let [<Literal>] PreUriTooLong = prefix + "UriTooLong"
-    let [<Literal>] PreUnsupportedMediaType = prefix + "UnsupportedMediaType"
-    let [<Literal>] PreUnprocessableEntity = prefix + "UnprocessableEntity"
+    let [<Literal>] SetMalformed = prefix + "Malformed"
+    let [<Literal>] SetUnauthorized = prefix + "Unauthorized"
+    let [<Literal>] SetForbidden = prefix + "Forbidden"
+    let [<Literal>] SetNotFound = prefix + "NotFound"
+    let [<Literal>] SetMethodNotAllowed = prefix + "MethodNotAllowed"
+    let [<Literal>] SetNotAcceptable = prefix + "NotAcceptable"
+    let [<Literal>] SetConflict = prefix + "Conflict"
+    let [<Literal>] SetGone = prefix + "Gone"
+    let [<Literal>] SetPreconditionFailed = prefix + "PreconditionFailed"
+    let [<Literal>] SetRequestEntityTooLarge = prefix + "RequestEntityTooLarge"
+    let [<Literal>] SetUriTooLong = prefix + "UriTooLong"
+    let [<Literal>] SetUnsupportedMediaType = prefix + "UnsupportedMediaType"
+    let [<Literal>] SetUnprocessableEntity = prefix + "UnprocessableEntity"
 
     (* 500 *)
 
-    let [<Literal>] PreException = prefix + "Exception"
-    let [<Literal>] PreNotImplemented = prefix + "NotImplemented"
-    let [<Literal>] PreUnknownMethod = prefix + "UnknownMethod"
-    let [<Literal>] PreServiceUnavailable = prefix + "ServiceUnavailable"
+    let [<Literal>] SetNotImplemented = prefix + "NotImplemented"
+    let [<Literal>] SetUnknownMethod = prefix + "UnknownMethod"
+    let [<Literal>] SetServiceUnavailable = prefix + "ServiceUnavailable"
+
+    (* CORS *)
+
+    let [<Literal>] SetCorsPreflight = prefix + "CorsPreflight"
+    let [<Literal>] SetCorsActual = prefix + "CorsActual"
+    let [<Literal>] SetCorsOrigin = prefix + "CorsOrigin"

@@ -41,13 +41,10 @@ let private html =
 
 (* Routes *)
 
-let private GET =
-    Methods [ GET ]
-
 let private root =
     sprintf "/freya%s"
 
 let content (config: FreyaInspectorConfiguration) =
     freyaRouter {
-        route GET (root "") html
-        route GET (root "/css") css } |> compileFreyaRouter
+        route All (root "") html
+        route All (root "/css") css } |> compileFreyaRouter
