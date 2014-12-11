@@ -1,7 +1,6 @@
 ﻿[<AutoOpen>]
 module Freya.Todo.Backend.Prelude
 
-open System
 open System.IO
 open System.Text
 open Fleece
@@ -11,6 +10,11 @@ open Freya.Machine
 open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
+
+// Utilities 
+
+let tuple x y =
+    x, y
 
 // Presets
 
@@ -29,14 +33,29 @@ let json : Freya<MediaType list> =
 let utf8 : Freya<Charset list> =
     returnM [ Charset.UTF8 ]
 
-// Serialization
+// Defaults
 
-let inline toJSON x =
-    toJSON x
-    |> string 
-    |> Encoding.UTF8.GetBytes
+let defaults =
+    freyaMachine {
+        charsetsSupported utf8
+        corsHeadersSupported corsHeaders
+        corsOriginsSupported corsOrigins
+        languagesSupported en
+        mediaTypesSupported json }
 
-// Representation
+// Requested
+
+let readStream (x: Stream) =
+    use reader = new StreamReader (x)
+    reader.ReadToEnd ()
+
+let readBody () =
+    readStream <!> getLM Request.body
+
+let inline body () =
+    (function | Choice1Of2 x -> Some x | _ -> None) <!> (parseJSON <!> readBody ())
+
+// Response
 
 let inline represent x =
     { Metadata =
@@ -44,19 +63,4 @@ let inline represent x =
           Encodings = None
           MediaType = Some MediaType.JSON
           Languages = Some [ LanguageTag.Parse "en" ] }
-      Data = toJSON x }
-
-// Body
-
-let readStream (s: Stream) =
-    use reader = new StreamReader (s)
-    reader.ReadToEnd ()
-
-let readBody () =
-        readStream 
-    <!> getLM Request.body
-
-let inline body () : Freya<'a option> =
-        (function | Choice1Of2 x -> Some x
-                  | _ -> None)
-    <!> (parseJSON <!> readBody ())
+      Data = (toJSON >> string >> Encoding.UTF8.GetBytes) x }

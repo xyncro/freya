@@ -3,61 +3,58 @@
 open System
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Inspector
 open Freya.Machine
-open Freya.Machine.Inspector
-open Freya.Pipeline.Operators
+open Freya.Pipeline
 open Freya.Router
-open Freya.Router.Inspector
 open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
-open Freya.Todo.Backend.Storage
 
 // Freya
 
-let newTodo =
-    memoM (body ())
+let id =
+    memoM ((Option.get >> Guid.Parse) <!> getPLM (Route.valuesKey "id"))
+
+let add =
+    memoM (asyncM Storage.add =<< (Option.get <!> body ()))
 
 let clear =
     memoM (asyncM Storage.clear =<< returnM ())
 
-let create =
-    memoM (asyncM Storage.add =<< (Option.get <!> newTodo))
+let delete =
+    memoM (asyncM Storage.delete =<< id)
+
+let get =
+    memoM (asyncM Storage.get =<< id)
 
 let list =
     memoM (asyncM Storage.list =<< returnM ())
 
+let update =
+    memoM (asyncM Storage.update =<< (tuple <!> id <*> (Option.get <!> body ())))
+
 // Machine
+
+let addAction =
+    ignore <!> add
+
+let addedHandler _ =
+    represent <!> add
 
 let clearAction =
     ignore <!> clear
 
-let createAction =
-    ignore <!> create
+let deleteAction =
+    ignore <!> delete
 
-let createdHandler _ =
-    represent <!> create
+let getHandler _ =
+    represent <!> get
 
 let listHandler _ =
     represent <!> list
 
-
-
-
-
-
-
-
-// Defaults
-
-let defaults =
-    freyaMachine {
-        charsetsSupported utf8
-        corsHeadersSupported corsHeaders
-        corsOriginsSupported corsOrigins
-        languagesSupported en
-        mediaTypesSupported json }
+let updateAction =
+    ignore <!> update
 
 // Resources
 
@@ -72,45 +69,37 @@ let todos =
     freyaMachine {
         including defaults
 
-        // Configuration
-
         corsMethodsSupported todosMethods
         methodsSupported todosMethods
 
-        // Actions
-
         doDelete clearAction
-        doPost createAction
+        doPost addAction
 
-        // Handlers
-
-        handleCreated createdHandler
+        handleCreated addedHandler
         handleOk listHandler } |> compileFreyaMachine
+
+let todoMethods =
+    returnM [
+        DELETE
+        GET
+        OPTIONS
+        PATCH ]
 
 let todo =
     freyaMachine {
-        including defaults } |> compileFreyaMachine
+        including defaults
+        
+        corsMethodsSupported todoMethods
+        methodsSupported todoMethods
+
+        doDelete deleteAction
+        doPatch updateAction
+
+        handleOk getHandler } |> compileFreyaMachine
 
 // Routes
 
-let api =
+let todoBackend : FreyaPipeline =
     freyaRouter {
         route All "/" todos
         route All "/:id" todo } |> compileFreyaRouter
-
-// Pipeline
-
-let config =
-    { Inspectors = 
-        [ freyaRequestInspector
-          freyaMachineInspector
-          freyaRouterInspector ] }
-
-let pipeline =
-    freyaInspector config >?= api
-
-// Katana
-
-type TodoBackend () =
-    member __.Configuration () =
-        OwinAppFunc.fromFreya (pipeline)
