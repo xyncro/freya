@@ -153,4 +153,6 @@ let internal graphFreyaMachineR graph =
 
 let internal executionFreyaMachineR id =
     modR (modPL (freyaMachineRecordPLens >?-> executionLens >?-> executionNodeLens) 
-                (fun es -> es @ [ { Id = id } ]))
+                (fun es -> 
+                    printfn "exec: %s" id
+                    es @ [ { Id = id } ]))

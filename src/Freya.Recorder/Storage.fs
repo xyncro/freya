@@ -78,5 +78,19 @@ let private storage () =
 
         loop state)
 
-let store =
+let private store =
     storage ()
+
+(* Functions *)
+
+let init () =
+    store.PostAndAsyncReply (fun c -> Create (c))
+
+let read id =
+    store.PostAndAsyncReply (fun c -> Read (id, c))
+
+let list () =
+    store.PostAndAsyncReply (fun c -> List (c))
+    
+let update id f =
+    store.Post (Update (id, f))

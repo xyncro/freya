@@ -7,13 +7,13 @@ open Freya.Core.Operators
 (* Functions *)
 
 let initR () =
-    setPLM requestIdPLens =<< liftAsync (store.PostAndAsyncReply (fun c -> Create (c))) 
+    setPLM requestIdPLens =<< (asyncM init =<< returnM ())
 
 let listR () =
-    liftAsync (store.PostAndAsyncReply (fun c -> List (c)))
+    asyncM list =<< returnM ()
 
 let getR id =
-    liftAsync (store.PostAndAsyncReply (fun c -> Read (id, c)))
+    asyncM read =<< returnM id
 
 let modR f =
-    Option.iter (fun id -> store.Post (Update (id, f))) <!> getPLM requestIdPLens
+    Option.iter (fun id -> update id f) <!> getPLM requestIdPLens

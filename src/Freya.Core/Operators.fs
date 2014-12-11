@@ -5,6 +5,13 @@
 let inline returnM x =
     returnM freya x
 
+let inline asyncM f =
+    (fun f -> 
+        fun env -> 
+            async { 
+                let! v = f
+                return v, env }) << f
+
 let inline (>>=) m1 m2 =
     bindM freya m1 m2
 
@@ -17,12 +24,7 @@ let inline (<*>) f m =
 let inline (<!>) f m =
     liftM freya f m
 
-let inline liftAsync f =
-    freya { 
-        return! (fun env -> 
-            async { 
-                let! v = f
-                return v, env }) }
+
         
 let inline lift2 f m1 m2 =
     returnM f <*> m1 <*> m2 

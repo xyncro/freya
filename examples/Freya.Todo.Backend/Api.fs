@@ -14,55 +14,48 @@ open Freya.Types.Http
 open Freya.Types.Language
 open Freya.Todo.Backend.Storage
 
-// Helpers
+// Freya
 
-let inline represent x =
-    { Metadata =
-        { Charset = Some Charset.UTF8
-          Encodings = None
-          MediaType = Some MediaType.JSON
-          Languages = Some [ LanguageTag.Parse "en-GB" ] }
-      Data = toJSON x }
+let newTodo =
+    memoM (body ())
 
-// Functions
+let clear =
+    memoM (asyncM Storage.clear =<< returnM ())
 
-let clearTodos =
-    liftAsync (clear ())
+let create =
+    memoM (asyncM Storage.add =<< (Option.get <!> newTodo))
 
-let createTodo =
-    returnM ()
+let list =
+    memoM (asyncM Storage.list =<< returnM ())
 
-let createdTodo _ =
-    represent <!> returnM Array.empty<Todo>
+// Machine
 
-let getTodos _ =
-    represent <!> liftAsync (getAll ())
+let clearAction =
+    ignore <!> clear
 
-let todoProcessable =
-    returnM true
+let createAction =
+    ignore <!> create
 
-let todoLastModified =
-    returnM (DateTime.Now.Subtract (TimeSpan.FromDays 100.))
+let createdHandler _ =
+    represent <!> create
 
-// Configuration
+let listHandler _ =
+    represent <!> list
 
-let any =
-    returnM AccessControlAllowOriginRange.Any
 
-let en =
-    returnM [ LanguageTag.Parse "en-GB"
-              LanguageTag.Parse "en" ]
 
-let json =
-    returnM [ MediaType.JSON ]
 
-let utf8 =
-    returnM [ Charset.UTF8 ]
+
+
+
+
+// Defaults
 
 let defaults =
     freyaMachine {
         charsetsSupported utf8
-        corsOriginsSupported any
+        corsHeadersSupported corsHeaders
+        corsOriginsSupported corsOrigins
         languagesSupported en
         mediaTypesSupported json }
 
@@ -79,16 +72,20 @@ let todos =
     freyaMachine {
         including defaults
 
-        doDelete clearTodos
-        doPost createTodo
-
-        handleCreated createdTodo
-        handleOk getTodos
+        // Configuration
 
         corsMethodsSupported todosMethods
-        lastModified todoLastModified
         methodsSupported todosMethods
-        processable todoProcessable } |> compileFreyaMachine
+
+        // Actions
+
+        doDelete clearAction
+        doPost createAction
+
+        // Handlers
+
+        handleCreated createdHandler
+        handleOk listHandler } |> compileFreyaMachine
 
 let todo =
     freyaMachine {

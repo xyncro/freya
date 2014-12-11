@@ -1,74 +1,105 @@
 ﻿module Freya.Todo.Backend.Storage
 
+open System
 open System.Text
 open Fleece
 open Fleece.Operators
 open FSharpPlus
 
-// Data Model
+// Models
+
+type NewTodo =
+    { Title: string
+      Order: int option }
+
+    static member FromJSON (_: NewTodo) =
+        function | JObject o ->                    
+                        (fun x o -> { Title = x
+                                      Order = o }) 
+                    <!> (o .@  "title")
+                    <*> (o .@? "order") 
+                 | x -> 
+                    Failure ("Invalid NewTodo")
 
 type Todo =
-    { Index: int
+    { Id: Guid
+      Url: string
+      Order: int option
       Title: string
-      Complete: bool option }
-
-    static member Create title =
-        { Index = 0
-          Title = title
-          Complete = Some false }
+      Completed: bool }
 
     static member ToJSON (x: Todo) =
         jobj [
-            "title" .= x.Title ]
+            "id" .= x.Id
+            "url" .= x.Url
+            "order" .= x.Order
+            "title" .= x.Title
+            "completed" .= x.Completed ]
 
-    static member FromJson (_: Todo) =
-        function
-        | JObject o -> Todo.Create <!> (o .@ "title")
-        | _ -> Failure ("")
+// Storage
 
-// Serialization
-
-let inline toJSON x =
-    toJSON x
-    |> string 
-    |> Encoding.UTF8.GetBytes
-
-// Data Operations
-
-type private Operation =
-    | Add of Todo
+type StorageProtocol =
+    | Add of NewTodo * AsyncReplyChannel<Todo>
     | Clear of AsyncReplyChannel<unit>
-    | Get of int * AsyncReplyChannel<Todo option>
-    | GetAll of AsyncReplyChannel<Todo list>
+    | List of AsyncReplyChannel<Todo list>
 
-let private store = MailboxProcessor.Start (fun mailbox ->
-    let rec loop storage =
+type StorageState =
+    { Todos: Map<Guid, Todo> }
+
+let private add (x: NewTodo) (chan: AsyncReplyChannel<Todo>) state =
+    let id =
+        Guid.NewGuid ()
+    
+    let todo =
+        { Id = id
+          Url = sprintf "http://localhost:7000/%A" id
+          Order = x.Order
+          Title = x.Title
+          Completed = false }
+
+    chan.Reply (todo)
+
+    { state with Todos = Map.add todo.Id todo state.Todos }
+
+let private clear (chan: AsyncReplyChannel<unit>) state =
+    chan.Reply()
+    { state with Todos = Map.empty }
+
+let private list (chan: AsyncReplyChannel<Todo list>) state =
+    chan.Reply (state.Todos |> Map.toList |> List.map snd)
+    state
+
+
+let private makeStorage () = MailboxProcessor.Start (fun mbox ->
+    let rec loop (state: StorageState) =
         async {
-            let! operation = mailbox.Receive ()
+            let! protocol = mbox.Receive ()
 
-            match operation with
-            | Add (todo) ->
-                return! loop (todo :: storage)
-            | Clear (c) ->
-                c.Reply ()
-                return! loop []
-            | Get (index, c) ->
-                c.Reply (List.tryFind (fun x -> x.Index = index) storage)
-                return! loop storage
-            | GetAll (c) ->
-                c.Reply (storage)
-                return! loop storage }
+            let action =
+                match protocol with
+                | Add (x, chan) -> add x chan
+                | Clear (chan) -> clear chan
+                | List (chan) -> list chan
                 
-    loop [])
+            return! loop (action state) }
 
-let add todo =
-    store.Post (Add todo)
+    loop { Todos = Map.empty })
 
-let clear () =
-    store.PostAndAsyncReply (fun c -> Clear (c))
+let private store =
+    makeStorage ()
 
-let get index =
-    store.PostAndAsyncReply (fun c -> Get (index, c))
+// API
 
-let getAll () =
-    store.PostAndAsyncReply (fun c -> GetAll (c))
+module Storage =
+
+    open Freya.Core
+    open Freya.Core.Operators
+
+    let add x =
+        store.PostAndAsyncReply (fun c -> Add (x, c))
+
+    let clear () =
+        store.PostAndAsyncReply (fun c -> Clear (c))
+
+    let list () =
+        store.PostAndAsyncReply (fun c -> List (c))
