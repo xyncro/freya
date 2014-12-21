@@ -25,7 +25,7 @@ type private StorageState =
 (* Lenses *)
 
 let internal requestIdPLens =
-    environmentKeyP<Guid> requestIdKey
+    environmentKeyPLens<Guid> requestIdKey
 
 let private recordsLens =
     (fun x -> x.Records), (fun r x -> { x with Records = r })

@@ -80,5 +80,5 @@ let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
         let! x = search path meth Map.empty trie
 
         match x with
-        | Some (pipeline, data) -> return! setLM Route.values data *> pipeline
+        | Some (pipeline, data) -> return! setPLM Route.values data *> pipeline
         | _ -> return Next }

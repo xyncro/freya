@@ -2,20 +2,28 @@
 module Freya.Core.Utilities
 
 open System
+open Aether
+open Aether.Operators
+
+(* Lenses *)
+
+let private memoPLens id =
+    metaLens >--> memosLens >-?> mapPLens id
 
 (* Memoization *)
 
 let memoM<'a> (m: Freya<'a>) : Freya<'a> =
-    let id = string (Guid.NewGuid ())
-
+    let id = Guid.NewGuid ()
+    let memoPLens = memoPLens id <?-> boxIso<'a>
+     
     freya {
-        let! state = getM
+        let! memo = getPLM memoPLens
 
-        match state.TryGetValue id with
-        | true, value ->
-            return (unbox<'a> value)
+        match memo with
+        | Some memo ->
+            return memo
         | _ ->
-            let! value = m
+            let! memo = m
+            do! setPLM memoPLens memo
 
-            state.[id] <- value
-            return value }
+            return memo }

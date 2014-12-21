@@ -38,17 +38,17 @@ module private Cors =
     let private headersExposed =
             (function | Some x -> x
                       | _ -> [])
-        <!> config Configuration.CorsHeadersExposed
+        <!> configurationKey Configuration.CorsHeadersExposed
 
     let private headersSupported =
             (function | Some x -> x
                       | _ -> [])
-        <!> config Configuration.CorsHeadersSupported
+        <!> configurationKey Configuration.CorsHeadersSupported
 
     let private methodsSupported =
             (function | Some x -> x
                       | _ -> [])
-        <!> config Configuration.CorsMethodsSupported
+        <!> configurationKey Configuration.CorsMethodsSupported
 
     (* Requested *)
 
@@ -108,6 +108,7 @@ module private Cors =
     let preflight =
         setAccessControlAllowMethods *> setAccessControlAllowHeaders
 
+(* Definitions *)
 
 let private operationDefinitions = 
     [ Operations.SetOK,                          (Handlers.operation 200 "OK"),                          Handlers.OK

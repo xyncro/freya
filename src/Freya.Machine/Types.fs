@@ -30,24 +30,6 @@ and FreyaMachineRepresentationMetadata =
       MediaType: MediaType option
       Languages: LanguageTag list option }
 
-(* Signatures
-
-    Common monadic signatures for the building blocks of Machine
-    Definitions. Represent functions that the user of Machine should implement
-    when overriding the defaults. *)
-
-type FreyaMachineAction = 
-    Freya<unit>
-
-type FreyaMachineDecision = 
-    Freya<bool>
-
-type FreyaMachineHandler = 
-    FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
-
-type FreyaMachineOperation =
-    Freya<unit>
-
 (* Definition
 
     A Definition of a Machine, encoded as the defaults to override
@@ -62,6 +44,24 @@ and FreyaMachineOverride =
     | Configuration of obj
     | Decision of FreyaMachineDecision
     | Handler of FreyaMachineHandler
+
+(* Signatures
+
+    Common monadic signatures for the building blocks of Machine
+    Definitions. Represent functions that the user of Machine should implement
+    when overriding the defaults. *)
+
+and FreyaMachineAction = 
+    Freya<unit>
+
+and FreyaMachineDecision = 
+    Freya<bool>
+
+and FreyaMachineHandler = 
+    FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
+
+and FreyaMachineOperation =
+    Freya<unit>
 
 (* Patterns
 
@@ -91,18 +91,18 @@ let internal (|Handler|) =
     and to aspects of the machine definition. *)
 
 let internal definitionPLens =
-    dictPLens "freya.machine.definition" <?-> boxIso<FreyaMachineDefinition>
+    environmentKeyPLens "freya.MachineDefinition" <?-> boxIso<FreyaMachineDefinition>
 
-let internal actionPLens k =
+let internal actionKeyPLens k =
     mapPLens k <??> ((|Action|), Action)
     
-let internal configurationPLens<'T> (k: string) =
+let internal configurationKeyPLens<'T> k =
     mapPLens k <??> ((|Configuration|), Configuration) <?-> boxIso<'T>
         
-let internal decisionPLens k =
+let internal decisionKeyPLens k =
     mapPLens k <??> ((|Decision|), Decision)
 
-let internal handlerPLens k =
+let internal handlerKeyPLens k =
     mapPLens k <??> ((|Handler|), Handler) 
 
 (* Configuration
@@ -112,9 +112,9 @@ let internal handlerPLens k =
    specific resource in question (they are a general core Freya<'T>
    expression). *)
 
-let internal config key =
+let internal configurationKey key =
     freya {
-        let! value = getPLM (definitionPLens >??> configurationPLens key)
+        let! value = getPLM (definitionPLens >??> configurationKeyPLens key)
 
         match value with
         | Some value -> return! Some <!> value

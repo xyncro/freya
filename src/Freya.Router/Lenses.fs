@@ -19,7 +19,7 @@ let [<Literal>] private valuesKey =
 module Route =
 
     let values =
-        dictLens<string, obj> valuesKey <--> boxIso<FreyaRouteData>
+        environmentKeyPLens valuesKey <?-> boxIso<FreyaRouteData>
 
     let valuesKey key = 
-        values >-?> mapPLens key
+        values >??> mapPLens key

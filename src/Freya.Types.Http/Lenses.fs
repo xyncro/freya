@@ -12,31 +12,31 @@ open Freya.Core
 module Request =
 
     let body =
-        environmentKey<Stream> Constants.requestBody
+        environmentKeyLens<Stream> Constants.requestBody
 
     let headers =
-        environmentKey<IDictionary<string, string []>> Constants.requestHeaders
+        environmentKeyLens<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
-        headers >-?> dictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+        headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let meth = 
-        environmentKey<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
+        environmentKeyLens<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
 
     let path = 
-        environmentKey<string> Constants.requestPath
+        environmentKeyLens<string> Constants.requestPath
 
     let pathBase =
-        environmentKey<string> Constants.requestPathBase
+        environmentKeyLens<string> Constants.requestPathBase
 
     let httpVersion =
-        environmentKey<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
+        environmentKeyLens<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
 
     let scheme =
-        environmentKey<string> Constants.requestScheme
+        environmentKeyLens<string> Constants.requestScheme
 
     let query =
-        environmentKey<string> Constants.requestQueryString // <--> TODO: Isomorphism
+        environmentKeyLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
 
 // TODO: Reinstate when query is iso again
 
@@ -175,22 +175,22 @@ module Request =
 module Response =
 
     let body =
-        environmentKey<Stream> Constants.responseBody
+        environmentKeyLens<Stream> Constants.responseBody
 
     let headers =
-        environmentKey<IDictionary<string, string []>> Constants.responseHeaders
+        environmentKeyLens<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
-        headers >-?> dictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+        headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let httpVersion =
-        environmentKeyP<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
+        environmentKeyPLens<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
 
     let reasonPhrase =
-        environmentKeyP<string> Constants.responseReasonPhrase
+        environmentKeyPLens<string> Constants.responseReasonPhrase
 
     let statusCode =
-        environmentKeyP<int> Constants.responseStatusCode
+        environmentKeyPLens<int> Constants.responseStatusCode
 
     (* Response Header Lenses *)
 

@@ -88,7 +88,7 @@ let private internalDecisionDefinitions =
       Decisions.IfModifiedSinceValid,           IfModifiedSince.valid,          (Decisions.IfModifiedSinceModified,         Decisions.MethodDelete)
       Decisions.IfNoneMatchAny,                 IfNoneMatch.any,                (Decisions.MethodGetOrHead,                 Decisions.ETagMatchesIfNone)
       Decisions.IfNoneMatchRequested,           IfNoneMatch.requested,          (Decisions.IfNoneMatchAny,                  Decisions.IfModifiedSinceRequested)
-      Decisions.IfUnmodifiedSinceModified,      IfUnmodifiedSince.modified,     (Decisions.IfNoneMatchRequested,            Operations.SetPreconditionFailed)
+      Decisions.IfUnmodifiedSinceModified,      IfUnmodifiedSince.unmodified,   (Decisions.IfNoneMatchRequested,            Operations.SetPreconditionFailed)
       Decisions.IfUnmodifiedSinceRequested,     IfUnmodifiedSince.requested,    (Decisions.IfUnmodifiedSinceValid,          Decisions.IfNoneMatchRequested)
       Decisions.IfUnmodifiedSinceValid,         IfUnmodifiedSince.valid,        (Decisions.IfUnmodifiedSinceModified,       Decisions.IfNoneMatchRequested)
       Decisions.LanguageNegotiable,             Language.negotiable,            (Decisions.CharsetRequested,                Decisions.LanguagesStrict)

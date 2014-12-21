@@ -55,33 +55,42 @@ and Override =
 
 (* Construction *)
 
-// TODO: Tidy Construction
+let private actionNode x action =
+    ActionNode { x with Action = action
+                        Override = { x.Override with Overridden = true } }
 
-let construct (definition: FreyaMachineDefinition) nodes =
-    nodes
-    |> List.map (fun n ->
-        match n with
-        | ActionNode x ->
-            x.Id,
-            match x.Override.Allow, getPL (actionPLens x.Id) definition with
-            | true, Some action -> 
-                ActionNode { x with Action = action
-                                    Override = { x.Override with Overridden = true } }
-            | _ -> n
-        | DecisionNode x -> 
-            x.Id,
-            match x.Override.Allow, getPL (decisionPLens x.Id) definition with
-            | true, Some decision -> 
-                DecisionNode { x with Decision = decision
-                                      Override = { x.Override with Overridden = true } }
-            | _ -> n
-        | HandlerNode x -> 
-            x.Id,
-            match x.Override.Allow, getPL (handlerPLens x.Id) definition with
-            | true, Some handler -> 
-                HandlerNode { x with Handler = handler
-                                     Override = { x.Override with Overridden = true } }
-            | _ -> n
-        | OperationNode x ->
-            x.Id, n)
-    |> Map.ofList
+let private action (x: FreyaMachineActionNode) def =
+    match x.Override.Allow, getPL (actionKeyPLens x.Id) def with
+    | true, Some action -> x.Id, actionNode x action
+    | _ -> x.Id, ActionNode x
+
+let private decisionNode x decision =
+    DecisionNode { x with Decision = decision
+                          Override = { x.Override with Overridden = true } }
+
+let private decision (x: FreyaMachineDecisionNode) def =
+    match x.Override.Allow, getPL (decisionKeyPLens x.Id) def with
+    | true, Some decision -> x.Id, decisionNode x decision
+    | _ -> x.Id, DecisionNode x
+
+let private handlerNode x handler =
+    HandlerNode { x with Handler = handler
+                         Override = { x.Override with Overridden = true } }
+
+let private handler (x: FreyaMachineHandlerNode) def =
+    match x.Override.Allow, getPL (handlerKeyPLens x.Id) def with
+    | true, Some handler -> x.Id, handlerNode x handler
+    | _ -> x.Id, HandlerNode x
+
+let private operation (x: FreyaMachineOperationNode) =
+    x.Id, OperationNode x
+
+let private node def =
+    function | ActionNode x -> action x def
+             | DecisionNode x -> decision x def
+             | HandlerNode x -> handler x def
+             | OperationNode x -> operation x
+
+
+let construct (def: FreyaMachineDefinition) =
+    List.map (node def) >> Map.ofList

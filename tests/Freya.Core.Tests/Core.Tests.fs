@@ -1,73 +1,22 @@
-﻿namespace Freya.Core.Tests
+﻿module Freya.Core.Tests.Core
 
-open System.Collections.Generic
 open Freya.Core
-open Freya.Core.Operators
 open NUnit.Framework
 open Swensen.Unquote
 
+let private answerLens =
+    environmentKeyLens "Answer"
 
-[<AutoOpen>]
-module Data =
-    
-    let env () =
+[<Test>]
+let ``getLM, setLM, modLM behave correctly`` () =
+    let result =
+        freya {
+            do! setLM answerLens 42
+            let! v1 = getLM answerLens
 
-        let data =
-            dict ["value", box 0]
+            do! modLM answerLens ((*) 2)
+            let! v2 = getLM answerLens
 
-        Dictionary<string, obj> (data) :> IDictionary<string, obj>
+            return v1, v2 } |> run
 
-
-[<AutoOpen>]
-module Helpers =
-
-    let test m =
-        Async.RunSynchronously (m (env ()))
-
-
-module Functions =
-
-    [<Test>]
-    let ``getM, setM behave correctly`` () =
-        let m =
-            freya {
-                do! setM (Dictionary<string, obj> (dict ["value", box 1]) :> IDictionary<string, obj>)
-                return! getM }
-
-        let value, env = test m
-
-        value.Count =? 1
-        env.Count =? 1
-        
-        unbox value.["value"] =? 1
-        unbox env.["value"] =? 1 
-
-    [<Test>]
-    let ``modM behaves correctly`` () =
-        let m =
-            freya {
-                do! modM (fun x -> x.["value"] <- box 1; x)
-                return! getM }
-
-        let value, env = test m
-
-        value.Count =? 1
-        env.Count =? 1
-        
-        unbox value.["value"] =? 1
-        unbox env.["value"] =? 1 
-
-
-module Operators =
-
-    [<Test>]
-    let ``bind and map operators behave correctly`` () =
-        let m1 = (fun (x: FreyaEnvironment) -> unbox x.["value"]) <!> getM
-        let m2 = fun v -> modM (fun (x: FreyaEnvironment) -> x.["newvalue"] <- (v + 1); x)
-
-        let _, env = test (m1 >>= m2)
-
-        env.Count =? 2
-
-        unbox env.["value"] =? 0
-        unbox env.["newvalue"] =? 1
+    fst result =? (42, 84)

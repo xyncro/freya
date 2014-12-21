@@ -6,7 +6,7 @@ open System
 (* Monad *)
 
 type Freya<'T> = 
-    FreyaEnvironment -> Async<'T * FreyaEnvironment>
+    FreyaState -> Async<'T * FreyaState>
 
 type FreyaBuilder () =
 

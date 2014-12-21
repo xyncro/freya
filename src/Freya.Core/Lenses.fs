@@ -4,10 +4,10 @@ module Freya.Core.Lenses
 open Aether
 open Aether.Operators
 
-(* Environemnt Lenses *)
+(* Environment Lenses *)
 
-let environmentKey<'a> key : Lens<FreyaEnvironment, 'a> =
-    dictLens<string, obj> key <--> boxIso<'a>
+let environmentKeyLens<'a> key : Lens<FreyaState, 'a> =
+    environmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
 
-let environmentKeyP<'a> key : PLens<FreyaEnvironment, 'a> =
-    dictPLens<string, obj> key <?-> boxIso<'a>
+let environmentKeyPLens<'a> key : PLens<FreyaState, 'a> =
+    environmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>

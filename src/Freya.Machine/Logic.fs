@@ -31,7 +31,7 @@ module Charset =
     let private supported =
             (function | Some x -> x
                       | _ -> defaults)
-        <!> config Configuration.CharsetsSupported
+        <!> configurationKey Configuration.CharsetsSupported
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -60,7 +60,7 @@ module Encoding =
     let private supported =
             (function | Some x -> x
                       | _ -> defaults)
-        <!> config Configuration.EncodingsSupported
+        <!> configurationKey Configuration.EncodingsSupported
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -89,7 +89,7 @@ module Language =
     let private supported =
             (function | Some x -> x
                       | _ -> defaults)
-        <!> config Configuration.LanguagesSupported
+        <!> configurationKey Configuration.LanguagesSupported
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -118,7 +118,7 @@ module MediaType =
     let private supported =
             (function | Some x -> x
                       | _ -> defaults)
-        <!> config Configuration.MediaTypesSupported
+        <!> configurationKey Configuration.MediaTypesSupported
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -166,7 +166,7 @@ module IfModifiedSince =
         getPLM Request.Headers.ifModifiedSince
 
     let private lastModified =
-        config Configuration.LastModified
+        configurationKey Configuration.LastModified
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -177,14 +177,11 @@ module IfModifiedSince =
                       | _ -> false)
         <!> ifModifiedSince
 
-    let modified =
-        freya {
-            let! lm = lastModified
-            let! ms = ifModifiedSince
-
-            match lm, ms with
-            | Some lm, Some (IfModifiedSince ms) -> return! ((<) ms) <!> lm
-            | _ -> return false }
+    let modified : FreyaMachineDecision =
+            (fun x y -> (function | Some lm, Some (IfModifiedSince ms) -> lm > ms
+                                  | _ -> false) (x, y))
+        <!> lastModified
+        <*> ifModifiedSince
 
 
 [<RequireQualifiedAccess>]
@@ -209,7 +206,7 @@ module IfUnmodifiedSince =
         getPLM Request.Headers.ifUnmodifiedSince
 
     let private lastModified =
-        config Configuration.LastModified
+        configurationKey Configuration.LastModified
 
     let requested : FreyaMachineDecision =
             Option.isSome 
@@ -220,14 +217,12 @@ module IfUnmodifiedSince =
                       | _ -> false)
         <!> ifUnmodifiedSince
 
-    let modified =
-        freya {
-            let! lm = lastModified
-            let! us = ifUnmodifiedSince
+    let unmodified : FreyaMachineDecision =
+            (fun x y -> (function | Some lm, Some (IfUnmodifiedSince us) -> lm < us
+                                  | _ -> true) (x, y))
+        <!> lastModified
+        <*> ifUnmodifiedSince
 
-            match lm, us with
-            | Some lm, Some (IfUnmodifiedSince us) -> return! ((>) us) <!> lm
-            | _ -> return true }
 
 (* Request *)
 
@@ -256,12 +251,12 @@ module Method =
     let private methodsKnown =
             (function | Some x -> Set.ofList x
                       | _ -> defaultKnown) 
-        <!> config Configuration.MethodsKnown
+        <!> configurationKey Configuration.MethodsKnown
 
     let private methodsSupported =
             (function | Some x -> Set.ofList x
                       | _ -> defaultSupported)
-        <!> config Configuration.MethodsSupported
+        <!> configurationKey Configuration.MethodsSupported
 
     let known : FreyaMachineDecision =
             Set.contains
@@ -313,7 +308,7 @@ module Cors =
         getPLM Request.Headers.origin
 
     let private corsOrigins =
-        config Configuration.CorsOriginsSupported
+        configurationKey Configuration.CorsOriginsSupported
 
     let enabled : FreyaMachineDecision =
             Option.isSome

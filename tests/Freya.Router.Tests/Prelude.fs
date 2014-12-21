@@ -18,7 +18,7 @@ let [<Literal>] testKey =
 (* Lenses *)
 
 let private testLens =
-    dictPLens testKey <?-> (unbox<int>, box)
+    environmentKeyPLens testKey <?-> (unbox<int>, box)
 
 (* Functions *)
 

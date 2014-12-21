@@ -64,11 +64,6 @@
     <Compile Include="Lenses.fs" />
     <Compile Include="Integration.fs" />
     <Compile Include="Utilities.fs" />
-    <Compile Include="Constants.fs" />
-    <Compile Include="Monad.fs" />
-    <Compile Include="Operators.fs" />
-    <Compile Include="Utilities.fs" />
-    <Compile Include="Integration.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

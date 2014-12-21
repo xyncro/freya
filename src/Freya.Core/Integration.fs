@@ -23,4 +23,8 @@ module OwinAppFunc =
 
     [<CompiledName ("FromFreya")>]
     let fromFreya (freya: Freya<_>) =
-        OwinAppFunc (fun e -> Async.StartAsTask (async { do! freya e |> Async.Ignore }) :> Task)
+        OwinAppFunc (fun e -> 
+            Async.StartAsTask (async { 
+                do! freya { Environment = e
+                            Meta = 
+                              { Memos = Map.empty } } |> Async.Ignore }) :> Task)
