@@ -1,16 +1,14 @@
 ﻿[<AutoOpen>]
-module Freya.Machine.Monad
+module Freya.Machine.Builder
 
 open Aether
 
-(* Monad
+(* Builder
 
-   The monad to give Machine the declarative computation
-   expression syntax for specifying Machine Definitions. Specific strongly 
-   typed custom operations are defined in Machine.Syntax.fs. *)
-
-type FreyaMachine = 
-    FreyaMachineDefinition -> unit * FreyaMachineDefinition
+   The Computation Expression builder to give Machine the declarative
+   computation expression syntax for specifying Machine Definitions.
+   Specific strongly typed custom operations are defined in
+   Machine.Syntax.fs. *)
 
 type FreyaMachineBuilder () =
 

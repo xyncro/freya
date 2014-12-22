@@ -33,16 +33,3 @@ module List =
         >> List.sortBy (fun (_, y) -> y)
         >> List.map fst
         >> function | [] -> None | x :: _ -> Some x
-
-(* Option Extensions *)
-
-[<RequireQualifiedAccess>]
-module Option =
-
-    let getOrElse def =
-        function | Some x -> x
-                 | _ -> def
-
-    let getOrElseOptionF f =
-        function | Some x -> Some x
-                 | _ -> f ()

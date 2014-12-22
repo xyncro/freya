@@ -26,5 +26,4 @@ module OwinAppFunc =
         OwinAppFunc (fun e -> 
             Async.StartAsTask (async { 
                 do! freya { Environment = e
-                            Meta = 
-                              { Memos = Map.empty } } |> Async.Ignore }) :> Task)
+                            Meta = { Memos = Map.empty } } |> Async.Ignore }) :> Task)

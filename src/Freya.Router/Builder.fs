@@ -1,8 +1,7 @@
 ﻿[<AutoOpen>]
-module Freya.Router.Monad
+module Freya.Router.Builder
 
-type FreyaRouter = 
-    FreyaRoute list -> unit * FreyaRoute list
+(* Builder *)
 
 type FreyaRouterBuilder () =
 

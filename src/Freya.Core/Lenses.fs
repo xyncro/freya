@@ -6,8 +6,8 @@ open Aether.Operators
 
 (* Environment Lenses *)
 
-let environmentKeyLens<'a> key : Lens<FreyaState, 'a> =
-    environmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
+let environmentKeyLens<'a> key =
+    FreyaState.EnvironmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
 
-let environmentKeyPLens<'a> key : PLens<FreyaState, 'a> =
-    environmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>
+let environmentKeyPLens<'a> key =
+    FreyaState.EnvironmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>

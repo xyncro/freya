@@ -5,31 +5,6 @@ open Aether
 open Aether.Operators
 open Freya.Pipeline
 
-(* Types *)
-
-type FreyaRouterTrieNode =
-    { Children: FreyaRouterTrieNode list
-      Key: string
-      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
-      Recognizer: FreyaRouterRecognizer }
-
-and FreyaRouterRecognizer =
-    | Ignore of string
-    | Capture of string
-
-(* Lenses *)
-
-let private childrenLens =
-    (fun x -> x.Children), 
-    (fun c x -> { x with Children = c })
-
-let private childPLens i =
-    childrenLens >-?> listPLens i
-
-let private pipelinesLens =
-    (fun x -> x.Pipelines), 
-    (fun p x -> { x with FreyaRouterTrieNode.Pipelines = p })
-
 (* Constructors *)
 
 let private recognizer (key: string) =
@@ -48,11 +23,18 @@ let segmentize (path: string) =
     |> List.ofArray
     |> List.filter ((<>) "")
 
-(* Construction *)
+(* Lenses *)
+
+let private childPLens i =
+    FreyaRouterTrie.ChildrenLens >-?> listPLens i
+
+(* Build *)
 
 let rec private add node =
-    function | (segment :: path, pipeline, meth) -> (find segment node |> update segment path pipeline meth) node
-             | (_, pipeline, meth) -> modL pipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
+    function | (segment :: path, pipeline, meth) -> 
+                (find segment node |> update segment path pipeline meth) node
+             | (_, pipeline, meth) -> 
+                modL FreyaRouterTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
 
 and private find segment =
     function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = segment) x
@@ -65,10 +47,10 @@ and private extend i path pipeline meth =
     modPL (childPLens i) (flip add (path, pipeline, meth))
 
 and private append segment path pipeline meth =
-    modL childrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
+    modL FreyaRouterTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
 
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)
 
-let construct =
+let buildTrie =
     List.fold (flip addRoute) (node "")

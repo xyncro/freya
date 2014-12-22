@@ -4,28 +4,33 @@ module Freya.Core.Types
 open System
 open System.Collections.Generic
 
-(* Types *)
+(* Environment *)
+
+type FreyaEnvironment =
+    IDictionary<string, obj>
+
+(* State *)
 
 type FreyaState =
     { Environment: FreyaEnvironment
       Meta: FreyaMetaState }
 
-and FreyaEnvironment =
-    IDictionary<string, obj>
+    static member internal EnvironmentLens =
+        (fun x -> x.Environment), 
+        (fun e x -> { x with Environment = e })
+
+    static member internal MetaLens =
+        (fun x -> x.Meta), 
+        (fun m x -> { x with Meta = m })
 
 and FreyaMetaState =
     { Memos: Map<Guid, obj> }
 
-(* Lenses *)
+    static member internal MemosLens =
+        (fun x -> x.Memos),
+        (fun m x -> { x with Memos = m })
 
-let internal environmentLens =
-    (fun x -> x.Environment), 
-    (fun e x -> { x with Environment = e })
+(* Monad *)
 
-let internal metaLens =
-    (fun x -> x.Meta), 
-    (fun m x -> { x with Meta = m })
-
-let internal memosLens =
-    (fun x -> x.Memos),
-    (fun m x -> { x with Memos = m })
+type Freya<'T> =
+    FreyaState -> Async<'T * FreyaState>

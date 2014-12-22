@@ -50,7 +50,7 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Monad.fs" />
+    <Compile Include="Builder.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Trie.fs" />
     <Compile Include="Recording.fs" />

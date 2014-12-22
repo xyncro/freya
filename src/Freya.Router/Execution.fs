@@ -72,13 +72,13 @@ let private search path meth data trie =
 
 let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)
-    let trie = construct routes
+    let trie = buildTrie routes
 
     freya {
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path
-        let! x = search path meth Map.empty trie
+        let! res = search path meth Map.empty trie
 
-        match x with
+        match res with
         | Some (pipeline, data) -> return! setPLM Route.values data *> pipeline
         | _ -> return Next }

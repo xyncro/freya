@@ -58,7 +58,7 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Monad.fs" />
+    <Compile Include="Builder.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Functions.fs" />
     <Compile Include="Lenses.fs" />

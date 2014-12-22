@@ -10,7 +10,7 @@ open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
 
-// Freya
+// Core
 
 let id =
     memoM ((Option.get >> Guid.Parse) <!> getPLM (Route.valuesKey "id"))

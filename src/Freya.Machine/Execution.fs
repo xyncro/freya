@@ -49,15 +49,9 @@ let private traverse (graph: FreyaMachineGraph) =
 
 (* Compilation *)
 
-let private nodes =
-      actions
-    @ decisions
-    @ handlers
-    @ operations
-
 let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let definition = snd (machine Map.empty)
-    let graph = construct definition nodes
+    let graph = buildGraph definition
     let graphRecord = graphR graph
 
     freya {

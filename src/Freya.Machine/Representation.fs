@@ -7,18 +7,16 @@ open Freya.Types.Http
 
 (* Negotiation *)
 
-let private negotiation charsets encodings mediaTypes languages =
-    { Charsets = charsets
-      Encodings = encodings
-      MediaTypes = mediaTypes
-      Languages = languages }
-
 let private negotiate =
-        negotiation
-    <!> Charset.negotiated
-    <*> Encoding.negotiated
-    <*> MediaType.negotiated
-    <*> Language.negotiated
+        (fun c e m l -> 
+            { Charsets = c
+              Encodings = e
+              MediaTypes = m
+              Languages = l })
+    <!> Charset.Negotiation.negotiated
+    <*> Encoding.Negotiation.negotiated
+    <*> MediaType.Negotiation.negotiated
+    <*> Language.Negotiation.negotiated
 
 (* Metadata *)
 

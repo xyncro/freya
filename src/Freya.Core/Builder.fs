@@ -1,12 +1,9 @@
 ﻿[<AutoOpen>]
-module Freya.Core.Monad
+module Freya.Core.Builder
 
 open System
 
-(* Monad *)
-
-type Freya<'T> = 
-    FreyaState -> Async<'T * FreyaState>
+(* Builder *)
 
 type FreyaBuilder () =
 

@@ -14,10 +14,10 @@ open Freya.Router
 (* Request *)
 
 let private requestId =
-    (Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id")
+    memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
 
 let private requestInspection =
-    (Option.get) <!> getPLM (Route.valuesKey "inspection")
+    memoM ((Option.get) <!> getPLM (Route.valuesKey "inspection"))
 
 (* Data *)
 

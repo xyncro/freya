@@ -8,7 +8,7 @@ open Freya.Core.Operators
 open Freya.Types.Http
 open Freya.Types.Language
 
-(* Representations *)
+(* Negotiation/Representation *)
 
 type FreyaMachineNegotiation =
     { Charsets: FreyaMachineNegotiationResult<Charset>
@@ -32,18 +32,30 @@ and FreyaMachineRepresentationMetadata =
 
 (* Definition
 
-    A Definition of a Machine, encoded as the defaults to override
-    and the functions (given the previously defined Signatures) provided
-    to override them. *)
+   A Definition of a Machine, encoded as the defaults to override
+   and the functions (given the previously defined Signatures) provided
+   to override them. *)
 
-type FreyaMachineDefinition =
+type internal FreyaMachineDefinition =
     Map<string, FreyaMachineOverride>
 
-and FreyaMachineOverride =
+and internal FreyaMachineOverride =
     | Action of FreyaMachineAction
     | Configuration of obj
     | Decision of FreyaMachineDecision
     | Handler of FreyaMachineHandler
+
+    static member ActionPIso : PIso<FreyaMachineOverride, FreyaMachineAction> =
+        (function | Action a -> Some a | _ -> None), Action
+
+    static member ConfigurationPIso : PIso<FreyaMachineOverride, obj> =
+        (function | Configuration o -> Some o | _ -> None), Configuration
+
+    static member DecisionPIso : PIso<FreyaMachineOverride, FreyaMachineDecision> =
+        (function | Decision d -> Some d | _ -> None), Decision
+
+    static member HandlerPIso : PIso<FreyaMachineOverride, FreyaMachineHandler> =
+        (function | Handler h -> Some h | _ -> None), Handler
 
 (* Signatures
 
@@ -51,59 +63,93 @@ and FreyaMachineOverride =
     Definitions. Represent functions that the user of Machine should implement
     when overriding the defaults. *)
 
-and FreyaMachineAction = 
+and internal FreyaMachineAction = 
     Freya<unit>
 
-and FreyaMachineDecision = 
+and internal FreyaMachineDecision = 
     Freya<bool>
 
-and FreyaMachineHandler = 
+and internal FreyaMachineHandler = 
     FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
 
-and FreyaMachineOperation =
+and internal FreyaMachineOperation =
     Freya<unit>
 
-(* Patterns
+(* Monad *)
 
-    Active patterns for discriminating between varying kinds of 
-    Override within a Machine Definition. *)
+type FreyaMachine = 
+    FreyaMachineDefinition -> unit * FreyaMachineDefinition
 
-let internal (|Action|) =
-    function | Action x -> Some x
-             | _ -> None
+(* Graph
 
-let internal (|Configuration|) =
-    function | Configuration x -> Some x 
-             | _ -> None
-        
-let internal (|Decision|) =
-    function | Decision x -> Some x
-             | _ -> None
+   Execution runs as a graph of nodes of specific meaning,
+   Each node may (depending on type) run some kind of action and
+   then provide a way of indicating which node in the graph should
+   be invoked next (forming the essential characteristic of processing
+   requests as a statemachine). *)
 
-let internal (|Handler|) =
-    function | Handler x -> Some x
-             | _ -> None
+type internal FreyaMachineGraph =
+    Map<string, FreyaMachineNode>
+
+and internal FreyaMachineNode =
+    | ActionNode of FreyaMachineActionNode
+    | DecisionNode of FreyaMachineDecisionNode
+    | HandlerNode of FreyaMachineHandlerNode
+    | OperationNode of FreyaMachineOperationNode
+    
+and internal FreyaMachineActionNode =
+    { Id: string
+      Override: Override
+      Action: FreyaMachineAction
+      Next: string }
+
+and internal FreyaMachineDecisionNode =
+    { Id: string
+      Override: Override
+      Decision: FreyaMachineDecision
+      True: string
+      False: string }
+
+and internal FreyaMachineHandlerNode =
+    { Id: string
+      Override: Override
+      Handler: FreyaMachineHandler }
+
+and internal FreyaMachineOperationNode =
+    { Id: string
+      Operation: FreyaMachineOperation
+      Next: string }
+
+(* Override
+
+   Override data is used to be able to provide sensible runtime
+   introspection and debugging capabilities,such as integration with future 
+   Freya tracing/inspection tools. *)
+
+and internal Override =
+    { Allow: bool
+      Overridden: bool }
 
 (* Lenses
 
-    Partial lenses (Aether form - see https://github.com/xyncro/aether) 
-    to the Machine Definition within an OWIN monad (see Freya.Core),
-    and to aspects of the machine definition. *)
+   Partial lenses (Aether form - see https://github.com/xyncro/aether) 
+   to the Machine Definition within an OWIN monad (see Freya.Core),
+   and to aspects of the machine definition. *)
 
 let internal definitionPLens =
     environmentKeyPLens "freya.MachineDefinition" <?-> boxIso<FreyaMachineDefinition>
 
 let internal actionKeyPLens k =
-    mapPLens k <??> ((|Action|), Action)
+    mapPLens k <??> FreyaMachineOverride.ActionPIso
     
 let internal configurationKeyPLens<'T> k =
-    mapPLens k <??> ((|Configuration|), Configuration) <?-> boxIso<'T>
+    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<'T>
         
 let internal decisionKeyPLens k =
-    mapPLens k <??> ((|Decision|), Decision)
+    mapPLens k <??> FreyaMachineOverride.DecisionPIso
 
 let internal handlerKeyPLens k =
-    mapPLens k <??> ((|Handler|), Handler) 
+    mapPLens k <??> FreyaMachineOverride.HandlerPIso
 
 (* Configuration
 
