@@ -1,22 +1,35 @@
-﻿module Freya.Todo.Backend.Api
+﻿[<AutoOpen>]
+module Freya.Todo.Backend.Api
 
 open System
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Inspector
 open Freya.Machine
+open Freya.Machine.Inspector
 open Freya.Pipeline
+open Freya.Pipeline.Operators
 open Freya.Router
-open Freya.Types.Cors
+open Freya.Router.Inspector
 open Freya.Types.Http
-open Freya.Types.Language
 
-// Core
+// Route
 
 let id =
     memoM ((Option.get >> Guid.Parse) <!> getPLM (Route.valuesKey "id"))
 
+// Body
+
+let newTodo =
+    memoM (body ())
+
+let patchTodo =
+    memoM (body ())
+
+// Domain
+
 let add =
-    memoM (asyncM Storage.add =<< (Option.get <!> body ()))
+    memoM (asyncM Storage.add =<< (Option.get <!> newTodo))
 
 let clear =
     memoM (asyncM Storage.clear =<< returnM ())
@@ -31,7 +44,7 @@ let list =
     memoM (asyncM Storage.list =<< returnM ())
 
 let update =
-    memoM (asyncM Storage.update =<< (tuple <!> id <*> (Option.get <!> body ())))
+    memoM (asyncM Storage.update =<< (tuple <!> id <*> (Option.get <!> patchTodo)))
 
 // Machine
 
@@ -68,13 +81,10 @@ let todosMethods =
 let todos =
     freyaMachine {
         including defaults
-
         corsMethodsSupported todosMethods
         methodsSupported todosMethods
-
         doDelete clearAction
         doPost addAction
-
         handleCreated addedHandler
         handleOk listHandler } |> compileFreyaMachine
 
@@ -88,13 +98,10 @@ let todoMethods =
 let todo =
     freyaMachine {
         including defaults
-        
         corsMethodsSupported todoMethods
         methodsSupported todoMethods
-
         doDelete deleteAction
         doPatch updateAction
-
         handleOk getHandler } |> compileFreyaMachine
 
 // Routes
@@ -103,3 +110,14 @@ let todoBackend : FreyaPipeline =
     freyaRouter {
         route All "/" todos
         route All "/:id" todo } |> compileFreyaRouter
+
+// API
+
+let config =
+    { Inspectors = 
+        [ freyaRequestInspector
+          freyaMachineInspector
+          freyaRouterInspector ] }
+
+let api =
+    freyaInspector config >?= todoBackend

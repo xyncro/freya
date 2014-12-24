@@ -36,25 +36,25 @@ and FreyaMachineRepresentationMetadata =
    and the functions (given the previously defined Signatures) provided
    to override them. *)
 
-type internal FreyaMachineDefinition =
+type FreyaMachineDefinition =
     Map<string, FreyaMachineOverride>
 
-and internal FreyaMachineOverride =
+and FreyaMachineOverride =
     | Action of FreyaMachineAction
     | Configuration of obj
     | Decision of FreyaMachineDecision
     | Handler of FreyaMachineHandler
 
-    static member ActionPIso : PIso<FreyaMachineOverride, FreyaMachineAction> =
+    static member internal ActionPIso =
         (function | Action a -> Some a | _ -> None), Action
 
-    static member ConfigurationPIso : PIso<FreyaMachineOverride, obj> =
+    static member internal ConfigurationPIso =
         (function | Configuration o -> Some o | _ -> None), Configuration
 
-    static member DecisionPIso : PIso<FreyaMachineOverride, FreyaMachineDecision> =
+    static member internal DecisionPIso =
         (function | Decision d -> Some d | _ -> None), Decision
 
-    static member HandlerPIso : PIso<FreyaMachineOverride, FreyaMachineHandler> =
+    static member internal HandlerPIso =
         (function | Handler h -> Some h | _ -> None), Handler
 
 (* Signatures
@@ -63,16 +63,16 @@ and internal FreyaMachineOverride =
     Definitions. Represent functions that the user of Machine should implement
     when overriding the defaults. *)
 
-and internal FreyaMachineAction = 
+and FreyaMachineAction = 
     Freya<unit>
 
-and internal FreyaMachineDecision = 
+and FreyaMachineDecision = 
     Freya<bool>
 
-and internal FreyaMachineHandler = 
+and FreyaMachineHandler = 
     FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
 
-and internal FreyaMachineOperation =
+and FreyaMachineOperation =
     Freya<unit>
 
 (* Monad *)
@@ -99,20 +99,20 @@ and internal FreyaMachineNode =
     
 and internal FreyaMachineActionNode =
     { Id: string
-      Override: Override
+      Override: FreyaMachineNodeOverride
       Action: FreyaMachineAction
       Next: string }
 
 and internal FreyaMachineDecisionNode =
     { Id: string
-      Override: Override
+      Override: FreyaMachineNodeOverride
       Decision: FreyaMachineDecision
       True: string
       False: string }
 
 and internal FreyaMachineHandlerNode =
     { Id: string
-      Override: Override
+      Override: FreyaMachineNodeOverride
       Handler: FreyaMachineHandler }
 
 and internal FreyaMachineOperationNode =
@@ -126,7 +126,7 @@ and internal FreyaMachineOperationNode =
    introspection and debugging capabilities,such as integration with future 
    Freya tracing/inspection tools. *)
 
-and internal Override =
+and internal FreyaMachineNodeOverride =
     { Allow: bool
       Overridden: bool }
 
@@ -142,8 +142,8 @@ let internal definitionPLens =
 let internal actionKeyPLens k =
     mapPLens k <??> FreyaMachineOverride.ActionPIso
     
-let internal configurationKeyPLens<'T> k =
-    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<'T>
+let internal configurationKeyPLens<'a> k =
+    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<Freya<'a>>
         
 let internal decisionKeyPLens k =
     mapPLens k <??> FreyaMachineOverride.DecisionPIso
@@ -158,9 +158,9 @@ let internal handlerKeyPLens k =
    specific resource in question (they are a general core Freya<'T>
    expression). *)
 
-let internal configurationKey key =
+let internal configurationKey<'a> key : Freya<'a option> =
     freya {
-        let! value = getPLM (definitionPLens >??> configurationKeyPLens key)
+        let! value = getPLM (definitionPLens >??> configurationKeyPLens<'a> key)
 
         match value with
         | Some value -> return! Some <!> value

@@ -39,6 +39,8 @@ let private operation o =
 let private traverse (graph: FreyaMachineGraph) =
     let rec eval from =
         freya {
+            printfn "node: %s" from
+            
             match Map.find from graph with
             | ActionNode a -> return! action a >>= eval
             | DecisionNode d -> return! decision d >>= eval

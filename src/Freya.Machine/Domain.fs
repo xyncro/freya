@@ -26,44 +26,65 @@ module CacheControl =
     [<RequireQualifiedAccess>]
     module IfMatch =
 
+        (* Request *)
+
+        let private ifMatch =
+            getPLM Request.Headers.ifMatch
+
+        (* Decisions *)
+
         [<RequireQualifiedAccess>]
         module Decision =
 
             let requested : FreyaMachineDecision =
                     Option.isSome 
-                <!> getPLM Request.Headers.ifMatch
+                <!> ifMatch
 
             let any : FreyaMachineDecision =
                     (=) (Some (IfMatch IfMatchChoice.Any)) 
-                <!> getPLM Request.Headers.ifMatch
+                <!> ifMatch
 
     (* If-Modified-Since *)
 
     [<RequireQualifiedAccess>]
     module IfModifiedSince =
 
+        (* Configuration *)
+
+        let private lastModified =
+            configurationKey Configuration.LastModified
+
+        (* Request *)
+
+        let private ifModifiedSince =
+            getPLM Request.Headers.ifModifiedSince
+
+        (* Decisions *)
+
         [<RequireQualifiedAccess>]
         module Decision =
 
             let requested : FreyaMachineDecision =
                     Option.isSome 
-                <!> getPLM Request.Headers.ifModifiedSince
+                <!> ifModifiedSince
 
             let valid : FreyaMachineDecision =
                     (function | Some (IfModifiedSince x) -> x < DateTime.UtcNow
                               | _ -> false)
-                <!> getPLM Request.Headers.ifModifiedSince
+                <!> ifModifiedSince
 
             let modified : FreyaMachineDecision =
                     (fun x y -> (function | Some lm, Some (IfModifiedSince ms) -> lm > ms
                                           | _ -> false) (x, y))
-                <!> configurationKey Configuration.LastModified
-                <*> getPLM Request.Headers.ifModifiedSince
+                <!> lastModified
+                <*> ifModifiedSince
 
     (* If-None-Match *)
 
     [<RequireQualifiedAccess>]
     module IfNoneMatch =
+
+        (* Request *)
 
         let private ifNoneMatch =
             getPLM Request.Headers.ifNoneMatch
@@ -86,11 +107,15 @@ module CacheControl =
     [<RequireQualifiedAccess>]
     module IfUnmodifiedSince =
 
-        let private ifUnmodifiedSince =
-            getPLM Request.Headers.ifUnmodifiedSince
+        (* Configuration *)
 
         let private lastModified =
             configurationKey Configuration.LastModified
+
+        (* Request *)
+
+        let private ifUnmodifiedSince =
+            getPLM Request.Headers.ifUnmodifiedSince
 
         (* Decisions *)
 
@@ -133,49 +158,66 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module internal Charset =
 
-        let private max (Charset s) =
-            function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> Some 0
-                     | { Charset = CharsetRange.Any } -> Some 1
-                     | _ -> None
+        (* Configuration *)
 
-        let private map requested =
-            List.map (fun (x: Charset) ->
-                x, List.chooseMaxBy (max x) requested)
+        let private charsetsSupported =
+            configurationKey Configuration.CharsetsSupported
 
-        let private sort =
-            List.sortBy (fun (x, y) ->
-                (function | Some { AcceptableCharset.Weight = Some weight } -> 1. - weight
-                          | _ -> 0.) y)
+        (* Defaults *)
 
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some { AcceptableCharset.Weight = Some weight } when weight > 0. -> Some x
-                          | Some { AcceptableCharset.Weight = None } -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-               map requested 
-            >> sort
-            >> choose
-
-        let private defaults =
+        let private defaultCharsetsSupported =
             [ Charset.Iso88591 ]
 
-        let private supported =
+        (* Request *)
+
+        let acceptCharset =
+            getPLM Request.Headers.acceptCharset
+
+        (* Derived *)
+
+        let private charsetsSupported' =
                 (function | Some x -> x
-                          | _ -> defaults)
-            <!> configurationKey Configuration.CharsetsSupported
+                          | _ -> defaultCharsetsSupported)
+            <!> charsetsSupported
 
         (* Negotiation *)
 
         [<RequireQualifiedAccess>]
         module Negotiation =
 
+            let private max (Charset s) =
+                function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> Some 0
+                         | { Charset = CharsetRange.Any } -> Some 1
+                         | _ -> None
+
+            let private map requested =
+                List.map (fun (x: Charset) ->
+                    x, List.chooseMaxBy (max x) requested)
+
+            let private sort =
+                List.sortBy (fun (x, y) ->
+                    (function | Some { AcceptableCharset.Weight = Some weight } -> 1. - weight
+                              | _ -> 0.) y)
+
+            let private choose =
+                List.choose (fun (x, y) ->
+                    (function | Some { AcceptableCharset.Weight = Some weight } when weight > 0. -> Some x
+                              | Some { AcceptableCharset.Weight = None } -> Some x
+                              | _ -> None) y)
+
+            let private run requested =
+                   map requested 
+                >> sort
+                >> choose
+
+            let private negotiate supported =
+                function | Some (AcceptCharset x) -> Negotiated (run x supported)
+                         | _ -> Free
+
             let negotiated =
-                    (fun x y -> (function | Some (AcceptCharset x), y -> Negotiated (run x y)
-                                          | _ -> Free) (x, y))
-                <!> getPLM Request.Headers.acceptCharset
-                <*> supported
+                    negotiate
+                <!> charsetsSupported'
+                <*> acceptCharset
 
         (* Decisions *)
 
@@ -198,53 +240,68 @@ module ContentNegotiation =
 
         // TODO: Better Content-Coding Negotiation - proper support of identity, etc.
 
-        let private max (ContentCoding c) =
-            function | { AcceptableEncoding.Encoding = EncodingRange.Coding (ContentCoding c') } when c == c' -> Some 0
-                     | { Encoding = EncodingRange.Any } -> Some 1
-                     | _ -> None
+        (* Configuration *)
 
-        let private map requested =
-            List.map (fun (x: ContentCoding) ->
-                x, List.chooseMaxBy (max x) requested)
+        let private encodingsSupported =
+            configurationKey Configuration.EncodingsSupported
 
-        let private sort =
-            List.sortBy (fun (x, y) ->
-                (function | Some { AcceptableEncoding.Weight = Some weight } -> 1. - weight
-                          | _ -> 0.) y)
+        (* Defaults *)
 
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some { AcceptableEncoding.Weight = Some weight } when weight > 0. -> Some x
-                          | Some { AcceptableEncoding.Weight = None } -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-               map requested 
-            >> sort
-            >> choose
-
-        let private negotiate supported=
-            function | Some (AcceptEncoding requested) -> Negotiated (run requested supported)
-                     | _ -> Free
-
-        let private defaults =
+        let private defaultEncodingsSupported =
             List.empty<ContentCoding>
+
+        (* Request *)
 
         let private acceptEncoding =
             getPLM Request.Headers.acceptEncoding
 
-        let private supported =
+        (* Derived *)
+
+        let private encodingsSupported' =
                 (function | Some x -> x
-                            | _ -> defaults)
-            <!> configurationKey Configuration.EncodingsSupported
+                          | _ -> defaultEncodingsSupported)
+            <!> encodingsSupported
+
+        (* Negotiation *)
 
         [<RequireQualifiedAccess>]
         module Negotiation =
 
+            let private max (ContentCoding c) =
+                function | { AcceptableEncoding.Encoding = EncodingRange.Coding (ContentCoding c') } when c == c' -> Some 0
+                         | { Encoding = EncodingRange.Any } -> Some 1
+                         | _ -> None
+
+            let private map requested =
+                List.map (fun (x: ContentCoding) ->
+                    x, List.chooseMaxBy (max x) requested)
+
+            let private sort =
+                List.sortBy (fun (x, y) ->
+                    (function | Some { AcceptableEncoding.Weight = Some weight } -> 1. - weight
+                              | _ -> 0.) y)
+
+            let private choose =
+                List.choose (fun (x, y) ->
+                    (function | Some { AcceptableEncoding.Weight = Some weight } when weight > 0. -> Some x
+                              | Some { AcceptableEncoding.Weight = None } -> Some x
+                              | _ -> None) y)
+
+            let private run requested =
+                   map requested 
+                >> sort
+                >> choose
+
+            let private negotiate supported =
+                function | Some (AcceptEncoding x) -> Negotiated (run x supported)
+                         | _ -> Free
+
             let negotiated =
                     negotiate 
-                <!> supported
+                <!> encodingsSupported'
                 <*> acceptEncoding
+
+        (* Decisions *)
 
         [<RequireQualifiedAccess>]
         module Decision =
@@ -268,74 +325,89 @@ module ContentNegotiation =
 
            See [http://tools.ietf.org/html/rfc4647#section-3.3.1] *)
 
-        let private toList tag =
-            let language, extensions =
-                (function | Language (language, Some extensions) -> [ language ], extensions
-                          | Language (language, _) -> [ language ], []) tag.Language
-            let script =
-                (function | Some (Script script) -> [ script ]
-                          | _ -> []) tag.Script
-            let region =
-                (function | Some (Region region) -> [ region ]
-                          | _ -> []) tag.Region
-            let variant =
-                (function | Variant variant -> variant) tag.Variant
+        (* Configuration *)
 
-            List.concat [
-                language
-                extensions
-                script
-                region
-                variant ]
+        let private languagesSupported =
+            configurationKey Configuration.LanguagesSupported
 
-        let private eq tag =
-            Seq.zip (toList tag) >> Seq.forall ((<||) (==))
+        (* Defaults *)
 
-        let private sort =
-            List.sortBy (fun (x: AcceptableLanguage) -> 
-                (function | Some x -> 1. - x
-                          | _ -> 0. ) x.Weight)
-
-        let private filter =
-            List.filter (fun (x: AcceptableLanguage) ->
-                (function | Some 0. -> false
-                          | _ -> true) x.Weight)
-
-        let private map supported =
-            List.map (fun (x: AcceptableLanguage) ->
-                (function | Range x -> List.filter (flip eq x) supported
-                          | Any -> supported) x.Language)
-    
-        let private run supported =
-               sort
-            >> filter
-            >> map supported
-            >> Seq.concat
-            >> Seq.distinct
-            >> Seq.toList
-
-        let private negotiate supported =
-            function | Some (AcceptLanguage requested) -> Negotiated (run supported requested)
-                     | _ -> Free
-
-        let private defaults =
+        let private defaultLanguagesSupported =
             List.empty<LanguageTag>
+
+        (* Request *)
 
         let private acceptLanguage =
             getPLM Request.Headers.acceptLanguage
 
-        let private supported =
+        (* Derived *)
+
+        let private languagesSupported' =
                 (function | Some x -> x
-                          | _ -> defaults)
-            <!> configurationKey Configuration.LanguagesSupported
+                          | _ -> defaultLanguagesSupported)
+            <!> languagesSupported
+
+        (* Negotiation *)
 
         [<RequireQualifiedAccess>]
         module Negotiation =
 
+            let private reify tag =
+                let language, extensions =
+                    (function | Language (language, Some extensions) -> [ language ], extensions
+                              | Language (language, _) -> [ language ], []) tag.Language
+                let script =
+                    (function | Some (Script script) -> [ script ]
+                              | _ -> []) tag.Script
+                let region =
+                    (function | Some (Region region) -> [ region ]
+                              | _ -> []) tag.Region
+                let variant =
+                    (function | Variant variant -> variant) tag.Variant
+
+                List.concat [
+                    language
+                    extensions
+                    script
+                    region
+                    variant ]
+
+            let private eq tag =
+                Seq.zip (reify tag) >> Seq.forall ((<||) (==))
+
+            let private sort =
+                List.sortBy (fun (x: AcceptableLanguage) -> 
+                    (function | Some x -> 1. - x
+                              | _ -> 0. ) x.Weight)
+
+            let private filter =
+                List.filter (fun (x: AcceptableLanguage) ->
+                    (function | Some 0. -> false
+                              | _ -> true) x.Weight)
+
+            let private map supported =
+                List.map (fun (x: AcceptableLanguage) ->
+                    (function | Range x -> List.filter (flip eq x) supported
+                              | Any -> supported) x.Language)
+    
+            let private run supported =
+                   sort
+                >> filter
+                >> map supported
+                >> Seq.concat
+                >> Seq.distinct
+                >> Seq.toList
+
+            let private negotiate supported =
+                function | Some (AcceptLanguage x) -> Negotiated (run supported x)
+                         | _ -> Free
+
             let negotiated =
                     negotiate 
-                <!> supported
+                <!> languagesSupported'
                 <*> acceptLanguage
+
+        (* Decisions *)
 
         [<RequireQualifiedAccess>]
         module Decision =
@@ -354,54 +426,69 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module MediaType =
 
-        let private max (MediaType (Type t, SubType s, _)) =
-            function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> Some 0
-                     | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> Some 1
-                     | { MediaRange = Open _ } -> Some 2
-                     | _ -> None
+        (* Configuration *)
 
-        let private map requested =
-            List.map (fun (x: MediaType) ->
-                x, List.chooseMaxBy (max x) requested)
+        let private mediaTypesSupported =
+            configurationKey Configuration.MediaTypesSupported
 
-        let private sort =
-            List.sortBy (fun (x, y) ->
-                (function | Some { Parameters = Some { Weight = weight } } -> 1. - weight
-                          | _ -> 0.) y)
+        (* Defaults *)
 
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some { Parameters = Some { Weight = weight } } when weight > 0. -> Some x
-                          | Some { Parameters = None } -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-               map requested 
-            >> sort
-            >> choose
-
-        let private negotiate supported =
-            function | Some (Accept requested) -> Negotiated (run requested supported)
-                     | _ -> Free
-
-        let private defaults =
+        let private defaultMediaTypesSupported =
             List.empty<MediaType>
+
+        (* Request *)
 
         let private accept =
             getPLM Request.Headers.accept
 
-        let private supported =
+        (* Derived *)
+
+        let private mediaTypesSupported' =
                 (function | Some x -> x
-                          | _ -> defaults)
-            <!> configurationKey Configuration.MediaTypesSupported
+                          | _ -> defaultMediaTypesSupported)
+            <!> mediaTypesSupported
+
+        (* Negotiation *)
 
         [<RequireQualifiedAccess>]
         module Negotiation =
 
+            let private max (MediaType (Type t, SubType s, _)) =
+                function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> Some 0
+                         | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> Some 1
+                         | { MediaRange = Open _ } -> Some 2
+                         | _ -> None
+
+            let private map requested =
+                List.map (fun (x: MediaType) ->
+                    x, List.chooseMaxBy (max x) requested)
+
+            let private sort =
+                List.sortBy (fun (x, y) ->
+                    (function | Some { Parameters = Some { Weight = weight } } -> 1. - weight
+                              | _ -> 0.) y)
+
+            let private choose =
+                List.choose (fun (x, y) ->
+                    (function | Some { Parameters = Some { Weight = weight } } when weight > 0. -> Some x
+                              | Some { Parameters = None } -> Some x
+                              | _ -> None) y)
+
+            let private run requested =
+                   map requested 
+                >> sort
+                >> choose
+
+            let private negotiate supported =
+                function | Some (Accept x) -> Negotiated (run x supported)
+                         | _ -> Free
+
             let negotiated =
                     negotiate 
-                <!> supported
+                <!> mediaTypesSupported'
                 <*> accept
+
+        (* Decisions *)
 
         [<RequireQualifiedAccess>]
         module Decision =
@@ -429,6 +516,64 @@ module CrossOrigin =
     module Req = Request.Headers
     module Res = Response.Headers
 
+    (* Configuration *)
+
+    let private corsHeadersExposed =
+        configurationKey Configuration.CorsHeadersExposed
+
+    let private corsHeadersSupported =
+        configurationKey Configuration.CorsHeadersSupported
+
+    let private corsMethodsSupported =
+        configurationKey Configuration.CorsMethodsSupported
+
+    let private corsOriginsSupported =
+        configurationKey Configuration.CorsOriginsSupported
+
+    (* Request *)
+
+    let private accessControlRequestHeaders =
+        getPLM Request.Headers.accessControlRequestHeaders
+
+    let private accessControlRequestMethod =
+        getPLM Request.Headers.accessControlRequestMethod
+
+    let private meth =
+        getLM Request.meth
+
+    let private origin =
+        getPLM Request.Headers.origin
+
+    (* Derived *)
+
+    let private accessControlRequestHeaders' =
+            (function | Some (AccessControlRequestHeaders x) -> x
+                      | _ -> [])
+        <!> accessControlRequestHeaders
+
+    let private accessControlRequestMethod' =
+            (Option.map (fun (AccessControlRequestMethod x) -> x) >> Option.get)
+        <!> accessControlRequestMethod
+
+    let private corsHeadersExposed' =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> corsHeadersExposed
+
+    let private corsHeadersSupported' =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> corsHeadersSupported
+
+    let private corsMethodsSupported' =
+            (function | Some x -> x
+                      | _ -> [])
+        <!> corsMethodsSupported
+
+    let private origin' =
+            (Option.map (fun (Origin x) -> x) >> Option.get) 
+        <!> origin
+
     (* Decisions *)
 
     [<RequireQualifiedAccess>]
@@ -436,7 +581,7 @@ module CrossOrigin =
 
         let enabled : FreyaMachineDecision =
                 Option.isSome
-            <!> configurationKey Configuration.CorsOriginsSupported
+            <!> corsOriginsSupported
 
         let origin : FreyaMachineDecision =
                 (fun origin origins ->
@@ -446,76 +591,46 @@ module CrossOrigin =
                     | Some (Origin (OriginListOrNull.Origins (x :: []))), 
                       Some (Origins (OriginListOrNull.Origins xs)) -> List.exists ((=) x) xs
                     | _ -> false)
-            <!> getPLM Request.Headers.origin   
-            <*> configurationKey Configuration.CorsOriginsSupported
+            <!> origin   
+            <*> corsOriginsSupported
 
         let options : FreyaMachineDecision =
                 (=) OPTIONS 
-            <!> getLM Request.meth
+            <!> meth
 
         let preflight : FreyaMachineDecision =
                 Option.isSome
-            <!> getPLM Request.Headers.accessControlRequestMethod
+            <!> accessControlRequestMethod
 
     (* Operations *)
 
     [<RequireQualifiedAccess>]
     module Operation =
 
-        // TODO: Refactor Operations
-
-        let private headersExposed =
-                (function | Some x -> x
-                          | _ -> [])
-            <!> configurationKey Configuration.CorsHeadersExposed
-
-        let private headersSupported =
-                (function | Some x -> x
-                          | _ -> [])
-            <!> configurationKey Configuration.CorsHeadersSupported
-
-        let private methodsSupported =
-                (function | Some x -> x
-                          | _ -> [])
-            <!> configurationKey Configuration.CorsMethodsSupported
-
-        let private accessControlRequestHeaders =
-                (function | Some (AccessControlRequestHeaders x) -> x
-                          | _ -> [])
-            <!> getPLM Req.accessControlRequestHeaders
-
-        let private accessControlRequestMethod' =
-                (Option.map (fun (AccessControlRequestMethod x) -> x) >> Option.get)
-            <!> getPLM Req.accessControlRequestMethod
-
-        let private origin' =
-                (Option.map (fun (Origin x) -> x) >> Option.get) 
-            <!> getPLM Req.origin
-
-        let private headersAllowed =
+        let private corsHeadersAllowed =
                 (fun headers supported ->
                     match List.forall (fun x -> List.exists ((=) x) supported) headers with
                     | true -> headers
                     | _ -> [])
-            <!> accessControlRequestHeaders
-            <*> headersSupported
+            <!> accessControlRequestHeaders'
+            <*> corsHeadersSupported'
 
-        let private methodsAllowed =
+        let private corsMethodsAllowed =
                 (fun meth supported ->
                     match List.exists ((=) meth) supported with
                     | true -> [ meth ]
                     | _ -> [])
             <!> accessControlRequestMethod'
-            <*> methodsSupported
+            <*> corsMethodsSupported'
 
         let private setAccessControlAllowMethods =
-            setPLM Res.accessControlAllowMethods =<< (AccessControlAllowMethods <!> methodsAllowed)
+            setPLM Res.accessControlAllowMethods =<< (AccessControlAllowMethods <!> corsMethodsAllowed)
 
         let private setAccessControlExposeHeaders =
-            setPLM Res.accessControlExposeHeaders =<< (AccessControlExposeHeaders <!> headersExposed)
+            setPLM Res.accessControlExposeHeaders =<< (AccessControlExposeHeaders <!> corsHeadersExposed')
 
         let private setAccessControlAllowHeaders =
-            setPLM Res.accessControlAllowHeaders =<< (AccessControlAllowHeaders <!> headersAllowed)
+            setPLM Res.accessControlAllowHeaders =<< (AccessControlAllowHeaders <!> corsHeadersAllowed)
 
         let private setOrigin =
             setPLM Res.accessControlAllowOrigin =<< ((Origins >> AccessControlAllowOrigin) <!> origin')
@@ -534,7 +649,17 @@ module CrossOrigin =
 [<RequireQualifiedAccess>]
 module Method =
 
-    let private defaultKnown =
+    (* Configuration *)
+
+    let private methodsKnown =
+        configurationKey Configuration.MethodsKnown
+
+    let private methodsSupported =
+        configurationKey Configuration.MethodsSupported
+
+    (* Defaults *)
+
+    let private defaultMethodsKnown =
         Set.ofList [ 
             DELETE
             HEAD
@@ -545,20 +670,27 @@ module Method =
             PUT
             TRACE ]
 
-    let private defaultSupported =
+    let private defaultMethodsSupported =
         Set.ofList [ 
             GET
             HEAD ]
+    
+    (* Request *)
 
-    let private methodsKnown =
-            (function | Some x -> Set.ofList x
-                      | _ -> defaultKnown) 
-        <!> configurationKey Configuration.MethodsKnown
+    let private meth =
+        getLM Request.meth
 
-    let private methodsSupported =
+    (* Derived *)
+
+    let private methodsKnown' =
             (function | Some x -> Set.ofList x
-                      | _ -> defaultSupported)
-        <!> configurationKey Configuration.MethodsSupported
+                      | _ -> defaultMethodsKnown) 
+        <!> methodsKnown
+
+    let private methodsSupported' =
+            (function | Some x -> Set.ofList x
+                      | _ -> defaultMethodsSupported)
+        <!> methodsSupported
 
     (* Decisions *)
 
@@ -567,34 +699,34 @@ module Method =
 
         let known : FreyaMachineDecision =
                 Set.contains
-            <!> getLM Request.meth 
-            <*> methodsKnown
+            <!> meth
+            <*> methodsKnown'
 
         let supported : FreyaMachineDecision =
                 Set.contains
-            <!> getLM Request.meth
-            <*> methodsSupported
+            <!> meth
+            <*> methodsSupported'
 
         let delete : FreyaMachineDecision =
                 (=) DELETE 
-            <!> getLM Request.meth
+            <!> meth
 
         let getOrHead : FreyaMachineDecision =
                 flip Set.contains (set [ GET; HEAD ])
-            <!> getLM Request.meth
+            <!> meth
 
         let options : FreyaMachineDecision =
                 (=) OPTIONS 
-            <!> getLM Request.meth
+            <!> meth
 
         let patch : FreyaMachineDecision =
                 (=) PATCH 
-            <!> getLM Request.meth
+            <!> meth
 
         let post : FreyaMachineDecision =
                 (=) POST 
-            <!> getLM Request.meth
+            <!> meth
 
         let put : FreyaMachineDecision =
                 (=) PUT 
-            <!> getLM Request.meth
+            <!> meth

@@ -103,7 +103,7 @@ let private ifETagMatchesIfNone =
 let private internalDecisionDefinitions =
     [ Decisions.CharsetNegotiable,              Charset.Decision.negotiable,            (Decisions.EncodingRequested,               Decisions.CharsetsStrict)
       Decisions.CharsetRequested,               Charset.Decision.requested,             (Decisions.CharsetNegotiable,               Decisions.EncodingRequested)
-      Decisions.CorsEnabled,                    CrossOrigin.Decision.enabled,           (Decisions.CorsOrigin,                      Decisions.MethodOptions)            
+      Decisions.CorsEnabled,                    CrossOrigin.Decision.enabled,           (Decisions.CorsOrigin,                      Decisions.MethodOptions)
       Decisions.CorsOrigin,                     CrossOrigin.Decision.origin,            (Decisions.CorsOptions,                     Decisions.MethodOptions)
       Decisions.CorsOptions,                    CrossOrigin.Decision.options,           (Decisions.CorsPreflight,                   Operations.SetCorsActual)
       Decisions.CorsPreflight,                  CrossOrigin.Decision.preflight,         (Operations.SetCorsPreflight,               Operations.SetCorsActual)

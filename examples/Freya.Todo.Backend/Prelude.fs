@@ -43,7 +43,7 @@ let defaults =
         languagesSupported en
         mediaTypesSupported json }
 
-// Requested
+// Body
 
 let readStream (x: Stream) =
     use reader = new StreamReader (x)
@@ -55,7 +55,7 @@ let readBody () =
 let inline body () =
     (function | Choice1Of2 x -> Some x | _ -> None) <!> (parseJSON <!> readBody ())
 
-// Response
+// Representation
 
 let inline represent x =
     { Metadata =
