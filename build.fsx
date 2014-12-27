@@ -77,27 +77,39 @@ Target "AssemblyInfo" (fun _ ->
                                         Attribute.Description summary
                                         Attribute.Version release.AssemblyVersion
                                         Attribute.FileVersion release.AssemblyVersion ])
+
 Target "BuildVersion" (fun _ -> Shell.Exec("appveyor", sprintf "UpdateBuild -Version \"%s\"" nugetVersion) |> ignore)
+
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
+
 Target "Clean" (fun _ -> CleanDirs [ "bin"; "temp" ])
+
 Target "CleanDocs" (fun _ -> CleanDirs [ "docs/output" ])
+
 // --------------------------------------------------------------------------------------
 // Build library & test project
+
 Target "Build" (fun _ -> 
     !!solutionFile
     |> MSBuildRelease "" "Rebuild"
     |> ignore)
+
 Target "CopyFiles" (fun _ -> 
     [ "LICENSE.txt" ] |> CopyTo "bin"
     !!("src/" + project + "/bin/Release/Freya*.*") |> CopyTo "bin")
+
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
+
 Target "RunTests" (fun _ -> 
-    !!testAssemblies |> NUnit(fun p -> 
-                            { p with DisableShadowCopy = true
-                                     TimeOut = TimeSpan.FromMinutes 20.
-                                     OutputFile = "TestResults.xml" }))
+    !!testAssemblies
+    |> NUnit(fun p -> 
+        { p with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" }))
+
 #if MONO
 #else
 // --------------------------------------------------------------------------------------
@@ -120,38 +132,52 @@ Target "SourceLink" (fun _ ->
 #endif
 
 // --------------------------------------------------------------------------------------
-// Build a NuGet package
-Target "NuGet" (fun _ -> 
+// Build NuGet packages
+
+Target "PackageCore" (fun _ -> 
     NuGet (fun p -> 
-        { p with Authors = authors
-                 Project = "Freya.Core"
-                 Summary = summary
-                 Description = description
-                 Version = release.NugetVersion
-                 ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
-                 Tags = tags
-                 OutputPath = "bin"
-                 AccessKey = getBuildParamOrDefault "nugetkey" ""
-                 Publish = hasBuildParam "nugetkey"
-                 Dependencies = [ "FSharp.Core", GetPackageVersion "packages" "FSharp.Core" ]
-                 Files = 
-                     [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
-                       (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
-                       (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ] }) ("nuget/Freya.Core.nuspec"))
+        { p with
+            Authors = authors
+            Project = "Freya.Core"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "FSharp.Core", GetPackageVersion "packages" "FSharp.Core"
+                  "Aether",      GetPackageVersion "packages" "Aether" ]
+            Files = 
+                [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
+                  (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
+                  (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ]
+        }) ("nuget/Freya.Core.nuspec"))
+
 // TODO: Add additional NuGet packages for each library.
+
+Target "BuildPackages" DoNothing
+
 // --------------------------------------------------------------------------------------
 // Generate the documentation
+
 Target "GenerateReferenceDocs" 
     (fun _ -> 
     if not <| executeFSIWithArgs "docs/tools" "generate.fsx" [ "--define:RELEASE"; "--define:REFERENCE" ] [] then 
         failwith "generating reference documentation failed")
+
 Target "GenerateHelp" 
     (fun _ -> 
     if not <| executeFSIWithArgs "docs/tools" "generate.fsx" [ "--define:RELEASE"; "--define:HELP" ] [] then 
         failwith "generating help documentation failed")
+
 Target "GenerateDocs" DoNothing
+
 // --------------------------------------------------------------------------------------
 // Release Scripts
+
 Target "ReleaseDocs" (fun _ -> 
     let tempDocsDir = "temp/gh-pages"
     CleanDir tempDocsDir
@@ -160,26 +186,46 @@ Target "ReleaseDocs" (fun _ ->
     StageAll tempDocsDir
     Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
     Branches.push tempDocsDir)
+
 Target "Release" (fun _ -> 
     StageAll ""
     Commit "" (sprintf "Bump version to %s" release.NugetVersion)
     Branches.push ""
     Branches.tag "" release.NugetVersion
     Branches.pushTag "" "origin" release.NugetVersion)
-Target "BuildPackage" DoNothing
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
+
 Target "All" DoNothing
-"Clean" =?> ("BuildVersion", isAppVeyorBuild) ==> "AssemblyInfo" ==> "Build" ==> "RunTests" ==> "CopyFiles" ==> "All" 
-=?> ("GenerateReferenceDocs", isLocalBuild && not isMono) =?> ("GenerateDocs", isLocalBuild && not isMono) 
+
+"Clean"
+=?> ("BuildVersion", isAppVeyorBuild)
+==> "AssemblyInfo"
+==> "Build"
+==> "RunTests"
+==> "CopyFiles"
+==> "All" 
+
+"All"
+=?> ("GenerateReferenceDocs", isLocalBuild && not isMono)
+=?> ("GenerateDocs", isLocalBuild && not isMono) 
 =?> ("ReleaseDocs", isLocalBuild && not isMono)
+
 "All"
 #if MONO
 #else
 =?> ("SourceLink", Pdbstr.tryFind().IsSome )
 #endif
+==> "PackageCore"
+==> "BuildPackages"
 
-"CleanDocs" ==> "GenerateHelp" ==> "GenerateReferenceDocs" ==> "GenerateDocs"
+"CleanDocs"
+==> "GenerateHelp"
+==> "GenerateReferenceDocs"
+==> "GenerateDocs"
+
 "ReleaseDocs" ==> "Release"
-"BuildPackage" ==> "Release"
+"BuildPackages" ==> "Release"
+
 RunTargetOrDefault "All"
