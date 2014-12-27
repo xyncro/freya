@@ -90,10 +90,16 @@ Target "CleanDocs" (fun _ -> CleanDirs [ "docs/output" ])
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
-Target "Build" (fun _ -> 
-    !!solutionFile
-    |> MSBuildRelease "" "Rebuild"
-    |> ignore)
+let setParams defaults =
+    { defaults with
+        Verbosity = Some(Quiet)
+        Targets = ["Rebuild"]
+        Properties =
+            [ "Optimize", "True"
+              "DebugSymbols", "True"
+              "Configuration", "Release" ]}
+
+Target "Build" (fun _ -> build setParams solutionFile)
 
 Target "CopyFiles" (fun _ -> 
     [ "LICENSE.txt" ] |> CopyTo "bin"
@@ -151,9 +157,33 @@ Target "PackageCore" (fun _ ->
                 [ "FSharp.Core", GetPackageVersion "packages" "FSharp.Core"
                   "Aether",      GetPackageVersion "packages" "Aether" ]
             Files = 
-                [ (@"..\bin\Freya.Core.dll", Some "lib/net40", None)
-                  (@"..\bin\Freya.Core.xml", Some "lib/net40", None)
-                  (@"..\bin\Freya.Core.pdb", Some "lib/net40", None) ]
+                [ (@"..\src\Freya.Core\bin\Release\Freya.Core.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Core\bin\Release\Freya.Core.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Core\bin\Release\Freya.Core.pdb", Some "lib/net40", None) ]
+        }) ("nuget/Freya.Core.nuspec"))
+
+Target "PackageTypes" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Types"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "FSharp.Core", GetPackageVersion "packages" "FSharp.Core"
+                  "Aether",      GetPackageVersion "packages" "Aether"
+                  "FParsec",     GetPackageVersion "packages" "FParsec"
+                  "Freya.Core",  release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Types\bin\Release\Freya.Types.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Types\bin\Release\Freya.Types.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Types\bin\Release\Freya.Types.pdb", Some "lib/net40", None) ]
         }) ("nuget/Freya.Core.nuspec"))
 
 // TODO: Add additional NuGet packages for each library.
@@ -215,9 +245,10 @@ Target "All" DoNothing
 "All"
 #if MONO
 #else
-=?> ("SourceLink", Pdbstr.tryFind().IsSome )
+//=?> ("SourceLink", Pdbstr.tryFind().IsSome )
 #endif
 ==> "PackageCore"
+==> "PackageTypes"
 ==> "BuildPackages"
 
 "CleanDocs"
