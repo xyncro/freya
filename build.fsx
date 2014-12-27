@@ -47,10 +47,10 @@ let solutionFile = "Freya.sln"
 let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
-let gitHome = "https://github.com/panesofglass"
+let gitHome = "https://github.com/freya-fs"
 // The name of the project on GitHub
-let gitName = "dyfrig"
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
+let gitName = "freya"
+let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/freya-fs"
 
 // --------------------------------------------------------------------------------------
 // The rest of the file includes standard build steps 
