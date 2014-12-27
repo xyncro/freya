@@ -11,6 +11,11 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Core.Tests", "tests\Freya.Core.Tests\Freya.Core.Tests.fsproj", "{46B6DE09-76D2-435C-8B7F-CAF3287029DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{291EFE25-4571-4F3D-A7A3-A900C66EBA62}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "paket", "paket", "{432B863E-38B9-4D40-9A6B-1F5B2132D241}"
 	ProjectSection(SolutionItems) = preProject
