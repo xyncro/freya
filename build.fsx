@@ -160,7 +160,27 @@ Target "PackageCore" (fun _ ->
                 [ (@"..\src\Freya.Core\bin\Release\Freya.Core.dll", Some "lib/net40", None)
                   (@"..\src\Freya.Core\bin\Release\Freya.Core.xml", Some "lib/net40", None)
                   (@"..\src\Freya.Core\bin\Release\Freya.Core.pdb", Some "lib/net40", None) ]
-        }) ("nuget/Freya.Core.nuspec"))
+        }) ("nuget/template.nuspec"))
+
+Target "PackagePipeline" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Pipeline"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Core", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Pipeline\bin\Release\Freya.Pipeline.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Pipeline\bin\Release\Freya.Pipeline.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Pipeline\bin\Release\Freya.Pipeline.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
 
 Target "PackageTypes" (fun _ ->
     NuGet (fun p -> 
@@ -176,15 +196,226 @@ Target "PackageTypes" (fun _ ->
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
             Dependencies =
-                [ "FSharp.Core", GetPackageVersion "packages" "FSharp.Core"
-                  "Aether",      GetPackageVersion "packages" "Aether"
-                  "FParsec",     GetPackageVersion "packages" "FParsec"
+                [ "FParsec",     GetPackageVersion "packages" "FParsec"
                   "Freya.Core",  release.NugetVersion ]
             Files = 
                 [ (@"..\src\Freya.Types\bin\Release\Freya.Types.dll", Some "lib/net40", None)
                   (@"..\src\Freya.Types\bin\Release\Freya.Types.xml", Some "lib/net40", None)
                   (@"..\src\Freya.Types\bin\Release\Freya.Types.pdb", Some "lib/net40", None) ]
-        }) ("nuget/Freya.Core.nuspec"))
+        }) ("nuget/template.nuspec"))
+
+Target "PackageTypesLanguage" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Types.Language"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Types", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Types.Language\bin\Release\Freya.Types.Language.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Language\bin\Release\Freya.Types.Language.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Language\bin\Release\Freya.Types.Language.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageTypesUri" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Types.Uri"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Types", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Types.Uri\bin\Release\Freya.Types.Uri.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Uri\bin\Release\Freya.Types.Uri.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Uri\bin\Release\Freya.Types.Uri.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageTypesHttp" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Types.Http"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "Freya.Types.Language", release.NugetVersion
+                  "Freya.Types.Uri", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Types.Http\bin\Release\Freya.Types.Http.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Http\bin\Release\Freya.Types.Http.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Http\bin\Release\Freya.Types.Http.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageTypesCors" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Types.Cors"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Types", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Types.Cors\bin\Release\Freya.Types.Cors.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Cors\bin\Release\Freya.Types.Cors.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Types.Cors\bin\Release\Freya.Types.Cors.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageRecorder" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Recorder"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "Fleece",         GetPackageVersion "packages" "Fleece"
+                  "Freya.Pipeline", release.NugetVersion
+                  "Freya.Types",    release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Recorder\bin\Release\Freya.Recorder.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Recorder\bin\Release\Freya.Recorder.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Recorder\bin\Release\Freya.Recorder.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageMachine" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Machine"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "Freya.Pipeline",   release.NugetVersion
+                  "Freya.Recorder",   release.NugetVersion
+                  "Freya.Types.Cors", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Machine\bin\Release\Freya.Machine.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Machine\bin\Release\Freya.Machine.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Machine\bin\Release\Freya.Machine.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageRouter" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Router"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "Freya.Pipeline",   release.NugetVersion
+                  "Freya.Recorder",   release.NugetVersion
+                  "Freya.Types.Http", release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Router\bin\Release\Freya.Router.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Router\bin\Release\Freya.Router.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Router\bin\Release\Freya.Router.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageInspector" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Inspector"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies =
+                [ "Freya.Machine", release.NugetVersion
+                  "Freya.Router",  release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Inspector\bin\Release\Freya.Inspector.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Inspector\bin\Release\Freya.Inspector.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Inspector\bin\Release\Freya.Inspector.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageMachineInspector" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Machine.Inspector"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Inspector",  release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Machine.Inspector\bin\Release\Freya.Machine.Inspector.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Machine.Inspector\bin\Release\Freya.Machine.Inspector.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Machine.Inspector\bin\Release\Freya.Machine.Inspector.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
+
+Target "PackageRouterInspector" (fun _ ->
+    NuGet (fun p -> 
+        { p with
+            Authors = authors
+            Project = "Freya.Router.Inspector"
+            Summary = summary
+            Description = description
+            Version = release.NugetVersion
+            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
+            Tags = tags
+            OutputPath = "bin"
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Publish = hasBuildParam "nugetkey"
+            Dependencies = [ "Freya.Inspector",  release.NugetVersion ]
+            Files = 
+                [ (@"..\src\Freya.Router.Inspector\bin\Release\Freya.Router.Inspector.dll", Some "lib/net40", None)
+                  (@"..\src\Freya.Router.Inspector\bin\Release\Freya.Router.Inspector.xml", Some "lib/net40", None)
+                  (@"..\src\Freya.Router.Inspector\bin\Release\Freya.Router.Inspector.pdb", Some "lib/net40", None) ]
+        }) ("nuget/template.nuspec"))
 
 // TODO: Add additional NuGet packages for each library.
 
@@ -248,7 +479,18 @@ Target "All" DoNothing
 //=?> ("SourceLink", Pdbstr.tryFind().IsSome )
 #endif
 ==> "PackageCore"
+==> "PackagePipeline"
 ==> "PackageTypes"
+==> "PackageTypesLanguage"
+==> "PackageTypesUri"
+==> "PackageTypesHttp"
+==> "PackageTypesCors"
+==> "PackageRecorder"
+==> "PackageMachine"
+==> "PackageRouter"
+==> "PackageInspector"
+==> "PackageMachineInspector"
+==> "PackageRouterInspector"
 ==> "BuildPackages"
 
 "CleanDocs"
