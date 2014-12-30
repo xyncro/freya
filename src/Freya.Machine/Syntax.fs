@@ -241,9 +241,9 @@ type FreyaMachineBuilder with
         
     // 400
 
-    [<CustomOperation (Handlers.Malformed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleMalformed (monad, m) = 
-        x.Set (monad, handlerKeyPLens Handlers.Malformed, m)
+    [<CustomOperation (Handlers.BadRequest, MaintainsVariableSpaceUsingBind = true)>]
+    member x.HandleBadRequest (monad, m) = 
+        x.Set (monad, handlerKeyPLens Handlers.BadRequest, m)
 
     [<CustomOperation (Handlers.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
     member x.HandleUnauthorized (monad, m) = 

@@ -127,7 +127,7 @@ module Handlers =
 
     (* 400 *)
 
-    let [<Literal>] Malformed = prefix + "Malformed"
+    let [<Literal>] BadRequest = prefix + "BadRequest"
     let [<Literal>] Unauthorized = prefix + "Unauthorized"
     let [<Literal>] Forbidden = prefix + "Forbidden"
     let [<Literal>] NotFound = prefix + "NotFound"
@@ -151,48 +151,46 @@ module Handlers =
 [<RequireQualifiedAccess>]
 module Operations =
 
-    let [<Literal>] private prefix = "set"
-
     (* 200 *)
 
-    let [<Literal>] SetOK = prefix + "Ok"
-    let [<Literal>] SetCreated = prefix + "Created"
-    let [<Literal>] SetOptions = prefix + "Options"
-    let [<Literal>] SetAccepted = prefix + "Accepted"
-    let [<Literal>] SetNoContent = prefix + "NoContent"
+    let [<Literal>] OK = "Ok"
+    let [<Literal>] Created = "Created"
+    let [<Literal>] Options = "Options"
+    let [<Literal>] Accepted = "Accepted"
+    let [<Literal>] NoContent = "NoContent"
 
     (* 300 *)
 
-    let [<Literal>] SetMovedPermanently = prefix + "MovedPermanently"
-    let [<Literal>] SetSeeOther = prefix + "SeeOther"
-    let [<Literal>] SetNotModified = prefix + "NotModified"
-    let [<Literal>] SetMovedTemporarily = prefix + "MovedTemporarily"
-    let [<Literal>] SetMultipleRepresentations = prefix + "MultipleRepresentations"
+    let [<Literal>] MovedPermanently = "MovedPermanently"
+    let [<Literal>] SeeOther = "SeeOther"
+    let [<Literal>] NotModified = "NotModified"
+    let [<Literal>] MovedTemporarily = "MovedTemporarily"
+    let [<Literal>] MultipleRepresentations = "MultipleRepresentations"
 
     (* 400 *)
 
-    let [<Literal>] SetMalformed = prefix + "Malformed"
-    let [<Literal>] SetUnauthorized = prefix + "Unauthorized"
-    let [<Literal>] SetForbidden = prefix + "Forbidden"
-    let [<Literal>] SetNotFound = prefix + "NotFound"
-    let [<Literal>] SetMethodNotAllowed = prefix + "MethodNotAllowed"
-    let [<Literal>] SetNotAcceptable = prefix + "NotAcceptable"
-    let [<Literal>] SetConflict = prefix + "Conflict"
-    let [<Literal>] SetGone = prefix + "Gone"
-    let [<Literal>] SetPreconditionFailed = prefix + "PreconditionFailed"
-    let [<Literal>] SetRequestEntityTooLarge = prefix + "RequestEntityTooLarge"
-    let [<Literal>] SetUriTooLong = prefix + "UriTooLong"
-    let [<Literal>] SetUnsupportedMediaType = prefix + "UnsupportedMediaType"
-    let [<Literal>] SetUnprocessableEntity = prefix + "UnprocessableEntity"
+    let [<Literal>] BadRequest = "BadRequest"
+    let [<Literal>] Unauthorized = "Unauthorized"
+    let [<Literal>] Forbidden = "Forbidden"
+    let [<Literal>] NotFound = "NotFound"
+    let [<Literal>] MethodNotAllowed = "MethodNotAllowed"
+    let [<Literal>] NotAcceptable = "NotAcceptable"
+    let [<Literal>] Conflict = "Conflict"
+    let [<Literal>] Gone = "Gone"
+    let [<Literal>] PreconditionFailed = "PreconditionFailed"
+    let [<Literal>] RequestEntityTooLarge = "RequestEntityTooLarge"
+    let [<Literal>] UriTooLong = "UriTooLong"
+    let [<Literal>] UnsupportedMediaType = "UnsupportedMediaType"
+    let [<Literal>] UnprocessableEntity = "UnprocessableEntity"
 
     (* 500 *)
 
-    let [<Literal>] SetNotImplemented = prefix + "NotImplemented"
-    let [<Literal>] SetUnknownMethod = prefix + "UnknownMethod"
-    let [<Literal>] SetServiceUnavailable = prefix + "ServiceUnavailable"
+    let [<Literal>] NotImplemented = "NotImplemented"
+    let [<Literal>] UnknownMethod = "UnknownMethod"
+    let [<Literal>] ServiceUnavailable = "ServiceUnavailable"
 
-    (* CORS *)
+    (* Cross Origin *)
 
-    let [<Literal>] SetCorsPreflight = prefix + "CorsPreflight"
-    let [<Literal>] SetCorsActual = prefix + "CorsActual"
-    let [<Literal>] SetCorsOrigin = prefix + "CorsOrigin"
+    let [<Literal>] CrossOriginPreflight = "CrossOriginPreflight"
+    let [<Literal>] CrossOriginActual = "CrossOriginActual"
+    let [<Literal>] CrossOriginOrigin = "CrossOriginOrigin"

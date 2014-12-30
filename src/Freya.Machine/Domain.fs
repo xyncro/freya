@@ -623,26 +623,153 @@ module CrossOrigin =
             <!> accessControlRequestMethod'
             <*> corsMethodsSupported'
 
-        let private setAccessControlAllowMethods =
-            setPLM Res.accessControlAllowMethods =<< (AccessControlAllowMethods <!> corsMethodsAllowed)
+        let private accessControlAllowMethods =
+                setPLM Res.accessControlAllowMethods
+            =<< (AccessControlAllowMethods <!> corsMethodsAllowed)
 
-        let private setAccessControlExposeHeaders =
-            setPLM Res.accessControlExposeHeaders =<< (AccessControlExposeHeaders <!> corsHeadersExposed')
+        let private accessControlExposeHeaders =
+                setPLM Res.accessControlExposeHeaders
+            =<< (AccessControlExposeHeaders <!> corsHeadersExposed')
 
-        let private setAccessControlAllowHeaders =
-            setPLM Res.accessControlAllowHeaders =<< (AccessControlAllowHeaders <!> corsHeadersAllowed)
+        let private accessControlAllowHeaders =
+                setPLM Res.accessControlAllowHeaders
+            =<< (AccessControlAllowHeaders <!> corsHeadersAllowed)
 
-        let private setOrigin =
-            setPLM Res.accessControlAllowOrigin =<< ((Origins >> AccessControlAllowOrigin) <!> origin')
+        let private accessControlAllowOrigin =
+                setPLM Res.accessControlAllowOrigin 
+            =<< ((Origins >> AccessControlAllowOrigin) <!> origin')
 
         let actual =
-            setAccessControlExposeHeaders
+            accessControlExposeHeaders
 
         let origin =
-            setOrigin
+            accessControlAllowOrigin
 
         let preflight =
-            setAccessControlAllowMethods *> setAccessControlAllowHeaders
+                accessControlAllowMethods 
+             *> accessControlAllowHeaders
+
+(* HTTP *)
+
+[<RequireQualifiedAccess>]
+module Http =
+
+    (* Functions *)
+
+    let private reason =
+        setPLM Response.reasonPhrase
+
+    let private status =
+        setPLM Response.statusCode
+
+    (* Operations *)
+
+    [<RequireQualifiedAccess>]
+    module Operation =
+
+        let accepted =
+                status 202 
+             *> reason "Accepted"
+
+        let badRequest =
+                status 400
+             *> reason "Bad Request"
+
+        let conflict =
+                status 409 
+             *> reason "Conflict"
+
+        let created =
+                status 201
+             *> reason "Created"
+
+        let forbidden =
+                status 403  
+             *> reason "Forbidden"
+
+        let gone =
+                status 410 
+             *> reason "Gone"
+
+        let methodNotAllowed =
+                status 405 
+             *> reason "Method Not Allowed"
+
+        let movedPermanently =
+                status 304 
+             *> reason "Moved Permanently"
+
+        let movedTemporarily =
+                status 307 
+             *> reason "Moved Temporarily"
+
+        let multipleRepresentations =
+                status 310 
+             *> reason "Multiple Representations"
+
+        let noContent =
+                status 204 
+             *> reason "No Content"
+
+        let notAcceptable =
+                status 406 
+             *> reason "Not Acceptable"
+
+        let notFound =
+                status 404 
+             *> reason "Not Found"
+
+        let notImplemented =
+                status 501 
+             *> reason "Not Implemented"
+
+        let notModified =
+                status 304 
+             *> reason "Not Modified"
+
+        let ok =
+                status 200  
+             *> reason "OK"
+
+        let options =
+                status 200  
+             *> reason "Options"
+
+        let preconditionFailed =
+                status 412  
+             *> reason "Precondition Failed"
+
+        let requestEntityTooLarge =
+                status 413  
+             *> reason "Request Entity Too Large"
+
+        let seeOther =
+                status 303  
+             *> reason "See Other"
+
+        let serviceUnavailable =
+                status 503  
+             *> reason "Service Unavailable"
+
+        let unauthorized =
+                status 401  
+             *> reason "Unauthorized"
+
+        let unknownMethod =
+                status 501  
+             *> reason "Unknown Method"
+
+        let unprocessableEntity =
+                status 422  
+             *> reason "Unprocessable Entity"
+
+        let unsupportedMediaType =
+                status 415  
+             *> reason "UnsupportedMediaType"
+
+        let uriTooLong =
+                status 414  
+             *> reason "URI Too Long"
 
 (* Method *)
 

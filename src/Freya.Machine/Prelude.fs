@@ -28,8 +28,8 @@ let tuple a b =
 module List =
 
     let chooseMaxBy projection =
-           List.map (fun x -> x, projection x)
-        >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
-        >> List.sortBy (fun (_, y) -> y)
-        >> List.map fst
-        >> function | [] -> None | x :: _ -> Some x
+            List.map (fun x -> x, projection x)
+         >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
+         >> List.sortBy (fun (_, y) -> y)
+         >> List.map fst
+         >> function | [] -> None | x :: _ -> Some x

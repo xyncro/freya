@@ -2,9 +2,7 @@
 module internal Freya.Machine.Graph
 
 open Aether
-open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
 
 (* Actions
 
@@ -12,9 +10,6 @@ open Freya.Types.Http
    (i.e. in response to a DELETE, POST, etc. method which is generally
    non-idempotent). They will generally need overriding if the resource
    is going to support the associated method. *)
-
-let private defaultAction =
-    returnM ()
 
 let private actionDefinitions =
     [ Actions.Delete,                           Decisions.Deleted 
@@ -29,7 +24,7 @@ let private actions =
                          Override = 
                            { Allow = true
                              Overridden = false }
-                         Action = defaultAction
+                         Action = returnM ()
                          Next = next })
 
 (* Decisions (Public)
@@ -42,46 +37,46 @@ let private actions =
    Public decisions may be overridden by the resource programmer
    using declarative machine monad syntax. *)
 
-let private defaultDecision def =
-    returnM def
+(*    Key                                        Default                                           True                                              False
+      ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- *)
 
 let private publicDecisionDefinitions =
-    [ Decisions.Allowed,                        true,                                   (Decisions.ContentTypeValid,                Operations.SetForbidden)
-      Decisions.Authorized,                     true,                                   (Decisions.Allowed,                         Operations.SetUnauthorized)
-      Decisions.AllowPostToGone,                false,                                  (Actions.Post,                              Operations.SetGone)
-      Decisions.AllowPostToMissing,             true,                                   (Actions.Post,                              Operations.SetNotFound)
-      Decisions.AllowPutToMissing,              true,                                   (Decisions.Conflicts,                       Operations.SetNotImplemented)
-      Decisions.CharsetsStrict,                 false,                                  (Operations.SetNotAcceptable,               Decisions.EncodingRequested)
-      Decisions.Conflicts,                      false,                                  (Operations.SetConflict,                    Actions.Put)
-      Decisions.ContentTypeKnown,               true,                                   (Decisions.EntityLengthValid,               Operations.SetUnsupportedMediaType)
-      Decisions.ContentTypeValid,               true,                                   (Decisions.ContentTypeKnown,                Operations.SetNotImplemented)
-      Decisions.Created,                        true,                                   (Operations.SetCreated,                     Decisions.RespondWithEntity)
-      Decisions.Deleted,                        true,                                   (Decisions.RespondWithEntity,               Operations.SetAccepted)
-      Decisions.EncodingsStrict,                false,                                  (Operations.SetNotAcceptable,               Decisions.Processable)
-      Decisions.EntityLengthValid,              true,                                   (Decisions.CorsEnabled,                     Operations.SetRequestEntityTooLarge)
-      Decisions.Existed,                        false,                                  (Decisions.MovedPermanently,                Decisions.MethodPostToMissing)
-      Decisions.Exists,                         true,                                   (Decisions.IfMatchRequested,                Decisions.IfMatchExistsForMissing)
-      Decisions.LanguagesStrict,                false,                                  (Operations.SetNotAcceptable,               Decisions.CharsetRequested)
-      Decisions.Malformed,                      false,                                  (Operations.SetMalformed,                   Decisions.Authorized)
-      Decisions.MediaTypesStrict,               true,                                   (Operations.SetNotAcceptable,               Decisions.LanguageRequested)
-      Decisions.MovedPermanently,               false,                                  (Operations.SetMovedPermanently,            Decisions.MovedTemporarily)
-      Decisions.MovedTemporarily,               false,                                  (Operations.SetMovedTemporarily,            Decisions.MethodPostToGone)
-      Decisions.MultipleRepresentations,        false,                                  (Operations.SetMultipleRepresentations,     Operations.SetOK)
-      Decisions.PostRedirect,                   false,                                  (Operations.SetSeeOther,                    Decisions.Created)
-      Decisions.Processable,                    true,                                   (Decisions.Exists,                          Operations.SetUnprocessableEntity)
-      Decisions.PutToDifferentUri,              false,                                  (Operations.SetMovedPermanently,            Decisions.AllowPutToMissing)
-      Decisions.RespondWithEntity,              true,                                   (Decisions.MultipleRepresentations,         Operations.SetNoContent)
-      Decisions.ServiceAvailable,               true,                                   (Decisions.MethodKnown,                     Operations.SetServiceUnavailable)
-      Decisions.UriTooLong,                     false,                                  (Operations.SetUriTooLong,                  Decisions.MethodSupported) ]
+    [ Decisions.Allowed,                         true,                                             (Decisions.ContentTypeValid,                      Operations.Forbidden)
+      Decisions.Authorized,                      true,                                             (Decisions.Allowed,                               Operations.Unauthorized)
+      Decisions.AllowPostToGone,                 false,                                            (Actions.Post,                                    Operations.Gone)
+      Decisions.AllowPostToMissing,              true,                                             (Actions.Post,                                    Operations.NotFound)
+      Decisions.AllowPutToMissing,               true,                                             (Decisions.Conflicts,                             Operations.NotImplemented)
+      Decisions.CharsetsStrict,                  false,                                            (Operations.NotAcceptable,                        Decisions.EncodingRequested)
+      Decisions.Conflicts,                       false,                                            (Operations.Conflict,                             Actions.Put)
+      Decisions.ContentTypeKnown,                true,                                             (Decisions.EntityLengthValid,                     Operations.UnsupportedMediaType)
+      Decisions.ContentTypeValid,                true,                                             (Decisions.ContentTypeKnown,                      Operations.NotImplemented)
+      Decisions.Created,                         true,                                             (Operations.Created,                              Decisions.RespondWithEntity)
+      Decisions.Deleted,                         true,                                             (Decisions.RespondWithEntity,                     Operations.Accepted)
+      Decisions.EncodingsStrict,                 false,                                            (Operations.NotAcceptable,                        Decisions.Processable)
+      Decisions.EntityLengthValid,               true,                                             (Decisions.CorsEnabled,                           Operations.RequestEntityTooLarge)
+      Decisions.Existed,                         false,                                            (Decisions.MovedPermanently,                      Decisions.MethodPostToMissing)
+      Decisions.Exists,                          true,                                             (Decisions.IfMatchRequested,                      Decisions.IfMatchExistsForMissing)
+      Decisions.LanguagesStrict,                 false,                                            (Operations.NotAcceptable,                        Decisions.CharsetRequested)
+      Decisions.Malformed,                       false,                                            (Operations.BadRequest,                           Decisions.Authorized)
+      Decisions.MediaTypesStrict,                true,                                             (Operations.NotAcceptable,                        Decisions.LanguageRequested)
+      Decisions.MovedPermanently,                false,                                            (Operations.MovedPermanently,                     Decisions.MovedTemporarily)
+      Decisions.MovedTemporarily,                false,                                            (Operations.MovedTemporarily,                     Decisions.MethodPostToGone)
+      Decisions.MultipleRepresentations,         false,                                            (Operations.MultipleRepresentations,              Operations.OK)
+      Decisions.PostRedirect,                    false,                                            (Operations.SeeOther,                             Decisions.Created)
+      Decisions.Processable,                     true,                                             (Decisions.Exists,                                Operations.UnprocessableEntity)
+      Decisions.PutToDifferentUri,               false,                                            (Operations.MovedPermanently,                     Decisions.AllowPutToMissing)
+      Decisions.RespondWithEntity,               true,                                             (Decisions.MultipleRepresentations,               Operations.NoContent)
+      Decisions.ServiceAvailable,                true,                                             (Decisions.MethodKnown,                           Operations.ServiceUnavailable)
+      Decisions.UriTooLong,                      false,                                            (Operations.UriTooLong,                           Decisions.MethodSupported) ]
 
 let private publicDecisions =
     publicDecisionDefinitions
-    |> List.map (fun (id, def, (t, f)) ->
+    |> List.map (fun (id, d, (t, f)) ->
             DecisionNode { Id = id
                            Override =
                              { Allow = true
                                Overridden = false }
-                           Decision = defaultDecision def
+                           Decision = returnM d
                            True = t
                            False = f })
 
@@ -94,50 +89,55 @@ let private publicDecisions =
 
    Internal decisions cannot be overridden. *)
 
+// TODO: Implement ETag Matching
+
 let private ifETagMatchesIf =
-    returnM true // IMPLEMENT
+    returnM true
 
 let private ifETagMatchesIfNone =
-    returnM true // IMPLEMENT
+    returnM true
+
+(*    Key                                        Decision                                          True                                              False
+      ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- *)
 
 let private internalDecisionDefinitions =
-    [ Decisions.CharsetNegotiable,              Charset.Decision.negotiable,            (Decisions.EncodingRequested,               Decisions.CharsetsStrict)
-      Decisions.CharsetRequested,               Charset.Decision.requested,             (Decisions.CharsetNegotiable,               Decisions.EncodingRequested)
-      Decisions.CorsEnabled,                    CrossOrigin.Decision.enabled,           (Decisions.CorsOrigin,                      Decisions.MethodOptions)
-      Decisions.CorsOrigin,                     CrossOrigin.Decision.origin,            (Decisions.CorsOptions,                     Decisions.MethodOptions)
-      Decisions.CorsOptions,                    CrossOrigin.Decision.options,           (Decisions.CorsPreflight,                   Operations.SetCorsActual)
-      Decisions.CorsPreflight,                  CrossOrigin.Decision.preflight,         (Operations.SetCorsPreflight,               Operations.SetCorsActual)
-      Decisions.EncodingNegotiable,             Encoding.Decision.negotiable,           (Decisions.Processable,                     Decisions.EncodingsStrict)
-      Decisions.EncodingRequested,              Encoding.Decision.requested,            (Decisions.EncodingNegotiable,              Decisions.Processable)
-      Decisions.IfMatchAny,                     IfMatch.Decision.any,                   (Decisions.IfUnmodifiedSinceRequested,      Decisions.ETagMatchesIf)
-      Decisions.IfMatchExistsForMissing,        IfMatch.Decision.requested,             (Operations.SetPreconditionFailed,          Decisions.MethodPut)
-      Decisions.IfMatchRequested,               IfMatch.Decision.requested,             (Decisions.IfMatchAny,                      Decisions.IfUnmodifiedSinceRequested)
-      Decisions.IfModifiedSinceModified,        IfModifiedSince.Decision.modified,      (Decisions.MethodDelete,                    Operations.SetNotModified)
-      Decisions.IfModifiedSinceRequested,       IfModifiedSince.Decision.requested,     (Decisions.IfModifiedSinceValid,            Decisions.MethodDelete)
-      Decisions.IfModifiedSinceValid,           IfModifiedSince.Decision.valid,         (Decisions.IfModifiedSinceModified,         Decisions.MethodDelete)
-      Decisions.IfNoneMatchAny,                 IfNoneMatch.Decision.any,               (Decisions.MethodGetOrHead,                 Decisions.ETagMatchesIfNone)
-      Decisions.IfNoneMatchRequested,           IfNoneMatch.Decision.requested,         (Decisions.IfNoneMatchAny,                  Decisions.IfModifiedSinceRequested)
-      Decisions.IfUnmodifiedSinceModified,      IfUnmodifiedSince.Decision.unmodified,  (Decisions.IfNoneMatchRequested,            Operations.SetPreconditionFailed)
-      Decisions.IfUnmodifiedSinceRequested,     IfUnmodifiedSince.Decision.requested,   (Decisions.IfUnmodifiedSinceValid,          Decisions.IfNoneMatchRequested)
-      Decisions.IfUnmodifiedSinceValid,         IfUnmodifiedSince.Decision.valid,       (Decisions.IfUnmodifiedSinceModified,       Decisions.IfNoneMatchRequested)
-      Decisions.LanguageNegotiable,             Language.Decision.negotiable,           (Decisions.CharsetRequested,                Decisions.LanguagesStrict)
-      Decisions.LanguageRequested,              Language.Decision.requested,            (Decisions.LanguageNegotiable,              Decisions.CharsetRequested)
-      Decisions.MediaTypeNegotiable,            MediaType.Decision.negotiable,          (Decisions.LanguageRequested,               Decisions.MediaTypesStrict)
-      Decisions.MediaTypeRequested,             MediaType.Decision.requested,           (Decisions.MediaTypeNegotiable,             Decisions.LanguageRequested)
-      Decisions.MethodDelete,                   Method.Decision.delete,                 (Actions.Delete,                            Decisions.MethodPatch)
-      Decisions.MethodGetOrHead,                Method.Decision.getOrHead,              (Operations.SetNotModified,                 Operations.SetPreconditionFailed)
-      Decisions.MethodKnown,                    Method.Decision.known,                  (Decisions.UriTooLong,                      Operations.SetUnknownMethod)
-      Decisions.MethodOptions,                  Method.Decision.options,                (Operations.SetOptions,                     Decisions.MediaTypeRequested)
-      Decisions.MethodPatch,                    Method.Decision.patch,                  (Actions.Patch,                             Decisions.MethodPostToExisting)
-      Decisions.MethodPostToExisting,           Method.Decision.post,                   (Actions.Post,                              Decisions.MethodPutToExisting)
-      Decisions.MethodPostToGone,               Method.Decision.post,                   (Decisions.AllowPostToGone,                 Operations.SetGone)
-      Decisions.MethodPostToMissing,            Method.Decision.post,                   (Decisions.AllowPostToMissing,              Operations.SetNotFound)
-      Decisions.MethodPut,                      Method.Decision.put,                    (Decisions.PutToDifferentUri,               Decisions.Existed)
-      Decisions.MethodPutToExisting,            Method.Decision.put,                    (Decisions.Conflicts,                       Decisions.MultipleRepresentations)
-      Decisions.MethodSupported,                Method.Decision.supported,              (Decisions.Malformed,                       Operations.SetMethodNotAllowed)
+    [ Decisions.CharsetNegotiable,               Charset.Decision.negotiable,                      (Decisions.EncodingRequested,                     Decisions.CharsetsStrict)
+      Decisions.CharsetRequested,                Charset.Decision.requested,                       (Decisions.CharsetNegotiable,                     Decisions.EncodingRequested)
+      Decisions.CorsEnabled,                     CrossOrigin.Decision.enabled,                     (Decisions.CorsOrigin,                            Decisions.MethodOptions)
+      Decisions.CorsOrigin,                      CrossOrigin.Decision.origin,                      (Decisions.CorsOptions,                           Decisions.MethodOptions)
+      Decisions.CorsOptions,                     CrossOrigin.Decision.options,                     (Decisions.CorsPreflight,                         Operations.CrossOriginActual)
+      Decisions.CorsPreflight,                   CrossOrigin.Decision.preflight,                   (Operations.CrossOriginPreflight,                 Operations.CrossOriginActual)
+      Decisions.EncodingNegotiable,              Encoding.Decision.negotiable,                     (Decisions.Processable,                           Decisions.EncodingsStrict)
+      Decisions.EncodingRequested,               Encoding.Decision.requested,                      (Decisions.EncodingNegotiable,                    Decisions.Processable)
+      Decisions.IfMatchAny,                      IfMatch.Decision.any,                             (Decisions.IfUnmodifiedSinceRequested,            Decisions.ETagMatchesIf)
+      Decisions.IfMatchExistsForMissing,         IfMatch.Decision.requested,                       (Operations.PreconditionFailed,                   Decisions.MethodPut)
+      Decisions.IfMatchRequested,                IfMatch.Decision.requested,                       (Decisions.IfMatchAny,                            Decisions.IfUnmodifiedSinceRequested)
+      Decisions.IfModifiedSinceModified,         IfModifiedSince.Decision.modified,                (Decisions.MethodDelete,                          Operations.NotModified)
+      Decisions.IfModifiedSinceRequested,        IfModifiedSince.Decision.requested,               (Decisions.IfModifiedSinceValid,                  Decisions.MethodDelete)
+      Decisions.IfModifiedSinceValid,            IfModifiedSince.Decision.valid,                   (Decisions.IfModifiedSinceModified,               Decisions.MethodDelete)
+      Decisions.IfNoneMatchAny,                  IfNoneMatch.Decision.any,                         (Decisions.MethodGetOrHead,                       Decisions.ETagMatchesIfNone)
+      Decisions.IfNoneMatchRequested,            IfNoneMatch.Decision.requested,                   (Decisions.IfNoneMatchAny,                        Decisions.IfModifiedSinceRequested)
+      Decisions.IfUnmodifiedSinceModified,       IfUnmodifiedSince.Decision.unmodified,            (Decisions.IfNoneMatchRequested,                  Operations.PreconditionFailed)
+      Decisions.IfUnmodifiedSinceRequested,      IfUnmodifiedSince.Decision.requested,             (Decisions.IfUnmodifiedSinceValid,                Decisions.IfNoneMatchRequested)
+      Decisions.IfUnmodifiedSinceValid,          IfUnmodifiedSince.Decision.valid,                 (Decisions.IfUnmodifiedSinceModified,             Decisions.IfNoneMatchRequested)
+      Decisions.LanguageNegotiable,              Language.Decision.negotiable,                     (Decisions.CharsetRequested,                      Decisions.LanguagesStrict)
+      Decisions.LanguageRequested,               Language.Decision.requested,                      (Decisions.LanguageNegotiable,                    Decisions.CharsetRequested)
+      Decisions.MediaTypeNegotiable,             MediaType.Decision.negotiable,                    (Decisions.LanguageRequested,                     Decisions.MediaTypesStrict)
+      Decisions.MediaTypeRequested,              MediaType.Decision.requested,                     (Decisions.MediaTypeNegotiable,                   Decisions.LanguageRequested)
+      Decisions.MethodDelete,                    Method.Decision.delete,                           (Actions.Delete,                                  Decisions.MethodPatch)
+      Decisions.MethodGetOrHead,                 Method.Decision.getOrHead,                        (Operations.NotModified,                          Operations.PreconditionFailed)
+      Decisions.MethodKnown,                     Method.Decision.known,                            (Decisions.UriTooLong,                            Operations.UnknownMethod)
+      Decisions.MethodOptions,                   Method.Decision.options,                          (Operations.Options,                              Decisions.MediaTypeRequested)
+      Decisions.MethodPatch,                     Method.Decision.patch,                            (Actions.Patch,                                   Decisions.MethodPostToExisting)
+      Decisions.MethodPostToExisting,            Method.Decision.post,                             (Actions.Post,                                    Decisions.MethodPutToExisting)
+      Decisions.MethodPostToGone,                Method.Decision.post,                             (Decisions.AllowPostToGone,                       Operations.Gone)
+      Decisions.MethodPostToMissing,             Method.Decision.post,                             (Decisions.AllowPostToMissing,                    Operations.NotFound)
+      Decisions.MethodPut,                       Method.Decision.put,                              (Decisions.PutToDifferentUri,                     Decisions.Existed)
+      Decisions.MethodPutToExisting,             Method.Decision.put,                              (Decisions.Conflicts,                             Decisions.MultipleRepresentations)
+      Decisions.MethodSupported,                 Method.Decision.supported,                        (Decisions.Malformed,                             Operations.MethodNotAllowed)
 
-      Decisions.ETagMatchesIf,                  ifETagMatchesIf,                        (Decisions.IfUnmodifiedSinceRequested,      Operations.SetPreconditionFailed)
-      Decisions.ETagMatchesIfNone,              ifETagMatchesIfNone,                    (Decisions.MethodGetOrHead,                 Decisions.IfModifiedSinceRequested) ]
+      Decisions.ETagMatchesIf,                  ifETagMatchesIf,                                   (Decisions.IfUnmodifiedSinceRequested,            Operations.PreconditionFailed)
+      Decisions.ETagMatchesIfNone,              ifETagMatchesIfNone,                               (Decisions.MethodGetOrHead,                       Decisions.IfModifiedSinceRequested) ]
 
 let private internalDecisions =
     internalDecisionDefinitions
@@ -169,33 +169,36 @@ let private defaultHandler _ =
                   Languages = None }
               Data = Array.empty }
 
+(*    Key
+      ------------------------------------------- *)
+
 let private handlerDefinitions =
-    [ Handlers.OK
-      Handlers.Options
+    [ Handlers.Accepted
+      Handlers.BadRequest
+      Handlers.Conflict
       Handlers.Created
-      Handlers.Accepted
-      Handlers.NoContent
+      Handlers.Forbidden
+      Handlers.Gone
+      Handlers.MethodNotAllowed
       Handlers.MovedPermanently
-      Handlers.SeeOther
-      Handlers.NotModified
       Handlers.MovedTemporarily
       Handlers.MultipleRepresentations
-      Handlers.Malformed
-      Handlers.Unauthorized
-      Handlers.Forbidden
-      Handlers.NotFound
-      Handlers.MethodNotAllowed
+      Handlers.NoContent
       Handlers.NotAcceptable
-      Handlers.Conflict
-      Handlers.Gone
+      Handlers.NotFound
+      Handlers.NotImplemented
+      Handlers.NotModified
+      Handlers.OK
+      Handlers.Options
       Handlers.PreconditionFailed
       Handlers.RequestEntityTooLarge
-      Handlers.UriTooLong
-      Handlers.UnsupportedMediaType
-      Handlers.UnprocessableEntity
-      Handlers.NotImplemented
+      Handlers.SeeOther
+      Handlers.ServiceUnavailable
+      Handlers.Unauthorized
       Handlers.UnknownMethod
-      Handlers.ServiceUnavailable ]
+      Handlers.UnprocessableEntity
+      Handlers.UnsupportedMediaType
+      Handlers.UriTooLong ]
 
 let private handlers =
     handlerDefinitions 
@@ -214,44 +217,40 @@ let private handlers =
    Handler nodes, to make sure that correct header values are set (though the
    handler could override them). Operation nodes cannot be user overridden. *)
 
-// TODO: Could this live somewhere better?
-
-let private defaultOperation statusCode reasonPhrase =
-       setPLM Response.statusCode statusCode
-    *> setPLM Response.reasonPhrase reasonPhrase
+(*    Key                                        Operation                                         Next
+      ---------------------------------------------------------------------------------------------------------------------------------- *)
 
 let private operationDefinitions = 
-    [ Operations.SetOK,                         (defaultOperation 200 "OK"),                          Handlers.OK
-      Operations.SetOptions,                    (defaultOperation 200 "Options"),                     Handlers.Options
-      Operations.SetCreated,                    (defaultOperation 201 "Created"),                     Handlers.Created
-      Operations.SetAccepted,                   (defaultOperation 202 "Accepted"),                    Handlers.Accepted
-      Operations.SetNoContent,                  (defaultOperation 204 "No Content"),                  Handlers.NoContent
-      Operations.SetMovedPermanently,           (defaultOperation 301 "Moved Permanently"),           Handlers.MovedPermanently
-      Operations.SetSeeOther,                   (defaultOperation 303 "See Other"),                   Handlers.SeeOther
-      Operations.SetNotModified,                (defaultOperation 304 "Not Modified"),                Handlers.NotModified
-      Operations.SetMovedTemporarily,           (defaultOperation 307 "Moved Temporarily"),           Handlers.MovedTemporarily
-      Operations.SetMultipleRepresentations,    (defaultOperation 310 "Multiple Representations"),    Handlers.MultipleRepresentations
-      Operations.SetMalformed,                  (defaultOperation 400 "Bad Request"),                 Handlers.Malformed
-      Operations.SetUnauthorized,               (defaultOperation 401 "Unauthorized"),                Handlers.Unauthorized
-      Operations.SetForbidden,                  (defaultOperation 403 "Forbidden"),                   Handlers.Forbidden
-      Operations.SetNotFound,                   (defaultOperation 404 "Not Found"),                   Handlers.NotFound
-      Operations.SetMethodNotAllowed,           (defaultOperation 405 "Method Not Allowed"),          Handlers.MethodNotAllowed
-      Operations.SetNotAcceptable,              (defaultOperation 406 "Not Acceptable"),              Handlers.NotAcceptable
-      Operations.SetConflict,                   (defaultOperation 409 "Conflict"),                    Handlers.Conflict
-      Operations.SetGone,                       (defaultOperation 410 "Gone"),                        Handlers.Gone
-      Operations.SetPreconditionFailed,         (defaultOperation 412 "Precondition Failed"),         Handlers.PreconditionFailed
-      Operations.SetRequestEntityTooLarge,      (defaultOperation 413 "Request Entity Too Large"),    Handlers.RequestEntityTooLarge
-      Operations.SetUriTooLong,                 (defaultOperation 414 "URI Too Long"),                Handlers.UriTooLong
-      Operations.SetUnsupportedMediaType,       (defaultOperation 415 "Unsupported Media Type"),      Handlers.UnsupportedMediaType
-      Operations.SetUnprocessableEntity,        (defaultOperation 422 "Unprocessable Entity"),        Handlers.UnprocessableEntity
-      Operations.SetNotImplemented,             (defaultOperation 501 "Not Implemented"),             Handlers.NotImplemented
-      Operations.SetUnknownMethod,              (defaultOperation 501 "Unknown Method"),              Handlers.UnknownMethod
-      Operations.SetServiceUnavailable,         (defaultOperation 503 "Service Unavailable"),         Handlers.ServiceUnavailable
-      
-      Operations.SetCorsActual,                 CrossOrigin.Operation.actual,                         Operations.SetCorsOrigin
-      Operations.SetCorsOrigin,                 CrossOrigin.Operation.origin,                         Decisions.MethodOptions
-      Operations.SetCorsPreflight,              CrossOrigin.Operation.preflight,                      Operations.SetCorsOrigin ] 
-        
+    [ Operations.Accepted,                       Http.Operation.accepted,                          Handlers.Accepted
+      Operations.Created,                        Http.Operation.created,                           Handlers.Created
+      Operations.Conflict,                       Http.Operation.conflict,                          Handlers.Conflict
+      Operations.CrossOriginActual,              CrossOrigin.Operation.actual,                     Operations.CrossOriginOrigin
+      Operations.CrossOriginOrigin,              CrossOrigin.Operation.origin,                     Decisions.MethodOptions
+      Operations.CrossOriginPreflight,           CrossOrigin.Operation.preflight,                  Operations.CrossOriginOrigin 
+      Operations.Forbidden,                      Http.Operation.forbidden,                         Handlers.Forbidden
+      Operations.Gone,                           Http.Operation.gone,                              Handlers.Gone
+      Operations.BadRequest,                     Http.Operation.badRequest,                        Handlers.BadRequest
+      Operations.MethodNotAllowed,               Http.Operation.methodNotAllowed,                  Handlers.MethodNotAllowed
+      Operations.MovedPermanently,               Http.Operation.movedPermanently,                  Handlers.MovedPermanently
+      Operations.MovedTemporarily,               Http.Operation.movedTemporarily,                  Handlers.MovedTemporarily
+      Operations.MultipleRepresentations,        Http.Operation.multipleRepresentations,           Handlers.MultipleRepresentations
+      Operations.NoContent,                      Http.Operation.noContent,                         Handlers.NoContent
+      Operations.NotAcceptable,                  Http.Operation.notAcceptable,                     Handlers.NotAcceptable
+      Operations.NotFound,                       Http.Operation.notFound,                          Handlers.NotFound
+      Operations.NotImplemented,                 Http.Operation.notImplemented,                    Handlers.NotImplemented
+      Operations.NotModified,                    Http.Operation.notModified,                       Handlers.NotModified
+      Operations.OK,                             Http.Operation.ok,                                Handlers.OK
+      Operations.Options,                        Http.Operation.options,                           Handlers.Options
+      Operations.PreconditionFailed,             Http.Operation.preconditionFailed,                Handlers.PreconditionFailed
+      Operations.RequestEntityTooLarge,          Http.Operation.requestEntityTooLarge,             Handlers.RequestEntityTooLarge
+      Operations.SeeOther,                       Http.Operation.seeOther,                          Handlers.SeeOther
+      Operations.ServiceUnavailable,             Http.Operation.serviceUnavailable,                Handlers.ServiceUnavailable
+      Operations.Unauthorized,                   Http.Operation.unauthorized,                      Handlers.Unauthorized
+      Operations.UnknownMethod,                  Http.Operation.unknownMethod,                     Handlers.UnknownMethod
+      Operations.UnprocessableEntity,            Http.Operation.unprocessableEntity,               Handlers.UnprocessableEntity
+      Operations.UnsupportedMediaType,           Http.Operation.unsupportedMediaType,              Handlers.UnsupportedMediaType
+      Operations.UriTooLong,                     Http.Operation.uriTooLong,                        Handlers.UriTooLong ]
+
 let private operations =
     operationDefinitions
     |> List.map (fun (id, operation, next) -> 
