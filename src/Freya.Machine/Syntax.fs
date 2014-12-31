@@ -6,6 +6,7 @@ open Freya.Core
 open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
+open Freya.Types.Uri
 
 (* Custom Operations
 
@@ -63,6 +64,10 @@ type FreyaMachineBuilder with
     member x.ETag (monad, etag: Freya<EntityTag>) = 
         x.Set (monad, configurationKeyPLens Configuration.ETag, etag)
 
+    [<CustomOperation (Configuration.Expires, MaintainsVariableSpaceUsingBind = true)>]
+    member x.Expires (monad, expires: Freya<DateTime>) = 
+        x.Set (monad, configurationKeyPLens Configuration.Expires, expires)
+
     [<CustomOperation (Configuration.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.LanguagesSupported (monad, languages: Freya<LanguageTag list>) = 
         x.Set (monad, configurationKeyPLens Configuration.LanguagesSupported, languages)
@@ -70,6 +75,10 @@ type FreyaMachineBuilder with
     [<CustomOperation (Configuration.LastModified, MaintainsVariableSpaceUsingBind = true)>]
     member x.LastModified (monad, modified: Freya<DateTime>) = 
         x.Set (monad, configurationKeyPLens Configuration.LastModified, modified)
+
+    [<CustomOperation (Configuration.Location, MaintainsVariableSpaceUsingBind = true)>]
+    member x.Location (monad, location: Freya<UriReference>) = 
+        x.Set (monad, configurationKeyPLens Configuration.Location, location)
 
     [<CustomOperation (Configuration.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.MediaTypesSupported (monad, mediaTypes: Freya<MediaType list>) =

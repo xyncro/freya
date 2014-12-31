@@ -649,128 +649,6 @@ module CrossOrigin =
                 accessControlAllowMethods 
              *> accessControlAllowHeaders
 
-(* HTTP *)
-
-[<RequireQualifiedAccess>]
-module Http =
-
-    (* Functions *)
-
-    let private reason =
-        setPLM Response.reasonPhrase
-
-    let private status =
-        setPLM Response.statusCode
-
-    (* Operations *)
-
-    [<RequireQualifiedAccess>]
-    module Operation =
-
-        let accepted =
-                status 202 
-             *> reason "Accepted"
-
-        let badRequest =
-                status 400
-             *> reason "Bad Request"
-
-        let conflict =
-                status 409 
-             *> reason "Conflict"
-
-        let created =
-                status 201
-             *> reason "Created"
-
-        let forbidden =
-                status 403  
-             *> reason "Forbidden"
-
-        let gone =
-                status 410 
-             *> reason "Gone"
-
-        let methodNotAllowed =
-                status 405 
-             *> reason "Method Not Allowed"
-
-        let movedPermanently =
-                status 304 
-             *> reason "Moved Permanently"
-
-        let movedTemporarily =
-                status 307 
-             *> reason "Moved Temporarily"
-
-        let multipleRepresentations =
-                status 310 
-             *> reason "Multiple Representations"
-
-        let noContent =
-                status 204 
-             *> reason "No Content"
-
-        let notAcceptable =
-                status 406 
-             *> reason "Not Acceptable"
-
-        let notFound =
-                status 404 
-             *> reason "Not Found"
-
-        let notImplemented =
-                status 501 
-             *> reason "Not Implemented"
-
-        let notModified =
-                status 304 
-             *> reason "Not Modified"
-
-        let ok =
-                status 200  
-             *> reason "OK"
-
-        let options =
-                status 200  
-             *> reason "Options"
-
-        let preconditionFailed =
-                status 412  
-             *> reason "Precondition Failed"
-
-        let requestEntityTooLarge =
-                status 413  
-             *> reason "Request Entity Too Large"
-
-        let seeOther =
-                status 303  
-             *> reason "See Other"
-
-        let serviceUnavailable =
-                status 503  
-             *> reason "Service Unavailable"
-
-        let unauthorized =
-                status 401  
-             *> reason "Unauthorized"
-
-        let unknownMethod =
-                status 501  
-             *> reason "Unknown Method"
-
-        let unprocessableEntity =
-                status 422  
-             *> reason "Unprocessable Entity"
-
-        let unsupportedMediaType =
-                status 415  
-             *> reason "UnsupportedMediaType"
-
-        let uriTooLong =
-                status 414  
-             *> reason "URI Too Long"
-
 (* Method *)
 
 [<RequireQualifiedAccess>]
@@ -787,20 +665,18 @@ module Method =
     (* Defaults *)
 
     let private defaultMethodsKnown =
-        Set.ofList [ 
-            DELETE
-            HEAD
-            GET
-            OPTIONS
-            PATCH
-            POST
-            PUT
-            TRACE ]
+        [ DELETE
+          HEAD
+          GET
+          OPTIONS
+          PATCH
+          POST
+          PUT
+          TRACE ]
 
     let private defaultMethodsSupported =
-        Set.ofList [ 
-            GET
-            HEAD ]
+        [ GET
+          HEAD ]
     
     (* Request *)
 
@@ -810,12 +686,12 @@ module Method =
     (* Derived *)
 
     let private methodsKnown' =
-            (function | Some x -> Set.ofList x
+            (function | Some x -> x
                       | _ -> defaultMethodsKnown) 
         <!> methodsKnown
 
-    let private methodsSupported' =
-            (function | Some x -> Set.ofList x
+    let internal methodsSupported' =
+            (function | Some x -> x
                       | _ -> defaultMethodsSupported)
         <!> methodsSupported
 
@@ -825,12 +701,12 @@ module Method =
     module Decision =
 
         let known : FreyaMachineDecision =
-                Set.contains
+                (fun x -> List.exists (fun x' -> x = x'))
             <!> meth
             <*> methodsKnown'
 
         let supported : FreyaMachineDecision =
-                Set.contains
+                (fun x -> List.exists (fun x' -> x = x'))
             <!> meth
             <*> methodsSupported'
 
@@ -857,3 +733,193 @@ module Method =
         let put : FreyaMachineDecision =
                 (=) PUT 
             <!> meth
+
+(* HTTP *)
+
+[<RequireQualifiedAccess>]
+module Http =
+
+    // TODO: Content-Location, Cache-Control (??), Vary
+    // TODO: Testing of new header setting!
+
+    let private allow =
+            (fun x -> setPLM Response.Headers.allow (Allow x))
+        =<< Method.methodsSupported'
+
+    let private date =
+        setPLM Response.Headers.date (Date.Date DateTime.UtcNow)
+
+    let private eTag =
+            (function | Some x -> setPLM Response.Headers.eTag (ETag x)
+                      | _ -> returnM ())
+        =<< configurationKey Configuration.ETag
+
+    let private expires =
+            (function | Some x -> setPLM Response.Headers.expires (Expires x)
+                      | _ -> returnM ())
+        =<< configurationKey Configuration.Expires
+
+    let private lastModified =
+            (function | Some x -> setPLM Response.Headers.lastModified (LastModified x)
+                      | _ -> returnM ())
+        =<< configurationKey Configuration.LastModified
+
+    let private location =
+            (function | Some x -> setPLM Response.Headers.location (Location.Location x)
+                      | _ -> returnM ())
+        =<< configurationKey Configuration.Location
+
+    let private reasonPhrase =
+        setPLM Response.reasonPhrase
+
+    let private statusCode =
+        setPLM Response.statusCode
+
+    (* Operations *)
+
+    [<RequireQualifiedAccess>]
+    module Operation =
+
+        let accepted =
+                statusCode 202
+             *> reasonPhrase "Accepted"
+             *> date
+
+        let badRequest =
+                statusCode 400
+             *> reasonPhrase "Bad Request"
+             *> date
+
+        let conflict =
+                statusCode 409
+             *> reasonPhrase "Conflict"
+             *> date
+
+        let created =
+                statusCode 201
+             *> reasonPhrase "Created"
+             *> date
+             *> location
+
+        let forbidden =
+                statusCode 403
+             *> reasonPhrase "Forbidden"
+             *> date
+
+        let gone =
+                statusCode 410 
+             *> reasonPhrase "Gone"
+             *> date
+
+        let methodNotAllowed =
+                statusCode 405
+             *> reasonPhrase "Method Not Allowed"
+             *> allow
+             *> date
+
+        let movedPermanently =
+                statusCode 301
+             *> reasonPhrase "Moved Permanently"
+             *> date
+             *> location
+
+        let movedTemporarily =
+                statusCode 307
+             *> reasonPhrase "Moved Temporarily"
+             *> date
+             *> location
+
+        let multipleRepresentations =
+                statusCode 310
+             *> reasonPhrase "Multiple Representations"
+             *> date
+
+        let noContent =
+                statusCode 204
+             *> reasonPhrase "No Content"
+             *> date
+
+        let notAcceptable =
+                statusCode 406
+             *> reasonPhrase "Not Acceptable"
+             *> date
+
+        let notFound =
+                statusCode 404
+             *> reasonPhrase "Not Found"
+             *> date
+
+        let notImplemented =
+                statusCode 501
+             *> reasonPhrase "Not Implemented"
+             *> date
+
+        let notModified =
+                statusCode 304
+             *> reasonPhrase "Not Modified"
+             *> lastModified
+             *> date
+             *> eTag
+             *> expires
+
+        let ok =
+                statusCode 200
+             *> reasonPhrase "OK"
+             *> lastModified
+             *> date
+             *> eTag
+             *> expires
+
+        let options =
+                statusCode 200
+             *> reasonPhrase "Options"
+             *> lastModified
+             *> date
+             *> eTag
+             *> expires
+
+        let preconditionFailed =
+                statusCode 412
+             *> reasonPhrase "Precondition Failed"
+             *> date
+
+        let requestEntityTooLarge =
+                statusCode 413
+             *> reasonPhrase "Request Entity Too Large"
+             *> date
+
+        let seeOther =
+                statusCode 303
+             *> reasonPhrase "See Other"
+             *> date
+             *> location
+
+        let serviceUnavailable =
+                statusCode 503
+             *> reasonPhrase "Service Unavailable"
+             *> date
+
+        let unauthorized =
+                statusCode 401
+             *> reasonPhrase "Unauthorized"
+             *> date
+
+        let unknownMethod =
+                statusCode 501
+             *> reasonPhrase "Unknown Method"
+             *> date
+
+        let unprocessableEntity =
+                statusCode 422
+             *> reasonPhrase "Unprocessable Entity"
+             *> date
+
+        let unsupportedMediaType =
+                statusCode 415
+             *> reasonPhrase "UnsupportedMediaType"
+             *> date
+
+        let uriTooLong =
+                statusCode 414
+             *> reasonPhrase "URI Too Long"
+             *> date
