@@ -10,8 +10,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Inspector</RootNamespace>
     <AssemblyName>Freya.Inspector</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>Freya.Inspector</Name>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -80,6 +81,11 @@
     <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
       <Name>Freya.Router</Name>
       <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Cors\Freya.Types.Cors.fsproj">
+      <Name>Freya.Types.Cors</Name>
+      <Project>{43cc0142-cffa-4e50-a3bd-12c9f59ce8d2}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
