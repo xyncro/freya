@@ -12,7 +12,7 @@ open Freya.Types.Http
 
 let private initialize =
     freya {
-        return! initR () *> next }
+        return! initializeRecord *> next }
 
 let private record config =
     freya {

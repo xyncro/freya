@@ -4,16 +4,18 @@ module Freya.Recorder.Integration
 open Freya.Core
 open Freya.Core.Operators
 
-(* Functions *)
+(* Execution *)
 
-let initR () =
+let initializeRecord =
     setPLM requestIdPLens =<< (asyncM init =<< returnM ())
 
-let listR () =
+let updateRecord f =
+    Option.iter (fun id -> update id f) <!> getPLM requestIdPLens
+
+(* Inspection *)
+
+let listRecords =
     asyncM list =<< returnM ()
 
-let getR id =
+let getRecord id =
     asyncM read =<< returnM id
-
-let modR f =
-    Option.iter (fun id -> update id f) <!> getPLM requestIdPLens

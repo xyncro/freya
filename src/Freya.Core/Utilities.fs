@@ -7,14 +7,16 @@ open Aether.Operators
 
 (* Lenses *)
 
-let private memoPLens key =
-    FreyaState.MetaLens >--> FreyaMetaState.MemosLens >-?> mapPLens key
+let private memoPLens<'a> key =
+         FreyaState.MetaLens 
+    >--> FreyaMetaState.MemosLens 
+    >-?> mapPLens key
+    <?-> boxIso<'a>
 
 (* Memoization *)
 
 let memoM<'a> (m: Freya<'a>) : Freya<'a> =
-    let key = Guid.NewGuid ()
-    let memoPLens = memoPLens key <?-> boxIso<'a>
+    let memoPLens = memoPLens (Guid.NewGuid ())
      
     freya {
         let! memo = getPLM memoPLens

@@ -36,5 +36,5 @@ let internal freyaRequestRecordPLens =
 
 (* Functions *)
 
-let internal initFreyaRequestR meth path =
-    modR (setPL freyaRequestRecordPLens (freyaRequestRecord meth path))
+let internal initializeFreyaRequestRecord meth path =
+    updateRecord (setPL freyaRequestRecordPLens (freyaRequestRecord meth path))

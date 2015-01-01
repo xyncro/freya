@@ -24,8 +24,6 @@ let inline (<*>) f m =
 let inline (<!>) f m =
     liftM freya f m
 
-
-        
 let inline lift2 f m1 m2 =
     returnM f <*> m1 <*> m2 
 

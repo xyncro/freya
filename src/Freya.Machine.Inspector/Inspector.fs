@@ -6,11 +6,11 @@ open Freya.Inspector
 
 (* Runtime *)
 
-let private init =
-    initFreyaMachineR ()
+let private initialize =
+    initializeFreyaMachineRecord
 
 let private runtime =
-    { Initialize = init }
+    { Initialize = initialize }
 
 (* Inspection *)
 
@@ -18,7 +18,7 @@ let private data =
     getPL freyaMachineRecordPLens >> Option.map toJSON
 
 let private inspection =
-    { FreyaInspectorInspection.Data = data }
+    { Data = data }
 
 (* Inspector *)
 

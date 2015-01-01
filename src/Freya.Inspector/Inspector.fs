@@ -8,15 +8,15 @@ open Freya.Types.Http
 
 (* Runtime *)
 
-let private init =
+let private initialize =
     freya {
         let! meth = getLM Request.meth
         let! path = getLM Request.path
 
-        do! initFreyaRequestR meth path }
+        do! initializeFreyaRequestRecord meth path }
 
 let private runtime =
-    { Initialize = init }
+    { Initialize = initialize }
 
 (* Inspection *)
 

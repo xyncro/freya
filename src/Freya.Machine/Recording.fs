@@ -112,28 +112,19 @@ let private node id x =
     let node = freyaMachineGraphNodeRecord id
 
     match x with
-    | ActionNode { Override = o } -> 
-        node "action" o.Allow o.Overridden
-    | DecisionNode { Override = o } -> 
-        node "decision" o.Allow o.Overridden
-    | HandlerNode { Override = o } -> 
-        node "handler" o.Allow o.Overridden
-    | OperationNode _ -> 
-        node "operation" false false
+    | ActionNode { Override = o } -> node "action" o.Allow o.Overridden
+    | DecisionNode { Override = o } -> node "decision" o.Allow o.Overridden
+    | HandlerNode { Override = o } -> node "handler" o.Allow o.Overridden
+    | OperationNode _ -> node "operation" false false
 
 let private edges id x =
     let edge = freyaMachineGraphEdgeRecord id
 
     match x with
-    | ActionNode x ->
-        [ edge x.Next ]
-    | DecisionNode x ->
-        [ edge x.True
-          edge x.False ]
-    | HandlerNode _ ->
-        []
-    | OperationNode x ->
-        [ edge x.Next ]
+    | ActionNode x -> [ edge x.Next ]
+    | DecisionNode x -> [ edge x.True; edge x.False ]
+    | HandlerNode _ -> []
+    | OperationNode x -> [ edge x.Next ]
 
 let internal graphR g =
     let list = Map.toList g
@@ -145,12 +136,12 @@ let internal graphR g =
 
 (* Recording *)
 
-let internal initFreyaMachineR () =
-    modR (setPL freyaMachineRecordPLens freyaMachineRecord)
+let internal initializeFreyaMachineRecord =
+    updateRecord (setPL freyaMachineRecordPLens freyaMachineRecord)
 
-let internal graphFreyaMachineR graph =
-    modR (setPL (freyaMachineRecordPLens >?-> graphLens) graph)
+let internal graphFreyaMachineRecord graph =
+    updateRecord (setPL (freyaMachineRecordPLens >?-> graphLens) graph)
 
-let internal executionFreyaMachineR id =
-    modR (modPL (freyaMachineRecordPLens >?-> executionLens >?-> executionNodeLens) 
-                (fun es -> es @ [ { Id = id } ]))
+let internal executionFreyaMachineRecord id =
+    updateRecord (modPL (freyaMachineRecordPLens >?-> executionLens >?-> executionNodeLens) 
+                        (fun es -> es @ [ { Id = id } ]))

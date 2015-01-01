@@ -6,11 +6,11 @@ open Freya.Inspector
 
 (* Runtime *)
 
-let private init =
-    initFreyaRouterR ()
+let private initialize =
+    initializeFreyaRouterRecord
 
 let private runtime =
-    { Initialize = init }
+    { Initialize = initialize }
 
 (* Inspection *)
 

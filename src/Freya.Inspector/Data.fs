@@ -11,34 +11,34 @@ open Freya.Machine
 open Freya.Recorder
 open Freya.Router
 
-(* Request *)
+(* Route *)
 
-let private requestId =
+let routeId =
     memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
 
-let private requestInspection =
+let routeInspection =
     memoM ((Option.get) <!> getPLM (Route.valuesKey "inspection"))
 
 (* Data *)
 
 let private recordsData =
     freya {
-        let! records = listR ()
+        let! records = listRecords
 
         return toJSON records }
 
 let private recordData =
     freya {
-        let! id = requestId
-        let! record = getR id
+        let! id = routeId
+        let! record = getRecord id
 
         return Option.map toJSON record }
 
 let private inspectionData inspectors =
     freya {
-        let! id = requestId        
-        let! inspection = requestInspection
-        let! record = getR id
+        let! id = routeId
+        let! inspection = routeInspection
+        let! record = getRecord id
 
         match Map.tryFind inspection inspectors with
         | Some inspector -> return Option.bind inspector.Inspection.Data record
