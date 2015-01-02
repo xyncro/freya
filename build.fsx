@@ -158,9 +158,6 @@ let freya =
    Computed properties of the build based on existing data structures and/or
    environment variables, creating a derived set of properties. *)
 
-let appveyor =
-    environVar "APPVEYOR" <> null
-
 let release =
     parseReleaseNotes (File.ReadAllLines freya.Metadata.Info.Notes)
 
@@ -168,9 +165,9 @@ let assemblyVersion =
     release.AssemblyVersion
 
 let nugetVersion =
-    match appveyor, release.NugetVersion.Contains "-" with
-    | true, true -> sprintf "%s%s" release.NugetVersion buildVersion
-    | true, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
+    match buildServer, release.NugetVersion.Contains "-" with
+    | AppVeyor, true -> sprintf "%s%s" release.NugetVersion buildVersion
+    | AppVeyor, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
     | _ -> release.NugetVersion
 
 let notes =
@@ -196,7 +193,7 @@ let extensions =
 let files (x: SourceProject) =
     extensions
     |> List.map (fun ext ->
-        (sprintf @"..\src\%s\bin\Release\%s.%s" x.Name x.Name ext), 
+        (sprintf @"../src/%s\bin/Release/%s.%s" x.Name x.Name ext), 
          Some "lib/net40", 
          None)
 

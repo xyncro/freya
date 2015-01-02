@@ -37,9 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140
 	ProjectSection(SolutionItems) = preProject
 		build.cmd = build.cmd
 		build.fsx = build.fsx
+		build.old = build.old
 		build.sh = build.sh
-		build2.fsx = build2.fsx
-		docs\tools\generate.fsx = docs\tools\generate.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Net.Http", "src\Freya.Net.Http\Freya.Net.Http.fsproj", "{3533610C-F45A-4791-AA3D-33E1DDA0416A}"
