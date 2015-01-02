@@ -21,9 +21,9 @@ let ``MediaType Negotiation`` () =
     let requested3 =
         Accept.Parse "*/*;q=0"
 
-    let negotiated1 = Accept.negotiate supported (Some requested1)
-    let negotiated2 = Accept.negotiate supported (Some requested2)
-    let negotiated3 = Accept.negotiate supported (Some requested3)
+    let negotiated1 = MediaType.Negotiation.negotiate supported (Some requested1)
+    let negotiated2 = MediaType.Negotiation.negotiate supported (Some requested2)
+    let negotiated3 = MediaType.Negotiation.negotiate supported (Some requested3)
         
     negotiated1 =? 
         Negotiated ([ MediaType.JSON
@@ -48,8 +48,8 @@ let ``Charset Negotiation`` () =
     let requested2 =
         AcceptCharset.Parse "unicode-1-1,iso-8859-1;q=0.9"
 
-    let negotiated1 = AcceptCharset.negotiate supported (Some requested1)
-    let negotiated2 = AcceptCharset.negotiate supported (Some requested2)
+    let negotiated1 = Charset.Negotiation.negotiate supported (Some requested1)
+    let negotiated2 = Charset.Negotiation.negotiate supported (Some requested2)
 
     negotiated1 =? 
         Negotiated ([ Charset.Iso88591 
@@ -71,8 +71,8 @@ let ``Encoding Negotiation`` () =
     let requested2 =
         AcceptEncoding.Parse "deflate;q=0.7"
 
-    let negotiated1 = AcceptEncoding.negotiate supported (Some requested1)
-    let negotiated2 = AcceptEncoding.negotiate supported (Some requested2)
+    let negotiated1 = Encoding.Negotiation.negotiate supported (Some requested1)
+    let negotiated2 = Encoding.Negotiation.negotiate supported (Some requested2)
 
     negotiated1 =? Negotiated ([ ContentCoding.GZip ])
     negotiated2 =? Negotiated ([])
@@ -87,7 +87,7 @@ let ``Language Negotiation`` () =
     let requested1 =
         AcceptLanguage.Parse "en-GB,en-US;q=0.8,en;q=0.6"
 
-    let negotiated1 = AcceptLanguage.negotiate supported (Some requested1)
+    let negotiated1 = Language.Negotiation.negotiate supported (Some requested1)
 
     negotiated1 =? Negotiated ([ LanguageTag.Parse "en-GB"
                                  LanguageTag.Parse "en" ])

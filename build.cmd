@@ -6,9 +6,9 @@ if errorlevel 1 (
   exit /b %errorlevel%
 )
 
-.paket\paket.exe install -v
+.paket\paket.exe restore
 if errorlevel 1 (
   exit /b %errorlevel%
 )
 
-packages\FAKE\tools\FAKE.exe build.fsx %*
+packages\FAKE\tools\FAKE.exe build2.fsx %*

@@ -54,6 +54,7 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="Prelude.fs" />
     <Compile Include="Pipeline.Tests.fs" />
     <Content Include="App.config" />
   </ItemGroup>

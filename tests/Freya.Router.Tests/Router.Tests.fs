@@ -18,7 +18,7 @@ let ``Router With No Routes Returns Next`` () =
 let ``Router With Base Route Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All "/" (set 1) }
+            route All "/" route1 }
 
     value GET "/" routes =? Some 1
 
@@ -26,9 +26,9 @@ let ``Router With Base Route Executes Correctly`` () =
 let ``Router With Multiple Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All "/" (set 1)
-            route All "/some/path" (set 2)
-            route All "/other/path" (set 3) }
+            route All "/" route1
+            route All "/some/path" route2
+            route All "/other/path" route3 }
 
     value GET "/" routes =? Some 1
     value GET "/some/path" routes =? Some 2
@@ -39,9 +39,9 @@ let ``Router With Multiple Routes Executes Correctly`` () =
 let ``Router With Method Specific Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route (Methods [ GET  ]) "/" (set 1)
-            route (Methods [ GET  ]) "/some/path" (set 2)
-            route (Methods [ POST ]) "/some/path" (set 3) }
+            route Get "/" route1
+            route Get "/some/path" route2
+            route Post "/some/path" route3 }
 
     value GET "/" routes =? Some 1
     value POST "/" routes =? None
@@ -52,7 +52,7 @@ let ``Router With Method Specific Routes Executes Correctly`` () =
 let ``Router Executes Pipeline Registered First`` () =
     let routes =
         freyaRouter {
-            route (Methods [ GET ]) "/" (set 1)
-            route All "/" (set 2) }
+            route Get "/" route1
+            route All "/" route2 }
 
     value GET "/" routes =? Some 1

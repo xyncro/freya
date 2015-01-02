@@ -10,6 +10,14 @@ open Freya.Pipeline
 open Freya.Router
 open Freya.Types.Http
 
+let private freyaState () =
+    let env = 
+        Dictionary<string, obj> () :> IDictionary<string, obj>
+
+    { Environment = env
+      Meta =
+        { Memos = Map.empty } }
+
 (* Keys *)
 
 let [<Literal>] testKey =
@@ -22,22 +30,40 @@ let private testLens =
 
 (* Functions *)
 
-let get =
+let private get =
     getPL testLens
 
-let set i =
+let private set i =
     setPLM testLens i *> next
 
 let private run meth path m =
-    let state = Dictionary<string, obj> ()
     let router = compileFreyaRouter m
 
     Async.RunSynchronously ((   setLM Request.path path 
                              *> setLM Request.meth meth 
-                             *> router) state)
+                             *> router) (freyaState ()))
 
 let result meth path m =
     fst (run meth path m)
 
 let value meth path m =
     get (snd (run meth path m))
+
+(* Methods *)
+
+let Get =
+    Methods [ GET ]
+
+let Post =
+    Methods [ POST ]
+
+(* Routes *)
+
+let route1 =
+    set 1
+
+let route2 =
+    set 2
+
+let route3 =
+    set 3
