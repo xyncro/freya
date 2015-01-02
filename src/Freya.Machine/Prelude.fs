@@ -26,6 +26,7 @@ open System.Runtime.CompilerServices
 (* Internals *)
 
 [<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
+[<assembly:InternalsVisibleTo ("Freya.Machine.Tests")>]
 do ()
 
 (* Operators *)

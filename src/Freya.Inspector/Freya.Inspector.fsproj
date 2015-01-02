@@ -98,6 +98,11 @@
       <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
+      <Name>Freya.Types.Uri</Name>
+      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
