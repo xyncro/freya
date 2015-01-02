@@ -21,9 +21,6 @@
 module Freya.Types.Prelude
 
 open System.Runtime.CompilerServices
-open Aether
-open Freya.Core
-open Freya.Core.Operators
 
 (* Internals *)
 
