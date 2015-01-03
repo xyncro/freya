@@ -26,7 +26,7 @@ open Freya.Inspector
 (* Runtime *)
 
 let private initialize =
-    initializeFreyaMachineRecord
+    initializeRecord
 
 let private runtime =
     { Initialize = initialize }

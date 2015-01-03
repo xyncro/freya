@@ -21,6 +21,7 @@
 module Freya.Router.Recording
 
 open Aether
+open Aether.Operators
 open Fleece
 open Fleece.Operators
 open Freya.Recorder
@@ -33,22 +34,30 @@ let [<Literal>] internal routerKey =
 (* Types *)
 
 type FreyaRouterRecord =
-    { Trie: FreyaRouterTrieRecord
-      Execution: FreyaRouterExecutionRecord }
+    { Execution: FreyaRouterExecutionRecord
+      Trie: FreyaRouterTrieRecord }
+
+    static member ExecutionLens =
+        (fun x -> x.Execution), (fun e x -> { x with Execution = e })
+
+    static member TrieLens =
+        (fun x -> x.Trie), (fun t x -> { x with Trie = t })
 
     static member ToJSON (x: FreyaRouterRecord) =
         jobj [
-            "trie" .= x.Trie
-            "execution" .= x.Execution ]
+            "execution" .= x.Execution
+            "trie" .= x.Trie ]
 
 (* Trie *)
 
 and FreyaRouterTrieRecord =
-    { Id: string }
+    { Id: string
+      Children: FreyaRouterTrieRecord list }
 
     static member ToJSON (x: FreyaRouterTrieRecord) =
         jobj [
-            "id" .= x.Id ]
+            "id" .= x.Id
+            "children" .= x.Children ]
 
 (* Execution *)
 
@@ -59,11 +68,12 @@ and FreyaRouterExecutionRecord =
         jobj [
             "tries" .= x.Tries ]
 
-(* Contructors *)
+(* Constructors *)
 
 let private freyaRouterRecord =
     { Trie =
-        { Id = "" }
+        { Id = ""
+          Children = List.empty }
       Execution =
         { Tries = List.empty } }
 
@@ -74,5 +84,14 @@ let internal freyaRouterRecordPLens =
 
 (* Functions *)
 
-let internal initializeFreyaRouterRecord =
+let internal trieRecord trie =
+    ()
+
+(* Recording *)
+
+let internal initializeRecord =
     updateRecord (setPL freyaRouterRecordPLens freyaRouterRecord)
+
+let internal setTrieRecord trie =
+    updateRecord (setPL (     freyaRouterRecordPLens
+                         >?-> FreyaRouterRecord.TrieLens) trie)

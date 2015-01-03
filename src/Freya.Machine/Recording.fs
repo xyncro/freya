@@ -35,13 +35,19 @@ let [<Literal>] internal machineKey =
 (* Types *)
 
 type FreyaMachineRecord =
-    { Graph: FreyaMachineGraphRecord
-      Execution: FreyaMachineExecutionRecord }
+    { Execution: FreyaMachineExecutionRecord
+      Graph: FreyaMachineGraphRecord }
+
+    static member ExecutionLens =
+        (fun x -> x.Execution), (fun e x -> { x with Execution = e })
+
+    static member GraphLens =
+        (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
     static member ToJSON (x: FreyaMachineRecord) =
         jobj [
-            "graph" .= x.Graph
-            "execution" .= x.Execution ]
+            "execution" .= x.Execution
+            "graph" .= x.Graph ]
 
 (* Graph *)
 
@@ -81,6 +87,9 @@ and FreyaMachineGraphEdgeRecord =
 and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
+    static member NodesLens =
+        (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
+
     static member ToJSON (x: FreyaMachineExecutionRecord) =
         jobj [
             "nodes" .= x.Nodes ]
@@ -113,15 +122,6 @@ let private freyaMachineGraphEdgeRecord from t =
 
 (* Lenses *)
 
-let private graphLens =
-    (fun x -> x.Graph), (fun g x -> { x with Graph = g })
-
-let private executionLens =
-    (fun x -> x.Execution), (fun e x -> { x with Execution = e })
-
-let private executionNodeLens =
-    (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
-
 let internal freyaMachineRecordPLens =
     recordDataPLens<FreyaMachineRecord> machineKey
 
@@ -145,8 +145,8 @@ let private edges id x =
     | HandlerNode _ -> []
     | OperationNode x -> [ edge x.Next ]
 
-let internal graphR g =
-    let list = Map.toList g
+let internal graphRecord graph =
+    let list = Map.toList graph
     let nodes = List.map (fun (k, v) -> node k v)
     let edges = List.map (fun (k, v) -> edges k v) >> List.concat
 
@@ -155,12 +155,15 @@ let internal graphR g =
 
 (* Recording *)
 
-let internal initializeFreyaMachineRecord =
+let internal initializeRecord =
     updateRecord (setPL freyaMachineRecordPLens freyaMachineRecord)
 
-let internal graphFreyaMachineRecord graph =
-    updateRecord (setPL (freyaMachineRecordPLens >?-> graphLens) graph)
+let internal setGraphRecord graph =
+    updateRecord (setPL (     freyaMachineRecordPLens 
+                         >?-> FreyaMachineRecord.GraphLens) graph)
 
-let internal executionFreyaMachineRecord id =
-    updateRecord (modPL (freyaMachineRecordPLens >?-> executionLens >?-> executionNodeLens) 
+let internal addExecutionRecord id =
+    updateRecord (modPL (     freyaMachineRecordPLens 
+                         >?-> FreyaMachineRecord.ExecutionLens 
+                         >?-> FreyaMachineExecutionRecord.NodesLens) 
                         (fun es -> es @ [ { Id = id } ]))
