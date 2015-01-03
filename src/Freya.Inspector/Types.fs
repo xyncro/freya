@@ -33,7 +33,7 @@ type FreyaInspectorConfiguration =
     { Inspectors: FreyaInspector list }
 
 and FreyaInspector =
-    { Id: string
+    { Key: string
       Runtime: FreyaInspectorRuntime
       Inspection: FreyaInspectorInspection }
 

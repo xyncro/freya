@@ -35,8 +35,8 @@ open Freya.Router
 let routeId =
     memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
 
-let routeInspection =
-    memoM ((Option.get) <!> getPLM (Route.valuesKey "inspection"))
+let routeKey =
+    memoM ((Option.get) <!> getPLM (Route.valuesKey "key"))
 
 (* Data *)
 
@@ -56,10 +56,10 @@ let private recordData =
 let private inspectionData inspectors =
     freya {
         let! id = routeId
-        let! inspection = routeInspection
+        let! key = routeKey
         let! record = getRecord id
 
-        match Map.tryFind inspection inspectors with
+        match Map.tryFind key inspectors with
         | Some inspector -> return Option.bind inspector.Inspection.Data record
         | _ -> return None }
 
@@ -101,14 +101,11 @@ let private inspection inspectors =
 
 (* Routes *)
 
-let private root =
-    sprintf "/freya/api/requests%s"
-
 let private map =
-    List.map (fun (x: FreyaInspector) -> x.Id, x) >> Map.ofList
+    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
 
 let data config =
     freyaRouter {
-        route All (root "") records
-        route All (root "/:id") record
-        route All (root "/:id/inspections/:inspection") (inspection (map config.Inspectors)) } |> compileFreyaRouter
+        route All "/freya/api/requests" records
+        route All "/freya/api/requests/:id" record
+        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileFreyaRouter

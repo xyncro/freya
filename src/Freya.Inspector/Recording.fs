@@ -28,7 +28,7 @@ open Freya.Types.Http
 
 (* Keys *)
 
-let [<Literal>] internal requestKey =
+let [<Literal>] internal freyaRequestRecordKey =
     "request"
 
 (* Types *)
@@ -51,7 +51,7 @@ let private freyaRequestRecord meth path =
 (* Lenses *)
 
 let internal freyaRequestRecordPLens =
-    recordDataPLens<FreyaRequestRecord> requestKey
+    recordDataPLens<FreyaRequestRecord> freyaRequestRecordKey
 
 (* Functions *)
 

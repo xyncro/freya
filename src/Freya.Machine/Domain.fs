@@ -214,7 +214,7 @@ module ContentNegotiation =
                     x, List.chooseMaxBy (max x) requested)
 
             let private sort =
-                List.sortBy (fun (x, y) ->
+                List.sortBy (fun (_, y) ->
                     (function | Some { AcceptableCharset.Weight = Some weight } -> 1. - weight
                               | _ -> 0.) y)
 
@@ -296,7 +296,7 @@ module ContentNegotiation =
                     x, List.chooseMaxBy (max x) requested)
 
             let private sort =
-                List.sortBy (fun (x, y) ->
+                List.sortBy (fun (_, y) ->
                     (function | Some { AcceptableEncoding.Weight = Some weight } -> 1. - weight
                               | _ -> 0.) y)
 
@@ -483,7 +483,7 @@ module ContentNegotiation =
                     x, List.chooseMaxBy (max x) requested)
 
             let private sort =
-                List.sortBy (fun (x, y) ->
+                List.sortBy (fun (_, y) ->
                     (function | Some { Parameters = Some { Weight = weight } } -> 1. - weight
                               | _ -> 0.) y)
 

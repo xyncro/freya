@@ -28,7 +28,7 @@ open Freya.Recorder
 
 (* Keys *)
 
-let [<Literal>] internal routerKey =
+let [<Literal>] freyaRouterRecordKey =
     "router"
 
 (* Types *)
@@ -79,8 +79,8 @@ let private freyaRouterRecord =
 
 (* Lenses *)
 
-let internal freyaRouterRecordPLens =
-    recordDataPLens<FreyaRouterRecord> routerKey
+let freyaRouterRecordPLens =
+    recordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
 
 (* Functions *)
 
@@ -89,9 +89,9 @@ let internal trieRecord trie =
 
 (* Recording *)
 
-let internal initializeRecord =
+let initializeFreyaRouterRecord =
     updateRecord (setPL freyaRouterRecordPLens freyaRouterRecord)
 
-let internal setTrieRecord trie =
+let internal setFreyaRouterTrieRecord trie =
     updateRecord (setPL (     freyaRouterRecordPLens
                          >?-> FreyaRouterRecord.TrieLens) trie)

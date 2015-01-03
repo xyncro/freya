@@ -42,11 +42,8 @@ let private record config =
 
 (* Pipelines *)
 
-let private inspect config =
-        content config 
-    >?= data config
-
 let freyaInspector config =
-        inspect config 
-    >?= initialize 
+        content
+    >?= data config
+    >?= initialize
     >?= record config

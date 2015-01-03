@@ -24,12 +24,11 @@ open Aether
 open Aether.Operators
 open Fleece
 open Fleece.Operators
-open Freya.Core
 open Freya.Recorder
 
 (* Keys *)
 
-let [<Literal>] internal machineKey =
+let [<Literal>] freyaMachineRecordKey =
     "machine"
 
 (* Types *)
@@ -122,8 +121,8 @@ let private freyaMachineGraphEdgeRecord from t =
 
 (* Lenses *)
 
-let internal freyaMachineRecordPLens =
-    recordDataPLens<FreyaMachineRecord> machineKey
+let freyaMachineRecordPLens =
+    recordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
 (* Functions *)
 
@@ -155,14 +154,14 @@ let internal graphRecord graph =
 
 (* Recording *)
 
-let internal initializeRecord =
+let initializeFreyaMachineRecord =
     updateRecord (setPL freyaMachineRecordPLens freyaMachineRecord)
 
-let internal setGraphRecord graph =
+let internal setFreyaMachineGraphRecord graph =
     updateRecord (setPL (     freyaMachineRecordPLens 
                          >?-> FreyaMachineRecord.GraphLens) graph)
 
-let internal addExecutionRecord id =
+let internal addFreyaMachineExecutionRecord id =
     updateRecord (modPL (     freyaMachineRecordPLens 
                          >?-> FreyaMachineRecord.ExecutionLens 
                          >?-> FreyaMachineExecutionRecord.NodesLens) 

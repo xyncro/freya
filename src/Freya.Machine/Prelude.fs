@@ -25,7 +25,6 @@ open System.Runtime.CompilerServices
 
 (* Internals *)
 
-[<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
 [<assembly:InternalsVisibleTo ("Freya.Machine.Tests")>]
 do ()
 
@@ -38,9 +37,6 @@ let (==) s1 s2 =
 
 let inline flip f a b = 
     f b a
-
-let tuple a b =
-    a, b
 
 (* List Extensions *)
 
