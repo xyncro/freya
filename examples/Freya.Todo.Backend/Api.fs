@@ -26,6 +26,7 @@ open Freya.Core.Operators
 open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Inspector
+open Freya.Machine.Router
 open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Router
@@ -45,7 +46,7 @@ let newTodo =
 let patchTodo =
     memoM (body ())
 
-// Domain
+// Storage
 
 let add =
     memoM (asyncM Storage.add =<< (Option.get <!> newTodo))
@@ -127,8 +128,8 @@ let todo =
 
 let todoBackend : FreyaPipeline =
     freyaRouter {
-        route All "/" todos
-        route All "/:id" todo } |> compileFreyaRouter
+        resource "/" todos
+        resource "/:id" todo } |> compileFreyaRouter
 
 // API
 
