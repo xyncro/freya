@@ -5,7 +5,13 @@ open System
 open System.IO
 open Fake
 open Fake.AssemblyInfoFile
+open Fake.Git
 open Fake.ReleaseNotesHelper
+
+#if MONO
+#else
+
+#endif
 
 (* Types
 
@@ -15,7 +21,8 @@ open Fake.ReleaseNotesHelper
 type Solution =
     { Name: string
       Metadata: Metadata
-      Structure: Structure }
+      Structure: Structure
+      VersionControl: VersionControl }
 
 and Metadata =
     { Summary: string
@@ -48,15 +55,19 @@ and Dependency =
 and TestProject =
     { Name: string }
 
+and VersionControl =
+    { Source: string
+      Raw: string }
+
 (* Data
 
    The Freya solution expressed as a strongly typed structure using the previously
    defined type system. *)
 
 let freya =
-    { Name = "freya"
+    { Name = "Freya"
       Metadata =
-        { Summary = "Freya"
+        { Summary = "Freya - A Functional-First F# Web Stack"
           Description = "Freya"
           Authors =
             [ "Ryan Riley (@panesofglass)"
@@ -151,12 +162,18 @@ let freya =
                   { Name = "Freya.Types.Cors.Tests" }
                   { Name = "Freya.Types.Http.Tests" }
                   { Name = "Freya.Types.Language.Tests" }
-                  { Name = "Freya.Types.Uri.Tests" } ] } } }
+                  { Name = "Freya.Types.Uri.Tests" } ] } }
+      VersionControl =
+        { Source = "https://github.com/freya-fs/freya"
+          Raw = "https://raw.github.com/freya-fs" } }
 
 (* Properties
 
    Computed properties of the build based on existing data structures and/or
    environment variables, creating a derived set of properties. *)
+
+let branch =
+    getBranchName __SOURCE_DIRECTORY__
 
 let release =
     parseReleaseNotes (File.ReadAllLines freya.Metadata.Info.Notes)
@@ -165,9 +182,9 @@ let assemblyVersion =
     release.AssemblyVersion
 
 let nugetVersion =
-    match buildServer, release.NugetVersion.Contains "-" with
-    | AppVeyor, true -> sprintf "%s%s" release.NugetVersion buildVersion
-    | AppVeyor, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
+    match isLocalBuild, release.NugetVersion.Contains "-" with
+    | false, true -> sprintf "%s-%s" release.NugetVersion buildVersion
+    | false, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
     | _ -> release.NugetVersion
 
 let notes =
@@ -197,34 +214,70 @@ let files (x: SourceProject) =
          Some "lib/net40", 
          None)
 
+let projectFile (x: SourceProject) =
+    sprintf @"src/%s/%s.fsproj" x.Name x.Name
+
 let tags (s: Solution) =
     String.concat " " s.Metadata.Keywords
 
 Target "Publish.Packages" (fun _ ->
-    freya.Structure.Projects.Source |> List.iter (fun project ->
+    freya.Structure.Projects.Source 
+    |> List.iter (fun project ->
         NuGet (fun x ->
             { x with
+                AccessKey = getBuildParamOrDefault "nugetkey" ""
                 Authors = freya.Metadata.Authors
                 Dependencies = dependencies project
                 Description = freya.Metadata.Description
                 Files = files project
                 OutputPath = "bin"
                 Project = project.Name
+                Publish = hasBuildParam "nugetkey"
                 ReleaseNotes = notes
                 Summary = freya.Metadata.Summary
                 Tags = tags freya
                 Version = nugetVersion }) "nuget/template.nuspec"))
 
+#if MONO
+#else
+#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
+
+open SourceLink
+
+Target "Publish.Debug" (fun _ ->
+    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" freya.VersionControl.Raw (freya.Name.ToLowerInvariant ())
+
+    freya.Structure.Projects.Source
+    |> List.iter (fun project ->
+        use git = new GitRepo __SOURCE_DIRECTORY__
+
+        let release = VsProj.LoadRelease (projectFile project)
+        let files = release.Compiles -- "**/AssemblyInfo.fs"
+
+        git.VerifyChecksums files
+        release.VerifyPdbChecksums files
+        release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
+        
+        Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
+
+#endif
+
 (* Source *)
+
+let assemblyInfo (x: SourceProject) =
+    sprintf @"src/%s/AssemblyInfo.fs" x.Name
+
+let testAssembly (x: TestProject) =
+    sprintf "tests/%s/bin/Release/%s.dll" x.Name x.Name
 
 Target "Source.AssemblyInfo" (fun _ ->
     freya.Structure.Projects.Source
-    |> List.iter (fun p ->
-        CreateFSharpAssemblyInfo (sprintf @"src/%s/AssemblyInfo.fs" p.Name)
+    |> List.iter (fun project ->
+        CreateFSharpAssemblyInfo (assemblyInfo project)
             [ Attribute.Description freya.Metadata.Summary
               Attribute.FileVersion assemblyVersion
-              Attribute.Product p.Name
-              Attribute.Title p.Name
+              Attribute.Product project.Name
+              Attribute.Title project.Name
               Attribute.Version assemblyVersion ]))
 
 Target "Source.Build" (fun _ ->
@@ -245,7 +298,7 @@ Target "Source.Clean" (fun _ ->
 
 Target "Source.Test" (fun _ ->
     freya.Structure.Projects.Test 
-    |> List.map (fun x -> sprintf "tests/%s/bin/Release/%s.dll" x.Name x.Name)
+    |> List.map (fun project -> testAssembly project)
     |> NUnitParallel (fun x ->
         { x with
             DisableShadowCopy = true
@@ -264,7 +317,8 @@ Target "Publish" DoNothing
 (* Publish *)
 
 "Source"
-=?> ("Publish.Packages", not isMono)
+=?> ("Publish.Packages", buildServer = AppVeyor)
+=?> ("Publish.Debug",    buildServer = AppVeyor && branch = "master")
 ==> "Publish"
 
 (* Source *)
