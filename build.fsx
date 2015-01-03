@@ -299,7 +299,7 @@ Target "Source.Clean" (fun _ ->
 Target "Source.Test" (fun _ ->
     freya.Structure.Projects.Test 
     |> List.map (fun project -> testAssembly project)
-    |> NUnitParallel (fun x ->
+    |> NUnit (fun x ->
         { x with
             DisableShadowCopy = true
             TimeOut = TimeSpan.FromMinutes 20.
