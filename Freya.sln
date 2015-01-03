@@ -10,7 +10,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Core.Tests", "tests\F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{291EFE25-4571-4F3D-A7A3-A900C66EBA62}"
 	ProjectSection(SolutionItems) = preProject
-		LICENSE.txt = LICENSE.txt
+		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
@@ -37,7 +37,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140
 	ProjectSection(SolutionItems) = preProject
 		build.cmd = build.cmd
 		build.fsx = build.fsx
-		build.old = build.old
 		build.sh = build.sh
 	EndProjectSection
 EndProject

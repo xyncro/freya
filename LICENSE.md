@@ -1,3 +1,5 @@
+# Apache 2.0
+
 Copyright 2014
 
     Ryan Riley (@panesofglass) and Andrew Cherry (@kolektiv)
