@@ -47,7 +47,7 @@ let segmentize (path: string) =
 let private childPLens i =
     FreyaRouterTrie.ChildrenLens >-?> listPLens i
 
-(* Build *)
+(* Constructors *)
 
 let rec private add node =
     function | (segment :: path, pipeline, meth) -> 
@@ -71,5 +71,5 @@ and private append segment path pipeline meth =
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)
 
-let buildTrie =
+let freyaRouterTrie =
     List.fold (flip addRoute) (node "")

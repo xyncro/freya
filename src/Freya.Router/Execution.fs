@@ -27,41 +27,43 @@ open Freya.Types.Http
 
 (* Find *)
 
-let rec private findNode path data node  =
+let rec private findTrie path data (trie: FreyaRouterTrie)  =
     freya {
         match path with
-        | segment :: path -> return! (pick segment data >=> ret path) node.Children
-        | _ -> return Some (node.Pipelines, data) }
+        | segment :: path -> return! (pick segment data >=> ret path) trie.Children
+        | _ -> return Some (trie.Pipelines, data) }
 
 and private ret path x =
     freya {
         match x with
-        | Some (node, data) -> return! findNode path data node
+        | Some (trie, data) -> return! findTrie path data trie
         | _ -> return None }
 
-and private pick segment data nodes =
+and private pick segment data tries =
     freya {
-        match nodes with
+        match tries with
         | [] -> return None
-        | nodes ->
+        | tries ->
             let! env = getM
 
             let x, env =
-                List.fold (fun (x, env) node -> 
+                List.fold (fun (x, env) trie ->
                     match x with
-                    | Some (node, data) -> (Some (node, data), env)
-                    | None -> Async.RunSynchronously (recognize segment data node env)) (None, env) nodes
+                    | Some (trie, data) -> (Some (trie, data), env)
+                    | None -> Async.RunSynchronously (recognize segment data trie env)) (None, env) tries
 
             do! setM env
 
             return x }
 
-and private recognize segment data node =
+and private recognize segment data trie =
     freya {
-        match node.Recognizer with
-        | Capture x -> return Some (node, Map.add x segment data)
-        | Ignore x when x = segment -> return Some (node, data)
-        | _ -> return None }
+        let result = addFreyaRouterExecutionRecord trie.Key segment
+
+        match trie.Recognizer with
+        | Capture x -> return! result Captured *> returnM (Some (trie, Map.add x segment data))
+        | Ignore x when x = segment -> return! result Matched *> returnM (Some (trie, data))
+        | _ -> return! result Failed *> returnM None }
 
 (* Match *)
 
@@ -84,15 +86,18 @@ let private matchMethod meth x =
 
 let private search path meth data trie =
     freya {
-        return! (findNode path data >=> matchMethod meth) trie }
+        return! (findTrie path data >=> matchMethod meth) trie }
 
 (* Compilation *)
 
 let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)
-    let trie = buildTrie routes
+    let trie = freyaRouterTrie routes
+    let trieRecord = freyaRouterTrieRecord trie
 
     freya {
+        do! setFreyaRouterTrieRecord trieRecord
+
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path
         let! res = search path meth Map.empty trie

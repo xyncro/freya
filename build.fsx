@@ -103,6 +103,13 @@ let freya =
                           Local "Freya.Types.Http"
                           Local "Freya.Types.Language"
                           Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Router"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Pipeline"
+                          Local "Freya.Types.Http" ] }
                   { Name = "Freya.Pipeline"
                     Dependencies =
                         [ Package "FSharp.Core"

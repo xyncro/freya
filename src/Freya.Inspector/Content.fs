@@ -60,10 +60,7 @@ let private html =
 
 (* Routes *)
 
-let private root =
-    sprintf "/freya%s"
-
-let content (config: FreyaInspectorConfiguration) =
+let content =
     freyaRouter {
-        route All (root "") html
-        route All (root "/css") css } |> compileFreyaRouter
+        route All "/freya" html
+        route All "/freya/css" css } |> compileFreyaRouter

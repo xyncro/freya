@@ -88,6 +88,11 @@
       <Project>{63c07538-e910-4156-9c31-d7b6e9e5d85b}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Machine.Router\Freya.Machine.Router.fsproj">
+      <Name>Freya.Machine.Router</Name>
+      <Project>{b34d7bd9-09b5-4bfc-af0a-e3f02214111a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine\Freya.Machine.fsproj">
       <Name>Freya.Machine</Name>
       <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>

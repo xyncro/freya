@@ -48,6 +48,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRequestInspector =
-    { Id = requestKey
+    { Key = freyaRequestRecordKey
       Runtime = runtime
       Inspection = inspection }

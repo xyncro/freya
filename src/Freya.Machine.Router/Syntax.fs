@@ -17,31 +17,21 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-module Freya.Machine.Inspector
+[<AutoOpen>]
+module Freya.Machine.Router.Syntax
 
-open Aether
-open Fleece
-open Freya.Inspector
+open Freya.Router
 
-(* Runtime *)
+(* Custom Operations
 
-let private initialize =
-    initializeFreyaMachineRecord
+   Custom syntax operator extension used in the FreyaRouter computation
+   expression. Custom syntax operators are used to register a resource,
+   which is shorthand for registering a route with methods equal to All. *)
 
-let private runtime =
-    { Initialize = initialize }
+type FreyaRouterBuilder with
 
-(* Inspection *)
+    (* Routes *)
 
-let private data =
-    getPL freyaMachineRecordPLens >> Option.map toJSON
-
-let private inspection =
-    { Data = data }
-
-(* Inspector *)
-
-let freyaMachineInspector =
-    { Key = freyaMachineRecordKey
-      Runtime = runtime
-      Inspection = inspection }
+    [<CustomOperation ("resource", MaintainsVariableSpaceUsingBind = true)>]
+    member x.Resource (r, path, pipeline) =
+        x.Route (r, All, path, pipeline)

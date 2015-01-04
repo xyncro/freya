@@ -42,6 +42,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Id = routerKey
+    { Key = freyaRouterRecordKey
       Runtime = runtime
       Inspection = inspection }
