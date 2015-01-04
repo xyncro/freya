@@ -324,8 +324,8 @@ Target "Publish" DoNothing
 (* Publish *)
 
 "Source"
-=?> ("Publish.Packages", buildServer = AppVeyor)
 =?> ("Publish.Debug",    buildServer = AppVeyor && branch = "master")
+=?> ("Publish.Packages", buildServer = AppVeyor)
 ==> "Publish"
 
 (* Source *)
