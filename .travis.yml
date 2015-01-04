@@ -12,6 +12,7 @@ install:
 
 script:
   - ./build.sh Default
+  - ./build.sh All
   
 notifications:
   webhooks:
