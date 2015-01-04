@@ -1,251 +1,347 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script 
-// --------------------------------------------------------------------------------------
-
 #I "packages/FAKE/tools"
-#r "Nuget.Core.dll"
 #r "FakeLib.dll"
+
 open System
 open System.IO
-open Fake 
-open Fake.Git
+open Fake
 open Fake.AssemblyInfoFile
+open Fake.Git
 open Fake.ReleaseNotesHelper
+
+#if MONO
+#else
+
+#endif
+
+(* Types
+
+   Types to help declaratively define the Freya solution, to enable strongly typed
+   access to all properties and data required for the varying builds. *)
+
+type Solution =
+    { Name: string
+      Metadata: Metadata
+      Structure: Structure
+      VersionControl: VersionControl }
+
+and Metadata =
+    { Summary: string
+      Description: string
+      Authors: string list
+      Keywords: string list
+      Info: Info }
+
+and Info =
+    { ReadMe: string
+      License: string
+      Notes: string }
+
+and Structure =
+    { Solution: string
+      Projects: Projects }
+
+and Projects =
+    { Source: SourceProject list
+      Test: TestProject list }
+
+and SourceProject =
+    { Name: string
+      Dependencies: Dependency list }
+
+and Dependency =
+    | Package of string
+    | Local of string
+
+and TestProject =
+    { Name: string }
+
+and VersionControl =
+    { Source: string
+      Raw: string }
+
+(* Data
+
+   The Freya solution expressed as a strongly typed structure using the previously
+   defined type system. *)
+
+let freya =
+    { Name = "Freya"
+      Metadata =
+        { Summary = "Freya - A Functional-First F# Web Stack"
+          Description = "Freya"
+          Authors =
+            [ "Ryan Riley (@panesofglass)"
+              "Andrew Cherry (@kolektiv)" ]
+          Keywords =
+            [ "f#"
+              "fsharp"
+              "web"
+              "owin"
+              "http"
+              "machine" ]
+          Info =
+            { ReadMe = "README.md"
+              License = "LICENSE.txt"
+              Notes = "RELEASE_NOTES.md" } }
+      Structure =
+        { Solution = "Freya.sln"
+          Projects =
+            { Source =
+                [ { Name = "Freya.Core"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether" ] }
+                  { Name = "Freya.Machine"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Fleece"
+                          Local "Freya.Core"
+                          Local "Freya.Pipeline"
+                          Local "Freya.Recorder"
+                          Local "Freya.Types.Cors"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Router"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Pipeline"
+                          Local "Freya.Types.Http" ] }
+                  { Name = "Freya.Pipeline"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Local "Freya.Core" ] }
+                  { Name = "Freya.Recorder"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Fleece"
+                          Local "Freya.Core" ] }
+                  { Name = "Freya.Router"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Fleece"
+                          Local "Freya.Core"
+                          Local "Freya.Pipeline"
+                          Local "Freya.Recorder"
+                          Local "Freya.Types.Http" ] }
+                  { Name = "Freya.Types"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "FParsec" ] }
+                  { Name = "Freya.Types.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "FParsec"
+                          Local "Freya.Types"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Types.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "FParsec"
+                          Local "Freya.Core"
+                          Local "Freya.Types"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Types.Language"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "FParsec"
+                          Local "Freya.Types" ] }
+                  { Name = "Freya.Types.Uri"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "FParsec"
+                          Local "Freya.Types" ] } ]
+              Test =
+                [ { Name = "Freya.Core.Tests" }
+                  { Name = "Freya.Machine.Tests" }
+                  { Name = "Freya.Pipeline.Tests" }
+                  { Name = "Freya.Router.Tests" }
+                  { Name = "Freya.Types.Tests" }
+                  { Name = "Freya.Types.Cors.Tests" }
+                  { Name = "Freya.Types.Http.Tests" }
+                  { Name = "Freya.Types.Language.Tests" }
+                  { Name = "Freya.Types.Uri.Tests" } ] } }
+      VersionControl =
+        { Source = "https://github.com/freya-fs/freya"
+          Raw = "https://raw.github.com/freya-fs" } }
+
+(* Properties
+
+   Computed properties of the build based on existing data structures and/or
+   environment variables, creating a derived set of properties. *)
+
+let branch =
+    getBranchName __SOURCE_DIRECTORY__
+
+let release =
+    parseReleaseNotes (File.ReadAllLines freya.Metadata.Info.Notes)
+
+let assemblyVersion =
+    release.AssemblyVersion
+
+let nugetVersion =
+    match isLocalBuild, release.NugetVersion.Contains "-" with
+    | false, true -> sprintf "%s-%s" release.NugetVersion buildVersion
+    | false, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
+    | _ -> release.NugetVersion
+
+let notes =
+    String.concat Environment.NewLine release.Notes
+
+(* Targets
+
+   FAKE targets expressing the components of a Freya build, to be assembled
+   in to specific usable targets subsequently. *)
+
+(* Publish *)
+
+let dependencies (x: SourceProject) =
+    x.Dependencies 
+    |> List.map (function | Package x -> x, GetPackageVersion "packages" x
+                          | Local x -> x, nugetVersion)
+
+let extensions =
+    [ "dll"
+      "pdb"
+      "xml" ]
+
+let files (x: SourceProject) =
+    extensions
+    |> List.map (fun ext ->
+         sprintf @"..\src\%s\bin\Release\%s.%s" x.Name x.Name ext,
+         Some "lib/net40", 
+         None)
+
+let projectFile (x: SourceProject) =
+    sprintf @"src/%s/%s.fsproj" x.Name x.Name
+
+let tags (s: Solution) =
+    String.concat " " s.Metadata.Keywords
+
+Target "Publish.Packages" (fun _ ->
+    freya.Structure.Projects.Source 
+    |> List.iter (fun project ->
+        NuGet (fun x ->
+            { x with
+                AccessKey = getBuildParamOrDefault "nugetkey" ""
+                Authors = freya.Metadata.Authors
+                Dependencies = dependencies project
+                Description = freya.Metadata.Description
+                Files = files project
+                OutputPath = "bin"
+                Project = project.Name
+                Publish = hasBuildParam "nugetkey"
+                ReleaseNotes = notes
+                Summary = freya.Metadata.Summary
+                Tags = tags freya
+                Version = nugetVersion }) "nuget/template.nuspec"))
+
 #if MONO
 #else
 #load "packages/SourceLink.Fake/tools/SourceLink.fsx"
+
 open SourceLink
+
+Target "Publish.Debug" (fun _ ->
+    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" freya.VersionControl.Raw (freya.Name.ToLowerInvariant ())
+
+    freya.Structure.Projects.Source
+    |> List.iter (fun project ->
+        use git = new GitRepo __SOURCE_DIRECTORY__
+
+        let release = VsProj.LoadRelease (projectFile project)
+        let files = release.Compiles -- "**/AssemblyInfo.fs"
+
+        git.VerifyChecksums files
+        release.VerifyPdbChecksums files
+        release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
+        
+        Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
+
 #endif
 
-// --------------------------------------------------------------------------------------
-// Provide project-specific details below
-// --------------------------------------------------------------------------------------
+(* Source *)
 
-// Information about the project are used
-//  - for version and project name in generated AssemblyInfo file
-//  - by the generated NuGet package 
-//  - to run tests and to publish documentation on GitHub gh-pages
-//  - for documentation, you also need to edit info in "docs/tools/generate.fsx"
+let assemblyInfo (x: SourceProject) =
+    sprintf @"src/%s/AssemblyInfo.fs" x.Name
 
-// The name of the project 
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "Dyfrig"
+let testAssembly (x: TestProject) =
+    sprintf "tests/%s/bin/Release/%s.dll" x.Name x.Name
 
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "F# support for the Open Web Interface for .NET"
+Target "Source.AssemblyInfo" (fun _ ->
+    freya.Structure.Projects.Source
+    |> List.iter (fun project ->
+        CreateFSharpAssemblyInfo (assemblyInfo project)
+            [ Attribute.Description freya.Metadata.Summary
+              Attribute.FileVersion assemblyVersion
+              Attribute.Product project.Name
+              Attribute.Title project.Name
+              Attribute.Version assemblyVersion ]))
 
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = """
-  F# support for the Open Web Interface for .NET"""
-// List of author names (for NuGet package)
-let authors = [ "Ryan Riley"; "Andrew Cherry" ]
-// Tags for your project (for NuGet package)
-let tags = "F# fsharp web http owin"
+Target "Source.Build" (fun _ ->
+    build (fun x ->
+        { x with
+            Properties =
+                [ "Optimize",      environVarOrDefault "Build.Optimize"      "True"
+                  "DebugSymbols",  environVarOrDefault "Build.DebugSymbols"  "True"
+                  "Configuration", environVarOrDefault "Build.Configuration" "Release" ]
+            Targets =
+                [ "Build" ]
+            Verbosity = Some Quiet }) freya.Structure.Solution)
 
-// File system information 
-// (<solutionFile>.sln is built during the building process)
-let solutionFile = "Dyfrig.sln"
+Target "Source.Clean" (fun _ ->
+    CleanDirs [
+        "bin"
+        "temp" ])
 
-// Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "tests/**/bin/Release/*Tests*exe"
+Target "Source.Test" (fun _ ->
+    freya.Structure.Projects.Test 
+    |> List.map (fun project -> testAssembly project)
+    |> NUnit (fun x ->
+        { x with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" }))
 
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted 
-let gitHome = "git@github.com:panesofglass"
-// The name of the project on GitHub
-let gitName = "dyfrig"
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/panesofglass"
+(* Builds
 
-// --------------------------------------------------------------------------------------
-// The rest of the file includes standard build steps 
-// --------------------------------------------------------------------------------------
+   Specifically defined dependencies to produce usable builds for varying scenarios,
+   such as CI, documentation, etc. *)
 
-// Read additional information from the release notes document
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let (!!) includes = (!! includes).SetBaseDirectory __SOURCE_DIRECTORY__
-let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
-let isAppVeyorBuild = environVar "APPVEYOR" <> null
-let nugetVersion =
-    if isAppVeyorBuild then
-        // If `release.NugetVersion` includes a pre-release suffix, just append the `buildVersion`.
-        if release.NugetVersion.Contains("-") then
-            sprintf "%s%s" release.NugetVersion buildVersion
-        else sprintf "%s.%s" release.NugetVersion buildVersion
-    else release.NugetVersion
+Target "Default" DoNothing
+Target "Source" DoNothing
+Target "Publish" DoNothing
 
-// Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
-  let fileName = "src/" + project + "/AssemblyInfo.fs"
-  CreateFSharpAssemblyInfo fileName
-      [ Attribute.Title project
-        Attribute.Product project
-        Attribute.Description summary
-        Attribute.Version release.AssemblyVersion
-        Attribute.FileVersion release.AssemblyVersion ] )
+(* Publish *)
 
-Target "BuildVersion" (fun _ ->
-    Shell.Exec("appveyor", sprintf "UpdateBuild -Version \"%s\"" nugetVersion) |> ignore
-)
+"Source"
+=?> ("Publish.Debug",    buildServer = AppVeyor && branch = "master")
+=?> ("Publish.Packages", buildServer = AppVeyor)
+==> "Publish"
 
-// --------------------------------------------------------------------------------------
-// Clean build results & restore NuGet packages
+(* Source *)
 
-Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "temp"]
-)
+"Source.Clean"
+==> "Source.AssemblyInfo"
+==> "Source.Build"
+==> "Source.Test"
+==> "Source"
 
-Target "CleanDocs" (fun _ ->
-    CleanDirs ["docs/output"]
-)
+(* Default *)
 
-// --------------------------------------------------------------------------------------
-// Build library & test project
+"Source"
+==> "Publish"
+==> "Default"
 
-Target "Build" (fun _ ->
-    !! solutionFile
-    |> MSBuildRelease "" "Rebuild"
-    |> ignore
-)
+(* Run *)
 
-Target "CopyFiles" (fun _ ->
-    [ "LICENSE.txt" ] |> CopyTo "bin"
-    !! ("src/" + project + "/bin/Release/Dyfrig*.*")
-    |> CopyTo "bin"
-)
-
-// --------------------------------------------------------------------------------------
-// Run the unit tests using test runner
-
-Target "RunTests" (fun _ ->
-    let errorCode =
-        [ for program in !!testAssemblies do
-            let p, a = if not isMono then program, null else "mono", program
-            let result = asyncShellExec { defaultParams with Program = p; CommandLine = a } |> Async.RunSynchronously
-            yield result ]
-        |> List.sum
-    if errorCode <> 0 then failwith "Error in tests"
-)
-
-#if MONO
-#else
-// --------------------------------------------------------------------------------------
-// SourceLink allows Source Indexing on the PDB generated by the compiler, this allows
-// the ability to step through the source code of external libraries https://github.com/ctaggart/SourceLink
-
-Target "SourceLink" (fun _ ->
-    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" gitRaw (project.ToLower())
-    use repo = new GitRepo(__SOURCE_DIRECTORY__)
-    !! "src/**/*.fsproj"
-    |> Seq.iter (fun f ->
-        let proj = VsProj.LoadRelease f
-        logfn "source linking %s" proj.OutputFilePdb
-        let files = proj.Compiles -- "**/AssemblyInfo.fs"
-        repo.VerifyChecksums files
-        proj.VerifyPdbChecksums files
-        proj.CreateSrcSrv baseUrl repo.Revision (repo.Paths files)
-        Pdbstr.exec proj.OutputFilePdb proj.OutputFilePdbSrcSrv
-    )
-)
-#endif
-
-// --------------------------------------------------------------------------------------
-// Build a NuGet package
-
-Target "NuGet" (fun _ ->
-    NuGet (fun p -> 
-        { p with   
-            Authors = authors
-            Project = project
-            Summary = summary
-            Description = description
-            Version = release.NugetVersion
-            ReleaseNotes = String.Join(Environment.NewLine, release.Notes)
-            Tags = tags
-            OutputPath = "bin"
-            AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Publish = hasBuildParam "nugetkey"
-            Dependencies = ["Microsoft.Net.Http", GetPackageVersion "packages" "Microsoft.Net.Http"]
-            Files = [ (@"..\bin\Dyfrig.dll", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.xml", Some "lib/net40", None)
-                      (@"..\bin\Dyfrig.pdb", Some "lib/net40", None) ] })
-        ("nuget/" + project + ".nuspec")
-)
-
-// --------------------------------------------------------------------------------------
-// Generate the documentation
-
-Target "GenerateReferenceDocs" (fun _ ->
-    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:REFERENCE"] [] then
-      failwith "generating reference documentation failed"
-)
-
-Target "GenerateHelp" (fun _ ->
-    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:HELP"] [] then
-      failwith "generating help documentation failed"
-)
-
-Target "GenerateDocs" DoNothing
-
-// --------------------------------------------------------------------------------------
-// Release Scripts
-
-Target "ReleaseDocs" (fun _ ->
-    let tempDocsDir = "temp/gh-pages"
-    CleanDir tempDocsDir
-    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
-
-    CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
-    StageAll tempDocsDir
-    Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
-    Branches.push tempDocsDir
-)
-
-Target "Release" (fun _ ->
-    StageAll ""
-    Commit "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.push ""
-
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" "origin" release.NugetVersion
-)
-
-Target "BuildPackage" DoNothing
-
-// --------------------------------------------------------------------------------------
-// Run all targets by default. Invoke 'build <Target>' to override
-
-Target "All" DoNothing
-
-"Clean"
-  =?> ("BuildVersion", isAppVeyorBuild)
-  ==> "AssemblyInfo"
-  ==> "Build"
-  ==> "RunTests"
-  ==> "CopyFiles"
-  ==> "All"
-  =?> ("GenerateReferenceDocs",isLocalBuild && not isMono)
-  =?> ("GenerateDocs",isLocalBuild && not isMono)
-  =?> ("ReleaseDocs",isLocalBuild && not isMono)
-
-"All" 
-#if MONO
-#else
-  =?> ("SourceLink", Pdbstr.tryFind().IsSome )
-#endif
-  ==> "NuGet"
-  ==> "BuildPackage"
-
-"CleanDocs"
-  ==> "GenerateHelp"
-  ==> "GenerateReferenceDocs"
-  ==> "GenerateDocs"
-    
-"ReleaseDocs"
-  ==> "Release"
-
-"BuildPackage"
-  ==> "Release"
-
-RunTargetOrDefault "All"
+RunTargetOrDefault "Default"

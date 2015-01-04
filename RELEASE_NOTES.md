@@ -1,7 +1,10 @@
+### New in 0.9.0-alpha - (Releases 2015/01/02)
+* Experimental release of new Freya Stack
+
 ### New in 0.8.0 - (Released 2014/10/12)
 * Removed `OwinRailway`. A new pipeline approach will appear as a separate library soon.
-* Moved `SystemNetHttpAdapter` to its own library, `Dyfrig.Net.Http`, which is not yet available.
-* Expect `Dyfrig` to be renamed `Dyfrig.Core` in the near future.
+* Moved `SystemNetHttpAdapter` to its own library, `Freya.Net.Http`, which is not yet available.
+* Expect `Freya` to be renamed `Freya.Core` in the near future.
 * Now using [`Paket`](https://fsprojects.github.io/Paket/).
 
 ### New in 0.7.0 - (Released 2014/08/27)
