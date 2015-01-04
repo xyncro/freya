@@ -1,4 +1,7 @@
 
+# Ignore rubbish created by OS X
+.DS_Store
+
 #ignore thumbnails created by windows
 Thumbs.db
 #Ignore files build by Visual Studio
@@ -37,5 +40,5 @@ test/
 tools/
 *.nupkg
 .paket/paket.exe
-AssemblyInfo.fs
+*ncrunch*
 *.userprefs

@@ -11,6 +11,7 @@ install:
   - chmod 700 ~/.config/.mono/keypairs
 
 script:
+  - ./build.sh Default
   - ./build.sh All
   
 notifications:

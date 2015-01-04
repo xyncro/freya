@@ -2,21 +2,21 @@
 // This block of code is omitted in the generated HTML documentation. Use 
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
-#r "Dyfrig.dll"
-open Dyfrig
+#r "Freya.dll"
+open Freya
 
 (**
-Dyfrig
+Freya
 ===================
 
-Dyfrig is an [OWIN](http://owin.org/) implementation written in F# with a focus on a functional style of programming.
+Freya is an [OWIN](http://owin.org/) implementation written in F# with a focus on a functional style of programming.
 
 <div class="row">
   <div class="span1"></div>
   <div class="span6">
     <div class="well well-small" id="nuget">
-      The Frank library can be <a href="https://nuget.org/packages/Dyfrig">installed from NuGet</a>:
-      <pre>PM> Install-Package Dyfrig</pre>
+      The Frank library can be <a href="https://nuget.org/packages/Freya">installed from NuGet</a>:
+      <pre>PM> Install-Package Freya</pre>
     </div>
   </div>
   <div class="span1"></div>
