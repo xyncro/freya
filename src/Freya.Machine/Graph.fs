@@ -285,7 +285,7 @@ let private defaultGraph =
     @ handlers
     @ operations
 
-(* Build *)
+(* Constructors *)
 
 let private actionNode x action =
     ActionNode { x with Action = action
@@ -323,5 +323,5 @@ let private node def =
              | HandlerNode x -> handler x def
              | OperationNode x -> operation x
 
-let buildGraph (definition: FreyaMachineDefinition) : FreyaMachineGraph =
+let freyaMachineGraph (definition: FreyaMachineDefinition) : FreyaMachineGraph =
     List.map (node definition) defaultGraph |> Map.ofList

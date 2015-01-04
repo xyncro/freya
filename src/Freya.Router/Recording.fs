@@ -51,41 +51,62 @@ type FreyaRouterRecord =
 (* Trie *)
 
 and FreyaRouterTrieRecord =
-    { Id: string
+    { Key: string
       Children: FreyaRouterTrieRecord list }
 
     static member ToJSON (x: FreyaRouterTrieRecord) =
         jobj [
-            "id" .= x.Id
+            "key" .= x.Key
             "children" .= x.Children ]
 
 (* Execution *)
 
 and FreyaRouterExecutionRecord =
-    { Tries: string list }
+    { Tries: FreyaRouterExecutionTrieRecord list }
+
+    static member TriesLens =
+        (fun x -> x.Tries), (fun t x -> { x with Tries = t })
 
     static member ToJSON (x: FreyaRouterExecutionRecord) =
         jobj [
             "tries" .= x.Tries ]
 
+and FreyaRouterExecutionTrieRecord =
+    { Key: string
+      Value: string
+      Result: FreyaRouterExecutionResult }
+
+    static member ToJSON (x: FreyaRouterExecutionTrieRecord) =
+        jobj [
+            "key" .= x.Key
+            "value" .= x.Value
+            "result" .=
+                ((function | Captured -> "captured"
+                           | Failed -> "failed"
+                           | Matched -> "matched") x.Result) ]
+
+and FreyaRouterExecutionResult =
+    | Captured
+    | Failed
+    | Matched
+
 (* Constructors *)
 
 let private freyaRouterRecord =
     { Trie =
-        { Id = ""
+        { Key = ""
           Children = List.empty }
       Execution =
         { Tries = List.empty } }
+
+let rec internal freyaRouterTrieRecord (trie: FreyaRouterTrie) : FreyaRouterTrieRecord =
+    { Key = trie.Key
+      Children = trie.Children |> List.map freyaRouterTrieRecord }
 
 (* Lenses *)
 
 let freyaRouterRecordPLens =
     recordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
-
-(* Functions *)
-
-let internal trieRecord trie =
-    ()
 
 (* Recording *)
 
@@ -95,3 +116,11 @@ let initializeFreyaRouterRecord =
 let internal setFreyaRouterTrieRecord trie =
     updateRecord (setPL (     freyaRouterRecordPLens
                          >?-> FreyaRouterRecord.TrieLens) trie)
+
+let internal addFreyaRouterExecutionRecord key value result =
+    updateRecord (modPL (     freyaRouterRecordPLens
+                         >?-> FreyaRouterRecord.ExecutionLens
+                         >?-> FreyaRouterExecutionRecord.TriesLens)
+                        (fun x -> x @ [ { Key = key
+                                          Value = value
+                                          Result = result } ]))

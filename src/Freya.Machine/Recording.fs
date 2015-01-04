@@ -119,38 +119,34 @@ let private freyaMachineGraphEdgeRecord from t =
     { From = from
       To = t }
 
+let internal freyaMachineGraphRecord graph =
+    let list = Map.toList graph
+
+    let nodes = List.map (fun (k, v) ->
+        let node = freyaMachineGraphNodeRecord k
+
+        match v with
+        | ActionNode { Override = o } -> node "action" o.Allow o.Overridden
+        | DecisionNode { Override = o } -> node "decision" o.Allow o.Overridden
+        | HandlerNode { Override = o } -> node "handler" o.Allow o.Overridden
+        | OperationNode _ -> node "operation" false false)
+
+    let edges = List.map (fun (k, v) ->
+        let edge = freyaMachineGraphEdgeRecord k
+
+        match v with
+        | ActionNode x -> [ edge x.Next ]
+        | DecisionNode x -> [ edge x.True; edge x.False ]
+        | HandlerNode _ -> []
+        | OperationNode x -> [ edge x.Next ]) >> List.concat
+
+    { Nodes = nodes list
+      Edges = edges list }
+
 (* Lenses *)
 
 let freyaMachineRecordPLens =
     recordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
-
-(* Functions *)
-
-let private node id x =
-    let node = freyaMachineGraphNodeRecord id
-
-    match x with
-    | ActionNode { Override = o } -> node "action" o.Allow o.Overridden
-    | DecisionNode { Override = o } -> node "decision" o.Allow o.Overridden
-    | HandlerNode { Override = o } -> node "handler" o.Allow o.Overridden
-    | OperationNode _ -> node "operation" false false
-
-let private edges id x =
-    let edge = freyaMachineGraphEdgeRecord id
-
-    match x with
-    | ActionNode x -> [ edge x.Next ]
-    | DecisionNode x -> [ edge x.True; edge x.False ]
-    | HandlerNode _ -> []
-    | OperationNode x -> [ edge x.Next ]
-
-let internal graphRecord graph =
-    let list = Map.toList graph
-    let nodes = List.map (fun (k, v) -> node k v)
-    let edges = List.map (fun (k, v) -> edges k v) >> List.concat
-
-    { Nodes = nodes list
-      Edges = edges list }
 
 (* Recording *)
 

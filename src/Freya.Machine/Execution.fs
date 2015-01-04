@@ -70,8 +70,8 @@ let private traverse (graph: FreyaMachineGraph) =
 
 let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let definition = snd (machine Map.empty)
-    let graph = buildGraph definition
-    let graphRecord = graphRecord graph
+    let graph = freyaMachineGraph definition
+    let graphRecord = freyaMachineGraphRecord graph
 
     freya {
         do! setFreyaMachineGraphRecord graphRecord

@@ -47,7 +47,7 @@ and private pick segment data tries =
             let! env = getM
 
             let x, env =
-                List.fold (fun (x, env) trie -> 
+                List.fold (fun (x, env) trie ->
                     match x with
                     | Some (trie, data) -> (Some (trie, data), env)
                     | None -> Async.RunSynchronously (recognize segment data trie env)) (None, env) tries
@@ -58,10 +58,12 @@ and private pick segment data tries =
 
 and private recognize segment data trie =
     freya {
+        let result = addFreyaRouterExecutionRecord trie.Key segment
+
         match trie.Recognizer with
-        | Capture x -> return Some (trie, Map.add x segment data)
-        | Ignore x when x = segment -> return Some (trie, data)
-        | _ -> return None }
+        | Capture x -> return! result Captured *> returnM (Some (trie, Map.add x segment data))
+        | Ignore x when x = segment -> return! result Matched *> returnM (Some (trie, data))
+        | _ -> return! result Failed *> returnM None }
 
 (* Match *)
 
@@ -90,9 +92,12 @@ let private search path meth data trie =
 
 let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)
-    let trie = buildTrie routes
+    let trie = freyaRouterTrie routes
+    let trieRecord = freyaRouterTrieRecord trie
 
     freya {
+        do! setFreyaRouterTrieRecord trieRecord
+
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path
         let! res = search path meth Map.empty trie
