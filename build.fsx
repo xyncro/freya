@@ -8,11 +8,6 @@ open Fake.AssemblyInfoFile
 open Fake.Git
 open Fake.ReleaseNotesHelper
 
-#if MONO
-#else
-
-#endif
-
 (* Types
 
    Types to help declaratively define the Freya solution, to enable strongly typed
@@ -227,24 +222,6 @@ let projectFile (x: SourceProject) =
 let tags (s: Solution) =
     String.concat " " s.Metadata.Keywords
 
-Target "Publish.Packages" (fun _ ->
-    freya.Structure.Projects.Source 
-    |> List.iter (fun project ->
-        NuGet (fun x ->
-            { x with
-                AccessKey = getBuildParamOrDefault "nugetkey" ""
-                Authors = freya.Metadata.Authors
-                Dependencies = dependencies project
-                Description = freya.Metadata.Description
-                Files = files project
-                OutputPath = "bin"
-                Project = project.Name
-                Publish = hasBuildParam "nugetkey"
-                ReleaseNotes = notes
-                Summary = freya.Metadata.Summary
-                Tags = tags freya
-                Version = nugetVersion }) "nuget/template.nuspec"))
-
 #if MONO
 #else
 #load "packages/SourceLink.Fake/tools/SourceLink.fsx"
@@ -266,6 +243,24 @@ Target "Publish.Debug" (fun _ ->
         release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
         
         Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
+
+Target "Publish.Packages" (fun _ ->
+    freya.Structure.Projects.Source 
+    |> List.iter (fun project ->
+        NuGet (fun x ->
+            { x with
+                AccessKey = getBuildParamOrDefault "nugetkey" ""
+                Authors = freya.Metadata.Authors
+                Dependencies = dependencies project
+                Description = freya.Metadata.Description
+                Files = files project
+                OutputPath = "bin"
+                Project = project.Name
+                Publish = hasBuildParam "nugetkey"
+                ReleaseNotes = notes
+                Summary = freya.Metadata.Summary
+                Tags = tags freya
+                Version = nugetVersion }) "nuget/template.nuspec"))
 
 #endif
 
@@ -324,8 +319,11 @@ Target "Publish" DoNothing
 (* Publish *)
 
 "Source"
-=?> ("Publish.Debug", branch = "master")
+#if MONO
+#else
+==> "Publish.Debug"
 ==> "Publish.Packages"
+#endif
 ==> "Publish"
 
 (* Source *)
