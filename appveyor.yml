@@ -1,0 +1,9 @@
+version: '{build}'
+nuget:
+  project_feed: true
+build_script:
+- build.cmd Default
+test: off
+artifacts:
+- path: bin/Freya.*.nupkg
+  name: nuget
