@@ -3,7 +3,9 @@ nuget:
   project_feed: true
 build_script:
 - build.cmd Default
+environment:
+  VisualStudioVersion: 12.0
 test: off
 artifacts:
-- path: bin/Freya.*.nupkg
+- path: bin/*.nupkg
   name: nuget

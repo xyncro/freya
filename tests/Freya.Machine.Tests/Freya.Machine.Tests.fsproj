@@ -45,7 +45,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -75,13 +75,11 @@
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Language\Freya.Types.Language.fsproj">
       <Name>Freya.Types.Language</Name>
-      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
-      <Private>True</Private>
+      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
     </ProjectReference>
   </ItemGroup>
   <Choose>
@@ -134,7 +132,6 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>

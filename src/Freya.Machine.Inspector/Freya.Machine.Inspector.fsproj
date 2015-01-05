@@ -46,7 +46,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -64,13 +64,11 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
       <Name>Freya.Inspector</Name>
-      <Project>{3286d6f5-c85f-44c2-9b7d-2be14b1bece6}</Project>
-      <Private>True</Private>
+      <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
@@ -79,8 +77,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>
-      <Project>{d9563cfe-4de3-4398-bae4-d103843552c0}</Project>
-      <Private>True</Private>
+      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
     </ProjectReference>
   </ItemGroup>
   <Choose>

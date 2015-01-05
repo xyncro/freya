@@ -46,7 +46,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Prelude.fs" />
@@ -67,28 +67,23 @@
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>
-      <Project>{d9563cfe-4de3-4398-bae4-d103843552c0}</Project>
-      <Private>True</Private>
+      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Cors\Freya.Types.Cors.fsproj">
       <Name>Freya.Types.Cors</Name>
-      <Project>{43cc0142-cffa-4e50-a3bd-12c9f59ce8d2}</Project>
-      <Private>True</Private>
+      <Project>{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
       <Name>Freya.Types.Language</Name>
-      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
-      <Private>True</Private>
+      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
       <Name>Freya.Types.Uri</Name>
-      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
-      <Private>True</Private>
+      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
     </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

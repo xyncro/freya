@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>638deda1-514a-43f5-a3aa-1d3345fd0bdc</ProjectGuid>
+    <ProjectGuid>{638DEDA1-514A-43F5-A3AA-1D3345FD0BDC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Types.Http.Tests</RootNamespace>
     <AssemblyName>Freya.Types.Http.Tests</AssemblyName>
@@ -47,7 +46,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="Types.Tests.fs" />
     <Content Include="App.config" />
@@ -61,23 +60,19 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Language\Freya.Types.Language.fsproj">
       <Name>Freya.Types.Language</Name>
-      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
-      <Private>True</Private>
+      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Uri\Freya.Types.Uri.fsproj">
       <Name>Freya.Types.Uri</Name>
-      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
-      <Private>True</Private>
+      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
-      <Project>{d39640c6-2258-4571-830e-7028e19db6ba}</Project>
-      <Private>True</Private>
+      <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -137,7 +132,6 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>

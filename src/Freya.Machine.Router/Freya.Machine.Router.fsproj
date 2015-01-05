@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b34d7bd9-09b5-4bfc-af0a-e3f02214111a</ProjectGuid>
+    <ProjectGuid>{B34D7BD9-09B5-4BFC-AF0A-E3F02214111A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Machine.Router</RootNamespace>
     <AssemblyName>Freya.Machine.Router</AssemblyName>
@@ -47,15 +46,15 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -63,23 +62,19 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
       <Name>Freya.Machine</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
-      <Private>True</Private>
+      <Project>{0A570763-69E7-4E5B-8640-A848A4E2239F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
       <Name>Freya.Pipeline</Name>
-      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
-      <Private>True</Private>
+      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
       <Name>Freya.Router</Name>
-      <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
-      <Private>True</Private>
+      <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

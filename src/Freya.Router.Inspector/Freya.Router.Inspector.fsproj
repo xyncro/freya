@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>faee6bc0-d651-4ce8-aa47-f47cac0fe932</ProjectGuid>
+    <ProjectGuid>{FAEE6BC0-D651-4CE8-AA47-F47CAC0FE932}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Router.Inspector</RootNamespace>
     <AssemblyName>Freya.Router.Inspector</AssemblyName>
@@ -48,7 +47,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="Inspector.fs" />
   </ItemGroup>
@@ -59,23 +58,19 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
       <Name>Freya.Inspector</Name>
-      <Project>{27ec7c3c-dafc-48fc-9953-42c58bf85354}</Project>
-      <Private>True</Private>
+      <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>
-      <Project>{d9563cfe-4de3-4398-bae4-d103843552c0}</Project>
-      <Private>True</Private>
+      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
       <Name>Freya.Router</Name>
-      <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
-      <Private>True</Private>
+      <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>105a0361-eec8-4c47-841e-e333c47572ee</ProjectGuid>
+    <ProjectGuid>{105A0361-EEC8-4C47-841E-E333C47572EE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Types.Language</RootNamespace>
     <AssemblyName>Freya.Types.Language</AssemblyName>
@@ -46,8 +45,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">
       <Name>Freya.Types</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
-      <Private>True</Private>
+      <Project>{EF160EBE-806E-4F88-81AC-B9488EDE1085}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -65,7 +63,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

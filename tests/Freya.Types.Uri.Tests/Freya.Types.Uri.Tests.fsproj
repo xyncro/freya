@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>35cf4e6b-8257-4a0a-9cec-ef98915e2455</ProjectGuid>
+    <ProjectGuid>{35CF4E6B-8257-4A0A-9CEC-EF98915E2455}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Types.Uri.Tests</RootNamespace>
     <AssemblyName>Freya.Types.Uri.Tests</AssemblyName>
@@ -47,7 +46,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  <Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="Types.Tests.fs" />
     <Content Include="App.config" />
@@ -55,8 +54,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
-      <Project>{d39640c6-2258-4571-830e-7028e19db6ba}</Project>
-      <Private>True</Private>
+      <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>
     </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -64,8 +62,7 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\..\src\Freya.Types.Uri\Freya.Types.Uri.fsproj">
       <Name>Freya.Types.Uri</Name>
-      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
-      <Private>True</Private>
+      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -125,7 +122,6 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>
