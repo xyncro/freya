@@ -21,6 +21,7 @@
 module Freya.Core.Builder
 
 open System
+open Freya.Core
 open Freya.Core.Operators
 
 (* Builder *)
@@ -29,16 +30,16 @@ open Freya.Core.Operators
 type FreyaBuilder () =
 
     member __.Return (t) : Freya<'T> =
-        returnM t
+        Freya.returnM t
     
     member __.ReturnFrom (m: Freya<'T>) =
         m
     
     member __.Bind (m1: Freya<'T>, m2: 'T -> Freya<'U>) : Freya<'U> =
-        bindM m1 m2
+        Freya.bind m1 m2
     
     member this.Zero () =
-        returnM ()
+        Freya.returnM ()
     
     member this.Combine (m1: Freya<unit>, m2: Freya<'T>) : Freya<'T> =
         m1 >>= fun () -> m2

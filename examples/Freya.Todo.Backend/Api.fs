@@ -49,22 +49,22 @@ let patchTodo =
 // Storage
 
 let add =
-    memoM (asyncM Storage.add =<< (Option.get <!> newTodo))
+    memoM (Freya.asyncM Storage.add =<< (Option.get <!> newTodo))
 
 let clear =
-    memoM (asyncM Storage.clear =<< returnM ())
+    memoM (Freya.asyncM Storage.clear =<< Freya.returnM ())
 
 let delete =
-    memoM (asyncM Storage.delete =<< id)
+    memoM (Freya.asyncM Storage.delete =<< id)
 
 let get =
-    memoM (asyncM Storage.get =<< id)
+    memoM (Freya.asyncM Storage.get =<< id)
 
 let list =
-    memoM (asyncM Storage.list =<< returnM ())
+    memoM (Freya.asyncM Storage.list =<< Freya.returnM ())
 
 let update =
-    memoM (asyncM Storage.update =<< (tuple <!> id <*> (Option.get <!> patchTodo)))
+    memoM (Freya.asyncM Storage.update =<< (tuple <!> id <*> (Option.get <!> patchTodo)))
 
 // Machine
 
@@ -92,7 +92,7 @@ let updateAction =
 // Resources
 
 let todosMethods =
-    returnM [ 
+    Freya.returnM [ 
         DELETE
         GET
         OPTIONS
@@ -109,7 +109,7 @@ let todos =
         handleOk listHandler } |> compileFreyaMachine
 
 let todoMethods =
-    returnM [
+    Freya.returnM [
         DELETE
         GET
         OPTIONS

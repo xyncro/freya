@@ -17,68 +17,79 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-module Freya.Core.Operators
+namespace Freya.Core
 
-(* Operators *)
+/// Core combinator definitions for <see cref="Freya{T}" /> computations.
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module Freya =
 
-/// Wraps a value x in a <see cref="Freya{T}" /> computation.
-let inline returnM x : Freya<'T> = 
-    fun env -> 
-        async.Return (x, env)
-
-/// Applies a function of a value to an <see cref="Async{T}" /> result
-/// into a <see cref="Freya{T}" /> computation.
-let inline asyncM f =
-    (fun f -> 
+    /// Wraps a value x in a <see cref="Freya{T}" /> computation.
+    let inline returnM x : Freya<'T> = 
         fun env -> 
+            async.Return (x, env)
+
+    /// Applies a function of a value to an <see cref="Async{T}" /> result
+    /// into a <see cref="Freya{T}" /> computation.
+    let inline asyncM f =
+        (fun f -> 
+            fun env -> 
+                async { 
+                    let! v = f
+                    return v, env }) << f
+
+    /// Binds a <see cref="Freya{T}" /> computation with a function that
+    /// takes the value from the <see cref="Freya{T}" /> computation and
+    /// computes a new <see cref="Freya{T}" /> computation of a possibly
+    /// different type.
+    let inline bind m f : Freya<'T> =
+        fun s -> 
             async { 
-                let! v = f
-                return v, env }) << f
+                let! r, s = m s
+                return! (f r) s }
 
-/// Binds a <see cref="Freya{T}" /> computation with a function that
-/// takes the value from the <see cref="Freya{T}" /> computation and
-/// computes a new <see cref="Freya{T}" /> computation of a possibly
-/// different type.
-let inline bindM m f : Freya<'T> =
-    fun s -> 
-        async { 
-            let! r, s = m s
-            return! (f r) s }
+    /// Applies a function wrapped in a <see cref="Freya{T}" /> computation
+    /// onto a <see cref="Freya{T}" /> computation value.
+    let inline apply f m : Freya<'T> =
+        bind f (fun f' ->
+        bind m (fun m' ->
+        returnM (f' m')))
 
-let inline (>>=) m f =
-    bindM m f
+    /// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
+    let inline map f m : Freya<'T> =
+        bind m (fun m' ->
+        returnM (f m'))
 
-let inline (=<<) f m =
-    bindM m f
+    /// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
+    let inline map2 f m1 m2 =
+        apply (apply (returnM f) m1) m2
 
-let inline applyM f m : Freya<'T> =
-    f >>= fun f' ->
-    m >>= fun m' ->
-    returnM (f' m')
 
-let inline (<*>) f m =
-    applyM f m
+/// Custom operators for composing <see cref="Freya{T}" /> computations.
+module Operators =
 
-let inline liftM f m : Freya<'T> =
-    returnM f <*> m
+    let inline (>>=) m f =
+        Freya.bind m f
 
-let inline (<!>) f m =
-    liftM f m
+    let inline (=<<) f m =
+        Freya.bind m f
 
-let inline lift2 f m1 m2 =
-    returnM f <*> m1 <*> m2 
+    let inline (<*>) f m =
+        Freya.apply f m
 
-let inline ( *>) m1 m2 =
-    lift2 (fun _ x -> x) m1 m2
+    let inline (<!>) f m =
+        Freya.map f m
 
-let inline ( <*) m1 m2 =
-    lift2 (fun x _ -> x) m1 m2
+    let inline ( *>) m1 m2 =
+        Freya.map2 (fun _ x -> x) m1 m2
 
-let inline (>>.) m f =
-    bindM m (fun _ -> f)
+    let inline ( <*) m1 m2 =
+        Freya.map2 (fun x _ -> x) m1 m2
 
-let inline (>=>) m1 m2 =
-    fun x -> m1 x >>= m2
+    let inline (>>.) m f =
+        Freya.bind m (fun _ -> f)
 
-let inline (<=<) m1 m2 =
-    fun x -> m2 x >>= m1
+    let inline (>=>) m1 m2 =
+        fun x -> m1 x >>= m2
+
+    let inline (<=<) m1 m2 =
+        fun x -> m2 x >>= m1

@@ -38,19 +38,19 @@ let tuple x y =
 // Presets
 
 let corsOrigins : Freya<AccessControlAllowOriginRange> =
-    returnM AccessControlAllowOriginRange.Any
+    Freya.returnM AccessControlAllowOriginRange.Any
 
 let corsHeaders : Freya<string list> =
-    returnM [ "accept"; "content-type" ]
+    Freya.returnM [ "accept"; "content-type" ]
 
 let en : Freya<LanguageTag list> =
-    returnM [ LanguageTag.Parse "en" ]
+    Freya.returnM [ LanguageTag.Parse "en" ]
 
 let json : Freya<MediaType list> =
-    returnM [ MediaType.JSON ]
+    Freya.returnM [ MediaType.JSON ]
 
 let utf8 : Freya<Charset list> =
-    returnM [ Charset.UTF8 ]
+    Freya.returnM [ Charset.UTF8 ]
 
 // Defaults
 
