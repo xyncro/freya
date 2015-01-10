@@ -21,9 +21,13 @@ module Freya.Core.Operators
 
 (* Operators *)
 
-let inline returnM x =
-    returnM freya x
+/// Wraps a value x in a <see cref="Freya{T}" /> computation.
+let inline returnM x : Freya<'T> = 
+    fun env -> 
+        async.Return (x, env)
 
+/// Applies a function of a value to an <see cref="Async{T}" /> result
+/// into a <see cref="Freya{T}" /> computation.
 let inline asyncM f =
     (fun f -> 
         fun env -> 
@@ -31,17 +35,35 @@ let inline asyncM f =
                 let! v = f
                 return v, env }) << f
 
-let inline (>>=) m1 m2 =
-    bindM freya m1 m2
+/// Binds a <see cref="Freya{T}" /> computation with a function that
+/// takes the value from the <see cref="Freya{T}" /> computation and
+/// computes a new <see cref="Freya{T}" /> computation of a possibly
+/// different type.
+let inline bindM m f : Freya<'T> =
+    fun s -> 
+        async { 
+            let! r, s = m s
+            return! (f r) s }
 
-let inline (=<<) m1 m2 =
-    bindM freya m2 m1
+let inline (>>=) m f =
+    bindM m f
+
+let inline (=<<) f m =
+    bindM m f
+
+let inline applyM f m : Freya<'T> =
+    f >>= fun f' ->
+    m >>= fun m' ->
+    returnM (f' m')
 
 let inline (<*>) f m =
-    applyM freya freya f m
+    applyM f m
+
+let inline liftM f m : Freya<'T> =
+    returnM f <*> m
 
 let inline (<!>) f m =
-    liftM freya f m
+    liftM f m
 
 let inline lift2 f m1 m2 =
     returnM f <*> m1 <*> m2 
@@ -53,7 +75,7 @@ let inline ( <*) m1 m2 =
     lift2 (fun x _ -> x) m1 m2
 
 let inline (>>.) m f =
-    bindM freya m (fun _ -> f)
+    bindM m (fun _ -> f)
 
 let inline (>=>) m1 m2 =
     fun x -> m1 x >>= m2
