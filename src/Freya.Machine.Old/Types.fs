@@ -85,7 +85,7 @@ and FreyaMachineOverride =
 and FreyaMachineAction = 
     Freya<unit>
 
-and FreyaMachineDecision = 
+and FreyaMachineDecision =
     Freya<bool>
 
 and FreyaMachineHandler = 
@@ -96,7 +96,7 @@ and FreyaMachineOperation =
 
 (* Monad *)
 
-type FreyaMachine = 
+type FreyaMachine =
     FreyaMachineDefinition -> unit * FreyaMachineDefinition
 
 (* Graph
