@@ -38,23 +38,23 @@ open Freya.Types.Language
 (* Charsets *)
 
 let utf8 : Freya<Charset list> =
-    returnM [ Charset.UTF8 ]
+    Freya.returnM [ Charset.UTF8 ]
 
 (* Languages *)
 
 let en : Freya<LanguageTag list> =
-    returnM [ LanguageTag.Parse "en" ]
+    Freya.returnM [ LanguageTag.Parse "en" ]
 
 (* MediaTypes *)
 
 let css : Freya<MediaType list> =
-    returnM [ MediaType (Type "text", SubType "css", Map.empty) ]
+    Freya.returnM [ MediaType (Type "text", SubType "css", Map.empty) ]
 
 let html : Freya<MediaType list> =
-    returnM [ MediaType.HTML ]
+    Freya.returnM [ MediaType.HTML ]
 
 let json : Freya<MediaType list> =
-    returnM [ MediaType.JSON ]
+    Freya.returnM [ MediaType.JSON ]
 
 (* Defaults *)
 

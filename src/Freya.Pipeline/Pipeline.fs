@@ -20,7 +20,6 @@
 module Freya.Pipeline
 
 open Freya.Core
-open Freya.Core.Operators
 
 (* Types *)
 
@@ -34,10 +33,10 @@ and FreyaPipelineChoice =
 (* Helpers *)
 
 let next : FreyaPipeline =
-    returnM Next
+    Freya.returnM Next
 
 let halt : FreyaPipeline =
-    returnM Halt
+    Freya.returnM Halt
 
 (* Composition *)
 

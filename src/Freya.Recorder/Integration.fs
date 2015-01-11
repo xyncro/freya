@@ -26,7 +26,7 @@ open Freya.Core.Operators
 (* Execution *)
 
 let initializeRecord =
-    setPLM requestIdPLens =<< (asyncM init =<< returnM ())
+    setPLM requestIdPLens =<< (Freya.asyncM init =<< Freya.returnM ())
 
 let updateRecord f =
     Option.iter (fun id -> update id f) <!> getPLM requestIdPLens
@@ -34,7 +34,7 @@ let updateRecord f =
 (* Inspection *)
 
 let listRecords =
-    asyncM list =<< returnM ()
+    Freya.asyncM list =<< Freya.returnM ()
 
 let getRecord id =
-    asyncM read =<< returnM id
+    Freya.asyncM read =<< Freya.returnM id

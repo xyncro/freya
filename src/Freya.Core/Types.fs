@@ -25,11 +25,14 @@ open System.Collections.Generic
 
 (* Environment *)
 
+/// Type alias for <see cref="IDictionary<T1, T2>" /> using <see cref="String" /> for keys and containing boxed values.
 type FreyaEnvironment =
     IDictionary<string, obj>
 
 (* State *)
 
+/// A state value to be threaded through Freya computations,
+/// including the <see cref="FreyaEnvironment" /> and <see cref="FreyaMetaState" />
 type FreyaState =
     { Environment: FreyaEnvironment
       Meta: FreyaMetaState }
@@ -42,6 +45,13 @@ type FreyaState =
         (fun x -> x.Meta), 
         (fun m x -> { x with Meta = m })
 
+/// <summary>
+/// A state value representing Freya computations' memoized values.
+/// </summary>
+/// <remarks>
+/// This state value allows Freya to avoid polluting the <see cref="FreyaEnvironment" />
+/// with Freya-specific concerns.
+/// </remarks>
 and FreyaMetaState =
     { Memos: Map<Guid, obj> }
 
@@ -51,5 +61,16 @@ and FreyaMetaState =
 
 (* Monad *)
 
+/// <summary>
+/// An <see cref="Async{T}" /> state computation type using <see cref="FreyaState" />
+/// as the state value and a generic type for the computed result.
+/// </summary>
+/// <remarks>
+/// <see cref="Freya{T}" /> represents an asynchronous state monad and forms the core all composition within Freya.
+/// Note that the definition does not use a generic value for state but specifies <see cref="FreyaState" />
+/// explicitly as the state value. Further, this definition does not make use of a wrapped value but simply
+/// provides an alias for the function definition. Both offer slight performance optimizations and allow Freya
+/// to require additional dependencies.
+/// </remarks>
 type Freya<'T> =
     FreyaState -> Async<'T * FreyaState>

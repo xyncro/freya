@@ -61,9 +61,9 @@ and private recognize segment data trie =
         let result = addFreyaRouterExecutionRecord trie.Key segment
 
         match trie.Recognizer with
-        | Capture x -> return! result Captured *> returnM (Some (trie, Map.add x segment data))
-        | Ignore x when x = segment -> return! result Matched *> returnM (Some (trie, data))
-        | _ -> return! result Failed *> returnM None }
+        | Capture x -> return! result Captured *> Freya.returnM (Some (trie, Map.add x segment data))
+        | Ignore x when x = segment -> return! result Matched *> Freya.returnM (Some (trie, data))
+        | _ -> return! result Failed *> Freya.returnM None }
 
 (* Match *)
 
