@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{63C07538-E910-4156-9C31-D7B6E9E5D85B}</ProjectGuid>
+    <ProjectGuid>{0A570763-69E7-4E5B-8640-A848A4E2239F}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Machine.Inspector</RootNamespace>
-    <AssemblyName>Freya.Machine.Inspector</AssemblyName>
+    <RootNamespace>Freya.Machine</RootNamespace>
+    <AssemblyName>Freya.Machine</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>Freya.Machine.Inspector</Name>
+    <Name>Freya.Machine.Old</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -20,7 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Machine.Inspector.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Machine.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,7 +29,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Machine.Inspector.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Machine.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -47,17 +47,44 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
   <ItemGroup>
-    <Compile Include="Inspector.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Builder.fs" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="Graph.fs" />
+    <Compile Include="Representation.fs" />
+    <Compile Include="Recording.fs" />
+    <Compile Include="Execution.fs" />
+    <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
+      <Name>Freya.Recorder</Name>
+      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Cors\Freya.Types.Cors.fsproj">
+      <Name>Freya.Types.Cors</Name>
+      <Project>{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
+      <Name>Freya.Types.Uri</Name>
+      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
+    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,21 +93,14 @@
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Freya.Inspector\Freya.Inspector.fsproj">
-      <Name>Freya.Inspector</Name>
-      <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
-      <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine.Old\Freya.Machine.Old.fsproj">
-      <Name>Freya.Machine.Old</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
-      <Name>Freya.Recorder</Name>
-      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
-    </ProjectReference>
   </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
       <ItemGroup>
