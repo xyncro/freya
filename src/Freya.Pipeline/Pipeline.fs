@@ -24,33 +24,29 @@ open Freya.Core.Operators
 
 (* Types *)
 
-type FreyaPipeline =
-    Freya<FreyaPipelineChoice>
+type Pipeline =
+    Core<PipelineChoice>
 
-and FreyaPipelineChoice =
+and PipelineChoice =
     | Next
     | Halt
 
 (* Helpers *)
 
-let next : FreyaPipeline =
-    returnM Next
+let next : Pipeline =
+    Core.returnM Next
 
-let halt : FreyaPipeline =
-    returnM Halt
+let halt : Pipeline =
+    Core.returnM Halt
 
 (* Composition *)
 
-let compose (p1: FreyaPipeline) (p2: FreyaPipeline) : FreyaPipeline =
-    freya {
-        let! pc = p1
-
-        match pc with
-        | Next -> return! p2
-        | _ -> return Halt }
-
+let compose (pipeline1: Pipeline) (pipeline2: Pipeline) : Pipeline =
+        (function | Next -> pipeline2
+                  | _ -> halt)
+    =<< pipeline1
 
 module Operators =
 
-    let (>?=) p1 p2 : FreyaPipeline = 
+    let (>?=) p1 p2 : Pipeline = 
         compose p1 p2

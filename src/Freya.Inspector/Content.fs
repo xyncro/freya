@@ -20,6 +20,7 @@
 [<AutoOpen>]
 module internal Freya.Inspector.Content
 
+open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
 open Freya.Router
@@ -36,7 +37,7 @@ let private htmlContent =
 (* Functions *)
 
 let private getContent content n =
-    represent n <!> returnM content
+    represent n <!> Core.returnM content
 
 let private getCss =
     getContent cssContent
@@ -63,4 +64,4 @@ let private html =
 let content =
     freyaRouter {
         route All "/freya" html
-        route All "/freya/css" css } |> compileFreyaRouter
+        route All "/freya/css" css } |> compileRouter

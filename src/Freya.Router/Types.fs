@@ -25,30 +25,25 @@ open Freya.Types.Http
 
 (* Routes *)
 
-type FreyaRoute =
-    { Method: FreyaRouteMethod
+type Route =
+    { Method: RouteMethod
       Path: string
-      Pipeline: FreyaPipeline }
+      Pipeline: Pipeline }
 
-and FreyaRouteMethod =
+and RouteMethod =
     | All
     | Methods of Method list
 
-type FreyaRouteData =
+type RouteData =
     Map<string, string>
-
-(* Monad *)
-
-type FreyaRouter = 
-    FreyaRoute list -> unit * FreyaRoute list
 
 (* Trie *)
 
-type internal FreyaRouterTrie =
-    { Children: FreyaRouterTrie list
+type internal RouterTrie =
+    { Children: RouterTrie list
       Key: string
-      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
-      Recognizer: FreyaRouterRecognizer }
+      Pipelines: (RouteMethod * Pipeline) list
+      Recognizer: RouterRecognizer }
 
     static member ChildrenLens =
         (fun x -> x.Children), 
@@ -58,6 +53,12 @@ type internal FreyaRouterTrie =
         (fun x -> x.Pipelines), 
         (fun p x -> { x with Pipelines = p })
 
-and internal FreyaRouterRecognizer =
+and internal RouterRecognizer =
     | Ignore of string
     | Capture of string
+
+(* Monad *)
+
+type Router = 
+    Route list -> unit * Route list
+

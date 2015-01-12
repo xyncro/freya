@@ -21,6 +21,7 @@
 module internal Freya.Machine.Graph
 
 open Aether
+open Freya.Core
 open Freya.Core.Operators
 
 (* Actions
@@ -43,7 +44,7 @@ let private actions =
                          Override = 
                            { Allow = true
                              Overridden = false }
-                         Action = returnM ()
+                         Action = Core.returnM ()
                          Next = next })
 
 (* Decisions (Public)
@@ -95,7 +96,7 @@ let private publicDecisions =
                            Override =
                              { Allow = true
                                Overridden = false }
-                           Decision = returnM d
+                           Decision = Core.returnM d
                            True = t
                            False = f })
 
@@ -111,10 +112,10 @@ let private publicDecisions =
 // TODO: Implement ETag Matching
 
 let private ifETagMatchesIf =
-    returnM true
+    Core.returnM true
 
 let private ifETagMatchesIfNone =
-    returnM true
+    Core.returnM true
 
 (*    Key                                        Decision                                          True                                              False
       ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- *)
@@ -181,12 +182,13 @@ let private decisions =
    so do not include any form of "next" node data. *)
 
 let private defaultHandler _ =
-    returnM { Metadata =
-                { Charset = None
-                  Encodings = None
-                  MediaType = None
-                  Languages = None }
-              Data = Array.empty }
+    Core.returnM {
+        Metadata =
+            { Charset = None
+              Encodings = None
+              MediaType = None
+              Languages = None }
+        Data = Array.empty }
 
 (*    Key
       ------------------------------------------- *)

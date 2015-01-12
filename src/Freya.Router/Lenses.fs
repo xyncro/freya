@@ -38,7 +38,7 @@ let [<Literal>] private valuesKey =
 module Route =
 
     let values =
-        environmentKeyPLens valuesKey <?-> boxIso<FreyaRouteData>
+        environmentKeyPLens valuesKey <?-> boxIso<RouteData>
 
     let valuesKey key = 
         values >??> mapPLens key

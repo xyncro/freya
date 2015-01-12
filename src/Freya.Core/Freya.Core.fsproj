@@ -59,8 +59,9 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Builder.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="Operators.fs" />
+    <Compile Include="Builder.fs" />
     <Compile Include="Functions.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Integration.fs" />

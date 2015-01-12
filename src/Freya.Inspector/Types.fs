@@ -20,25 +20,22 @@
 [<AutoOpen>]
 module Freya.Inspector.Types
 
-open System
 open System.Json
-open Fleece
-open Fleece.Operators
 open Freya.Core
 open Freya.Recorder
 
 (* Types *)
 
-type FreyaInspectorConfiguration =
-    { Inspectors: FreyaInspector list }
+type InspectorConfiguration =
+    { Inspectors: Inspector list }
 
-and FreyaInspector =
+and Inspector =
     { Key: string
-      Runtime: FreyaInspectorRuntime
-      Inspection: FreyaInspectorInspection }
+      Runtime: InspectorRuntime
+      Inspection: InspectorInspection }
 
-and FreyaInspectorRuntime =
-    { Initialize: Freya<unit> }
+and InspectorRuntime =
+    { Initialize: Core<unit> }
 
-and FreyaInspectorInspection =
-    { Data: FreyaRecorderRecord -> JsonValue option }
+and InspectorInspection =
+    { Data: RecorderRecord -> JsonValue option }

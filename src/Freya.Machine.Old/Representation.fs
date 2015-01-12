@@ -43,19 +43,19 @@ let private negotiate =
 
 let private charset =
     function | Some x -> modPLM Response.Headers.contentType id
-             | _ -> returnM ()
+             | _ -> Core.returnM ()
 
 let private encodings =
     function | Some x -> setPLM Response.Headers.contentEncoding (ContentEncoding x)
-             | _ -> returnM ()
+             | _ -> Core.returnM ()
 
 let private mediaType =
     function | Some x -> setPLM Response.Headers.contentType (ContentType x)
-             | _ -> returnM ()
+             | _ -> Core.returnM ()
 
 let private languages =
     function | Some x -> setPLM Response.Headers.contentLanguage (ContentLanguage x)
-             | _ -> returnM ()
+             | _ -> Core.returnM ()
 
 let private metadata (metadata: FreyaMachineRepresentationMetadata) =
         mediaType metadata.MediaType 

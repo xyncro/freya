@@ -34,12 +34,12 @@ let [<Literal>] private requestIdKey =
 
 type StorageProtocol =
     | Create of AsyncReplyChannel<Guid>
-    | Update of Guid * (FreyaRecorderRecord -> FreyaRecorderRecord)
-    | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>
-    | List of AsyncReplyChannel<FreyaRecorderRecord list>
+    | Update of Guid * (RecorderRecord -> RecorderRecord)
+    | Read of Guid * AsyncReplyChannel<RecorderRecord option>
+    | List of AsyncReplyChannel<RecorderRecord list>
 
 type private StorageState =
-    { Records: FreyaRecorderRecord seq }
+    { Records: RecorderRecord seq }
 
 (* Lenses *)
 
@@ -102,7 +102,7 @@ let private store =
 
 (* Functions *)
 
-let init () =
+let initialize () =
     store.PostAndAsyncReply (fun c -> Create (c))
 
 let read id =

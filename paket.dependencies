@@ -4,7 +4,6 @@ nuget Aether
 nuget Fleece
 nuget FParsec
 nuget FSharp.Core
-nuget Microsoft.Net.Http
 nuget Microsoft.Owin.SelfHost
 nuget NUnit
 nuget NUnit.Runners

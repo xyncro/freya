@@ -64,7 +64,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experimental", "experimenta
 	ProjectSection(SolutionItems) = preProject
 		src\Freya.Core.Inspector\Freya.Core.Inspector.fsproj.paket.references = src\Freya.Core.Inspector\Freya.Core.Inspector.fsproj.paket.references
 		src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj.paket.references = src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj.paket.references
-		src\Freya.Net.Http\Freya.Net.Http.fsproj.paket.references = src\Freya.Net.Http\Freya.Net.Http.fsproj.paket.references
 		src\Freya.Router.Inspector\Freya.Router.Inspector.fsproj.paket.references = src\Freya.Router.Inspector\Freya.Router.Inspector.fsproj.paket.references
 	EndProjectSection
 EndProject

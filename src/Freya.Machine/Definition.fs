@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Machine.Definition
+module internal Freya.Machine.Definition
 
 open Aether
 open Aether.Operators
@@ -8,7 +8,7 @@ open Aether.Operators
 
    Constructors for complex types relating to definition. *)
 
-let machineDefinitionGraph () =
+let private machineDefinitionGraph () =
     { MachineDefinitionGraph.Nodes =
         Map.ofList [ 
             Start, None
@@ -53,23 +53,39 @@ let private unsetEdge sourceRef destRef =
    under error states). *)
 
 let addNewNode nodeRef node : MachineDefinitionOperation =
-    function | g when not (containsNode nodeRef g) -> Graph (setNode nodeRef node g)
-             | _ -> Error (sprintf "Node [%A] Exists" nodeRef)
+    function | g when not (containsNode nodeRef g) -> Choice1Of2 (setNode nodeRef node g)
+             | _ -> Choice2Of2 (sprintf "Node [%A] Exists" nodeRef)
 
 let removeExistingNode nodeRef : MachineDefinitionOperation =
-    function | g when containsNode nodeRef g -> Graph (unsetNode nodeRef g)
-             | _ -> Error (sprintf "Node [%A] Does Not Exist" nodeRef)
+    function | g when containsNode nodeRef g -> Choice1Of2 (unsetNode nodeRef g)
+             | _ -> Choice2Of2 (sprintf "Node [%A] Does Not Exist" nodeRef)
 
 let addNewEdge sourceRef destRef edge : MachineDefinitionOperation =
-    function | g when not (containsEdge sourceRef destRef g) -> Graph (setEdge sourceRef destRef edge g)
-             | _ -> Error (sprintf "Edge [%A -> %A] Exists" sourceRef destRef)
+    function | g when not (containsEdge sourceRef destRef g) -> Choice1Of2 (setEdge sourceRef destRef edge g)
+             | _ -> Choice2Of2 (sprintf "Edge [%A -> %A] Exists" sourceRef destRef)
 
 let removeExistingEdge sourceRef destRef : MachineDefinitionOperation =
-    function | g when containsEdge sourceRef destRef g -> Graph (unsetEdge sourceRef destRef g)
-             | _ -> Error (sprintf "Edge [%A -> %A] Does Not Exist" sourceRef destRef)
+    function | g when containsEdge sourceRef destRef g -> Choice1Of2 (unsetEdge sourceRef destRef g)
+             | _ -> Choice2Of2 (sprintf "Edge [%A -> %A] Does Not Exist" sourceRef destRef)
 
-let applyOperations operations graph =
+let private applyOperations operations graph =
     List.fold (fun result operation ->
         match result with
-        | Graph graph -> operation graph
-        | Error e -> Error e) (Graph graph) operations
+        | Choice1Of2 graph -> operation graph
+        | Choice2Of2 e -> Choice2Of2 e) graph operations
+
+(* Creation *)
+
+let private makeDefinitionGraph (definition: MachineDefinition) =
+    let extensions = orderExtensions definition.Extensions
+    let graph = machineDefinitionGraph ()
+
+    List.fold (fun graph extension ->
+        match graph with
+        | Choice1Of2 graph -> applyOperations extension.Operations (Choice1Of2 graph)
+        | Choice2Of2 e -> Choice2Of2 e) (Choice1Of2 graph) extensions
+
+let createDefinitionGraph definition =
+    match makeDefinitionGraph definition with
+    | Choice1Of2 graph -> Choice1Of2 graph
+    | Choice2Of2 e -> Choice2Of2 e

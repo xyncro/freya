@@ -25,13 +25,13 @@ open Aether
 
 (* Lenses *)
 
-/// Defines get and set functions for a lens over an <see cref="IDictionary{T1, T2}" />.
+/// Defines get and set functions for a <see cref="Lens{T1, T2}" /> over an <see cref="IDictionary{T1, T2}" />.
 let mutDictLens<'k,'v> k : Lens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.[k]),
     (fun v d -> d.[k] <- v; d)
 
 /// <summary>
-/// Defines get and set functions for a partial lens over an <see cref="IDictionary{k, v}" />.
+/// Defines get and set functions for a partial lens, <see cref="PLens{T1, T2}" />, over an <see cref="IDictionary{T1, T2}" />.
 /// </summary>
 /// <remarks>
 /// The partial lens uses TryGetValue to retrieve the requested key's value and returns an <see cref="Option{T}" />.

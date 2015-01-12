@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Machine.Dependency
+module internal Freya.Machine.Dependency
 
 open Aether
 

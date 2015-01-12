@@ -22,21 +22,21 @@ module Freya.Router.Builder
 
 (* Builder *)
 
-type FreyaRouterBuilder () =
+type RouterBuilder () =
 
-    member __.Return v : FreyaRouter = 
+    member __.Return v : Router = 
         fun r -> v, r
 
-    member __.ReturnFrom f : FreyaRouter = 
+    member __.ReturnFrom f : Router = 
         f
 
-    member __.Bind (r, k) : FreyaRouter = 
+    member __.Bind (r, k) : Router = 
         r >> fun (result, trie) -> (k result) trie
 
-    member x.Combine (r1, r2) : FreyaRouter = 
+    member x.Combine (r1, r2) : Router = 
         x.Bind (r1, fun () -> r2)
 
     member internal x.Update (r, update) = 
         x.Bind ((fun res -> (), update res), fun _ -> x.ReturnFrom r)
 
-let freyaRouter = FreyaRouterBuilder ()
+let freyaRouter = RouterBuilder ()

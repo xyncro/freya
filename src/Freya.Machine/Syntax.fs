@@ -3,7 +3,7 @@ module Freya.Machine.Syntax
 
 open Aether
 
-type FreyaMachineBuilder with
+type MachineBuilder with
 
     [<CustomOperation ("include", MaintainsVariableSpaceUsingBind = true)>]
     member x.Include (m, definition) = 

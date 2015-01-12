@@ -6,11 +6,23 @@ open Freya.Core
 
 (* Types *)
 
-type Unary =
-    Freya<unit>
+type MachineUnary =
+    Core<unit>
 
-type Binary =
-    Freya<bool>
+type MachineBinary =
+    Core<bool>
+
+(* Configuration *)
+
+type MachineConfiguration =
+    { Configuration: Map<string, obj> }
+
+    static member ConfigurationLens =
+        (fun x -> x.Configuration), (fun d x -> { x with Configuration = d })
+
+type MachineConfigurationMetadata =
+    { Configurable: bool
+      Configured: bool }
 
 (* Graph
 
@@ -25,6 +37,28 @@ type MachineNodeRef =
 
 type MachineEdgeRef =
     | Edge of MachineNodeRef * MachineNodeRef
+
+(* Types
+
+   Types defining an execution graph and supporting metadata. *)
+
+type MachineExecutionGraph =
+    { Nodes: Map<MachineNodeRef, MachineExecutionNode option> }
+
+and MachineExecutionNode =
+    | ExecutionUnary of MachineExecutionUnary
+    | ExecutionBinary of MachineExecutionBinary
+
+and MachineExecutionUnary =
+    { Unary: MachineUnary
+      Configuration: MachineConfigurationMetadata
+      Next: MachineNodeRef }
+
+and MachineExecutionBinary =
+    { Binary: MachineBinary
+      Configuration: MachineConfigurationMetadata
+      True: MachineNodeRef
+      False: MachineNodeRef }
 
 (* Definition
 
@@ -44,18 +78,20 @@ type MachineDefinitionGraph =
         (fun x -> x.Edges), (fun e x -> { x with MachineDefinitionGraph.Edges = e })
 
 and MachineDefinitionNode =
-    | Unary of Unary
-    | Binary of Binary
+    | Unary of MachineDefinitionUnary
+    | Binary of MachineDefinitionBinary
+
+and MachineDefinitionUnary =
+    MachineConfiguration -> MachineConfigurationMetadata * MachineUnary
+
+and MachineDefinitionBinary =
+    MachineConfiguration -> MachineConfigurationMetadata * MachineBinary
 
 and MachineDefinitionEdge =
     | Value of bool option
 
-type MachineDefinitionGraphOperation =
-    MachineDefinitionGraph -> MachineDefinitionGraphOperationResult
-
-and MachineDefinitionGraphOperationResult =
-    | Graph of MachineDefinitionGraph
-    | Error of string
+type MachineDefinitionOperation =
+    MachineDefinitionGraph -> Choice<MachineDefinitionGraph, string>
 
 (* Extension *)
 
@@ -63,7 +99,7 @@ and MachineDefinitionGraphOperationResult =
 type MachineExtension =
     { Name: string
       Dependencies: Set<string>
-      DefinitionGraphOperations: MachineDefinitionGraphOperation list }
+      Operations: MachineDefinitionOperation list }
 
     static member private Comparable (x: MachineExtension) =
         x.Name, x.Dependencies
@@ -79,17 +115,17 @@ type MachineExtension =
         member x.CompareTo y =
             compareOn MachineExtension.Comparable x y
 
-(* Monad *)
+(* Computation Expression *)
 
 type Machine =
     MachineDefinition -> unit * MachineDefinition
 
 and MachineDefinition =
-    { Extensions: Set<MachineExtension>
-      Data: Map<string, obj> }
+    { Configuration: MachineConfiguration
+      Extensions: Set<MachineExtension> }
+
+    static member ConfigurationLens =
+        (fun x -> x.Configuration), (fun d x -> { x with MachineDefinition.Configuration = d })
 
     static member ExtensionsLens =
         (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })
-
-    static member DataLens =
-        (fun x -> x.Data), (fun d x -> { x with Data = d })

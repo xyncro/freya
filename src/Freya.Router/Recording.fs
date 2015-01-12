@@ -28,14 +28,14 @@ open Freya.Recorder
 
 (* Keys *)
 
-let [<Literal>] freyaRouterRecordKey =
+let [<Literal>] routerRecordKey =
     "router"
 
 (* Types *)
 
-type FreyaRouterRecord =
-    { Execution: FreyaRouterExecutionRecord
-      Trie: FreyaRouterTrieRecord }
+type RouterRecord =
+    { Execution: RouterExecutionRecord
+      Trie: RouterTrieRecord }
 
     static member ExecutionLens =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
@@ -43,40 +43,40 @@ type FreyaRouterRecord =
     static member TrieLens =
         (fun x -> x.Trie), (fun t x -> { x with Trie = t })
 
-    static member ToJSON (x: FreyaRouterRecord) =
+    static member ToJSON (x: RouterRecord) =
         jobj [
             "execution" .= x.Execution
             "trie" .= x.Trie ]
 
 (* Trie *)
 
-and FreyaRouterTrieRecord =
+and RouterTrieRecord =
     { Key: string
-      Children: FreyaRouterTrieRecord list }
+      Children: RouterTrieRecord list }
 
-    static member ToJSON (x: FreyaRouterTrieRecord) =
+    static member ToJSON (x: RouterTrieRecord) =
         jobj [
             "key" .= x.Key
             "children" .= x.Children ]
 
 (* Execution *)
 
-and FreyaRouterExecutionRecord =
-    { Tries: FreyaRouterExecutionTrieRecord list }
+and RouterExecutionRecord =
+    { Tries: RouterExecutionTrieRecord list }
 
     static member TriesLens =
         (fun x -> x.Tries), (fun t x -> { x with Tries = t })
 
-    static member ToJSON (x: FreyaRouterExecutionRecord) =
+    static member ToJSON (x: RouterExecutionRecord) =
         jobj [
             "tries" .= x.Tries ]
 
-and FreyaRouterExecutionTrieRecord =
+and RouterExecutionTrieRecord =
     { Key: string
       Value: string
-      Result: FreyaRouterExecutionResult }
+      Result: RouterExecutionResult }
 
-    static member ToJSON (x: FreyaRouterExecutionTrieRecord) =
+    static member ToJSON (x: RouterExecutionTrieRecord) =
         jobj [
             "key" .= x.Key
             "value" .= x.Value
@@ -85,7 +85,7 @@ and FreyaRouterExecutionTrieRecord =
                            | Failed -> "failed"
                            | Matched -> "matched") x.Result) ]
 
-and FreyaRouterExecutionResult =
+and RouterExecutionResult =
     | Captured
     | Failed
     | Matched
@@ -99,28 +99,28 @@ let private freyaRouterRecord =
       Execution =
         { Tries = List.empty } }
 
-let rec internal freyaRouterTrieRecord (trie: FreyaRouterTrie) : FreyaRouterTrieRecord =
+let rec internal routerTrieRecord (trie: RouterTrie) : RouterTrieRecord =
     { Key = trie.Key
-      Children = trie.Children |> List.map freyaRouterTrieRecord }
+      Children = trie.Children |> List.map routerTrieRecord }
 
 (* Lenses *)
 
-let freyaRouterRecordPLens =
-    recordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
+let routerRecordPLens =
+    recordDataPLens<RouterRecord> routerRecordKey
 
 (* Recording *)
 
-let initializeFreyaRouterRecord =
-    updateRecord (setPL freyaRouterRecordPLens freyaRouterRecord)
+let initializeRouterRecord =
+    updateRecord (setPL routerRecordPLens freyaRouterRecord)
 
-let internal setFreyaRouterTrieRecord trie =
-    updateRecord (setPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.TrieLens) trie)
+let internal setRouterTrieRecord trie =
+    updateRecord (setPL (     routerRecordPLens
+                         >?-> RouterRecord.TrieLens) trie)
 
-let internal addFreyaRouterExecutionRecord key value result =
-    updateRecord (modPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.ExecutionLens
-                         >?-> FreyaRouterExecutionRecord.TriesLens)
+let internal addRouterExecutionRecord key value result =
+    updateRecord (modPL (     routerRecordPLens
+                         >?-> RouterRecord.ExecutionLens
+                         >?-> RouterExecutionRecord.TriesLens)
                         (fun x -> x @ [ { Key = key
                                           Value = value
                                           Result = result } ]))

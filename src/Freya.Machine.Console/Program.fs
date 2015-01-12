@@ -1,10 +1,13 @@
 ﻿open Freya.Core
-open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Operators
 
-let u = returnM ()
-let t = returnM true
+let c =
+    { Configurable = false
+      Configured = false }
+
+let u = Core.returnM ()
+let t = Core.returnM true
 
 [<EntryPoint>]
 let main _ =
@@ -15,9 +18,9 @@ let main _ =
           Operations = 
             [ Start    /*> Finish
           
-              Node "a" .|= Binary t
-              Node "b" .|= Unary u
-              Node "c" .|= Unary u
+              Node "a" .|= Binary (fun m -> c, t)
+              Node "b" .|= Unary (fun _ -> c, u)
+              Node "c" .|= Unary (fun _ -> c, u)
           
               Start    ..> Node "a"
               Node "a" .+> Node "b"
@@ -34,13 +37,6 @@ let main _ =
         freyaMachine {
             using http
             using cors }
-
-
-
-
-
-    let graph = 
-        applyExtensions (set [ http; cors ]) (machineDefinitionGraph ())
     
     System.Console.ReadLine () |> ignore
 

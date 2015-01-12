@@ -41,20 +41,20 @@ let routeKey =
 (* Data *)
 
 let private recordsData =
-    freya {
+    freyaCore {
         let! records = listRecords
 
         return toJSON records }
 
 let private recordData =
-    freya {
+    freyaCore {
         let! id = routeId
         let! record = getRecord id
 
         return Option.map toJSON record }
 
 let private inspectionData inspectors =
-    freya {
+    freyaCore {
         let! id = routeId
         let! key = routeKey
         let! record = getRecord id
@@ -102,10 +102,10 @@ let private inspection inspectors =
 (* Routes *)
 
 let private map =
-    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
+    List.map (fun (x: Inspector) -> x.Key, x) >> Map.ofList
 
 let data config =
     freyaRouter {
         route All "/freya/api/requests" records
         route All "/freya/api/requests/:id" record
-        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileFreyaRouter
+        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileRouter
