@@ -34,28 +34,28 @@ open Freya.Router
 (* Route *)
 
 let routeId =
-    memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
+    memo ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
 
 let routeKey =
-    memoM ((Option.get) <!> getPLM (Route.valuesKey "key"))
+    memo ((Option.get) <!> getPLM (Route.valuesKey "key"))
 
 (* Data *)
 
 let private recordsData =
-    core {
+    freya {
         let! records = listRecords
 
         return toJSON records }
 
 let private recordData =
-    core {
+    freya {
         let! id = routeId
         let! record = getRecord id
 
         return Option.map toJSON record }
 
 let private inspectionData inspectors =
-    core {
+    freya {
         let! id = routeId
         let! key = routeKey
         let! record = getRecord id
@@ -84,18 +84,18 @@ let private inspectionExists inspectors =
 (* Resources *)
 
 let private records =
-    machine {
+    freyaMachine {
         including defaults
         handleOk recordsGet } |> compileFreyaMachine
 
 let private record =
-    machine {
+    freyaMachine {
         including defaults
         exists recordExists
         handleOk recordGet } |> compileFreyaMachine
 
 let private inspection inspectors =
-    machine {
+    freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
         handleOk (inspectionGet inspectors) } |> compileFreyaMachine
@@ -103,10 +103,10 @@ let private inspection inspectors =
 (* Routes *)
 
 let private map =
-    List.map (fun (x: Inspector) -> x.Key, x) >> Map.ofList
+    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
 
 let data config =
-    router {
+    freyaRouter {
         resource "/freya/api/requests" records
         resource "/freya/api/requests/:id" record
         resource "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileRouter

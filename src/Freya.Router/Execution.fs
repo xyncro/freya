@@ -27,20 +27,20 @@ open Freya.Types.Http
 
 (* Find *)
 
-let rec private findTrie path data (trie: RouterTrie)  =
-    core {
+let rec private findTrie path data (trie: FreyaRouterTrie)  =
+    freya {
         match path with
         | segment :: path -> return! (pick segment data >=> ret path) trie.Children
         | _ -> return Some (trie.Pipelines, data) }
 
 and private ret path x =
-    core {
+    freya {
         match x with
         | Some (trie, data) -> return! findTrie path data trie
         | _ -> return None }
 
 and private pick segment data tries =
-    core {
+    freya {
         match tries with
         | [] -> return None
         | tries ->
@@ -57,27 +57,27 @@ and private pick segment data tries =
             return x }
 
 and private recognize segment data trie =
-    core {
-        let result = addRouterExecutionRecord trie.Key segment
+    freya {
+        let result = addFreyaRouterExecutionRecord trie.Key segment
 
         match trie.Recognizer with
-        | Capture x -> return! result Captured *> Core.returnM (Some (trie, Map.add x segment data))
-        | Ignore x when x = segment -> return! result Matched *> Core.returnM (Some (trie, data))
-        | _ -> return! result Failed *> Core.returnM None }
+        | Capture x -> return! result Captured *> Freya.init (Some (trie, Map.add x segment data))
+        | Ignore x when x = segment -> return! result Matched *> Freya.init (Some (trie, data))
+        | _ -> return! result Failed *> Freya.init None }
 
 (* Match *)
 
 let private find meth x =
-    core {
+    freya {
         return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m
                                       | _ -> true) x }
 
 let private pair data x =
-    core {
+    freya {
         return Option.map (fun (_, pipeline) -> pipeline, data) x }
 
 let private matchMethod meth x =
-    core {
+    freya {
         match x with
         | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
         | _ -> return None }
@@ -85,18 +85,18 @@ let private matchMethod meth x =
 (* Search *)
 
 let private search path meth data trie =
-    core {
+    freya {
         return! (findTrie path data >=> matchMethod meth) trie }
 
 (* Compilation *)
 
-let compileRouter (router: Router) : Pipeline =
+let compileRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)
     let trie = routerTrie routes
     let trieRecord = routerTrieRecord trie
 
-    core {
-        do! setRouterTrieRecord trieRecord
+    freya {
+        do! setFreyaRouterTrieRecord trieRecord
 
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path

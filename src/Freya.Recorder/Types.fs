@@ -29,12 +29,12 @@ open Freya.Core
 
 (* Types *)
 
-type RecorderRecord =
+type FreyaRecorderRecord =
     { Id: Guid
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member ToJSON (x: RecorderRecord) =
+    static member ToJSON (x: FreyaRecorderRecord) =
         jobj [
             "id" .= x.Id
             "timestamp" .= x.Timestamp
@@ -45,5 +45,5 @@ type RecorderRecord =
 
 (* Lenses *)    
 
-let recordDataPLens<'a> key =
-    RecorderRecord.DataLens >-?> mapPLens key <?-> boxIso<'a>
+let freyaRecordDataPLens<'a> key =
+    FreyaRecorderRecord.DataLens >-?> mapPLens key <?-> boxIso<'a>

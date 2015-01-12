@@ -28,32 +28,32 @@ open Freya.Types.Http
 
 (* Keys *)
 
-let [<Literal>] internal requestRecordKey =
+let [<Literal>] internal freyaRequestRecordKey =
     "request"
 
 (* Types *)
 
-type RequestRecord =
+type FreyaRequestRecord =
     { Method: Method
       Path: string }
 
-    static member ToJSON (x: RequestRecord) =
+    static member ToJSON (x: FreyaRequestRecord) =
         jobj [
             "method" .= Method.Format (x.Method)
             "path" .= x.Path ]
 
 (* Constructors *)
 
-let private requestRecord meth path =
+let private freyaRequestRecord meth path =
     { Method = meth
       Path = path }
 
 (* Lenses *)
 
-let internal requestRecordPLens =
-    recordDataPLens<RequestRecord> requestRecordKey
+let internal freyaRequestRecordPLens =
+    freyaRecordDataPLens<FreyaRequestRecord> freyaRequestRecordKey
 
 (* Functions *)
 
-let internal initializeRequestRecord meth path =
-    updateRecord (setPL requestRecordPLens (requestRecord meth path))
+let internal initializeFreyaRequestRecord meth path =
+    updateRecord (setPL freyaRequestRecordPLens (freyaRequestRecord meth path))

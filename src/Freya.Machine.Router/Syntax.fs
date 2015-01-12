@@ -28,7 +28,7 @@ open Freya.Router
    expression. Custom syntax operators are used to register a resource,
    which is shorthand for registering a route with methods equal to All. *)
 
-type RouterBuilder with
+type FreyaRouterBuilder with
 
     (* Routes *)
 

@@ -26,16 +26,16 @@ open System.Collections.Generic
 (* Environment *)
 
 /// Type alias for <see cref="IDictionary<T1, T2>" /> using <see cref="String" /> for keys and containing boxed values.
-type CoreEnvironment =
+type FreyaEnvironment =
     IDictionary<string, obj>
 
 (* State *)
 
 /// A state value to be threaded through Freya computations,
 /// including the <see cref="CoreEnvironment" /> and <see cref="CoreMetaState" />
-type CoreState =
-    { Environment: CoreEnvironment
-      Meta: CoreMetaState }
+type FreyaState =
+    { Environment: FreyaEnvironment
+      Meta: FreyaMetaState }
 
     static member internal EnvironmentLens =
         (fun x -> x.Environment), 
@@ -52,7 +52,7 @@ type CoreState =
 /// This state value allows Freya to avoid polluting the <see cref="CoreEnvironment" />
 /// with Freya-specific concerns.
 /// </remarks>
-and CoreMetaState =
+and FreyaMetaState =
     { Memos: Map<Guid, obj> }
 
     static member internal MemosLens =
@@ -72,5 +72,5 @@ and CoreMetaState =
 /// provides an alias for the function definition. Both offer slight performance optimizations and allow Freya
 /// to require additional dependencies.
 /// </remarks>
-type Core<'T> =
-    CoreState -> Async<'T * CoreState>
+type Freya<'T> =
+    FreyaState -> Async<'T * FreyaState>

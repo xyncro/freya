@@ -38,7 +38,7 @@ let private htmlContent =
 (* Functions *)
 
 let private getContent content n =
-    represent n <!> Core.returnM content
+    represent n <!> Freya.init content
 
 let private getCss =
     getContent cssContent
@@ -49,13 +49,13 @@ let private getHtml =
 (* Resources *)
 
 let private css =
-    machine {
+    freyaMachine {
         including defaults
         mediaTypesSupported css
         handleOk getCss } |> compileFreyaMachine
 
 let private html =
-    machine {
+    freyaMachine {
         including defaults
         mediaTypesSupported html
         handleOk getHtml } |> compileFreyaMachine
@@ -63,6 +63,6 @@ let private html =
 (* Routes *)
 
 let content =
-    router {
+    freyaRouter {
         resource "/freya" html
         resource "/freya/css" css } |> compileRouter

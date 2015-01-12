@@ -30,12 +30,12 @@ open Freya.Types.Http
 (* Functions *)
 
 let private initialize =
-    core {
+    freya {
         return! initializeRecord *> next }
 
 let private record config =
-    core {
-        for inspector in (config.Inspectors) do
+    freya {
+        for inspector in config.Inspectors do
             do! inspector.Runtime.Initialize
 
         return! next }

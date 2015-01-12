@@ -1,80 +1,47 @@
-﻿[<AutoOpen>]
+﻿//----------------------------------------------------------------------------
+//
+// Copyright (c) 2014
+//
+//    Ryan Riley (@panesofglass) and Andrew Cherry (@kolektiv)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//----------------------------------------------------------------------------
+
+[<AutoOpen>]
 module internal Freya.Machine.Execution
 
-(* Types
+open Freya.Core
+open Freya.Core.Operators
 
-   Types defining an execution graph and supporting metadata. *)
+let private unary (x: CompilationUnaryNode) =
+    freya {
+        do! x.Unary
 
-type MachineExecutionGraph =
-    { Nodes: Map<MachineNodeRef, MachineExecutionNode option> }
+        return x.Next }
 
-and MachineExecutionNode =
-    | ExecutionUnary of MachineExecutionUnary
-    | ExecutionBinary of MachineExecutionBinary
+let private binary (x: CompilationBinaryNode) =
+    freya {
+        let! result = x.Binary
 
-and MachineExecutionUnary =
-    { Unary: MachineUnary
-      Configuration: MachineConfigurationMetadata
-      Next: MachineNodeRef }
+        return x.Choices.[result] }
 
-and MachineExecutionBinary =
-    { Binary: MachineBinary
-      Configuration: MachineConfigurationMetadata
-      True: MachineNodeRef
-      False: MachineNodeRef }
+let execute (map: CompilationMap) =
+    let rec eval ref =
+        freya {
+            match ref, Map.find ref map with
+            | Finish, _ -> return ()
+            | _, Unary x -> return! unary x >>= eval
+            | _, Binary x -> return! binary x >>= eval }
 
-(* Mapping
-
-   Functions supporting mapping of definition graphs to execution
-   graphs, a more optimised structure for runtime performance and
-   simplicity of execution (requiring only lookups in a single map,
-   rather than search and traversal of edges as sets in a more
-   classically tractable definition graph. *)
-
-let private findEdgeRef (graph: MachineDefinitionGraph) nodeRef value =
-    Map.findKey (fun (Edge (n, _)) (Value v) ->
-        n = nodeRef && v = value) graph.Edges
-
-let private mapUnary graph config nodeRef unary =
-    let config, unary = unary config
-    let (Edge (_, m1)) = findEdgeRef graph nodeRef None
-
-    ExecutionUnary {
-        Unary = unary
-        Configuration = config
-        Next = m1 }
-
-let private mapBinary graph config nodeRef binary =
-    let config, binary = binary config
-    let (Edge (_, m1)) = findEdgeRef graph nodeRef (Some true)
-    let (Edge (_, m2)) = findEdgeRef graph nodeRef (Some false)
-
-
-    ExecutionBinary {
-        Binary = binary
-        Configuration = config
-        True = m1
-        False = m2 }
-
-let private mapNode graph config nodeRef =
-    function | Some (DefinitionUnary x) -> Some (mapUnary graph config nodeRef x)
-             | Some (DefinitionBinary x) -> Some (mapBinary graph config nodeRef x)
-             | _ -> None
-
-let private mapPair graph config (nodeRef, node) =
-    nodeRef, mapNode graph config nodeRef node
-
-let private mapGraph (graph: MachineDefinitionGraph) configuration =
-     { MachineExecutionGraph.Nodes =
-        graph.Nodes
-        |> Map.toList
-        |> List.map (mapPair graph configuration)
-        |> Map.ofList }
-
-(* Creation *)
-
-let createExecutionGraph definition =
-    match createDefinitionGraph definition with
-    | Choice1Of2 graph -> Choice1Of2 (mapGraph graph definition.Configuration)
-    | Choice2Of2 e -> Choice2Of2 e
-
+    eval Start

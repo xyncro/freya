@@ -1,4 +1,24 @@
-﻿[<AutoOpen>]
+﻿//----------------------------------------------------------------------------
+//
+// Copyright (c) 2014
+//
+//    Ryan Riley (@panesofglass) and Andrew Cherry (@kolektiv)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//----------------------------------------------------------------------------
+
+[<AutoOpen>]
 module Freya.Machine.Types
 
 open System
@@ -9,18 +29,18 @@ open Freya.Core
    Common type aliases for core functions used throughout
    Machine as basic node types. *)
 
-type MachineUnary =
-    Core<unit>
+type FreyaMachineUnary =
+    Freya<unit>
 
-type MachineBinary =
-    Core<bool>
+type FreyaMachineBinary =
+    Freya<bool>
 
 (* Configuration *)
 
-type MachineConfiguration =
+type FreyaMachineConfiguration =
     Map<string, obj>
 
-type MachineConfigurationMetadata =
+type FreyaMachineConfigurationMetadata =
     { Configurable: bool
       Configured: bool }
 
@@ -30,13 +50,13 @@ type MachineConfigurationMetadata =
    graph definition types. Node and edge references are defined with
    simple string keys, relying on regular comparison. *)
 
-type MachineNodeRef =
+type FreyaMachineRef =
     | Start
     | Finish
-    | Node of string
+    | Ref of string
 
-type MachineEdgeRef =
-    | Edge of MachineNodeRef * MachineNodeRef
+type FreyaMachineRefPair =
+    | Pair of FreyaMachineRef * FreyaMachineRef
 
 (* Definition
 
@@ -45,9 +65,9 @@ type MachineEdgeRef =
    the graph are represented as being able to succeed, as a mapping of
    definition graph -> definition graph, or fail as an error. *)
 
-type MachineDefinitionGraph =
-    { Nodes: Map<MachineNodeRef, MachineDefinitionNode option>
-      Edges: Map<MachineEdgeRef, MachineDefinitionEdge> }
+type FreyaMachineGraph =
+    { Nodes: Map<FreyaMachineRef, FreyaMachineNode option>
+      Edges: Map<FreyaMachineRefPair, FreyaMachineEdge> }
 
     static member NodesLens =
         (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
@@ -55,21 +75,21 @@ type MachineDefinitionGraph =
     static member EdgesLens =
         (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
-and MachineDefinitionNode =
-    | DefinitionUnary of MachineDefinitionUnary
-    | DefinitionBinary of MachineDefinitionBinary
+and FreyaMachineNode =
+    | Unary of FreyaMachineUnaryNode
+    | Binary of FreyaMachineBinaryNode
 
-and MachineDefinitionUnary =
-    MachineConfiguration -> MachineConfigurationMetadata * MachineUnary
+and FreyaMachineUnaryNode =
+    FreyaMachineConfiguration -> FreyaMachineConfigurationMetadata * FreyaMachineUnary
 
-and MachineDefinitionBinary =
-    MachineConfiguration -> MachineConfigurationMetadata * MachineBinary
+and FreyaMachineBinaryNode =
+    FreyaMachineConfiguration -> FreyaMachineConfigurationMetadata * FreyaMachineBinary
 
-and MachineDefinitionEdge =
+and FreyaMachineEdge =
     | Value of bool option
 
-type MachineDefinitionOperation =
-    MachineDefinitionGraph -> Choice<MachineDefinitionGraph, string>
+type FreyaMachineGraphOperation =
+    FreyaMachineGraph -> Choice<FreyaMachineGraph, string>
 
 (* Extension
 
@@ -82,33 +102,33 @@ type MachineDefinitionOperation =
 
 [<CustomEquality>]
 [<CustomComparison>]
-type MachineExtension =
+type FreyaMachineExtension =
     { Name: string
       Dependencies: Set<string>
-      Operations: MachineDefinitionOperation list }
+      Operations: FreyaMachineGraphOperation list }
 
-    static member private Comparable (x: MachineExtension) =
+    static member private Comparable (x: FreyaMachineExtension) =
         x.Name.ToLowerInvariant ()
 
     override x.Equals y =
-        equalsOn MachineExtension.Comparable x y
+        equalsOn FreyaMachineExtension.Comparable x y
 
     override x.GetHashCode () =
-        hashOn MachineExtension.Comparable x
+        hashOn FreyaMachineExtension.Comparable x
 
     interface IComparable with
 
         member x.CompareTo y =
-            compareOn MachineExtension.Comparable x y
+            compareOn FreyaMachineExtension.Comparable x y
 
 (* Computation Expression *)
 
-type Machine =
-    MachineDefinition -> unit * MachineDefinition
+type FreyaMachine =
+    FreyaMachineSpecification -> unit * FreyaMachineSpecification
 
-and MachineDefinition =
-    { Configuration: MachineConfiguration
-      Extensions: Set<MachineExtension> }
+and FreyaMachineSpecification =
+    { Configuration: FreyaMachineConfiguration
+      Extensions: Set<FreyaMachineExtension> }
 
     static member ConfigurationLens =
         (fun x -> x.Configuration), (fun d x -> { x with Configuration = d })

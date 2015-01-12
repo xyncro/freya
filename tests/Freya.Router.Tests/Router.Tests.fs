@@ -9,7 +9,7 @@ open Freya.Types.Http
 [<Test>]
 let ``Router With No Routes Returns Next`` () =
     let routes =
-        router {
+        freyaRouter {
             return () }
 
     result GET "/" routes =? Next
@@ -17,7 +17,7 @@ let ``Router With No Routes Returns Next`` () =
 [<Test>]
 let ``Router With Base Route Executes Correctly`` () =
     let routes =
-        router {
+        freyaRouter {
             route All "/" route1 }
 
     value GET "/" routes =? Some 1
@@ -25,7 +25,7 @@ let ``Router With Base Route Executes Correctly`` () =
 [<Test>]
 let ``Router With Multiple Routes Executes Correctly`` () =
     let routes =
-        router {
+        freyaRouter {
             route All "/" route1
             route All "/some/path" route2
             route All "/other/path" route3 }
@@ -38,7 +38,7 @@ let ``Router With Multiple Routes Executes Correctly`` () =
 [<Test>]
 let ``Router With Method Specific Routes Executes Correctly`` () =
     let routes =
-        router {
+        freyaRouter {
             route Get "/" route1
             route Get "/some/path" route2
             route Post "/some/path" route3 }
@@ -51,7 +51,7 @@ let ``Router With Method Specific Routes Executes Correctly`` () =
 [<Test>]
 let ``Router Executes Pipeline Registered First`` () =
     let routes =
-        router {
+        freyaRouter {
             route Get "/" route1
             route All "/" route2 }
 

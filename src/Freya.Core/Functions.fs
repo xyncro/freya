@@ -25,15 +25,15 @@ open Freya.Core.Operators
 
 (* State Functions *)
 
-/// Gets the Core State within a Core monad
+/// Gets the Freya State within a Freya monad
 let getM =
     fun e -> async { return e, e }
 
-/// Sets the Core State within a Core monad
+/// Sets the Freya State within a Freya monad
 let setM e =
     fun _ -> async { return (), e }
 
-/// Modifies the Core State within a Core monad
+/// Modifies the Freya State within a Freya monad
 let modM f =
     fun e -> async { return (), f e }
 

@@ -146,7 +146,7 @@ let internal freyaMachineGraphRecord graph =
 (* Lenses *)
 
 let freyaMachineRecordPLens =
-    recordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
+    freyaRecordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
 (* Recording *)
 

@@ -26,7 +26,7 @@ open Freya.Inspector
 (* Runtime *)
 
 let private initialize =
-    initializeRouterRecord
+    initializeFreyaRouterRecord
 
 let private runtime =
     { Initialize = initialize }
@@ -34,7 +34,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL routerRecordPLens >> Option.map toJSON
+    getPL freyaRouterRecordPLens >> Option.map toJSON
 
 let private inspection =
     { Data = data }
@@ -42,6 +42,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Key = routerRecordKey
+    { Key = freyaRouterRecordKey
       Runtime = runtime
       Inspection = inspection }

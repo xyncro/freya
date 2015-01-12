@@ -56,6 +56,7 @@
     <Compile Include="Dependency.fs" />
     <Compile Include="Extension.fs" />
     <Compile Include="Definition.fs" />
+    <Compile Include="Compilation.fs" />
     <Compile Include="Execution.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Syntax.fs" />

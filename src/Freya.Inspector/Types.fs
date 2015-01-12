@@ -26,16 +26,16 @@ open Freya.Recorder
 
 (* Types *)
 
-type InspectorConfiguration =
-    { Inspectors: Inspector list }
+type FreyaInspectorConfiguration =
+    { Inspectors: FreyaInspector list }
 
-and Inspector =
+and FreyaInspector =
     { Key: string
-      Runtime: InspectorRuntime
-      Inspection: InspectorInspection }
+      Runtime: FreyaInspectorRuntime
+      Inspection: FreyaInspectorInspection }
 
-and InspectorRuntime =
-    { Initialize: Core<unit> }
+and FreyaInspectorRuntime =
+    { Initialize: Freya<unit> }
 
-and InspectorInspection =
-    { Data: RecorderRecord -> JsonValue option }
+and FreyaInspectorInspection =
+    { Data: FreyaRecorderRecord -> JsonValue option }

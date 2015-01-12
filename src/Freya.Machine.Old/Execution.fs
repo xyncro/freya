@@ -27,14 +27,14 @@ open Freya.Pipeline
 (* Execution *)
 
 let private action a =
-    core {
+    freya {
         do! a.Action
         do! addFreyaMachineExecutionRecord a.Id
 
         return a.Next }
 
 let private decision d =
-    core {
+    freya {
         let! result = d.Decision
         do! addFreyaMachineExecutionRecord d.Id
 
@@ -43,13 +43,13 @@ let private decision d =
         | _ -> return d.False }
 
 let private handler (h: FreyaMachineHandlerNode) =
-    core {
+    freya {
         do! addFreyaMachineExecutionRecord h.Id
 
         return h.Handler }
 
 let private operation o =
-    core {
+    freya {
         do! o.Operation
         do! addFreyaMachineExecutionRecord o.Id
 
@@ -57,7 +57,7 @@ let private operation o =
 
 let private traverse (graph: FreyaMachineGraph) =
     let rec eval from =
-        core {
+        freya {
             match Map.find from graph with
             | ActionNode a -> return! action a >>= eval
             | DecisionNode d -> return! decision d >>= eval
@@ -68,12 +68,12 @@ let private traverse (graph: FreyaMachineGraph) =
 
 (* Compilation *)
 
-let compileFreyaMachine (machine: FreyaMachine) : Pipeline =
+let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
     let definition = snd (machine Map.empty)
     let graph = freyaMachineGraph definition
     let graphRecord = freyaMachineGraphRecord graph
 
-    core {
+    freya {
         do! setFreyaMachineGraphRecord graphRecord
         do! setPLM definitionPLens definition
         do! traverse graph >>= represent

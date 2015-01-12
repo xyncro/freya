@@ -46,4 +46,4 @@ type FreyaMachineBuilder () =
     member internal x.Set (r, lens, value) = 
         x.Bind ((fun res -> (), setPL lens value res), fun _ -> x.ReturnFrom r)
 
-let machine = FreyaMachineBuilder ()
+let freyaMachine = FreyaMachineBuilder ()

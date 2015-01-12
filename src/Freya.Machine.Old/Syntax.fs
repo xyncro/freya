@@ -56,59 +56,59 @@ type FreyaMachineBuilder with
     (* Configuration *)
 
     [<CustomOperation (Configuration.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CharsetsSupported (monad, charsets: Core<Charset list>) = 
+    member x.CharsetsSupported (monad, charsets: Freya<Charset list>) = 
         x.Set (monad, configurationKeyPLens Configuration.CharsetsSupported, charsets)
 
     [<CustomOperation (Configuration.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersExposed (monad, headers: Core<string list>) = 
+    member x.CorsHeadersExposed (monad, headers: Freya<string list>) = 
         x.Set (monad, configurationKeyPLens Configuration.CorsHeadersExposed, headers)
 
     [<CustomOperation (Configuration.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersSupported (monad, headers: Core<string list>) = 
+    member x.CorsHeadersSupported (monad, headers: Freya<string list>) = 
         x.Set (monad, configurationKeyPLens Configuration.CorsHeadersSupported, headers)
 
     [<CustomOperation (Configuration.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsMethodsSupported (monad, methods: Core<Method list>) = 
+    member x.CorsMethodsSupported (monad, methods: Freya<Method list>) = 
         x.Set (monad, configurationKeyPLens Configuration.CorsMethodsSupported, methods)
 
     [<CustomOperation (Configuration.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsOriginsSupported (monad, origins: Core<AccessControlAllowOriginRange>) = 
+    member x.CorsOriginsSupported (monad, origins: Freya<AccessControlAllowOriginRange>) = 
         x.Set (monad, configurationKeyPLens Configuration.CorsOriginsSupported, origins)
 
     [<CustomOperation (Configuration.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.EncodingsSupported (monad, encodings: Core<ContentCoding list>) = 
+    member x.EncodingsSupported (monad, encodings: Freya<ContentCoding list>) = 
         x.Set (monad, configurationKeyPLens Configuration.EncodingsSupported, encodings)
 
     [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ETag (monad, etag: Core<EntityTag>) = 
+    member x.ETag (monad, etag: Freya<EntityTag>) = 
         x.Set (monad, configurationKeyPLens Configuration.ETag, etag)
 
     [<CustomOperation (Configuration.Expires, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Expires (monad, expires: Core<DateTime>) = 
+    member x.Expires (monad, expires: Freya<DateTime>) = 
         x.Set (monad, configurationKeyPLens Configuration.Expires, expires)
 
     [<CustomOperation (Configuration.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LanguagesSupported (monad, languages: Core<LanguageTag list>) = 
+    member x.LanguagesSupported (monad, languages: Freya<LanguageTag list>) = 
         x.Set (monad, configurationKeyPLens Configuration.LanguagesSupported, languages)
 
     [<CustomOperation (Configuration.LastModified, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LastModified (monad, modified: Core<DateTime>) = 
+    member x.LastModified (monad, modified: Freya<DateTime>) = 
         x.Set (monad, configurationKeyPLens Configuration.LastModified, modified)
 
     [<CustomOperation (Configuration.Location, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Location (monad, location: Core<UriReference>) = 
+    member x.Location (monad, location: Freya<UriReference>) = 
         x.Set (monad, configurationKeyPLens Configuration.Location, location)
 
     [<CustomOperation (Configuration.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MediaTypesSupported (monad, mediaTypes: Core<MediaType list>) =
+    member x.MediaTypesSupported (monad, mediaTypes: Freya<MediaType list>) =
         x.Set (monad, configurationKeyPLens Configuration.MediaTypesSupported, mediaTypes)
 
     [<CustomOperation (Configuration.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsKnown (monad, methods: Core<Method list>) = 
+    member x.MethodsKnown (monad, methods: Freya<Method list>) = 
         x.Set (monad, configurationKeyPLens Configuration.MethodsKnown, methods)
 
     [<CustomOperation (Configuration.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsSupported (monad, methods: Core<Method list>) = 
+    member x.MethodsSupported (monad, methods: Freya<Method list>) = 
         x.Set (monad, configurationKeyPLens Configuration.MethodsSupported, methods)
 
     (* Decisions *)

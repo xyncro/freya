@@ -26,30 +26,30 @@ open Freya.Core.Operators
 
 (* Builder *)
 
-/// Defines a computation expression builder for constructing <see cref="Core{T}" /> computations.
-type CoreBuilder () =
+/// Defines a computation expression builder for constructing <see cref="Freya{T}" /> computations.
+type FreyaBuilder () =
 
-    member __.Return (t) : Core<'T> =
-        Core.returnM t
+    member __.Return (t) : Freya<'T> =
+        Freya.init t
     
-    member __.ReturnFrom (m: Core<'T>) =
+    member __.ReturnFrom (m: Freya<'T>) =
         m
     
-    member __.Bind (m1: Core<'T>, m2: 'T -> Core<'U>) : Core<'U> =
-        Core.bindM m1 m2
+    member __.Bind (m1: Freya<'T>, m2: 'T -> Freya<'U>) : Freya<'U> =
+        Freya.bind m1 m2
     
     member __.Zero () =
-        Core.returnM ()
+        Freya.init ()
     
-    member __.Combine (m1: Core<unit>, m2: Core<'T>) : Core<'T> =
+    member __.Combine (m1: Freya<unit>, m2: Freya<'T>) : Freya<'T> =
         m1 >>= fun () -> m2
     
-    member __.TryWith (m: Core<'T>, handler: exn -> Core<'T>) : Core<'T> =
+    member __.TryWith (m: Freya<'T>, handler: exn -> Freya<'T>) : Freya<'T> =
         fun env ->
             try m env
             with e -> (handler e) env
     
-    member __.TryFinally (m: Core<'T>, compensation) : Core<'T> =
+    member __.TryFinally (m: Freya<'T>, compensation) : Freya<'T> =
         fun env -> 
             try m env
             finally compensation()
@@ -73,6 +73,6 @@ type CoreBuilder () =
             this.While (enum.MoveNext, this.Delay (fun () -> 
                 body enum.Current)))
 
-/// The instance of <see cref="CoreBuilder" /> used for constructing
-/// <see cref="Core{T}" /> computations.
-let core = new CoreBuilder ()
+/// The instance of <see cref="FreyaBuilder" /> used for constructing
+/// <see cref="Freya{T}" /> computations.
+let freya = new FreyaBuilder ()

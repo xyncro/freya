@@ -1,4 +1,24 @@
-﻿[<AutoOpen>]
+﻿//----------------------------------------------------------------------------
+//
+// Copyright (c) 2014
+//
+//    Ryan Riley (@panesofglass) and Andrew Cherry (@kolektiv)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//----------------------------------------------------------------------------
+
+[<AutoOpen>]
 module internal Freya.Machine.Dependency
 
 open Aether
@@ -6,41 +26,41 @@ open Aether
 (* Types
 
    Types representing dependencies of string key, plus types supporting
-   a dependency graph.
+   a dependency graph. Additional types expressing the result of an analysis 
+   of a preconstructed dependency graph, to find a simple valid ordering of
+   dependencies.
 
-   Additional types expressing the result of an analysis of a preconstructed
-   dependency graph, to find a simple valid ordering of dependencies.
+   See later comments on Creation and Analysis. *)
 
-   See later comments on Analysis. *)
+type Dependency =
+    | Dependency of DependencyRef * Set<DependencyRef>
 
-type MachineDependency =
-    | Dependency of MachineDependencyNode * Set<MachineDependencyNode>
+and DependencyRef =
+    | Ref of string
 
-and MachineDependencyGraph =
-    { Nodes: Set<MachineDependencyNode>
-      Edges: Set<MachineDependencyEdge> }
+and DependencyRefPair =
+    | Pair of DependencyRef * DependencyRef
+
+and DependencyGraph =
+    { Nodes: Set<DependencyRef>
+      Edges: Set<DependencyRefPair> }
 
     static member NodesLens =
-        (fun x -> x.Nodes), (fun n x -> { x with MachineDependencyGraph.Nodes = n })
+        (fun x -> x.Nodes), (fun n x -> { x with DependencyGraph.Nodes = n })
 
     static member EdgesLens =
-        (fun x -> x.Edges), (fun e x -> { x with MachineDependencyGraph.Edges = e })
+        (fun x -> x.Edges), (fun e x -> { x with DependencyGraph.Edges = e })
 
-and MachineDependencyNode =
-    | DependencyNode of string
-
-and MachineDependencyEdge =
-    | DependencyEdge of MachineDependencyNode * MachineDependencyNode
-
-type MachineDependencyGraphAnalysis =
-    | Ordered of MachineDependencyNode list
+type DependencyGraphAnalysis =
+    | Ordered of DependencyRef list
     | Cyclic
 
-(* Constructors
+(* Defaults
 
-   Constructors for dependency graphs. *)
+   Default instances of dependency data types, in this case
+   and empty dependency graph containing no nodes and edges. *)
 
-let machineDependencyGraph () : MachineDependencyGraph =
+let private defaultGraph =
     { Nodes = Set.empty
       Edges = Set.empty }
 
@@ -54,17 +74,15 @@ let machineDependencyGraph () : MachineDependencyGraph =
    See [https://en.wikipedia.org/wiki/Topological_sorting] for details. *)
 
 let private addNode (Dependency (x, _)) =
-    modL MachineDependencyGraph.NodesLens (Set.add x)
+    modL DependencyGraph.NodesLens (Set.add x)
 
 let private addEdges (Dependency (x, xs)) =
-    modL MachineDependencyGraph.EdgesLens 
-        (Set.union 
-            (Set.map (fun d -> DependencyEdge (x, d)) xs))
+    modL DependencyGraph.EdgesLens (Set.union (Set.map (fun d -> Pair (x, d)) xs))
 
 let createDependencyGraph =
     Set.fold (fun g e ->
         [ addNode e
-          addEdges e ] |> List.fold (|>) g) (machineDependencyGraph ())
+          addEdges e ] |> List.fold (|>) g) defaultGraph
 
 (* Analysis
 
@@ -76,12 +94,12 @@ let createDependencyGraph =
 
    See [https://en.wikipedia.org/wiki/Topological_sorting] for details. *)
 
-let private hasIncomingEdges (g: MachineDependencyGraph) n =
-    Set.exists (function | DependencyEdge (_, m) when n = m -> true
+let private hasIncomingEdges (g: DependencyGraph) n =
+    Set.exists (function | Pair (_, m) when n = m -> true
                          | _ -> false) g.Edges
 
-let private edgesFromNode (g: MachineDependencyGraph) n =
-    Set.filter (function | DependencyEdge (n', _) when n = n' -> true
+let private edgesFromNode (g: DependencyGraph) n =
+    Set.filter (function | Pair (n', _) when n = n' -> true
                          | _ -> false) g.Edges
 
 let private nodesToStartNodes g =
@@ -89,10 +107,10 @@ let private nodesToStartNodes g =
     >> Set.toList
 
 let private edgesToStartNodes g =
-       Set.map (fun (DependencyEdge (_, m)) -> m)
+       Set.map (fun (Pair (_, m)) -> m)
     >> nodesToStartNodes g
 
-let rec private kahnsAlgorithm (g: MachineDependencyGraph) s l =
+let rec private sort (g: DependencyGraph) s l =
     match s with
     | [] ->
         match Set.isEmpty g.Edges with
@@ -100,11 +118,11 @@ let rec private kahnsAlgorithm (g: MachineDependencyGraph) s l =
         | _ -> Cyclic
     | n :: ns ->
         let e = edgesFromNode g n
-        let g = modL MachineDependencyGraph.EdgesLens (fun x -> x - e) g
+        let g = modL DependencyGraph.EdgesLens (fun x -> x - e) g
         let s = ns @ edgesToStartNodes g e
         let l = l @ [ n ]
 
-        kahnsAlgorithm g s l
+        sort g s l
 
 let analyzeDependencyGraph graph =
-    kahnsAlgorithm graph (nodesToStartNodes graph graph.Nodes) List.empty
+    sort graph (nodesToStartNodes graph graph.Nodes) List.empty

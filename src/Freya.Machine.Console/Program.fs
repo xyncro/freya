@@ -6,8 +6,8 @@ let c =
     { Configurable = false
       Configured = false }
 
-let u = Core.returnM ()
-let t = Core.returnM true
+let u = Freya.init ()
+let t = Freya.init true
 
 [<EntryPoint>]
 let main _ =
@@ -16,17 +16,17 @@ let main _ =
         { Name = "freya.machine.http"
           Dependencies = Set.empty
           Operations = 
-            [ Start    /*> Finish
+            [ Start     /*>  Finish
           
-              Node "a" .|= DefinitionBinary (fun _ -> c, t)
-              Node "b" .|= DefinitionUnary (fun _ -> c, u)
-              Node "c" .|= DefinitionUnary (fun _ -> c, u)
+              Ref "a"   .|=  Binary (fun _ -> c, t)
+              Ref "b"   .|=  Unary (fun _ -> c, u)
+              Ref "c"   .|=  Unary (fun _ -> c, u)
           
-              Start    ..> Node "a"
-              Node "a" .+> Node "b"
-              Node "a" .-> Node "c"
-              Node "b" ..> Finish
-              Node "c" ..> Finish ] }
+              Start     ..>  Ref "a"
+              Ref "a"   .+>  Ref "b"
+              Ref "a"   .->  Ref "c"
+              Ref "b"   ..>  Finish
+              Ref "c"   ..>  Finish ] }
 
     let cors =
         { Name = "freya.machine.cors"
@@ -34,7 +34,7 @@ let main _ =
           Operations = List.empty }
 
     let resource =
-        machine {
+        freyaMachine {
             using http
             using cors }
     

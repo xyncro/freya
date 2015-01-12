@@ -83,16 +83,16 @@ and FreyaMachineOverride =
     when overriding the defaults. *)
 
 and FreyaMachineAction = 
-    Core<unit>
+    Freya<unit>
 
 and FreyaMachineDecision =
-    Core<bool>
+    Freya<bool>
 
 and FreyaMachineHandler = 
-    FreyaMachineNegotiation -> Core<FreyaMachineRepresentation>
+    FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
 
 and FreyaMachineOperation =
-    Core<unit>
+    Freya<unit>
 
 (* Monad *)
 
@@ -162,7 +162,7 @@ let internal actionKeyPLens k =
     mapPLens k <??> FreyaMachineOverride.ActionPIso
     
 let internal configurationKeyPLens<'a> k =
-    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<Core<'a>>
+    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<Freya<'a>>
         
 let internal decisionKeyPLens k =
     mapPLens k <??> FreyaMachineOverride.DecisionPIso
@@ -177,8 +177,8 @@ let internal handlerKeyPLens k =
    specific resource in question (they are a general core Freya<'T>
    expression). *)
 
-let internal configurationKey<'a> key : Core<'a option> =
-    core {
+let internal configurationKey<'a> key : Freya<'a option> =
+    freya {
         let! value = getPLM (definitionPLens >??> configurationKeyPLens<'a> key)
 
         match value with

@@ -28,11 +28,11 @@ open Freya.Types.Http
 (* Runtime *)
 
 let private initialize =
-    core {
+    freya {
         let! meth = getLM Request.meth
         let! path = getLM Request.path
 
-        do! initializeRequestRecord meth path }
+        do! initializeFreyaRequestRecord meth path }
 
 let private runtime =
     { Initialize = initialize }
@@ -40,14 +40,14 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL requestRecordPLens >> Option.map toJSON
+    getPL freyaRequestRecordPLens >> Option.map toJSON
 
 let private inspection =
     { Data = data }
 
 (* Inspector *)
 
-let requestInspector =
-    { Key = requestRecordKey
+let freyaRequestInspector =
+    { Key = freyaRequestRecordKey
       Runtime = runtime
       Inspection = inspection }

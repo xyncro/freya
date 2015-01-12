@@ -25,7 +25,7 @@ module Freya.Router.Syntax
    Custom syntax operators used in the FreyaRouter computation
    expression. Custom syntax operators are used to register routes. *)
 
-type RouterBuilder with
+type FreyaRouterBuilder with
 
     (* Routes *)
 

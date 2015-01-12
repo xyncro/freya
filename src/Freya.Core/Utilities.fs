@@ -27,18 +27,18 @@ open Aether.Operators
 (* Lenses *)
 
 let private memoPLens<'a> key =
-         CoreState.MetaLens 
-    >--> CoreMetaState.MemosLens 
+         FreyaState.MetaLens 
+    >--> FreyaMetaState.MemosLens 
     >-?> mapPLens key
     <?-> boxIso<'a>
 
 (* Memoization *)
 
-/// Memoization for <see cref="CoreState" /> within a <see cref="Core{T}" /> computation.
-let memoM<'a> (m: Core<'a>) : Core<'a> =
+/// Memoization for <see cref="FreyaState" /> within a <see cref="Freya{T}" /> computation.
+let memo<'a> (m: Freya<'a>) : Freya<'a> =
     let memoPLens = memoPLens (Guid.NewGuid ())
 
-    core {
+    freya {
         let! memo = getPLM memoPLens
 
         match memo with

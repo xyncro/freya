@@ -17,29 +17,29 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-/// Custom operators for composing <see cref="Core{T}" /> computations.
+/// Custom operators for composing <see cref="Freya{T}" /> computations.
 module Freya.Core.Operators
 
 let inline (>>=) m f =
-    Core.bindM m f
+    Freya.bind m f
 
 let inline (=<<) f m =
-    Core.bindM m f
+    Freya.bind m f
 
 let inline (<*>) f m =
-    Core.applyM f m
+    Freya.apply f m
 
 let inline (<!>) f m =
-    Core.mapM f m
+    Freya.map f m
 
 let inline ( *>) m1 m2 =
-    Core.map2M (fun _ x -> x) m1 m2
+    Freya.map2 (fun _ x -> x) m1 m2
 
 let inline ( <*) m1 m2 =
-    Core.map2M (fun x _ -> x) m1 m2
+    Freya.map2 (fun x _ -> x) m1 m2
 
 let inline (>>.) m f =
-    Core.bindM m (fun _ -> f)
+    Freya.bind m (fun _ -> f)
 
 let inline (>=>) m1 m2 =
     fun x -> m1 x >>= m2

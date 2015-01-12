@@ -22,6 +22,27 @@ module internal Freya.Router.Trie
 
 open Aether
 open Aether.Operators
+open Freya.Pipeline
+
+(* Trie *)
+
+type internal FreyaRouterTrie =
+    { Children: FreyaRouterTrie list
+      Key: string
+      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
+      Recognizer: RouterRecognizer }
+
+    static member ChildrenLens =
+        (fun x -> x.Children), 
+        (fun c x -> { x with Children = c })
+
+    static member PipelinesLens =
+        (fun x -> x.Pipelines), 
+        (fun p x -> { x with Pipelines = p })
+
+and internal RouterRecognizer =
+    | Ignore of string
+    | Capture of string
 
 (* Constructors *)
 
@@ -44,7 +65,7 @@ let segmentize (path: string) =
 (* Lenses *)
 
 let private childPLens i =
-    RouterTrie.ChildrenLens >-?> listPLens i
+    FreyaRouterTrie.ChildrenLens >-?> listPLens i
 
 (* Constructors *)
 
@@ -52,7 +73,7 @@ let rec private add node =
     function | (segment :: path, pipeline, meth) -> 
                 (find segment node |> update segment path pipeline meth) node
              | (_, pipeline, meth) -> 
-                modL RouterTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
+                modL FreyaRouterTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
 
 and private find segment =
     function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = segment) x
@@ -65,7 +86,7 @@ and private extend i path pipeline meth =
     modPL (childPLens i) (flip add (path, pipeline, meth))
 
 and private append segment path pipeline meth =
-    modL RouterTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
+    modL FreyaRouterTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
 
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)

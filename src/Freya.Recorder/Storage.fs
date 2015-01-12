@@ -34,12 +34,12 @@ let [<Literal>] private requestIdKey =
 
 type StorageProtocol =
     | Create of AsyncReplyChannel<Guid>
-    | Update of Guid * (RecorderRecord -> RecorderRecord)
-    | Read of Guid * AsyncReplyChannel<RecorderRecord option>
-    | List of AsyncReplyChannel<RecorderRecord list>
+    | Update of Guid * (FreyaRecorderRecord -> FreyaRecorderRecord)
+    | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>
+    | List of AsyncReplyChannel<FreyaRecorderRecord list>
 
 type private StorageState =
-    { Records: RecorderRecord seq }
+    { Records: FreyaRecorderRecord seq }
 
 (* Lenses *)
 

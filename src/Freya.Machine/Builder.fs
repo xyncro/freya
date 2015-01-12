@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -29,22 +30,22 @@ open Aether
    Specific strongly typed custom operations are defined in
    Machine.Syntax.fs. *)
 
-type MachineBuilder () =
+type FreyaMachineBuilder () =
 
-    member __.Return _ : Machine =
+    member __.Return _ : FreyaMachine =
         fun definition -> (), definition
 
-    member __.ReturnFrom machine : Machine = 
+    member __.ReturnFrom machine : FreyaMachine = 
         machine
 
-    member __.Bind (m, k) : Machine = 
+    member __.Bind (m, k) : FreyaMachine = 
         m >> fun (result, definition) -> (k result) definition
 
-    member x.Combine (m1, m2) : Machine = 
+    member x.Combine (m1, m2) : FreyaMachine = 
         x.Bind (m1, fun () -> m2)
 
     member x.Map (m, f) =
         x.Bind ((fun machineDefinition -> (), f machineDefinition), 
                 (fun _ -> x.ReturnFrom m))
 
-let machine = MachineBuilder ()
+let freyaMachine = FreyaMachineBuilder ()

@@ -20,44 +20,44 @@
 /// Core combinator definitions for <see cref="Freya{T}" /> computations.
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module Freya.Core.Core
+module Freya.Core.Freya
 
-/// Wraps a value x in a <see cref="Core{T}" /> computation.
-let inline returnM x : Core<'T> = 
+/// Wraps a value x in a <see cref="Freya{T}" /> computation.
+let inline init x : Freya<'T> = 
     fun env -> 
         async.Return (x, env)
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
-/// into a <see cref="Core{T}" /> computation.
-let inline asyncM f =
+/// into a <see cref="Freya{T}" /> computation.
+let inline toAsync f =
     (fun f -> 
         fun env -> 
             async { 
                 let! v = f
                 return v, env }) << f
 
-/// Binds a <see cref="Core{T}" /> computation with a function that
-/// takes the value from the <see cref="Core{T}" /> computation and
-/// computes a new <see cref="Core{T}" /> computation of a possibly
+/// Binds a <see cref="Freya{T}" /> computation with a function that
+/// takes the value from the <see cref="Freya{T}" /> computation and
+/// computes a new <see cref="Freya{T}" /> computation of a possibly
 /// different type.
-let inline bindM (m: Core<'T1>) (f: 'T1 -> Core<'T2>) : Core<'T2> =
+let inline bind (m: Freya<'T1>) (f: 'T1 -> Freya<'T2>) : Freya<'T2> =
     fun s -> 
         async { 
             let! r, s = m s
             return! (f r) s }
 
-/// Applies a function wrapped in a <see cref="Core{T}" /> computation
-/// onto a <see cref="Core{T}" /> computation value.
-let inline applyM f m : Core<'T> =
-    bindM f (fun f' ->
-    bindM m (fun m' ->
-    returnM (f' m')))
+/// Applies a function wrapped in a <see cref="Freya{T}" /> computation
+/// onto a <see cref="Freya{T}" /> computation value.
+let inline apply f m : Freya<'T> =
+    bind f (fun f' ->
+    bind m (fun m' ->
+    init (f' m')))
 
-/// Applies a function taking one arguments to one <see cref="Core{T}" /> computations.
-let inline mapM f m : Core<'T> =
-    bindM m (fun m' ->
-    returnM (f m'))
+/// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
+let inline map f m : Freya<'T> =
+    bind m (fun m' ->
+    init (f m'))
 
-/// Applies a function taking two arguments to two <see cref="Core{T}" /> computations.
-let inline map2M f m1 m2 =
-    applyM (applyM (returnM f) m1) m2
+/// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
+let inline map2 f m1 m2 =
+    apply (apply (init f) m1) m2
