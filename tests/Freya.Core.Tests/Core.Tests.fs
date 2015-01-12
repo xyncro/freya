@@ -35,7 +35,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
             env.["Answer"] <- 42
             Task.FromResult<obj>(null) :> Task)
 
-    let converted = OwinAppFunc.toFreya app
+    let converted = OwinAppFunc.toCore app
 
     let m =
         freyaCore {
@@ -52,8 +52,8 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
 
     let converted =
         app
-        |> OwinAppFunc.fromFreyaCore
-        |> OwinAppFunc.toFreya
+        |> OwinAppFunc.fromCore
+        |> OwinAppFunc.toCore
 
     let m =
         freyaCore {

@@ -17,7 +17,7 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-/// Custom operators for composing <see cref="Freya{T}" /> computations.
+/// Custom operators for composing <see cref="Core{T}" /> computations.
 module Freya.Core.Operators
 
 let inline (>>=) m f =

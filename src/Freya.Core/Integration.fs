@@ -25,7 +25,7 @@ open System.Threading.Tasks
 
 (* OWIN Types *)
 
-/// Type alias of <see cref="FreyaEnvironment" /> in terms of OWIN.
+/// Type alias of <see cref="CoreEnvironment" /> in terms of OWIN.
 type OwinEnvironment =
     CoreEnvironment
 
@@ -40,20 +40,20 @@ type OwinAppFunc =
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
 
-    /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
-    [<CompiledName ("FromFreyaCore")>]
-    let fromFreyaCore (core: Core<_>) =
+    /// Converts a <see cref="Core{T}" /> computation to an <see cref="OwinAppFunc" />.
+    [<CompiledName ("FromCore")>]
+    let fromCore (core: Core<_>) =
         OwinAppFunc (fun e ->
             async {
                 do! core { Environment = e
                            Meta = { Memos = Map.empty } } |> Async.Ignore }
             |> Async.StartAsTask :> Task)
     
-    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
+    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Core{T}" /> computation
     /// to allow use of standard OWIN components within Freya.
     /// NOTE: EXPERIMENTAL
-    [<CompiledName ("ToFreya")>]
-    let toFreya (app: OwinAppFunc) : Core<unit> =
+    [<CompiledName ("ToCore")>]
+    let toCore (app: OwinAppFunc) : Core<unit> =
         // TODO: Can another, existing operator handle this scenario better?
         fun s -> async {
             let! token = Async.CancellationToken

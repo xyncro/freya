@@ -4,7 +4,10 @@ module Freya.Machine.Types
 open System
 open Freya.Core
 
-(* Types *)
+(* Common
+
+   Common type aliases for core functions used throughout
+   Machine as base node types. *)
 
 type MachineUnary =
     Core<unit>
@@ -78,8 +81,8 @@ type MachineDefinitionGraph =
         (fun x -> x.Edges), (fun e x -> { x with MachineDefinitionGraph.Edges = e })
 
 and MachineDefinitionNode =
-    | Unary of MachineDefinitionUnary
-    | Binary of MachineDefinitionBinary
+    | DefinitionUnary of MachineDefinitionUnary
+    | DefinitionBinary of MachineDefinitionBinary
 
 and MachineDefinitionUnary =
     MachineConfiguration -> MachineConfigurationMetadata * MachineUnary
@@ -93,7 +96,14 @@ and MachineDefinitionEdge =
 type MachineDefinitionOperation =
     MachineDefinitionGraph -> Choice<MachineDefinitionGraph, string>
 
-(* Extension *)
+(* Extension
+
+   Types supporting the extension of the basic (empty) machine graph
+   through applying a set of operations to map the graph in to a new form.
+   Names and dependencies are used to ensure some level of preconditional
+   safety before operations from multiple extensions are applied.
+
+   See the commentary around Dependency.fs more. *)
 
 [<CustomEquality; CustomComparison>]
 type MachineExtension =

@@ -18,5 +18,5 @@ let private findExtension extensions (DependencyNode x) =
 
 let orderExtensions (extensions: Set<MachineExtension>) =
     match analyzeExtensions extensions with
-    | Ordered order -> List.map (findExtension extensions) order
-    | Cyclic -> failwith "cyclic dependencies detected"
+    | Ordered order -> Choice1Of2 (List.map (findExtension extensions) order)
+    | Cyclic -> Choice2Of2 "Cyclic Dependencies"

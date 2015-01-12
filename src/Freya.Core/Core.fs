@@ -22,13 +22,13 @@
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Core
 
-/// Wraps a value x in a <see cref="Freya{T}" /> computation.
+/// Wraps a value x in a <see cref="Core{T}" /> computation.
 let inline returnM x : Core<'T> = 
     fun env -> 
         async.Return (x, env)
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
-/// into a <see cref="Freya{T}" /> computation.
+/// into a <see cref="Core{T}" /> computation.
 let inline asyncM f =
     (fun f -> 
         fun env -> 
@@ -36,9 +36,9 @@ let inline asyncM f =
                 let! v = f
                 return v, env }) << f
 
-/// Binds a <see cref="Freya{T}" /> computation with a function that
-/// takes the value from the <see cref="Freya{T}" /> computation and
-/// computes a new <see cref="Freya{T}" /> computation of a possibly
+/// Binds a <see cref="Core{T}" /> computation with a function that
+/// takes the value from the <see cref="Core{T}" /> computation and
+/// computes a new <see cref="Core{T}" /> computation of a possibly
 /// different type.
 let inline bindM (m: Core<'T1>) (f: 'T1 -> Core<'T2>) : Core<'T2> =
     fun s -> 
@@ -46,18 +46,18 @@ let inline bindM (m: Core<'T1>) (f: 'T1 -> Core<'T2>) : Core<'T2> =
             let! r, s = m s
             return! (f r) s }
 
-/// Applies a function wrapped in a <see cref="Freya{T}" /> computation
-/// onto a <see cref="Freya{T}" /> computation value.
+/// Applies a function wrapped in a <see cref="Core{T}" /> computation
+/// onto a <see cref="Core{T}" /> computation value.
 let inline applyM f m : Core<'T> =
     bindM f (fun f' ->
     bindM m (fun m' ->
     returnM (f' m')))
 
-/// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
+/// Applies a function taking one arguments to one <see cref="Core{T}" /> computations.
 let inline mapM f m : Core<'T> =
     bindM m (fun m' ->
     returnM (f m'))
 
-/// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
+/// Applies a function taking two arguments to two <see cref="Core{T}" /> computations.
 let inline map2M f m1 m2 =
     applyM (applyM (returnM f) m1) m2

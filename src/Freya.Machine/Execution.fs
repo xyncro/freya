@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Freya.Machine.Execution
+module internal Freya.Machine.Execution
 
 (* Mapping
 
@@ -9,38 +9,38 @@ module Freya.Machine.Execution
    rather than search and traversal of edges as sets in a more
    classically tractable definition graph. *)
 
-let private findEdgeRef (g: MachineDefinitionGraph) nodeRef value =
+let private findEdgeRef (graph: MachineDefinitionGraph) nodeRef value =
     Map.findKey (fun (Edge (n, _)) (Value v) ->
-        n = nodeRef && v = value) g.Edges
+        n = nodeRef && v = value) graph.Edges
 
-let private mapUnary g c nodeRef unary =
-    let configuration, unary = unary c
-    let (Edge (_, m1)) = findEdgeRef g nodeRef None
+let private mapUnary graph config nodeRef unary =
+    let config, unary = unary config
+    let (Edge (_, m1)) = findEdgeRef graph nodeRef None
 
     ExecutionUnary {
         Unary = unary
-        Configuration = configuration
+        Configuration = config
         Next = m1 }
 
-let private mapBinary g c nodeRef binary =
-    let configuration, binary = binary c
-    let (Edge (_, m1)) = findEdgeRef g nodeRef (Some true)
-    let (Edge (_, m2)) = findEdgeRef g nodeRef (Some false)
+let private mapBinary graph config nodeRef binary =
+    let config, binary = binary config
+    let (Edge (_, m1)) = findEdgeRef graph nodeRef (Some true)
+    let (Edge (_, m2)) = findEdgeRef graph nodeRef (Some false)
 
 
     ExecutionBinary {
         Binary = binary
-        Configuration = configuration
+        Configuration = config
         True = m1
         False = m2 }
 
-let private mapNode g c nodeRef =
-    function | Some (Unary x) -> Some (mapUnary g c nodeRef x)
-             | Some (Binary x) -> Some (mapBinary g c nodeRef x)
+let private mapNode graph config nodeRef =
+    function | Some (DefinitionUnary x) -> Some (mapUnary graph config nodeRef x)
+             | Some (DefinitionBinary x) -> Some (mapBinary graph config nodeRef x)
              | _ -> None
 
-let private mapPair g c (nodeRef, node) =
-    nodeRef, mapNode g c nodeRef node
+let private mapPair graph config (nodeRef, node) =
+    nodeRef, mapNode graph config nodeRef node
 
 (* Creation *)
 

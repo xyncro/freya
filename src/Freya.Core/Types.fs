@@ -32,7 +32,7 @@ type CoreEnvironment =
 (* State *)
 
 /// A state value to be threaded through Freya computations,
-/// including the <see cref="FreyaEnvironment" /> and <see cref="FreyaMetaState" />
+/// including the <see cref="CoreEnvironment" /> and <see cref="CoreMetaState" />
 type CoreState =
     { Environment: CoreEnvironment
       Meta: CoreMetaState }
@@ -46,10 +46,10 @@ type CoreState =
         (fun m x -> { x with Meta = m })
 
 /// <summary>
-/// A state value representing Freya computations' memoized values.
+/// A state value representing Core computations' memoized values.
 /// </summary>
 /// <remarks>
-/// This state value allows Freya to avoid polluting the <see cref="FreyaEnvironment" />
+/// This state value allows Freya to avoid polluting the <see cref="CoreEnvironment" />
 /// with Freya-specific concerns.
 /// </remarks>
 and CoreMetaState =
@@ -59,15 +59,15 @@ and CoreMetaState =
         (fun x -> x.Memos),
         (fun m x -> { x with Memos = m })
 
-(* Monad *)
+(* Computation Expression *)
 
 /// <summary>
-/// An <see cref="Async{T}" /> state computation type using <see cref="FreyaState" />
+/// An <see cref="Async{T}" /> state computation type using <see cref="CoreState" />
 /// as the state value and a generic type for the computed result.
 /// </summary>
 /// <remarks>
-/// <see cref="Freya{T}" /> represents an asynchronous state monad and forms the core all composition within Freya.
-/// Note that the definition does not use a generic value for state but specifies <see cref="FreyaState" />
+/// <see cref="Core{T}" /> represents an asynchronous state monad and forms the core all composition within Freya.
+/// Note that the definition does not use a generic value for state but specifies <see cref="CoreState" />
 /// explicitly as the state value. Further, this definition does not make use of a wrapped value but simply
 /// provides an alias for the function definition. Both offer slight performance optimizations and allow Freya
 /// to require additional dependencies.

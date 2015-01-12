@@ -26,7 +26,7 @@ open Freya.Core.Operators
 
 (* Builder *)
 
-/// Defines a computation expression builder for constructing <see cref="Freya{T}" /> computations.
+/// Defines a computation expression builder for constructing <see cref="Core{T}" /> computations.
 type CoreBuilder () =
 
     member __.Return (t) : Core<'T> =
@@ -73,6 +73,6 @@ type CoreBuilder () =
             this.While (enum.MoveNext, this.Delay (fun () -> 
                 body enum.Current)))
 
-/// The instance of <see cref="FreyaBuilder" /> used for constructing
-/// <see cref="Freya{T}" /> computations.
+/// The instance of <see cref="CoreBuilder" /> used for constructing
+/// <see cref="Core{T}" /> computations.
 let freyaCore = new CoreBuilder ()

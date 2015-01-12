@@ -34,7 +34,7 @@ let private memoPLens<'a> key =
 
 (* Memoization *)
 
-/// Memoization for <see cref="FreyaState" /> within a <see cref="Freya{T}" /> computation.
+/// Memoization for <see cref="CoreState" /> within a <see cref="Core{T}" /> computation.
 let memoM<'a> (m: Core<'a>) : Core<'a> =
     let memoPLens = memoPLens (Guid.NewGuid ())
 

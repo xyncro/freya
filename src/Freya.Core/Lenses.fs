@@ -25,10 +25,10 @@ open Aether.Operators
 
 (* Environment Lenses *)
 
-/// An Aether lens providing access to a required <see cref="FreyaEnvironment" />, or OWIN environment, value.
+/// An Aether lens providing access to a required <see cref="CoreEnvironment" />, or OWIN environment, value.
 let environmentKeyLens<'a> key =
     CoreState.EnvironmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
 
-/// An Aether lens providing access to an optional <see cref="FreyaEnvironment" />, or OWIN environment, value.
+/// An Aether lens providing access to an optional <see cref="CoreEnvironment" />, or OWIN environment, value.
 let environmentKeyPLens<'a> key =
     CoreState.EnvironmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>

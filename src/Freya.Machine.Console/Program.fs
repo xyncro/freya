@@ -18,9 +18,9 @@ let main _ =
           Operations = 
             [ Start    /*> Finish
           
-              Node "a" .|= Binary (fun m -> c, t)
-              Node "b" .|= Unary (fun _ -> c, u)
-              Node "c" .|= Unary (fun _ -> c, u)
+              Node "a" .|= DefinitionBinary (fun _ -> c, t)
+              Node "b" .|= DefinitionUnary (fun _ -> c, u)
+              Node "c" .|= DefinitionUnary (fun _ -> c, u)
           
               Start    ..> Node "a"
               Node "a" .+> Node "b"

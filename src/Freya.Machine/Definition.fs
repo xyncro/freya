@@ -77,13 +77,14 @@ let private applyOperations operations graph =
 (* Creation *)
 
 let private makeDefinitionGraph (definition: MachineDefinition) =
-    let extensions = orderExtensions definition.Extensions
-    let graph = machineDefinitionGraph ()
-
-    List.fold (fun graph extension ->
-        match graph with
-        | Choice1Of2 graph -> applyOperations extension.Operations (Choice1Of2 graph)
-        | Choice2Of2 e -> Choice2Of2 e) (Choice1Of2 graph) extensions
+    match orderExtensions definition.Extensions with
+    | Choice1Of2 extensions ->
+        List.fold (fun graph extension ->
+            match graph with
+            | Choice1Of2 graph -> applyOperations extension.Operations (Choice1Of2 graph)
+            | Choice2Of2 e -> Choice2Of2 e) (Choice1Of2 (machineDefinitionGraph ())) extensions
+    | Choice2Of2 e ->
+        Choice2Of2 e
 
 let createDefinitionGraph definition =
     match makeDefinitionGraph definition with
