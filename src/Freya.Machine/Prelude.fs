@@ -11,7 +11,8 @@ let equalsOn f x (y: obj) =
     | :? 'T as y -> (f x = f y)
     | _ -> false
  
-let hashOn f x =  hash (f x)
+let hashOn f x = 
+    hash (f x)
  
 let compareOn f x (y: obj) =
     match y with

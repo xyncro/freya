@@ -178,7 +178,7 @@ let internal handlerKeyPLens k =
    expression). *)
 
 let internal configurationKey<'a> key : Core<'a option> =
-    freyaCore {
+    core {
         let! value = getPLM (definitionPLens >??> configurationKeyPLens<'a> key)
 
         match value with

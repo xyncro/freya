@@ -27,6 +27,7 @@ open Fleece.Operators
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
 
@@ -41,20 +42,20 @@ let routeKey =
 (* Data *)
 
 let private recordsData =
-    freyaCore {
+    core {
         let! records = listRecords
 
         return toJSON records }
 
 let private recordData =
-    freyaCore {
+    core {
         let! id = routeId
         let! record = getRecord id
 
         return Option.map toJSON record }
 
 let private inspectionData inspectors =
-    freyaCore {
+    core {
         let! id = routeId
         let! key = routeKey
         let! record = getRecord id
@@ -83,18 +84,18 @@ let private inspectionExists inspectors =
 (* Resources *)
 
 let private records =
-    freyaMachine {
+    machine {
         including defaults
         handleOk recordsGet } |> compileFreyaMachine
 
 let private record =
-    freyaMachine {
+    machine {
         including defaults
         exists recordExists
         handleOk recordGet } |> compileFreyaMachine
 
 let private inspection inspectors =
-    freyaMachine {
+    machine {
         including defaults
         exists (inspectionExists inspectors)
         handleOk (inspectionGet inspectors) } |> compileFreyaMachine
@@ -105,7 +106,7 @@ let private map =
     List.map (fun (x: Inspector) -> x.Key, x) >> Map.ofList
 
 let data config =
-    freyaRouter {
-        route All "/freya/api/requests" records
-        route All "/freya/api/requests/:id" record
-        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileRouter
+    router {
+        resource "/freya/api/requests" records
+        resource "/freya/api/requests/:id" record
+        resource "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileRouter

@@ -59,7 +59,7 @@ let json =
 (* Defaults *)
 
 let defaults =
-    freyaMachine {
+    machine {
         charsetsSupported utf8
         languagesSupported en
         mediaTypesSupported json }

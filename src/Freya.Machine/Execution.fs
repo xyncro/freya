@@ -1,6 +1,28 @@
 ﻿[<AutoOpen>]
 module internal Freya.Machine.Execution
 
+(* Types
+
+   Types defining an execution graph and supporting metadata. *)
+
+type MachineExecutionGraph =
+    { Nodes: Map<MachineNodeRef, MachineExecutionNode option> }
+
+and MachineExecutionNode =
+    | ExecutionUnary of MachineExecutionUnary
+    | ExecutionBinary of MachineExecutionBinary
+
+and MachineExecutionUnary =
+    { Unary: MachineUnary
+      Configuration: MachineConfigurationMetadata
+      Next: MachineNodeRef }
+
+and MachineExecutionBinary =
+    { Binary: MachineBinary
+      Configuration: MachineConfigurationMetadata
+      True: MachineNodeRef
+      False: MachineNodeRef }
+
 (* Mapping
 
    Functions supporting mapping of definition graphs to execution
@@ -42,17 +64,17 @@ let private mapNode graph config nodeRef =
 let private mapPair graph config (nodeRef, node) =
     nodeRef, mapNode graph config nodeRef node
 
+let private mapGraph (graph: MachineDefinitionGraph) configuration =
+     { MachineExecutionGraph.Nodes =
+        graph.Nodes
+        |> Map.toList
+        |> List.map (mapPair graph configuration)
+        |> Map.ofList }
+
 (* Creation *)
 
 let createExecutionGraph definition =
     match createDefinitionGraph definition with
-    | Choice1Of2 graph ->
-        Choice1Of2 { 
-            MachineExecutionGraph.Nodes = 
-                graph.Nodes
-                |> Map.toList
-                |> List.map (mapPair graph definition.Configuration)
-                |> Map.ofList }
-    | Choice2Of2 e ->
-        Choice2Of2 e
+    | Choice1Of2 graph -> Choice1Of2 (mapGraph graph definition.Configuration)
+    | Choice2Of2 e -> Choice2Of2 e
 

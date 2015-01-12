@@ -10,7 +10,7 @@ let private answerLens =
 [<Test>]
 let ``getLM, setLM, modLM behave correctly`` () =
     let m =
-        freyaCore {
+        core {
             do! setLM answerLens 42
             let! v1 = getLM answerLens
 
@@ -38,7 +38,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
     let converted = OwinAppFunc.toCore app
 
     let m =
-        freyaCore {
+        core {
             do! converted
             let! v1 = getLM answerLens
             return v1 }
@@ -56,7 +56,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
         |> OwinAppFunc.toCore
 
     let m =
-        freyaCore {
+        core {
             do! converted
             let! v1 = getLM answerLens
             return v1 }

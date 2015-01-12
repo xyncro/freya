@@ -75,4 +75,4 @@ type CoreBuilder () =
 
 /// The instance of <see cref="CoreBuilder" /> used for constructing
 /// <see cref="Core{T}" /> computations.
-let freyaCore = new CoreBuilder ()
+let core = new CoreBuilder ()

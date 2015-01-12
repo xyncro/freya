@@ -28,7 +28,7 @@ open Freya.Types.Http
 (* Runtime *)
 
 let private initialize =
-    freyaCore {
+    core {
         let! meth = getLM Request.meth
         let! path = getLM Request.path
 

@@ -38,7 +38,7 @@ let private memoPLens<'a> key =
 let memoM<'a> (m: Core<'a>) : Core<'a> =
     let memoPLens = memoPLens (Guid.NewGuid ())
 
-    freyaCore {
+    core {
         let! memo = getPLM memoPLens
 
         match memo with

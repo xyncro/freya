@@ -34,7 +34,7 @@ let main _ =
           Operations = List.empty }
 
     let resource =
-        freyaMachine {
+        machine {
             using http
             using cors }
     

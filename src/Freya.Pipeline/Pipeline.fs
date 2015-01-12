@@ -46,6 +46,8 @@ let compose (pipeline1: Pipeline) (pipeline2: Pipeline) : Pipeline =
                   | _ -> halt)
     =<< pipeline1
 
+(* Operators *)
+
 module Operators =
 
     let (>?=) p1 p2 : Pipeline = 

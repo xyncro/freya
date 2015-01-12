@@ -28,19 +28,19 @@ open Freya.Types.Http
 (* Find *)
 
 let rec private findTrie path data (trie: RouterTrie)  =
-    freyaCore {
+    core {
         match path with
         | segment :: path -> return! (pick segment data >=> ret path) trie.Children
         | _ -> return Some (trie.Pipelines, data) }
 
 and private ret path x =
-    freyaCore {
+    core {
         match x with
         | Some (trie, data) -> return! findTrie path data trie
         | _ -> return None }
 
 and private pick segment data tries =
-    freyaCore {
+    core {
         match tries with
         | [] -> return None
         | tries ->
@@ -57,7 +57,7 @@ and private pick segment data tries =
             return x }
 
 and private recognize segment data trie =
-    freyaCore {
+    core {
         let result = addRouterExecutionRecord trie.Key segment
 
         match trie.Recognizer with
@@ -68,16 +68,16 @@ and private recognize segment data trie =
 (* Match *)
 
 let private find meth x =
-    freyaCore {
+    core {
         return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m
                                       | _ -> true) x }
 
 let private pair data x =
-    freyaCore {
+    core {
         return Option.map (fun (_, pipeline) -> pipeline, data) x }
 
 let private matchMethod meth x =
-    freyaCore {
+    core {
         match x with
         | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
         | _ -> return None }
@@ -85,7 +85,7 @@ let private matchMethod meth x =
 (* Search *)
 
 let private search path meth data trie =
-    freyaCore {
+    core {
         return! (findTrie path data >=> matchMethod meth) trie }
 
 (* Compilation *)
@@ -95,7 +95,7 @@ let compileRouter (router: Router) : Pipeline =
     let trie = routerTrie routes
     let trieRecord = routerTrieRecord trie
 
-    freyaCore {
+    core {
         do! setRouterTrieRecord trieRecord
 
         let! meth = getLM Request.meth

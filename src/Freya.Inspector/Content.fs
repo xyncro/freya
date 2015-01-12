@@ -23,6 +23,7 @@ module internal Freya.Inspector.Content
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Router
 open Freya.Router
 open Freya.Types.Http
 
@@ -48,13 +49,13 @@ let private getHtml =
 (* Resources *)
 
 let private css =
-    freyaMachine {
+    machine {
         including defaults
         mediaTypesSupported css
         handleOk getCss } |> compileFreyaMachine
 
 let private html =
-    freyaMachine {
+    machine {
         including defaults
         mediaTypesSupported html
         handleOk getHtml } |> compileFreyaMachine
@@ -62,6 +63,6 @@ let private html =
 (* Routes *)
 
 let content =
-    freyaRouter {
-        route All "/freya" html
-        route All "/freya/css" css } |> compileRouter
+    router {
+        resource "/freya" html
+        resource "/freya/css" css } |> compileRouter

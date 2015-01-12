@@ -47,4 +47,4 @@ type MachineBuilder () =
         x.Bind ((fun machineDefinition -> (), f machineDefinition), 
                 (fun _ -> x.ReturnFrom m))
 
-let freyaMachine = MachineBuilder ()
+let machine = MachineBuilder ()

@@ -39,4 +39,4 @@ type RouterBuilder () =
     member internal x.Update (r, update) = 
         x.Bind ((fun res -> (), update res), fun _ -> x.ReturnFrom r)
 
-let freyaRouter = RouterBuilder ()
+let router = RouterBuilder ()
