@@ -15,67 +15,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Machine.Execution
+module internal Freya.Machine.Execution
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 
-(* Execution *)
-
-let private action a =
+let private unary (x: CompilationUnaryNode) =
     freya {
-        do! a.Action
-        do! addFreyaMachineExecutionRecord a.Id
+        do! x.Unary
 
-        return a.Next }
+        return x.Next }
 
-let private decision d =
+let private binary (x: CompilationBinaryNode) =
     freya {
-        let! result = d.Decision
-        do! addFreyaMachineExecutionRecord d.Id
+        let! result = x.Binary
 
-        match result with
-        | true -> return d.True
-        | _ -> return d.False }
+        return x.Choices.[result] }
 
-let private handler (h: FreyaMachineHandlerNode) =
-    freya {
-        do! addFreyaMachineExecutionRecord h.Id
-
-        return h.Handler }
-
-let private operation o =
-    freya {
-        do! o.Operation
-        do! addFreyaMachineExecutionRecord o.Id
-
-        return o.Next }
-
-let private traverse (graph: FreyaMachineGraph) =
-    let rec eval from =
+let execute (map: CompilationMap) =
+    let rec eval ref =
         freya {
-            match Map.find from graph with
-            | ActionNode a -> return! action a >>= eval
-            | DecisionNode d -> return! decision d >>= eval
-            | HandlerNode h -> return! handler h
-            | OperationNode o -> return! operation o >>= eval }
+            match ref, Map.find ref map with
+            | Finish, _ -> return ()
+            | _, Unary x -> return! unary x >>= eval
+            | _, Binary x -> return! binary x >>= eval }
 
-    eval Decisions.ServiceAvailable
-
-(* Compilation *)
-
-let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
-    let definition = snd (machine Map.empty)
-    let graph = freyaMachineGraph definition
-    let graphRecord = freyaMachineGraphRecord graph
-
-    freya {
-        do! setFreyaMachineGraphRecord graphRecord
-        do! setPLM definitionPLens definition
-        do! traverse graph >>= represent
-
-        return Halt }
+    eval Start

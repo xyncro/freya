@@ -44,7 +44,7 @@ let private actions =
                          Override = 
                            { Allow = true
                              Overridden = false }
-                         Action = Freya.returnM ()
+                         Action = Freya.init ()
                          Next = next })
 
 (* Decisions (Public)
@@ -96,7 +96,7 @@ let private publicDecisions =
                            Override =
                              { Allow = true
                                Overridden = false }
-                           Decision = Freya.returnM d
+                           Decision = Freya.init d
                            True = t
                            False = f })
 
@@ -112,10 +112,10 @@ let private publicDecisions =
 // TODO: Implement ETag Matching
 
 let private ifETagMatchesIf =
-    Freya.returnM true
+    Freya.init true
 
 let private ifETagMatchesIfNone =
-    Freya.returnM true
+    Freya.init true
 
 (*    Key                                        Decision                                          True                                              False
       ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- *)
@@ -182,7 +182,7 @@ let private decisions =
    so do not include any form of "next" node data. *)
 
 let private defaultHandler _ =
-    Freya.returnM {
+    Freya.init {
         Metadata =
             { Charset = None
               Encodings = None

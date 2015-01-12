@@ -24,6 +24,26 @@ open Aether
 open Aether.Operators
 open Freya.Pipeline
 
+(* Trie *)
+
+type internal FreyaRouterTrie =
+    { Children: FreyaRouterTrie list
+      Key: string
+      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
+      Recognizer: RouterRecognizer }
+
+    static member ChildrenLens =
+        (fun x -> x.Children), 
+        (fun c x -> { x with Children = c })
+
+    static member PipelinesLens =
+        (fun x -> x.Pipelines), 
+        (fun p x -> { x with Pipelines = p })
+
+and internal RouterRecognizer =
+    | Ignore of string
+    | Capture of string
+
 (* Constructors *)
 
 let private recognizer (key: string) =
@@ -71,5 +91,5 @@ and private append segment path pipeline meth =
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)
 
-let freyaRouterTrie =
+let routerTrie =
     List.fold (flip addRoute) (node "")

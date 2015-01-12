@@ -30,7 +30,7 @@ open Freya.Core.Operators
 type FreyaBuilder () =
 
     member __.Return (t) : Freya<'T> =
-        Freya.returnM t
+        Freya.init t
     
     member __.ReturnFrom (m: Freya<'T>) =
         m
@@ -38,10 +38,10 @@ type FreyaBuilder () =
     member __.Bind (m1: Freya<'T>, m2: 'T -> Freya<'U>) : Freya<'U> =
         Freya.bind m1 m2
     
-    member this.Zero () =
-        Freya.returnM ()
+    member __.Zero () =
+        Freya.init ()
     
-    member this.Combine (m1: Freya<unit>, m2: Freya<'T>) : Freya<'T> =
+    member __.Combine (m1: Freya<unit>, m2: Freya<'T>) : Freya<'T> =
         m1 >>= fun () -> m2
     
     member __.TryWith (m: Freya<'T>, handler: exn -> Freya<'T>) : Freya<'T> =

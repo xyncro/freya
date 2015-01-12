@@ -40,10 +40,10 @@ type FreyaRecorderRecord =
             "timestamp" .= x.Timestamp
             "inspections" .= (x.Data |> Map.toList |> List.map fst) ]
 
-(* Lenses *)
+    static member DataLens =
+        (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-let private dataLens =
-    (fun x -> x.Data), (fun d x -> { x with Data = d })
+(* Lenses *)    
 
-let recordDataPLens<'a> key =
-    dataLens >-?> mapPLens key <?-> boxIso<'a>
+let freyaRecordDataPLens<'a> key =
+    FreyaRecorderRecord.DataLens >-?> mapPLens key <?-> boxIso<'a>

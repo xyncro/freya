@@ -770,22 +770,22 @@ module Http =
 
     let private eTag =
             (function | Some x -> setPLM Response.Headers.eTag (ETag x)
-                      | _ -> Freya.returnM ())
+                      | _ -> Freya.init ())
         =<< configurationKey Configuration.ETag
 
     let private expires =
             (function | Some x -> setPLM Response.Headers.expires (Expires x)
-                      | _ -> Freya.returnM ())
+                      | _ -> Freya.init ())
         =<< configurationKey Configuration.Expires
 
     let private lastModified =
             (function | Some x -> setPLM Response.Headers.lastModified (LastModified x)
-                      | _ -> Freya.returnM ())
+                      | _ -> Freya.init ())
         =<< configurationKey Configuration.LastModified
 
     let private location =
             (function | Some x -> setPLM Response.Headers.location (Location.Location x)
-                      | _ -> Freya.returnM ())
+                      | _ -> Freya.init ())
         =<< configurationKey Configuration.Location
 
     let private reasonPhrase =

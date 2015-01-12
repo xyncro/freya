@@ -8,9 +8,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Machine.Router</RootNamespace>
     <AssemblyName>Freya.Machine.Router</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Freya.Machine.Router</Name>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,10 +64,6 @@
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{0A570763-69E7-4E5B-8640-A848A4E2239F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
       <Name>Freya.Pipeline</Name>

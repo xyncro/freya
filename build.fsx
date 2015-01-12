@@ -5,7 +5,6 @@ open System
 open System.IO
 open Fake
 open Fake.AssemblyInfoFile
-open Fake.Git
 open Fake.ReleaseNotesHelper
 
 (* Types
@@ -174,9 +173,6 @@ let freya =
    Computed properties of the build based on existing data structures and/or
    environment variables, creating a derived set of properties. *)
 
-let branch =
-    getBranchName __SOURCE_DIRECTORY__
-
 let release =
     parseReleaseNotes (File.ReadAllLines freya.Metadata.Info.Notes)
 
@@ -243,6 +239,25 @@ Target "Publish.Debug" (fun _ ->
         release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
         
         Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
+
+Target "Publish.MetaPackage" (fun _ ->
+    NuGet (fun x ->
+        { x with
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Authors = freya.Metadata.Authors
+            Dependencies =
+                freya.Structure.Projects.Source
+                |> List.map (fun project ->
+                    project.Name, nugetVersion)
+            Description = freya.Metadata.Description
+            Files = List.empty
+            OutputPath = "bin"
+            Project = "Freya"
+            Publish = hasBuildParam "nugetkey"
+            ReleaseNotes = notes
+            Summary = freya.Metadata.Summary
+            Tags = tags freya
+            Version = nugetVersion }) "nuget/template.nuspec")
 
 Target "Publish.Packages" (fun _ ->
     freya.Structure.Projects.Source 
@@ -323,6 +338,7 @@ Target "Publish" DoNothing
 #else
 ==> "Publish.Debug"
 ==> "Publish.Packages"
+==> "Publish.MetaPackage"
 #endif
 ==> "Publish"
 

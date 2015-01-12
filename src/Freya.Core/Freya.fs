@@ -23,13 +23,13 @@
 module Freya.Core.Freya
 
 /// Wraps a value x in a <see cref="Freya{T}" /> computation.
-let inline returnM x : Freya<'T> = 
+let inline init x : Freya<'T> = 
     fun env -> 
         async.Return (x, env)
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
 /// into a <see cref="Freya{T}" /> computation.
-let inline asyncM f =
+let inline toAsync f =
     (fun f -> 
         fun env -> 
             async { 
@@ -51,13 +51,13 @@ let inline bind (m: Freya<'T1>) (f: 'T1 -> Freya<'T2>) : Freya<'T2> =
 let inline apply f m : Freya<'T> =
     bind f (fun f' ->
     bind m (fun m' ->
-    returnM (f' m')))
+    init (f' m')))
 
 /// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
 let inline map f m : Freya<'T> =
     bind m (fun m' ->
-    returnM (f m'))
+    init (f m'))
 
 /// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
 let inline map2 f m1 m2 =
-    apply (apply (returnM f) m1) m2
+    apply (apply (init f) m1) m2

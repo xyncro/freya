@@ -19,22 +19,24 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Prelude
+module internal Freya.Machine.Extension
 
-(* Equality/Comparison
+// TODO: Proper error handling
+// TODO: Refactor
 
-   Functions for simplifying the customization of equality
-   and comparison on types where this is required. *)
+let private mapExtension e =
+    Dependency (Ref e.Name,
+                Set.map Ref e.Dependencies)
 
-let equalsOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> (f x = f y)
-    | _ -> false
- 
-let hashOn f x = 
-    hash (f x)
- 
-let compareOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> compare (f x) (f y)
-    | _ -> invalidArg "y" "cannot compare values of different types"
+let private analyzeExtensions =
+       Set.map mapExtension
+    >> createDependencyGraph
+    >> analyzeDependencyGraph
+
+let private findExtension extensions (Ref x) =
+    List.find (fun e -> e.Name = x) (Set.toList extensions)
+
+let order (extensions: Set<FreyaMachineExtension>) =
+    match analyzeExtensions extensions with
+    | Ordered order -> Choice1Of2 (List.map (findExtension extensions) order)
+    | Cyclic -> Choice2Of2 "Cyclic Dependencies"

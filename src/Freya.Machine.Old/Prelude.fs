@@ -17,21 +17,35 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-module Freya.Todo.Backend.Program
+[<AutoOpen>]
+module internal Freya.Machine.Prelude
 
-open Freya.Core
-open Microsoft.Owin.Hosting
+open System
+open System.Runtime.CompilerServices
 
-// Katana Compatible Type
+(* Internals *)
 
-type TodoBackend () =
-    member __.Configuration () =
-        OwinAppFunc.fromFreya (api)
+[<assembly:InternalsVisibleTo ("Freya.Machine.Tests")>]
+do ()
 
-// Main
+(* Operators *)
 
-[<EntryPoint>]
-let main _ = 
-    let _ = WebApp.Start<TodoBackend> ("http://localhost:7000")
-    let _ = System.Console.ReadLine ()
-    0
+let (==) s1 s2 =
+    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
+
+(* Functions *)
+
+let inline flip f a b = 
+    f b a
+
+(* List Extensions *)
+
+[<RequireQualifiedAccess>]
+module List =
+
+    let chooseMaxBy projection =
+            List.map (fun x -> x, projection x)
+         >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
+         >> List.sortBy (fun (_, y) -> y)
+         >> List.map fst
+         >> function | [] -> None | x :: _ -> Some x

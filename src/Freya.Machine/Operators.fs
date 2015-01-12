@@ -18,23 +18,28 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module internal Freya.Machine.Prelude
+module Freya.Machine.Operators
 
-(* Equality/Comparison
+(* Definition
 
-   Functions for simplifying the customization of equality
-   and comparison on types where this is required. *)
+   Infix operators for working with definition graphs, producing
+   definition graph operations. Combined, these operators enable a
+   moderately visual DSL for working with definition graphs. *)
 
-let equalsOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> (f x = f y)
-    | _ -> false
- 
-let hashOn f x = 
-    hash (f x)
- 
-let compareOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> compare (f x) (f y)
-    | _ -> invalidArg "y" "cannot compare values of different types"
+let (.+>) source dest =
+    addNewEdge source dest (Value (Some true))
+
+let (.->) source dest =
+    addNewEdge source dest (Value (Some false))
+
+let (..>) source dest =
+    addNewEdge source dest (Value (None))
+
+let (/*>) =
+    removeExistingEdge 
+
+let (.|=) id n =
+    addNewNode id n
+
+let (/|=) id () =
+    removeExistingNode id

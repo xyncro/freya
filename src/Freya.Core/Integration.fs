@@ -29,10 +29,6 @@ open System.Threading.Tasks
 type OwinEnvironment =
     FreyaEnvironment
 
-/// Type alias for the F# equivalent of the OWIN AppFunc signature.
-type OwinApp = 
-    OwinEnvironment -> Async<unit>
-
 /// Type alias for the OWIN AppFunc signature.
 type OwinAppFunc = 
     Func<OwinEnvironment, Task>
@@ -43,7 +39,6 @@ type OwinAppFunc =
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
-    open Freya.Core.Functions
 
     /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
     [<CompiledName ("FromFreya")>]
@@ -61,11 +56,9 @@ module OwinAppFunc =
     let toFreya (app: OwinAppFunc) : Freya<unit> =
         // TODO: Can another, existing operator handle this scenario better?
         fun s -> async {
-            // Retrieve the OwinEnvironment
-            let { Environment = e; Meta = _ } = s
             let! token = Async.CancellationToken
             // Apply and mutate the OwinEnvironment asynchronously
-            let! _ = app.Invoke(e).ContinueWith<unit>((fun t -> ()), token) |> Async.AwaitTask
+            let! _ = app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token) |> Async.AwaitTask
             // Return the result as a unit value and the mutated FreyaState
             // TODO: should the current value be retrieved and threaded through, or is it more appropriate to return unit?
             return (), s }

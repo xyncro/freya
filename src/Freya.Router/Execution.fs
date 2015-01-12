@@ -61,9 +61,9 @@ and private recognize segment data trie =
         let result = addFreyaRouterExecutionRecord trie.Key segment
 
         match trie.Recognizer with
-        | Capture x -> return! result Captured *> Freya.returnM (Some (trie, Map.add x segment data))
-        | Ignore x when x = segment -> return! result Matched *> Freya.returnM (Some (trie, data))
-        | _ -> return! result Failed *> Freya.returnM None }
+        | Capture x -> return! result Captured *> Freya.init (Some (trie, Map.add x segment data))
+        | Ignore x when x = segment -> return! result Matched *> Freya.init (Some (trie, data))
+        | _ -> return! result Failed *> Freya.init None }
 
 (* Match *)
 
@@ -90,10 +90,10 @@ let private search path meth data trie =
 
 (* Compilation *)
 
-let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
+let compileRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)
-    let trie = freyaRouterTrie routes
-    let trieRecord = freyaRouterTrieRecord trie
+    let trie = routerTrie routes
+    let trieRecord = routerTrieRecord trie
 
     freya {
         do! setFreyaRouterTrieRecord trieRecord

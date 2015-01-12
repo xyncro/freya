@@ -27,16 +27,17 @@ open Fleece.Operators
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
 
 (* Route *)
 
 let routeId =
-    memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
+    memo ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
 
 let routeKey =
-    memoM ((Option.get) <!> getPLM (Route.valuesKey "key"))
+    memo ((Option.get) <!> getPLM (Route.valuesKey "key"))
 
 (* Data *)
 
@@ -106,6 +107,6 @@ let private map =
 
 let data config =
     freyaRouter {
-        route All "/freya/api/requests" records
-        route All "/freya/api/requests/:id" record
-        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileFreyaRouter
+        resource "/freya/api/requests" records
+        resource "/freya/api/requests/:id" record
+        resource "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileRouter

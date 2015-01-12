@@ -15,26 +15,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Prelude
+module Freya.Machine.Builder
 
-(* Equality/Comparison
+open Aether
 
-   Functions for simplifying the customization of equality
-   and comparison on types where this is required. *)
+(* Builder
 
-let equalsOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> (f x = f y)
-    | _ -> false
- 
-let hashOn f x = 
-    hash (f x)
- 
-let compareOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> compare (f x) (f y)
-    | _ -> invalidArg "y" "cannot compare values of different types"
+   The Computation Expression builder to give Machine the declarative
+   computation expression syntax for specifying Machine Definitions.
+   Specific strongly typed custom operations are defined in
+   Machine.Syntax.fs. *)
+
+type FreyaMachineBuilder () =
+
+    member __.Return _ : FreyaMachine =
+        fun definition -> (), definition
+
+    member __.ReturnFrom machine : FreyaMachine = 
+        machine
+
+    member __.Bind (m, k) : FreyaMachine = 
+        m >> fun (result, definition) -> (k result) definition
+
+    member x.Combine (m1, m2) : FreyaMachine = 
+        x.Bind (m1, fun () -> m2)
+
+    member internal x.Set (r, lens, value) = 
+        x.Bind ((fun res -> (), setPL lens value res), fun _ -> x.ReturnFrom r)
+
+let freyaMachine = FreyaMachineBuilder ()

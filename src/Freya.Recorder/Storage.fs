@@ -102,7 +102,7 @@ let private store =
 
 (* Functions *)
 
-let init () =
+let initialize () =
     store.PostAndAsyncReply (fun c -> Create (c))
 
 let read id =

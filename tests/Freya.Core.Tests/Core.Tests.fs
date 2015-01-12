@@ -70,8 +70,8 @@ open Freya.Core.Operators
 
 [<Test>]
 let ``apply correctly unwraps and applies Freya computations`` () =
-    let comp = Freya.returnM 2
-    let f = Freya.returnM ((+) 40)
+    let comp = Freya.init 2
+    let f = Freya.init ((+) 40)
     let test = Freya.apply f comp
     let result = run test
     fst result =? 42
@@ -79,23 +79,23 @@ let ``apply correctly unwraps and applies Freya computations`` () =
 [<Test>]
 let ``map correctly applies a function to a Freya computation`` () =
     let test =
-        Freya.returnM 40
+        Freya.init 40
         |> Freya.map ((+) 2)
     let result = run test
     fst result =? 42
 
 [<Test>]
 let ``map2 correctly applies a function to Freya computations`` () =
-    let comp1 = Freya.returnM 2
-    let comp2 = Freya.returnM 40
+    let comp1 = Freya.init 2
+    let comp2 = Freya.init 40
     let test = Freya.map2 (+) comp1 comp2
     let result = run test
     fst result =? 42
 
 [<Test>]
 let ``map + apply correctly chain across applicative computations`` () =
-    let comp1 = Freya.returnM 2
-    let comp2 = Freya.returnM 40
+    let comp1 = Freya.init 2
+    let comp2 = Freya.init 40
     let test = (+) <!> comp1 <*> comp2
     let result = run test
     fst result =? 42

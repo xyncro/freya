@@ -35,7 +35,7 @@ let private memoPLens<'a> key =
 (* Memoization *)
 
 /// Memoization for <see cref="FreyaState" /> within a <see cref="Freya{T}" /> computation.
-let memoM<'a> (m: Freya<'a>) : Freya<'a> =
+let memo<'a> (m: Freya<'a>) : Freya<'a> =
     let memoPLens = memoPLens (Guid.NewGuid ())
 
     freya {
