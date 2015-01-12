@@ -7,19 +7,19 @@
    moderately visual DSL for working with definition graphs. *)
 
 let (.+>) source dest =
-    addNewDefinitionEdge source dest (Value (Some true))
+    addNewEdge source dest (Value (Some true))
 
 let (.->) source dest =
-    addNewDefinitionEdge source dest (Value (Some false))
+    addNewEdge source dest (Value (Some false))
 
 let (..>) source dest =
-    addNewDefinitionEdge source dest (Value (None))
+    addNewEdge source dest (Value (None))
 
 let (/*>) =
-    removeExistingDefinitionEdge 
+    removeExistingEdge 
 
 let (.|=) id n =
-    addNewDefinitionNode id n
+    addNewNode id n
 
 let (/|=) id () =
-    removeExistingDefinitionNode id
+    removeExistingNode id
