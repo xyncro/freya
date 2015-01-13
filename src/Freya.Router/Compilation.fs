@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Router.Trie
+module internal Freya.Router.Compilation
 
 open Aether
 open Aether.Operators
@@ -26,11 +26,11 @@ open Freya.Pipeline
 
 (* Trie *)
 
-type internal FreyaRouterTrie =
-    { Children: FreyaRouterTrie list
+type internal CompilationTrie =
+    { Children: CompilationTrie list
       Key: string
       Pipelines: (FreyaRouteMethod * FreyaPipeline) list
-      Recognizer: RouterRecognizer }
+      Recognizer: Recognizer }
 
     static member ChildrenLens =
         (fun x -> x.Children), 
@@ -40,7 +40,7 @@ type internal FreyaRouterTrie =
         (fun x -> x.Pipelines), 
         (fun p x -> { x with Pipelines = p })
 
-and internal RouterRecognizer =
+and internal Recognizer =
     | Ignore of string
     | Capture of string
 
@@ -65,7 +65,7 @@ let segmentize (path: string) =
 (* Lenses *)
 
 let private childPLens i =
-    FreyaRouterTrie.ChildrenLens >-?> listPLens i
+    CompilationTrie.ChildrenLens >-?> listPLens i
 
 (* Constructors *)
 
@@ -73,7 +73,7 @@ let rec private add node =
     function | (segment :: path, pipeline, meth) -> 
                 (find segment node |> update segment path pipeline meth) node
              | (_, pipeline, meth) -> 
-                modL FreyaRouterTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
+                modL CompilationTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
 
 and private find segment =
     function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = segment) x
@@ -86,10 +86,10 @@ and private extend i path pipeline meth =
     modPL (childPLens i) (flip add (path, pipeline, meth))
 
 and private append segment path pipeline meth =
-    modL FreyaRouterTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
+    modL CompilationTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
 
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)
 
-let routerTrie =
+let compileRoutes =
     List.fold (flip addRoute) (node "")

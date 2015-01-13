@@ -50,18 +50,27 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Builder.fs" />
+    <Compile Include="Configuration.fs" />
     <Compile Include="Dependency.fs" />
     <Compile Include="Extension.fs" />
     <Compile Include="Definition.fs" />
     <Compile Include="Compilation.fs" />
+    <Compile Include="Recording.fs" />
     <Compile Include="Execution.fs" />
+    <Compile Include="Reification.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>

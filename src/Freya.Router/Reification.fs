@@ -15,12 +15,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Router.Prelude
+module Freya.Router.Reification
 
-(* Functions *)
+open Freya.Core
+open Freya.Pipeline
 
-let inline flip f a b =
-    f b a
+let reifyRouter (router: FreyaRouter) : FreyaPipeline =
+    let routes = snd (router List.empty)
+    let compiled = compileRoutes routes
+    let trieRecord = routerTrieRecord compiled
+
+    freya {
+        do! setFreyaRouterTrieRecord trieRecord
+        return! executeCompilation compiled }

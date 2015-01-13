@@ -28,15 +28,15 @@ let private mapExtension e =
     Dependency (Ref e.Name,
                 Set.map Ref e.Dependencies)
 
-let private analyzeExtensions =
+let private mapAndOrderExtensions =
        Set.map mapExtension
     >> createDependencyGraph
-    >> analyzeDependencyGraph
+    >> orderDependencyGraph
 
 let private findExtension extensions (Ref x) =
     List.find (fun e -> e.Name = x) (Set.toList extensions)
 
-let order (extensions: Set<FreyaMachineExtension>) =
-    match analyzeExtensions extensions with
+let orderExtensions (extensions: Set<FreyaMachineExtension>) =
+    match mapAndOrderExtensions extensions with
     | Ordered order -> Choice1Of2 (List.map (findExtension extensions) order)
     | Cyclic -> Choice2Of2 "Cyclic Dependencies"

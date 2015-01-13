@@ -15,12 +15,31 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Router.Prelude
+module Freya.Machine.Configuration
 
-(* Functions *)
+open Aether
+open Aether.Operators
+open Freya.Core
 
-let inline flip f a b =
-    f b a
+(* Lenses *)
+
+let private configurationPLens<'a> key =
+         FreyaMachineConfiguration.DataLens
+    >-?> mapPLens key
+    <?-> boxIso<'a>
+
+(* Configuration
+
+   Functions supporting the mapping of configuration data to and from
+   machine specifications, in a typed way (imposes a boxing and unboxing
+   overhead, but is only used at reification time in general cases. *)
+
+let tryGetConfiguration<'a> key =
+    getPL (configurationPLens<'a> key)
+
+let setConfiguration<'a> key =
+    setPL (configurationPLens<'a> key)

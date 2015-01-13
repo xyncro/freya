@@ -38,7 +38,10 @@ type FreyaMachineBinary =
 (* Configuration *)
 
 type FreyaMachineConfiguration =
-    Map<string, obj>
+    { Data: Map<string, obj> }
+
+    static member DataLens =
+        (fun x -> x.Data), (fun d x -> { x with Data = d })
 
 type FreyaMachineConfigurationMetadata =
     { Configurable: bool

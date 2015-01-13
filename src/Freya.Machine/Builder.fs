@@ -45,7 +45,6 @@ type FreyaMachineBuilder () =
         x.Bind (m1, fun () -> m2)
 
     member x.Map (m, f) =
-        x.Bind ((fun machineDefinition -> (), f machineDefinition), 
-                (fun _ -> x.ReturnFrom m))
+        x.Bind ((fun spec -> (), f spec), (fun _ -> x.ReturnFrom m))
 
 let freyaMachine = FreyaMachineBuilder ()

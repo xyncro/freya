@@ -23,25 +23,56 @@ module internal Freya.Machine.Execution
 
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Pipeline
 
-let private unary (x: CompilationUnaryNode) =
+(* Aliases
+
+   Convenience type aliases when we have some more specific unions
+   etc. in scope, in this case clashes between machine level refs
+   and compilation refs. *)
+
+type Ref =
+    FreyaMachineRef
+
+(* Execution
+
+   Execution of compilation maps, using the Freya computation expression,
+   returning a pipeline result of Halt. *)
+
+let private start (x: CompilationStartNode) =
     freya {
+        printfn "start"
+        return x.Next }
+
+let private finish _ =
+    freya {
+        printfn "finish"
+        return () }
+
+let private unary ref (x: CompilationUnaryNode) =
+    freya {
+        printfn "unary: %s" ref
         do! x.Unary
 
         return x.Next }
 
-let private binary (x: CompilationBinaryNode) =
+let private binary ref (x: CompilationBinaryNode) =
     freya {
+        printfn "binary: %s" ref
         let! result = x.Binary
 
-        return x.Choices.[result] }
+        match result with
+        | true -> return x.True
+        | _ -> return x.False }
 
-let execute (map: CompilationMap) =
+let executeCompilation (map: CompilationMap) =
     let rec eval ref =
         freya {
             match ref, Map.find ref map with
-            | Finish, _ -> return ()
-            | _, Unary x -> return! unary x >>= eval
-            | _, Binary x -> return! binary x >>= eval }
+            | Ref.Start, Start x -> return! start x >>= eval
+            | Ref.Finish, Finish -> return! finish ()
+            | Ref.Ref ref, Unary x -> return! unary ref x >>= eval
+            | Ref.Ref ref, Binary x -> return! binary ref x >>= eval
+            | _ -> failwith "Invalid Compilation" }
 
-    eval Start
+    eval Ref.Start

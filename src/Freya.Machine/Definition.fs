@@ -24,6 +24,17 @@ module internal Freya.Machine.Definition
 open Aether
 open Aether.Operators
 
+(* Aliases
+
+   Convenience aliases for commonly used types for clarity
+   and brevity. *)
+
+type Graph =
+    FreyaMachineGraph
+
+type RefPair =
+    FreyaMachineRefPair
+
 (* Defaults
 
    Default instances of definition data types, in particular a general
@@ -31,13 +42,13 @@ open Aether.Operators
    connected by a single unvalued edge. *)
 
 let private defaultFreyaMachineGraph =
-    { FreyaMachineGraph.Nodes =
+    { Graph.Nodes =
         Map.ofList [ 
             Start, None
             Finish, None ]
       Edges =
         Map.ofList [
-            FreyaMachineRefPair.Pair (Start, Finish), Value (None) ] }
+            RefPair.Pair (Start, Finish), Value (None) ] }
 
 (* Functions
 
@@ -50,22 +61,22 @@ let private optionToBool =
              | _ -> false
 
 let private containsNode nodeRef =
-    getPL (FreyaMachineGraph.NodesLens >-?> mapPLens nodeRef) >> optionToBool
+    getPL (Graph.NodesLens >-?> mapPLens nodeRef) >> optionToBool
 
 let private setNode nodeRef node =
-    modL FreyaMachineGraph.NodesLens (Map.add nodeRef (Some node))
+    modL Graph.NodesLens (Map.add nodeRef (Some node))
 
 let private unsetNode nodeRef =
-    modL FreyaMachineGraph.NodesLens (Map.remove nodeRef)
+    modL Graph.NodesLens (Map.remove nodeRef)
 
 let private containsEdge sourceRef destRef =
-    getPL (FreyaMachineGraph.EdgesLens >-?> mapPLens (FreyaMachineRefPair.Pair (sourceRef, destRef))) >> optionToBool
+    getPL (Graph.EdgesLens >-?> mapPLens (RefPair.Pair (sourceRef, destRef))) >> optionToBool
 
 let private setEdge sourceRef destRef edge =
-    modL FreyaMachineGraph.EdgesLens (Map.add (FreyaMachineRefPair.Pair (sourceRef, destRef)) edge)
+    modL Graph.EdgesLens (Map.add (RefPair.Pair (sourceRef, destRef)) edge)
 
 let private unsetEdge sourceRef destRef =
-    modL FreyaMachineGraph.EdgesLens (Map.remove (FreyaMachineRefPair.Pair (sourceRef, destRef)))
+    modL Graph.EdgesLens (Map.remove (RefPair.Pair (sourceRef, destRef)))
 
 (* Operations
 
@@ -98,8 +109,8 @@ let private applyOperations operations graph =
 
 (* Creation *)
 
-let graph spec =
-    match order spec.Extensions with
+let generateGraph spec =
+    match orderExtensions spec.Extensions with
     | Choice1Of2 extensions ->
         List.fold (fun graph extension ->
             match graph with

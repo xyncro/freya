@@ -99,7 +99,7 @@ let private freyaRouterRecord =
       Execution =
         { Tries = List.empty } }
 
-let rec internal routerTrieRecord (trie: FreyaRouterTrie) : FreyaRouterTrieRecord =
+let rec internal routerTrieRecord (trie: CompilationTrie) : FreyaRouterTrieRecord =
     { Key = trie.Key
       Children = trie.Children |> List.map routerTrieRecord }
 

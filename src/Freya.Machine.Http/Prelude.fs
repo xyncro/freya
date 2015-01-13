@@ -15,12 +15,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Router.Prelude
+module internal Freya.Machine.Http.Prelude
 
-(* Functions *)
+open Freya.Machine
 
-let inline flip f a b =
-    f b a
+(* Helpers *)
+
+let config<'a> =
+    tryGetConfiguration<'a>
+
+(* Metadata *)
+
+let configured =
+    { Configurable = true
+      Configured = true }
+
+let unconfigured =
+    { Configurable = true
+      Configured = false }
+
+let unconfigurable =
+    { Configurable = false
+      Configured = false }

@@ -15,10 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Execution
+module internal Freya.Router.Execution
 
 open Freya.Core
 open Freya.Core.Operators
@@ -27,7 +28,7 @@ open Freya.Types.Http
 
 (* Find *)
 
-let rec private findTrie path data (trie: FreyaRouterTrie)  =
+let rec private findTrie path data (trie: CompilationTrie)  =
     freya {
         match path with
         | segment :: path -> return! (pick segment data >=> ret path) trie.Children
@@ -82,26 +83,14 @@ let private matchMethod meth x =
         | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
         | _ -> return None }
 
-(* Search *)
+(* Execution *)
 
-let private search path meth data trie =
+let executeCompilation trie =
     freya {
-        return! (findTrie path data >=> matchMethod meth) trie }
-
-(* Compilation *)
-
-let compileRouter (router: FreyaRouter) : FreyaPipeline =
-    let routes = snd (router List.empty)
-    let trie = routerTrie routes
-    let trieRecord = routerTrieRecord trie
-
-    freya {
-        do! setFreyaRouterTrieRecord trieRecord
-
         let! meth = getLM Request.meth
         let! path = segmentize <!> getLM Request.path
-        let! res = search path meth Map.empty trie
-
+        let! res = (findTrie path Map.empty >=> matchMethod meth) trie
+        
         match res with
         | Some (pipeline, data) -> return! setPLM Route.values data *> pipeline
         | _ -> return Next }

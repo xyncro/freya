@@ -25,9 +25,9 @@ open Aether
 
 (* Types
 
-   Types representing dependencies of string key, plus types supporting
+   Types representing dependencies of string-based key, plus types supporting
    a dependency graph. Additional types expressing the result of an analysis 
-   of a preconstructed dependency graph, to find a simple valid ordering of
+   of a pre-constructed dependency graph, to find a simple valid ordering of
    dependencies.
 
    See later comments on Creation and Analysis. *)
@@ -51,16 +51,16 @@ and DependencyGraph =
     static member EdgesLens =
         (fun x -> x.Edges), (fun e x -> { x with DependencyGraph.Edges = e })
 
-type DependencyGraphAnalysis =
+type DependencyGraphOrdering =
     | Ordered of DependencyRef list
     | Cyclic
 
 (* Defaults
 
    Default instances of dependency data types, in this case
-   and empty dependency graph containing no nodes and edges. *)
+   an empty dependency graph containing no nodes and edges. *)
 
-let private defaultGraph =
+let private defaultDependencyGraph =
     { Nodes = Set.empty
       Edges = Set.empty }
 
@@ -82,15 +82,15 @@ let private addEdges (Dependency (x, xs)) =
 let createDependencyGraph =
     Set.fold (fun g e ->
         [ addNode e
-          addEdges e ] |> List.fold (|>) g) defaultGraph
+          addEdges e ] |> List.fold (|>) g) defaultDependencyGraph
 
-(* Analysis
+(* Ordering
 
-   Dependency graph analysis attempts to sort dependencies in to
-   topographically valid order based on dependencies. Kahn's
-   algorithm is used to sort the nodes of the graph, leaving
-   a dependency graph with an empty set of edges in the case of a
-   valid dependency graph (one which excludes cyclic dependencies).
+   Dependency graph ordering attempts to sort dependencies in to
+   topographically valid order. Kahn's algorithm is used to sort the
+   nodes of the graph, leaving a dependency graph with an empty set
+   of edges in the case of a valid dependency graph (one which
+   excludes cyclic dependencies).
 
    See [https://en.wikipedia.org/wiki/Topological_sorting] for details. *)
 
@@ -124,5 +124,5 @@ let rec private sort (g: DependencyGraph) s l =
 
         sort g s l
 
-let analyzeDependencyGraph graph =
+let orderDependencyGraph graph =
     sort graph (nodesToStartNodes graph graph.Nodes) List.empty

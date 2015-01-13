@@ -65,4 +65,4 @@ let private html =
 let content =
     freyaRouter {
         resource "/freya" html
-        resource "/freya/css" css } |> compileRouter
+        resource "/freya/css" css } |> reifyRouter
