@@ -99,14 +99,14 @@ let private freyaRouterRecord =
       Execution =
         { Tries = List.empty } }
 
-let rec internal freyaRouterTrieRecord (trie: FreyaRouterTrie) : FreyaRouterTrieRecord =
+let rec internal routerTrieRecord (trie: CompilationTrie) : FreyaRouterTrieRecord =
     { Key = trie.Key
-      Children = trie.Children |> List.map freyaRouterTrieRecord }
+      Children = trie.Children |> List.map routerTrieRecord }
 
 (* Lenses *)
 
 let freyaRouterRecordPLens =
-    recordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
+    freyaRecordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
 
 (* Recording *)
 

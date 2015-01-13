@@ -15,37 +15,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module internal Freya.Machine.Prelude
 
-open System
-open System.Runtime.CompilerServices
+(* Equality/Comparison
 
-(* Internals *)
+   Functions for simplifying the customization of equality
+   and comparison on types where this is required. *)
 
-[<assembly:InternalsVisibleTo ("Freya.Machine.Tests")>]
-do ()
-
-(* Operators *)
-
-let (==) s1 s2 =
-    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-(* Functions *)
-
-let inline flip f a b = 
-    f b a
-
-(* List Extensions *)
-
-[<RequireQualifiedAccess>]
-module List =
-
-    let chooseMaxBy projection =
-            List.map (fun x -> x, projection x)
-         >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
-         >> List.sortBy (fun (_, y) -> y)
-         >> List.map fst
-         >> function | [] -> None | x :: _ -> Some x
+let equalsOn f x (y: obj) =
+    match y with
+    | :? 'T as y -> (f x = f y)
+    | _ -> false
+ 
+let hashOn f x = 
+    hash (f x)
+ 
+let compareOn f x (y: obj) =
+    match y with
+    | :? 'T as y -> compare (f x) (f y)
+    | _ -> invalidArg "y" "cannot compare values of different types"

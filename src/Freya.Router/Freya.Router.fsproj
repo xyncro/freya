@@ -53,9 +53,10 @@
     <Compile Include="Types.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Lenses.fs" />
-    <Compile Include="Trie.fs" />
+    <Compile Include="Compilation.fs" />
     <Compile Include="Recording.fs" />
     <Compile Include="Execution.fs" />
+    <Compile Include="Reification.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>

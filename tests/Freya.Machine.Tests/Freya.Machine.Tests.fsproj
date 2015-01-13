@@ -69,9 +69,10 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{0A570763-69E7-4E5B-8640-A848A4E2239F}</Project>
+    <ProjectReference Include="..\..\src\Freya.Machine.Old\Freya.Machine.Old.fsproj">
+      <Name>Freya.Machine.Old</Name>
+      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>
@@ -132,6 +133,7 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>

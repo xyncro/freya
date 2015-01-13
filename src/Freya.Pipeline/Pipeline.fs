@@ -34,21 +34,19 @@ and FreyaPipelineChoice =
 (* Helpers *)
 
 let next : FreyaPipeline =
-    returnM Next
+    Freya.init Next
 
 let halt : FreyaPipeline =
-    returnM Halt
+    Freya.init Halt
 
 (* Composition *)
 
-let compose (p1: FreyaPipeline) (p2: FreyaPipeline) : FreyaPipeline =
-    freya {
-        let! pc = p1
+let compose (pipeline1: FreyaPipeline) (pipeline2: FreyaPipeline) : FreyaPipeline =
+        (function | Next -> pipeline2
+                  | _ -> halt)
+    =<< pipeline1
 
-        match pc with
-        | Next -> return! p2
-        | _ -> return Halt }
-
+(* Operators *)
 
 module Operators =
 

@@ -25,24 +25,40 @@ open System.Threading.Tasks
 
 (* OWIN Types *)
 
+/// Type alias of <see cref="FreyaEnvironment" /> in terms of OWIN.
 type OwinEnvironment =
     FreyaEnvironment
 
-type OwinApp = 
-    OwinEnvironment -> Async<unit>
-
+/// Type alias for the OWIN AppFunc signature.
 type OwinAppFunc = 
     Func<OwinEnvironment, Task>
 
 (* OWIN Conversion *)
 
+/// Provides transformation functions for converting to/from OWIN from/to Freya.
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
 
+    /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
     [<CompiledName ("FromFreya")>]
     let fromFreya (freya: Freya<_>) =
-        OwinAppFunc (fun e -> 
-            Async.StartAsTask (async { 
+        OwinAppFunc (fun e ->
+            async {
                 do! freya { Environment = e
-                            Meta = { Memos = Map.empty } } |> Async.Ignore }) :> Task)
+                            Meta = { Memos = Map.empty } } |> Async.Ignore }
+            |> Async.StartAsTask :> Task)
+    
+    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
+    /// to allow use of standard OWIN components within Freya.
+    /// NOTE: EXPERIMENTAL
+    [<CompiledName ("ToFreya")>]
+    let toFreya (app: OwinAppFunc) : Freya<unit> =
+        // TODO: Can another, existing operator handle this scenario better?
+        fun s -> async {
+            let! token = Async.CancellationToken
+            // Apply and mutate the OwinEnvironment asynchronously
+            let! _ = app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token) |> Async.AwaitTask
+            // Return the result as a unit value and the mutated FreyaState
+            // TODO: should the current value be retrieved and threaded through, or is it more appropriate to return unit?
+            return (), s }

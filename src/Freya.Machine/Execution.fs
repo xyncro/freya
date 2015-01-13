@@ -15,67 +15,64 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Machine.Execution
+module internal Freya.Machine.Execution
 
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
 
-(* Execution *)
+(* Aliases
 
-let private action a =
+   Convenience type aliases when we have some more specific unions
+   etc. in scope, in this case clashes between machine level refs
+   and compilation refs. *)
+
+type Ref =
+    FreyaMachineRef
+
+(* Execution
+
+   Execution of compilation maps, using the Freya computation expression,
+   returning a pipeline result of Halt. *)
+
+let private start (x: CompilationStartNode) =
     freya {
-        do! a.Action
-        do! addFreyaMachineExecutionRecord a.Id
+        printfn "start"
+        return x.Next }
 
-        return a.Next }
-
-let private decision d =
+let private finish _ =
     freya {
-        let! result = d.Decision
-        do! addFreyaMachineExecutionRecord d.Id
+        printfn "finish"
+        return () }
+
+let private unary ref (x: CompilationUnaryNode) =
+    freya {
+        printfn "unary: %s" ref
+        do! x.Unary
+
+        return x.Next }
+
+let private binary ref (x: CompilationBinaryNode) =
+    freya {
+        printfn "binary: %s" ref
+        let! result = x.Binary
 
         match result with
-        | true -> return d.True
-        | _ -> return d.False }
+        | true -> return x.True
+        | _ -> return x.False }
 
-let private handler (h: FreyaMachineHandlerNode) =
-    freya {
-        do! addFreyaMachineExecutionRecord h.Id
-
-        return h.Handler }
-
-let private operation o =
-    freya {
-        do! o.Operation
-        do! addFreyaMachineExecutionRecord o.Id
-
-        return o.Next }
-
-let private traverse (graph: FreyaMachineGraph) =
-    let rec eval from =
+let executeCompilation (map: CompilationMap) =
+    let rec eval ref =
         freya {
-            match Map.find from graph with
-            | ActionNode a -> return! action a >>= eval
-            | DecisionNode d -> return! decision d >>= eval
-            | HandlerNode h -> return! handler h
-            | OperationNode o -> return! operation o >>= eval }
+            match ref, Map.find ref map with
+            | Ref.Start, Start x -> return! start x >>= eval
+            | Ref.Finish, Finish -> return! finish ()
+            | Ref.Ref ref, Unary x -> return! unary ref x >>= eval
+            | Ref.Ref ref, Binary x -> return! binary ref x >>= eval
+            | _ -> failwith "Invalid Compilation" }
 
-    eval Decisions.ServiceAvailable
-
-(* Compilation *)
-
-let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
-    let definition = snd (machine Map.empty)
-    let graph = freyaMachineGraph definition
-    let graphRecord = freyaMachineGraphRecord graph
-
-    freya {
-        do! setFreyaMachineGraphRecord graphRecord
-        do! setPLM definitionPLens definition
-        do! traverse graph >>= represent
-
-        return Halt }
+    eval Ref.Start

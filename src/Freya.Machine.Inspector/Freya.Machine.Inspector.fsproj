@@ -71,9 +71,10 @@
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{0A570763-69E7-4E5B-8640-A848A4E2239F}</Project>
+    <ProjectReference Include="..\Freya.Machine.Old\Freya.Machine.Old.fsproj">
+      <Name>Freya.Machine.Old</Name>
+      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>

@@ -37,7 +37,7 @@ let private set i =
     setPLM testLens i *> next
 
 let private run meth path m =
-    let router = compileFreyaRouter m
+    let router = reifyRouter m
 
     Async.RunSynchronously ((   setLM Request.path path 
                              *> setLM Request.meth meth 
