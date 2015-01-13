@@ -6,3 +6,8 @@ Functional web development in F#. Compatible with OWIN [Open Web Interface for .
 [![Build status](https://travis-ci.org/freya-fs/freya.svg?branch=develop)](https://travis-ci.org/freya-fs/freya)
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/freya-fs/freya?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+## Maintainers
+
+* Andrew Cherry (@kolektiv)
+* Ryan Riley (@panesofglass)
