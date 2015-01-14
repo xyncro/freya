@@ -70,6 +70,9 @@ and CompilationBinaryNode =
    Functions supporting mapping of machine graphs to compilation
    maps. *)
 
+// TODO: Consider the simplistic mapping approach, as it will throw on orphaned
+// nodes, etc. Is this a good/bad thing?
+
 let private findRefPair (graph: FreyaMachineGraph) ref value =
     Map.findKey (fun (RefPair.Pair (n, _)) (Value v) ->
         n = ref && v = value) graph.Edges

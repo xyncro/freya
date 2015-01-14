@@ -109,4 +109,4 @@ let data config =
     freyaRouter {
         resource "/freya/api/requests" records
         resource "/freya/api/requests/:id" record
-        resource "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> reifyRouter
+        resource "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> Router.toPipeline

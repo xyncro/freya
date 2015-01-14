@@ -18,42 +18,5 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module internal Freya.Machine.Http.Prelude
-
-open Freya.Core
-open Freya.Machine
-
-(* Configuration *)
-
-let config<'a> =
-    tryGetConfiguration<'a>
-
-(* Metadata *)
-
-let configured =
-    { Configurable = true
-      Configured = true }
-
-let unconfigured =
-    { Configurable = true
-      Configured = false }
-
-let unconfigurable =
-    { Configurable = false
-      Configured = false }
-
-(* Decisions/Handlers *)
-
-let decision key def c =
-    match config key c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init def
-
-let handler key c =
-    match config key c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init ()
-
-let operation f (_: FreyaMachineConfiguration) =
-    unconfigurable, f
+[<RequireQualifiedAccess>]
+module internal Freya.Machine.Http.Create

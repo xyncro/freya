@@ -65,4 +65,4 @@ let private html =
 let content =
     freyaRouter {
         resource "/freya" html
-        resource "/freya/css" css } |> reifyRouter
+        resource "/freya/css" css } |> Router.toPipeline

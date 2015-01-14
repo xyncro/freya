@@ -25,29 +25,80 @@ open Freya.Core
 open Freya.Machine
 open Freya.Machine.Operators
 
+(* System
+
+   Decisions and topology of the section of an HTTP graph classified
+   under System, according to the HTTP decision diagram (v4.0.201410),
+   defined as part of the for-GET project.
+
+   See [https://github.com/for-GET/http-decision-diagram]. *)
+
 (* Decisions *)
 
-let private serviceAvailable c =
-    match config Decisions.ServiceAvailable c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init true
+[<RequireQualifiedAccess>]
+module Decisions =
 
-(* Handlers *)
+    let [<Literal>] AreContentHeadersImplemented = "areContentHeadersImplemented"
+    let [<Literal>] AreExpectExtensionsImplemented = "areExpectExtensionsImplemented"
+    let [<Literal>] AreHeadersTooLarge = "areHeadersTooLarge"
+    let [<Literal>] IsFunctionalityImplemented = "isFunctionalityImplemented"
+    let [<Literal>] IsMethodImplemented = "isMethodImplemented"
+    let [<Literal>] IsServiceAvailable = "isServiceAvailable"
+    let [<Literal>] IsSystemOk = "isSystemOk"
+    let [<Literal>] IsUriTooLong = "isUriTooLong"
 
-let private serviceUnavailable c =
-    match config Handlers.ServiceUnavailable c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init ()
+    let areContentHeadersImplemented _ =
+        unconfigurable, Freya.init true
 
-(* Operations *)
+    let areExpectExtensionsImplemented _ =
+        unconfigurable, Freya.init true
 
-let operations =
-    [ Start                                 /*>       Finish
+    let areHeadersTooLarge =
+        decision AreHeadersTooLarge false
 
-      Ref Decisions.ServiceAvailable        .|=       Binary serviceAvailable
-      Ref Handlers.ServiceUnavailable       .|=       Unary serviceUnavailable
-      
-      Start                                 ..>       Ref Decisions.ServiceAvailable
-      Ref Decisions.ServiceAvailable        .+>       Finish
-      Ref Decisions.ServiceAvailable        .->       Ref Handlers.ServiceUnavailable
-      Ref Handlers.ServiceUnavailable       ..>       Finish ]
+    let isFunctionalityImplemented =
+        decision IsFunctionalityImplemented true
+
+    let isMethodImplemented _ =
+        unconfigurable, Freya.init true
+
+    let isServiceAvailable =
+        decision IsServiceAvailable true
+
+    let isSystemOk =
+        decision IsSystemOk true
+
+    let isUriTooLong =
+        decision IsUriTooLong false
+
+(* Graph *)
+
+[<RequireQualifiedAccess>]
+module Graph =
+
+    let operations =
+        [ Ref Decisions.AreContentHeadersImplemented       .|=       Binary Decisions.areContentHeadersImplemented
+          Ref Decisions.AreExpectExtensionsImplemented     .|=       Binary Decisions.areExpectExtensionsImplemented
+          Ref Decisions.AreHeadersTooLarge                 .|=       Binary Decisions.areHeadersTooLarge
+          Ref Decisions.IsFunctionalityImplemented         .|=       Binary Decisions.isFunctionalityImplemented
+          Ref Decisions.IsMethodImplemented                .|=       Binary Decisions.isMethodImplemented
+          Ref Decisions.IsServiceAvailable                 .|=       Binary Decisions.isServiceAvailable
+          Ref Decisions.IsSystemOk                         .|=       Binary Decisions.isSystemOk
+          Ref Decisions.IsUriTooLong                       .|=       Binary Decisions.isUriTooLong
+
+          Start                                            ..>       Ref Decisions.IsServiceAvailable
+          Ref Decisions.IsServiceAvailable                 .+>       Ref Decisions.IsUriTooLong
+          Ref Decisions.IsServiceAvailable                 .->       Ref Common.Operations.ServiceUnavailable
+          Ref Decisions.IsUriTooLong                       .+>       Ref Common.Operations.UriTooLong
+          Ref Decisions.IsUriTooLong                       .->       Ref Decisions.AreHeadersTooLarge
+          Ref Decisions.AreHeadersTooLarge                 .+>       Ref Common.Operations.HeadersTooLarge
+          Ref Decisions.AreHeadersTooLarge                 .->       Ref Decisions.IsMethodImplemented
+          Ref Decisions.IsMethodImplemented                .+>       Ref Decisions.AreContentHeadersImplemented
+          Ref Decisions.IsMethodImplemented                .->       Ref Common.Operations.NotImplemented
+          Ref Decisions.AreContentHeadersImplemented       .+>       Ref Decisions.IsFunctionalityImplemented
+          Ref Decisions.AreContentHeadersImplemented       .->       Ref Common.Operations.NotImplemented
+          Ref Decisions.IsFunctionalityImplemented         .+>       Ref Decisions.AreExpectExtensionsImplemented
+          Ref Decisions.IsFunctionalityImplemented         .->       Ref Common.Operations.NotImplemented
+          Ref Decisions.AreExpectExtensionsImplemented     .+>       Ref Decisions.IsSystemOk
+          Ref Decisions.AreExpectExtensionsImplemented     .->       Ref Common.Operations.ExpectationFailed
+          Ref Decisions.IsSystemOk                         .->       Ref Common.Operations.InternalServerError ]

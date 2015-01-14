@@ -62,6 +62,7 @@
     <Compile Include="Recording.fs" />
     <Compile Include="Execution.fs" />
     <Compile Include="Reification.fs" />
+    <Compile Include="Machine.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>

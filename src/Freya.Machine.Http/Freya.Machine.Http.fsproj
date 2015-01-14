@@ -51,8 +51,15 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="Constants.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="System.fs" />
+    <Compile Include="Request.fs" />
+    <Compile Include="Accept.fs" />
+    <Compile Include="Retrieve.fs" />
+    <Compile Include="Precondition.fs" />
+    <Compile Include="Process.fs" />
+    <Compile Include="Create.fs" />
+    <Compile Include="Response.fs" />
     <Compile Include="Extension.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>

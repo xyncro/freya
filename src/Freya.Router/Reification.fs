@@ -19,7 +19,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Reification
+module internal Freya.Router.Reification
 
 open Freya.Core
 open Freya.Pipeline

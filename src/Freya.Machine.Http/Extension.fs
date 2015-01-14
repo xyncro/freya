@@ -29,7 +29,9 @@ open Freya.Machine
    of subsection listings. *)
 
 let private operations =
-    System.operations
+      Common.Graph.operations
+    @ System.Graph.operations
+    @ Request.Graph.operations
 
 (* Extension
 
