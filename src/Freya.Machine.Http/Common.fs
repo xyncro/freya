@@ -47,6 +47,7 @@ module Handlers =
     let [<Literal>] HeadersTooLarge = prefix + "HeadersTooLarge"
     let [<Literal>] InternalServerError = prefix + "InternalServerError"
     let [<Literal>] MethodNotAllowed = prefix + "MethodNotAllowed"
+    let [<Literal>] NotAcceptable = prefix + "NotAcceptable"
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] Ok = prefix + "Ok"
     let [<Literal>] PayloadTooLarge = prefix + "PayloadTooLarge"
@@ -75,6 +76,9 @@ module Handlers =
 
     let methodNotAllowed =
         handler MethodNotAllowed
+
+    let notAcceptable =
+        handler NotAcceptable
 
     let notImplemented =
         handler NotImplemented
@@ -111,6 +115,7 @@ module Operations =
     let [<Literal>] HeadersTooLarge = prefix + "HeadersTooLarge"
     let [<Literal>] InternalServerError = prefix + "InternalServerError"
     let [<Literal>] MethodNotAllowed = prefix + "MethodNotAllowed"
+    let [<Literal>] NotAcceptable = prefix + "NotAcceptable"
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] Ok = prefix + "Ok"
     let [<Literal>] PayloadTooLarge = prefix + "PayloadTooLarge"
@@ -138,6 +143,9 @@ module Operations =
         operation (Freya.init ())
 
     let methodNotAllowed =
+        operation (Freya.init ())
+
+    let notAcceptable =
         operation (Freya.init ())
 
     let notImplemented =
@@ -172,6 +180,7 @@ module Graph =
           Ref Handlers.HeadersTooLarge                     .|=       Unary Handlers.headersTooLarge
           Ref Handlers.InternalServerError                 .|=       Unary Handlers.internalServerError
           Ref Handlers.MethodNotAllowed                    .|=       Unary Handlers.methodNotAllowed
+          Ref Handlers.NotAcceptable                       .|=       Unary Handlers.notAcceptable
           Ref Handlers.NotImplemented                      .|=       Unary Handlers.notImplemented
           Ref Handlers.Ok                                  .|=       Unary Handlers.ok
           Ref Handlers.PayloadTooLarge                     .|=       Unary Handlers.payloadTooLarge
@@ -187,6 +196,7 @@ module Graph =
           Ref Operations.HeadersTooLarge                   .|=       Unary Operations.headersTooLarge
           Ref Operations.InternalServerError               .|=       Unary Operations.internalServerError
           Ref Operations.MethodNotAllowed                  .|=       Unary Operations.methodNotAllowed
+          Ref Operations.NotAcceptable                     .|=       Unary Operations.notAcceptable
           Ref Operations.NotImplemented                    .|=       Unary Operations.notImplemented
           Ref Operations.Ok                                .|=       Unary Operations.ok
           Ref Operations.PayloadTooLarge                   .|=       Unary Operations.payloadTooLarge 
@@ -204,6 +214,7 @@ module Graph =
           Ref Operations.HeadersTooLarge                   ..>       Ref Handlers.HeadersTooLarge
           Ref Operations.InternalServerError               ..>       Ref Handlers.InternalServerError
           Ref Operations.MethodNotAllowed                  ..>       Ref Handlers.MethodNotAllowed
+          Ref Operations.NotAcceptable                     ..>       Ref Handlers.NotAcceptable
           Ref Operations.NotImplemented                    ..>       Ref Handlers.NotImplemented
           Ref Operations.Ok                                ..>       Ref Handlers.Ok
           Ref Operations.PayloadTooLarge                   ..>       Ref Handlers.PayloadTooLarge
@@ -219,6 +230,7 @@ module Graph =
           Ref Handlers.HeadersTooLarge                     ..>       Finish
           Ref Handlers.InternalServerError                 ..>       Finish
           Ref Handlers.MethodNotAllowed                    ..>       Finish
+          Ref Handlers.NotAcceptable                       ..>       Finish
           Ref Handlers.NotImplemented                      ..>       Finish
           Ref Handlers.Ok                                  ..>       Finish
           Ref Handlers.PayloadTooLarge                     ..>       Finish

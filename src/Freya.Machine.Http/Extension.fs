@@ -32,6 +32,7 @@ let private operations =
       Common.Graph.operations
     @ System.Graph.operations
     @ Request.Graph.operations
+    @ Accept.Graph.operations
 
 (* Extension
 

@@ -88,3 +88,41 @@ type FreyaMachineBuilder with
     [<CustomOperation (System.Decisions.IsUriTooLong, MaintainsVariableSpaceUsingBind = true)>]
     member x.IsUriTooLong (m, uriTooLong: Freya<bool>) =
         x.Map (m, set System.Decisions.IsUriTooLong uriTooLong)
+
+(* Request
+
+   Custom operators supporting the decision making process defined
+   as part of the Request section of the HTTP graph. *)
+
+type FreyaMachineBuilder with
+
+    (* Decisions *)
+
+    [<CustomOperation (Request.Decisions.FromContent, MaintainsVariableSpaceUsingBind = true)>]
+    member x.FromContent (m, fromContent: Freya<bool>) =
+        x.Map (m, set Request.Decisions.FromContent fromContent)
+
+    [<CustomOperation (Request.Decisions.IsAuthorized, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IsAuthorized (m, isAuthorized: Freya<bool>) =
+        x.Map (m, set Request.Decisions.IsAuthorized isAuthorized)
+
+    [<CustomOperation (Request.Decisions.IsForbidden, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IsForbidden (m, isForbidden: Freya<bool>) =
+        x.Map (m, set Request.Decisions.IsForbidden isForbidden)
+
+    [<CustomOperation (Request.Decisions.IsRequestOk, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IsRequestOk (m, isRequestOk: Freya<bool>) =
+        x.Map (m, set Request.Decisions.IsRequestOk isRequestOk)
+
+(* Accept
+
+   Custom operators supporting the decision making process defined
+   as part of the Accept section of the HTTP graph. *)
+
+type FreyaMachineBuilder with
+
+    (* Decisions *)
+
+    [<CustomOperation (Accept.Decisions.IgnoreAcceptMismatches, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IgnoreAcceptMismatches (m, ignoreAcceptMismatches: Freya<bool>) =
+        x.Map (m, set Accept.Decisions.IgnoreAcceptMismatches ignoreAcceptMismatches)

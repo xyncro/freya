@@ -25,6 +25,14 @@ open Freya.Core
 open Freya.Machine
 open Freya.Machine.Operators
 
+(* System
+
+   Decisions and topology of the section of an HTTP graph classified
+   under System, according to the HTTP decision diagram (v4.0.201410),
+   defined as part of the for-GET project.
+
+   See [https://github.com/for-GET/http-decision-diagram]. *)
+
 (* Decisions *)
 
 [<RequireQualifiedAccess>]
@@ -72,8 +80,8 @@ module Decisions =
     let isMethodTrace _ =
         unconfigurable, Freya.init false
 
-    let isRequestOk _ =
-        unconfigurable, Freya.init true
+    let isRequestOk =
+        decision IsRequestOk true
 
 (* Graph *)
 
@@ -114,5 +122,4 @@ module Graph =
           Ref Decisions.IsMethodTrace                      .->       Ref Decisions.IsMethodOptions
           Ref Decisions.IsMethodOptions                    .+>       Ref Common.Operations.Ok
           Ref Decisions.IsMethodOptions                    .->       Ref Decisions.IsRequestOk
-          Ref Decisions.IsRequestOk                        .+>       Finish
           Ref Decisions.IsRequestOk                        .->       Ref Common.Operations.BadRequest ]
