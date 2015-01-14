@@ -33,6 +33,8 @@ let private operations =
     @ System.Graph.operations
     @ Request.Graph.operations
     @ Accept.Graph.operations
+    @ Retrieve.Graph.operations
+    @ Precondition.Graph.operations
 
 (* Extension
 

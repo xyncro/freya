@@ -44,14 +44,19 @@ module Handlers =
     let [<Literal>] Continue = prefix + "Continue"
     let [<Literal>] ExpectationFailed = prefix + "ExpectationFailed"
     let [<Literal>] Forbidden = prefix + "Forbidden"
+    let [<Literal>] Gone = prefix + "Gone"
     let [<Literal>] HeadersTooLarge = prefix + "HeadersTooLarge"
     let [<Literal>] InternalServerError = prefix + "InternalServerError"
     let [<Literal>] MethodNotAllowed = prefix + "MethodNotAllowed"
     let [<Literal>] NotAcceptable = prefix + "NotAcceptable"
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
+    let [<Literal>] NotModified = prefix + "NotModified"
     let [<Literal>] Ok = prefix + "Ok"
     let [<Literal>] PayloadTooLarge = prefix + "PayloadTooLarge"
+    let [<Literal>] PermanentRedirect = prefix + "PermanentRedirect"
+    let [<Literal>] PreconditionFailed = prefix + "PreconditionFailed"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
+    let [<Literal>] TemporaryRedirect = prefix + "TemporaryRedirect"
     let [<Literal>] Unauthorized = prefix + "Unauthorized"
     let [<Literal>] UnsupportedMediaType = prefix + "UnsupportedMediaType"
     let [<Literal>] UriTooLong = prefix + "UriTooLong"
@@ -68,6 +73,9 @@ module Handlers =
     let forbidden =
         handler Forbidden
 
+    let gone =
+        handler Gone
+
     let headersTooLarge =
         handler HeadersTooLarge
 
@@ -83,14 +91,26 @@ module Handlers =
     let notImplemented =
         handler NotImplemented
 
+    let notModified =
+        handler NotModified
+
     let ok =
         handler Ok
 
     let payloadTooLarge =
         handler PayloadTooLarge
 
+    let permanentRedirect =
+        handler PermanentRedirect
+
+    let preconditionFailed =
+        handler PreconditionFailed
+
     let serviceUnavailable =
         handler ServiceUnavailable
+
+    let temporaryRedirect =
+        handler TemporaryRedirect
 
     let unauthorized =
         handler Unauthorized
@@ -112,14 +132,19 @@ module Operations =
     let [<Literal>] Continue = prefix + "Continue"
     let [<Literal>] ExpectationFailed = prefix + "ExpectationFailed"
     let [<Literal>] Forbidden = prefix + "Forbidden"
+    let [<Literal>] Gone = prefix + "Gone"
     let [<Literal>] HeadersTooLarge = prefix + "HeadersTooLarge"
     let [<Literal>] InternalServerError = prefix + "InternalServerError"
     let [<Literal>] MethodNotAllowed = prefix + "MethodNotAllowed"
     let [<Literal>] NotAcceptable = prefix + "NotAcceptable"
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
+    let [<Literal>] NotModified = prefix + "NotModified"
     let [<Literal>] Ok = prefix + "Ok"
     let [<Literal>] PayloadTooLarge = prefix + "PayloadTooLarge"
+    let [<Literal>] PermanentRedirect = prefix + "PermanentRedirect"
+    let [<Literal>] PreconditionFailed = prefix + "PreconditionFailed"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
+    let [<Literal>] TemporaryRedirect = prefix + "TemporaryRedirect"
     let [<Literal>] Unauthorized = prefix + "Unauthorized"
     let [<Literal>] UnsupportedMediaType = prefix + "UnsupportedMediaType"
     let [<Literal>] UriTooLong = prefix + "UriTooLong"
@@ -134,6 +159,9 @@ module Operations =
         operation (Freya.init ())
 
     let forbidden =
+        operation (Freya.init ())
+
+    let gone =
         operation (Freya.init ())
 
     let headersTooLarge =
@@ -151,13 +179,25 @@ module Operations =
     let notImplemented =
         operation (Freya.init ())
 
+    let notModified =
+        operation (Freya.init ())
+
     let ok =
         operation (Freya.init ())
 
     let payloadTooLarge =
         operation (Freya.init ())
 
+    let permanentRedirect =
+        operation (Freya.init ())
+
+    let preconditionFailed =
+        operation (Freya.init ())
+
     let serviceUnavailable =
+        operation (Freya.init ())
+
+    let temporaryRedirect =
         operation (Freya.init ())
 
     let unauthorized =
@@ -177,14 +217,19 @@ module Graph =
           Ref Handlers.Continue                            .|=       Unary Handlers.cont
           Ref Handlers.ExpectationFailed                   .|=       Unary Handlers.expectationFailed
           Ref Handlers.Forbidden                           .|=       Unary Handlers.forbidden
+          Ref Handlers.Gone                                .|=       Unary Handlers.gone
           Ref Handlers.HeadersTooLarge                     .|=       Unary Handlers.headersTooLarge
           Ref Handlers.InternalServerError                 .|=       Unary Handlers.internalServerError
           Ref Handlers.MethodNotAllowed                    .|=       Unary Handlers.methodNotAllowed
           Ref Handlers.NotAcceptable                       .|=       Unary Handlers.notAcceptable
           Ref Handlers.NotImplemented                      .|=       Unary Handlers.notImplemented
+          Ref Handlers.NotModified                         .|=       Unary Handlers.notModified
           Ref Handlers.Ok                                  .|=       Unary Handlers.ok
           Ref Handlers.PayloadTooLarge                     .|=       Unary Handlers.payloadTooLarge
+          Ref Handlers.PermanentRedirect                   .|=       Unary Handlers.permanentRedirect
+          Ref Handlers.PreconditionFailed                  .|=       Unary Handlers.preconditionFailed
           Ref Handlers.ServiceUnavailable                  .|=       Unary Handlers.serviceUnavailable
+          Ref Handlers.TemporaryRedirect                   .|=       Unary Handlers.temporaryRedirect
           Ref Handlers.Unauthorized                        .|=       Unary Handlers.unauthorized
           Ref Handlers.UnsupportedMediaType                .|=       Unary Handlers.unsupportedMediaType
           Ref Handlers.UriTooLong                          .|=       Unary Handlers.uriTooLong
@@ -193,14 +238,19 @@ module Graph =
           Ref Operations.Continue                          .|=       Unary Operations.cont
           Ref Operations.ExpectationFailed                 .|=       Unary Operations.expectationFailed
           Ref Operations.Forbidden                         .|=       Unary Operations.forbidden
+          Ref Operations.Gone                              .|=       Unary Operations.gone
           Ref Operations.HeadersTooLarge                   .|=       Unary Operations.headersTooLarge
           Ref Operations.InternalServerError               .|=       Unary Operations.internalServerError
           Ref Operations.MethodNotAllowed                  .|=       Unary Operations.methodNotAllowed
           Ref Operations.NotAcceptable                     .|=       Unary Operations.notAcceptable
           Ref Operations.NotImplemented                    .|=       Unary Operations.notImplemented
+          Ref Operations.NotModified                       .|=       Unary Operations.notModified
           Ref Operations.Ok                                .|=       Unary Operations.ok
-          Ref Operations.PayloadTooLarge                   .|=       Unary Operations.payloadTooLarge 
+          Ref Operations.PayloadTooLarge                   .|=       Unary Operations.payloadTooLarge
+          Ref Operations.PermanentRedirect                 .|=       Unary Operations.permanentRedirect
+          Ref Operations.PreconditionFailed                .|=       Unary Operations.preconditionFailed
           Ref Operations.ServiceUnavailable                .|=       Unary Operations.serviceUnavailable
+          Ref Operations.TemporaryRedirect                 .|=       Unary Operations.temporaryRedirect
           Ref Operations.Unauthorized                      .|=       Unary Operations.unauthorized
           Ref Operations.UnsupportedMediaType              .|=       Unary Operations.unsupportedMediaType
           Ref Operations.UriTooLong                        .|=       Unary Operations.uriTooLong
@@ -211,14 +261,19 @@ module Graph =
           Ref Operations.Continue                          ..>       Ref Handlers.Continue
           Ref Operations.ExpectationFailed                 ..>       Ref Handlers.ExpectationFailed
           Ref Operations.Forbidden                         ..>       Ref Handlers.Forbidden
+          Ref Operations.Gone                              ..>       Ref Handlers.Gone
           Ref Operations.HeadersTooLarge                   ..>       Ref Handlers.HeadersTooLarge
           Ref Operations.InternalServerError               ..>       Ref Handlers.InternalServerError
           Ref Operations.MethodNotAllowed                  ..>       Ref Handlers.MethodNotAllowed
           Ref Operations.NotAcceptable                     ..>       Ref Handlers.NotAcceptable
           Ref Operations.NotImplemented                    ..>       Ref Handlers.NotImplemented
+          Ref Operations.NotModified                       ..>       Ref Handlers.NotModified
           Ref Operations.Ok                                ..>       Ref Handlers.Ok
           Ref Operations.PayloadTooLarge                   ..>       Ref Handlers.PayloadTooLarge
+          Ref Operations.PermanentRedirect                 ..>       Ref Handlers.PermanentRedirect
+          Ref Operations.PreconditionFailed                ..>       Ref Handlers.PreconditionFailed
           Ref Operations.ServiceUnavailable                ..>       Ref Handlers.ServiceUnavailable
+          Ref Operations.TemporaryRedirect                 ..>       Ref Handlers.TemporaryRedirect
           Ref Operations.Unauthorized                      ..>       Ref Handlers.Unauthorized
           Ref Operations.UnsupportedMediaType              ..>       Ref Handlers.UnsupportedMediaType
           Ref Operations.UriTooLong                        ..>       Ref Handlers.UriTooLong
@@ -227,14 +282,19 @@ module Graph =
           Ref Handlers.Continue                            ..>       Finish
           Ref Handlers.ExpectationFailed                   ..>       Finish
           Ref Handlers.Forbidden                           ..>       Finish
+          Ref Handlers.Gone                                ..>       Finish
           Ref Handlers.HeadersTooLarge                     ..>       Finish
           Ref Handlers.InternalServerError                 ..>       Finish
           Ref Handlers.MethodNotAllowed                    ..>       Finish
           Ref Handlers.NotAcceptable                       ..>       Finish
           Ref Handlers.NotImplemented                      ..>       Finish
+          Ref Handlers.NotModified                         ..>       Finish
           Ref Handlers.Ok                                  ..>       Finish
           Ref Handlers.PayloadTooLarge                     ..>       Finish
+          Ref Handlers.PermanentRedirect                   ..>       Finish
+          Ref Handlers.PreconditionFailed                  ..>       Finish
           Ref Handlers.ServiceUnavailable                  ..>       Finish
+          Ref Handlers.TemporaryRedirect                   ..>       Finish
           Ref Handlers.Unauthorized                        ..>       Finish
           Ref Handlers.UnsupportedMediaType                ..>       Finish
           Ref Handlers.UriTooLong                          ..>       Finish ]

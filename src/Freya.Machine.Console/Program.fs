@@ -13,8 +13,7 @@ let main _ =
 
     let test =
         freyaMachine {
-            including defaults
-            isSystemOk (Freya.init true) } |> Machine.toPipeline
+            including defaults } |> Machine.toPipeline
 
     let env =
         { Environment = new Dictionary<string, obj> () :> IDictionary<string, obj>

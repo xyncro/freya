@@ -102,14 +102,11 @@ module Graph =
           Ref Decisions.HasAcceptCharset                   .+>       Ref Decisions.AcceptCharsetMatches
           Ref Decisions.HasAcceptCharset                   .->       Ref Decisions.HasAcceptEncoding
           Ref Decisions.HasAcceptEncoding                  .+>       Ref Decisions.AcceptEncodingMatches
-          Ref Decisions.HasAcceptEncoding                  .->       Finish
           Ref Decisions.AcceptMatches                      .+>       Ref Decisions.HasAcceptLanguage
           Ref Decisions.AcceptMatches                      .->       Ref Decisions.IgnoreAcceptMismatches
           Ref Decisions.AcceptLanguageMatches              .+>       Ref Decisions.HasAcceptCharset
           Ref Decisions.AcceptLanguageMatches              .->       Ref Decisions.IgnoreAcceptMismatches
           Ref Decisions.AcceptCharsetMatches               .+>       Ref Decisions.HasAcceptEncoding
           Ref Decisions.AcceptCharsetMatches               .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.AcceptEncodingMatches              .+>       Finish
           Ref Decisions.AcceptEncodingMatches              .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.IgnoreAcceptMismatches             .+>       Finish
           Ref Decisions.IgnoreAcceptMismatches             .->       Ref Common.Operations.NotAcceptable ]

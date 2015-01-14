@@ -29,7 +29,7 @@ open Freya.Machine
 let config<'a> =
     tryGetConfiguration<'a>
 
-(* Metadata *)
+(* Configuration Metadata *)
 
 let configured =
     { Configurable = true
@@ -43,7 +43,7 @@ let unconfigurable =
     { Configurable = false
       Configured = false }
 
-(* Decisions/Handlers *)
+(* Decisions and Handlers *)
 
 let decision key def c =
     match config key c with
