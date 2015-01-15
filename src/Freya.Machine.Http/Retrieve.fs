@@ -64,20 +64,18 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.GonePermanently                    .|=       Binary Decisions.gonePermanently
-          Ref Decisions.Missing                            .|=       Binary Decisions.missing
-          Ref Decisions.Moved                              .|=       Binary Decisions.moved
-          Ref Decisions.MovedPermanently                   .|=       Binary Decisions.movedPermanently
-          Ref Decisions.MovedTemporarily                   .|=       Binary Decisions.movedTemporarily
+        [ Ref Decisions.GonePermanently                         =.        Binary Decisions.gonePermanently
+          Ref Decisions.Missing                                 =.        Binary Decisions.missing
+          Ref Decisions.Moved                                   =.        Binary Decisions.moved
+          Ref Decisions.MovedPermanently                        =.        Binary Decisions.movedPermanently
+          Ref Decisions.MovedTemporarily                        =.        Binary Decisions.movedTemporarily
 
-          Ref Accept.Decisions.HasAcceptEncoding           .->       Ref Decisions.Missing
-          Ref Accept.Decisions.AcceptEncodingMatches       .+>       Ref Decisions.Missing
-          Ref Accept.Decisions.IgnoreAcceptMismatches      .+>       Ref Decisions.Missing
-          Ref Decisions.Moved                              .+>       Ref Decisions.MovedPermanently
-          Ref Decisions.Moved                              .->       Finish
-          Ref Decisions.MovedPermanently                   .+>       Ref Common.Operations.PermanentRedirect
-          Ref Decisions.MovedPermanently                   .->       Ref Decisions.MovedTemporarily
-          Ref Decisions.MovedTemporarily                   .+>       Ref Common.Operations.TemporaryRedirect
-          Ref Decisions.MovedTemporarily                   .->       Ref Decisions.GonePermanently
-          Ref Decisions.GonePermanently                    .+>       Ref Common.Operations.Gone
-          Ref Decisions.GonePermanently                    .->       Finish ]
+          Ref Accept.Decisions.HasAcceptEncoding                >-        Ref Decisions.Missing
+          Ref Accept.Decisions.AcceptEncodingMatches            >+        Ref Decisions.Missing
+          Ref Accept.Decisions.IgnoreAcceptMismatches           >+        Ref Decisions.Missing
+          Ref Decisions.Moved                                   >+        Ref Decisions.MovedPermanently
+          Ref Decisions.MovedPermanently                        >+        Ref Common.Operations.PermanentRedirect
+          Ref Decisions.MovedPermanently                        >-        Ref Decisions.MovedTemporarily
+          Ref Decisions.MovedTemporarily                        >+        Ref Common.Operations.TemporaryRedirect
+          Ref Decisions.MovedTemporarily                        >-        Ref Decisions.GonePermanently
+          Ref Decisions.GonePermanently                         >+        Ref Common.Operations.Gone ]

@@ -84,29 +84,29 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.AcceptCharsetMatches               .|=       Binary Decisions.acceptCharsetMatches
-          Ref Decisions.AcceptEncodingMatches              .|=       Binary Decisions.acceptEncodingMatches
-          Ref Decisions.AcceptLanguageMatches              .|=       Binary Decisions.acceptLanguageMatches
-          Ref Decisions.AcceptMatches                      .|=       Binary Decisions.acceptMatches
-          Ref Decisions.HasAccept                          .|=       Binary Decisions.hasAccept
-          Ref Decisions.HasAcceptCharset                   .|=       Binary Decisions.hasAcceptCharset
-          Ref Decisions.HasAcceptEncoding                  .|=       Binary Decisions.hasAcceptEncoding
-          Ref Decisions.HasAcceptLanguage                  .|=       Binary Decisions.hasAcceptLanguage
-          Ref Decisions.IgnoreAcceptMismatches             .|=       Binary Decisions.ignoreAcceptMismatches
+        [ Ref Decisions.AcceptCharsetMatches                    =.        Binary Decisions.acceptCharsetMatches
+          Ref Decisions.AcceptEncodingMatches                   =.        Binary Decisions.acceptEncodingMatches
+          Ref Decisions.AcceptLanguageMatches                   =.        Binary Decisions.acceptLanguageMatches
+          Ref Decisions.AcceptMatches                           =.        Binary Decisions.acceptMatches
+          Ref Decisions.HasAccept                               =.        Binary Decisions.hasAccept
+          Ref Decisions.HasAcceptCharset                        =.        Binary Decisions.hasAcceptCharset
+          Ref Decisions.HasAcceptEncoding                       =.        Binary Decisions.hasAcceptEncoding
+          Ref Decisions.HasAcceptLanguage                       =.        Binary Decisions.hasAcceptLanguage
+          Ref Decisions.IgnoreAcceptMismatches                  =.        Binary Decisions.ignoreAcceptMismatches
           
-          Ref Request.Decisions.IsRequestOk                .+>       Ref Decisions.HasAccept
-          Ref Decisions.HasAccept                          .+>       Ref Decisions.AcceptMatches
-          Ref Decisions.HasAccept                          .->       Ref Decisions.HasAcceptLanguage
-          Ref Decisions.HasAcceptLanguage                  .+>       Ref Decisions.AcceptLanguageMatches
-          Ref Decisions.HasAcceptLanguage                  .->       Ref Decisions.HasAcceptCharset
-          Ref Decisions.HasAcceptCharset                   .+>       Ref Decisions.AcceptCharsetMatches
-          Ref Decisions.HasAcceptCharset                   .->       Ref Decisions.HasAcceptEncoding
-          Ref Decisions.HasAcceptEncoding                  .+>       Ref Decisions.AcceptEncodingMatches
-          Ref Decisions.AcceptMatches                      .+>       Ref Decisions.HasAcceptLanguage
-          Ref Decisions.AcceptMatches                      .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.AcceptLanguageMatches              .+>       Ref Decisions.HasAcceptCharset
-          Ref Decisions.AcceptLanguageMatches              .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.AcceptCharsetMatches               .+>       Ref Decisions.HasAcceptEncoding
-          Ref Decisions.AcceptCharsetMatches               .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.AcceptEncodingMatches              .->       Ref Decisions.IgnoreAcceptMismatches
-          Ref Decisions.IgnoreAcceptMismatches             .->       Ref Common.Operations.NotAcceptable ]
+          Ref Request.Decisions.IsRequestOk                     >+        Ref Decisions.HasAccept
+          Ref Decisions.HasAccept                               >+        Ref Decisions.AcceptMatches
+          Ref Decisions.HasAccept                               >-        Ref Decisions.HasAcceptLanguage
+          Ref Decisions.HasAcceptLanguage                       >+        Ref Decisions.AcceptLanguageMatches
+          Ref Decisions.HasAcceptLanguage                       >-        Ref Decisions.HasAcceptCharset
+          Ref Decisions.HasAcceptCharset                        >+        Ref Decisions.AcceptCharsetMatches
+          Ref Decisions.HasAcceptCharset                        >-        Ref Decisions.HasAcceptEncoding
+          Ref Decisions.HasAcceptEncoding                       >+        Ref Decisions.AcceptEncodingMatches
+          Ref Decisions.AcceptMatches                           >+        Ref Decisions.HasAcceptLanguage
+          Ref Decisions.AcceptMatches                           >-        Ref Decisions.IgnoreAcceptMismatches
+          Ref Decisions.AcceptLanguageMatches                   >+        Ref Decisions.HasAcceptCharset
+          Ref Decisions.AcceptLanguageMatches                   >-        Ref Decisions.IgnoreAcceptMismatches
+          Ref Decisions.AcceptCharsetMatches                    >+        Ref Decisions.HasAcceptEncoding
+          Ref Decisions.AcceptCharsetMatches                    >-        Ref Decisions.IgnoreAcceptMismatches
+          Ref Decisions.AcceptEncodingMatches                   >-        Ref Decisions.IgnoreAcceptMismatches
+          Ref Decisions.IgnoreAcceptMismatches                  >-        Ref Common.Operations.NotAcceptable ]

@@ -84,38 +84,34 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.HasIfMatch                    .|=       Binary Decisions.hasIfMatch
-          Ref Decisions.HasIfModifiedSince            .|=       Binary Decisions.hasIfModifiedSince
-          Ref Decisions.HasIfNoneMatch                .|=       Binary Decisions.hasIfNoneMatch
-          Ref Decisions.HasIfUnmodifiedSince          .|=       Binary Decisions.hasIfUnmodifiedSince
-          Ref Decisions.IfMatchMatches                .|=       Binary Decisions.ifMatchMatches
-          Ref Decisions.IfModifiedSinceMatches        .|=       Binary Decisions.ifModifiedSinceMatches
-          Ref Decisions.IfNoneMatchMatches            .|=       Binary Decisions.ifNoneMatchMatches
-          Ref Decisions.IfUnmodifiedSinceMatches      .|=       Binary Decisions.ifUnmodifiedSinceMatches
-          Ref Decisions.IsPreconditionSafe            .|=       Binary Decisions.isPreconditionSafe
-          Ref Decisions.MissingHasPrecondition        .|=       Binary Decisions.missingHasPrecondition
+        [ Ref Decisions.HasIfMatch                         =.        Binary Decisions.hasIfMatch
+          Ref Decisions.HasIfModifiedSince                 =.        Binary Decisions.hasIfModifiedSince
+          Ref Decisions.HasIfNoneMatch                     =.        Binary Decisions.hasIfNoneMatch
+          Ref Decisions.HasIfUnmodifiedSince               =.        Binary Decisions.hasIfUnmodifiedSince
+          Ref Decisions.IfMatchMatches                     =.        Binary Decisions.ifMatchMatches
+          Ref Decisions.IfModifiedSinceMatches             =.        Binary Decisions.ifModifiedSinceMatches
+          Ref Decisions.IfNoneMatchMatches                 =.        Binary Decisions.ifNoneMatchMatches
+          Ref Decisions.IfUnmodifiedSinceMatches           =.        Binary Decisions.ifUnmodifiedSinceMatches
+          Ref Decisions.IsPreconditionSafe                 =.        Binary Decisions.isPreconditionSafe
+          Ref Decisions.MissingHasPrecondition             =.        Binary Decisions.missingHasPrecondition
 
-          Ref Retrieve.Decisions.Missing              .+>       Ref Decisions.MissingHasPrecondition
-          Ref Decisions.MissingHasPrecondition        .+>       Ref Common.Operations.PreconditionFailed
-          Ref Decisions.MissingHasPrecondition        .->       Ref Retrieve.Decisions.Moved
-
-          Ref Retrieve.Decisions.Missing              .->       Ref Decisions.HasIfMatch
-          Ref Decisions.HasIfMatch                    .+>       Ref Decisions.IfMatchMatches
-          Ref Decisions.HasIfMatch                    .->       Ref Decisions.HasIfUnmodifiedSince
-          Ref Decisions.HasIfUnmodifiedSince          .+>       Ref Decisions.IfUnmodifiedSinceMatches
-          Ref Decisions.HasIfUnmodifiedSince          .->       Ref Decisions.HasIfNoneMatch
-          Ref Decisions.IfUnmodifiedSinceMatches      .+>       Ref Decisions.HasIfNoneMatch
-          Ref Decisions.IfUnmodifiedSinceMatches      .->       Ref Common.Operations.PreconditionFailed
-          Ref Decisions.IfMatchMatches                .+>       Ref Decisions.HasIfNoneMatch
-          Ref Decisions.IfMatchMatches                .->       Ref Common.Operations.PreconditionFailed
-          Ref Decisions.HasIfNoneMatch                .+>       Ref Decisions.IfNoneMatchMatches
-          Ref Decisions.HasIfNoneMatch                .->       Ref Decisions.HasIfModifiedSince
-          Ref Decisions.HasIfModifiedSince            .+>       Ref Decisions.IfModifiedSinceMatches
-          Ref Decisions.HasIfModifiedSince            .->       Finish
-          Ref Decisions.IfModifiedSinceMatches        .+>       Finish
-          Ref Decisions.IfModifiedSinceMatches        .->       Ref Decisions.IsPreconditionSafe
-          Ref Decisions.IfNoneMatchMatches            .+>       Finish
-          Ref Decisions.IfNoneMatchMatches            .->       Ref Decisions.IsPreconditionSafe
-          Ref Decisions.IsPreconditionSafe            .+>       Ref Common.Operations.NotModified
-          Ref Decisions.IsPreconditionSafe            .->       Ref Common.Operations.PreconditionFailed ]
+          Ref Retrieve.Decisions.Missing                   >+        Ref Decisions.MissingHasPrecondition
+          Ref Retrieve.Decisions.Missing                   >-        Ref Decisions.HasIfMatch
+          Ref Decisions.MissingHasPrecondition             >+        Ref Common.Operations.PreconditionFailed
+          Ref Decisions.MissingHasPrecondition             >-        Ref Retrieve.Decisions.Moved
+          Ref Decisions.HasIfMatch                         >+        Ref Decisions.IfMatchMatches
+          Ref Decisions.HasIfMatch                         >-        Ref Decisions.HasIfUnmodifiedSince
+          Ref Decisions.HasIfUnmodifiedSince               >+        Ref Decisions.IfUnmodifiedSinceMatches
+          Ref Decisions.HasIfUnmodifiedSince               >-        Ref Decisions.HasIfNoneMatch
+          Ref Decisions.IfUnmodifiedSinceMatches           >+        Ref Decisions.HasIfNoneMatch
+          Ref Decisions.IfUnmodifiedSinceMatches           >-        Ref Common.Operations.PreconditionFailed
+          Ref Decisions.IfMatchMatches                     >+        Ref Decisions.HasIfNoneMatch
+          Ref Decisions.IfMatchMatches                     >-        Ref Common.Operations.PreconditionFailed
+          Ref Decisions.HasIfNoneMatch                     >+        Ref Decisions.IfNoneMatchMatches
+          Ref Decisions.HasIfNoneMatch                     >-        Ref Decisions.HasIfModifiedSince
+          Ref Decisions.HasIfModifiedSince                 >+        Ref Decisions.IfModifiedSinceMatches
+          Ref Decisions.IfModifiedSinceMatches             >-        Ref Decisions.IsPreconditionSafe
+          Ref Decisions.IfNoneMatchMatches                 >-        Ref Decisions.IsPreconditionSafe
+          Ref Decisions.IsPreconditionSafe                 >+        Ref Common.Operations.NotModified
+          Ref Decisions.IsPreconditionSafe                 >-        Ref Common.Operations.PreconditionFailed ]
 

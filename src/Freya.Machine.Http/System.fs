@@ -31,7 +31,12 @@ open Freya.Machine.Operators
    under System, according to the HTTP decision diagram (v4.0.201410),
    defined as part of the for-GET project.
 
-   See [https://github.com/for-GET/http-decision-diagram]. *)
+   See [https://github.com/for-GET/http-decision-diagram].
+
+   Delta/Notes:
+
+   * isSystemBlockOk has been renamed to isSystemOk, to eliminate
+     diagram related terminology from the eventual grammar. *)
 
 (* Decisions *)
 
@@ -77,28 +82,28 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.AreContentHeadersImplemented       .|=       Binary Decisions.areContentHeadersImplemented
-          Ref Decisions.AreExpectExtensionsImplemented     .|=       Binary Decisions.areExpectExtensionsImplemented
-          Ref Decisions.AreHeadersTooLarge                 .|=       Binary Decisions.areHeadersTooLarge
-          Ref Decisions.IsFunctionalityImplemented         .|=       Binary Decisions.isFunctionalityImplemented
-          Ref Decisions.IsMethodImplemented                .|=       Binary Decisions.isMethodImplemented
-          Ref Decisions.IsServiceAvailable                 .|=       Binary Decisions.isServiceAvailable
-          Ref Decisions.IsSystemOk                         .|=       Binary Decisions.isSystemOk
-          Ref Decisions.IsUriTooLong                       .|=       Binary Decisions.isUriTooLong
+        [ Ref Decisions.AreContentHeadersImplemented            =.        Binary Decisions.areContentHeadersImplemented
+          Ref Decisions.AreExpectExtensionsImplemented          =.        Binary Decisions.areExpectExtensionsImplemented
+          Ref Decisions.AreHeadersTooLarge                      =.        Binary Decisions.areHeadersTooLarge
+          Ref Decisions.IsFunctionalityImplemented              =.        Binary Decisions.isFunctionalityImplemented
+          Ref Decisions.IsMethodImplemented                     =.        Binary Decisions.isMethodImplemented
+          Ref Decisions.IsServiceAvailable                      =.        Binary Decisions.isServiceAvailable
+          Ref Decisions.IsSystemOk                              =.        Binary Decisions.isSystemOk
+          Ref Decisions.IsUriTooLong                            =.        Binary Decisions.isUriTooLong
 
-          Start                                            ..>       Ref Decisions.IsServiceAvailable
-          Ref Decisions.IsServiceAvailable                 .+>       Ref Decisions.IsUriTooLong
-          Ref Decisions.IsServiceAvailable                 .->       Ref Common.Operations.ServiceUnavailable
-          Ref Decisions.IsUriTooLong                       .+>       Ref Common.Operations.UriTooLong
-          Ref Decisions.IsUriTooLong                       .->       Ref Decisions.AreHeadersTooLarge
-          Ref Decisions.AreHeadersTooLarge                 .+>       Ref Common.Operations.HeadersTooLarge
-          Ref Decisions.AreHeadersTooLarge                 .->       Ref Decisions.IsMethodImplemented
-          Ref Decisions.IsMethodImplemented                .+>       Ref Decisions.AreContentHeadersImplemented
-          Ref Decisions.IsMethodImplemented                .->       Ref Common.Operations.NotImplemented
-          Ref Decisions.AreContentHeadersImplemented       .+>       Ref Decisions.IsFunctionalityImplemented
-          Ref Decisions.AreContentHeadersImplemented       .->       Ref Common.Operations.NotImplemented
-          Ref Decisions.IsFunctionalityImplemented         .+>       Ref Decisions.AreExpectExtensionsImplemented
-          Ref Decisions.IsFunctionalityImplemented         .->       Ref Common.Operations.NotImplemented
-          Ref Decisions.AreExpectExtensionsImplemented     .+>       Ref Decisions.IsSystemOk
-          Ref Decisions.AreExpectExtensionsImplemented     .->       Ref Common.Operations.ExpectationFailed
-          Ref Decisions.IsSystemOk                         .->       Ref Common.Operations.InternalServerError ]
+          Start                                                 >.        Ref Decisions.IsServiceAvailable
+          Ref Decisions.IsServiceAvailable                      >+        Ref Decisions.IsUriTooLong
+          Ref Decisions.IsServiceAvailable                      >-        Ref Common.Operations.ServiceUnavailable
+          Ref Decisions.IsUriTooLong                            >+        Ref Common.Operations.UriTooLong
+          Ref Decisions.IsUriTooLong                            >-        Ref Decisions.AreHeadersTooLarge
+          Ref Decisions.AreHeadersTooLarge                      >+        Ref Common.Operations.HeadersTooLarge
+          Ref Decisions.AreHeadersTooLarge                      >-        Ref Decisions.IsMethodImplemented
+          Ref Decisions.IsMethodImplemented                     >+        Ref Decisions.AreContentHeadersImplemented
+          Ref Decisions.IsMethodImplemented                     >-        Ref Common.Operations.NotImplemented
+          Ref Decisions.AreContentHeadersImplemented            >+        Ref Decisions.IsFunctionalityImplemented
+          Ref Decisions.AreContentHeadersImplemented            >-        Ref Common.Operations.NotImplemented
+          Ref Decisions.IsFunctionalityImplemented              >+        Ref Decisions.AreExpectExtensionsImplemented
+          Ref Decisions.IsFunctionalityImplemented              >-        Ref Common.Operations.NotImplemented
+          Ref Decisions.AreExpectExtensionsImplemented          >+        Ref Decisions.IsSystemOk
+          Ref Decisions.AreExpectExtensionsImplemented          >-        Ref Common.Operations.ExpectationFailed
+          Ref Decisions.IsSystemOk                              >-        Ref Common.Operations.InternalServerError ]

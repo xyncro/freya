@@ -31,7 +31,12 @@ open Freya.Machine.Operators
    under System, according to the HTTP decision diagram (v4.0.201410),
    defined as part of the for-GET project.
 
-   See [https://github.com/for-GET/http-decision-diagram]. *)
+   See [https://github.com/for-GET/http-decision-diagram].
+
+   Delta/Notes:
+
+   * isRequestBlockOk has been renamed to isRequestOk, to eliminate
+     diagram related terminology from the eventual grammar.*)
 
 (* Decisions *)
 
@@ -89,37 +94,37 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.ExpectsContinue                    .|=       Binary Decisions.expectsContinue
-          Ref Decisions.FromContent                        .|=       Binary Decisions.fromContent
-          Ref Decisions.HasContent                         .|=       Binary Decisions.hasContent
-          Ref Decisions.IsAuthorized                       .|=       Binary Decisions.isAuthorized
-          Ref Decisions.IsContentTooLarge                  .|=       Binary Decisions.isContentTooLarge
-          Ref Decisions.IsContentTypeAccepted              .|=       Binary Decisions.isContentTypeAccepted
-          Ref Decisions.IsForbidden                        .|=       Binary Decisions.isForbidden
-          Ref Decisions.IsMethodAllowed                    .|=       Binary Decisions.isMethodAllowed
-          Ref Decisions.IsMethodOptions                    .|=       Binary Decisions.isMethodOptions
-          Ref Decisions.IsMethodTrace                      .|=       Binary Decisions.isMethodTrace
-          Ref Decisions.IsRequestOk                        .|=       Binary Decisions.isRequestOk
+        [ Ref Decisions.ExpectsContinue                         =.        Binary Decisions.expectsContinue
+          Ref Decisions.FromContent                             =.        Binary Decisions.fromContent
+          Ref Decisions.HasContent                              =.        Binary Decisions.hasContent
+          Ref Decisions.IsAuthorized                            =.        Binary Decisions.isAuthorized
+          Ref Decisions.IsContentTooLarge                       =.        Binary Decisions.isContentTooLarge
+          Ref Decisions.IsContentTypeAccepted                   =.        Binary Decisions.isContentTypeAccepted
+          Ref Decisions.IsForbidden                             =.        Binary Decisions.isForbidden
+          Ref Decisions.IsMethodAllowed                         =.        Binary Decisions.isMethodAllowed
+          Ref Decisions.IsMethodOptions                         =.        Binary Decisions.isMethodOptions
+          Ref Decisions.IsMethodTrace                           =.        Binary Decisions.isMethodTrace
+          Ref Decisions.IsRequestOk                             =.        Binary Decisions.isRequestOk
 
-          Ref System.Decisions.IsSystemOk                  .+>       Ref Decisions.IsMethodAllowed
-          Ref Decisions.IsMethodAllowed                    .+>       Ref Decisions.IsAuthorized
-          Ref Decisions.IsMethodAllowed                    .->       Ref Common.Operations.MethodNotAllowed
-          Ref Decisions.IsAuthorized                       .+>       Ref Decisions.ExpectsContinue
-          Ref Decisions.IsAuthorized                       .->       Ref Common.Operations.Unauthorized
-          Ref Decisions.ExpectsContinue                    .+>       Ref Common.Operations.Continue
-          Ref Decisions.ExpectsContinue                    .->       Ref Decisions.HasContent
-          Ref Decisions.HasContent                         .+>       Ref Decisions.IsContentTooLarge
-          Ref Decisions.HasContent                         .->       Ref Decisions.IsForbidden
-          Ref Decisions.IsContentTooLarge                  .+>       Ref Common.Operations.PayloadTooLarge
-          Ref Decisions.IsContentTooLarge                  .->       Ref Decisions.IsContentTypeAccepted
-          Ref Decisions.IsContentTypeAccepted              .+>       Ref Decisions.FromContent
-          Ref Decisions.IsContentTypeAccepted              .->       Ref Common.Operations.UnsupportedMediaType
-          Ref Decisions.FromContent                        .+>       Ref Decisions.IsForbidden
-          Ref Decisions.FromContent                        .->       Ref Common.Operations.BadRequest
-          Ref Decisions.IsForbidden                        .+>       Ref Common.Operations.Forbidden
-          Ref Decisions.IsForbidden                        .->       Ref Decisions.IsMethodTrace
-          Ref Decisions.IsMethodTrace                      .+>       Ref Common.Operations.Ok
-          Ref Decisions.IsMethodTrace                      .->       Ref Decisions.IsMethodOptions
-          Ref Decisions.IsMethodOptions                    .+>       Ref Common.Operations.Ok
-          Ref Decisions.IsMethodOptions                    .->       Ref Decisions.IsRequestOk
-          Ref Decisions.IsRequestOk                        .->       Ref Common.Operations.BadRequest ]
+          Ref System.Decisions.IsSystemOk                       >+        Ref Decisions.IsMethodAllowed
+          Ref Decisions.IsMethodAllowed                         >+        Ref Decisions.IsAuthorized
+          Ref Decisions.IsMethodAllowed                         >-        Ref Common.Operations.MethodNotAllowed
+          Ref Decisions.IsAuthorized                            >+        Ref Decisions.ExpectsContinue
+          Ref Decisions.IsAuthorized                            >-        Ref Common.Operations.Unauthorized
+          Ref Decisions.ExpectsContinue                         >+        Ref Common.Operations.Continue
+          Ref Decisions.ExpectsContinue                         >-        Ref Decisions.HasContent
+          Ref Decisions.HasContent                              >+        Ref Decisions.IsContentTooLarge
+          Ref Decisions.HasContent                              >-        Ref Decisions.IsForbidden
+          Ref Decisions.IsContentTooLarge                       >+        Ref Common.Operations.PayloadTooLarge
+          Ref Decisions.IsContentTooLarge                       >-        Ref Decisions.IsContentTypeAccepted
+          Ref Decisions.IsContentTypeAccepted                   >+        Ref Decisions.FromContent
+          Ref Decisions.IsContentTypeAccepted                   >-        Ref Common.Operations.UnsupportedMediaType
+          Ref Decisions.FromContent                             >+        Ref Decisions.IsForbidden
+          Ref Decisions.FromContent                             >-        Ref Common.Operations.BadRequest
+          Ref Decisions.IsForbidden                             >+        Ref Common.Operations.Forbidden
+          Ref Decisions.IsForbidden                             >-        Ref Decisions.IsMethodTrace
+          Ref Decisions.IsMethodTrace                           >+        Ref Common.Operations.Ok
+          Ref Decisions.IsMethodTrace                           >-        Ref Decisions.IsMethodOptions
+          Ref Decisions.IsMethodOptions                         >+        Ref Common.Operations.Ok
+          Ref Decisions.IsMethodOptions                         >-        Ref Decisions.IsRequestOk
+          Ref Decisions.IsRequestOk                             >-        Ref Common.Operations.BadRequest ]

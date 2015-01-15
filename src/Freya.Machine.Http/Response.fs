@@ -20,3 +20,76 @@
 
 [<RequireQualifiedAccess>]
 module internal Freya.Machine.Http.Response
+
+open Freya.Machine
+open Freya.Machine.Operators
+
+(* Process
+
+   Decisions and topology of the section of an HTTP graph classified
+   under Process, according to the HTTP decision diagram (v4.0.201410),
+   defined as part of the for-GET project.
+
+   See [https://github.com/for-GET/http-decision-diagram]. *)
+
+// TODO: Better reflect create/process naming
+
+(* Decisions *)
+
+[<RequireQualifiedAccess>]
+module Decisions =
+
+    let [<Literal>] CreateSeeOther = "createSeeOther"
+    let [<Literal>] HasMultipleChoices = "hasMultipleChoices"
+    let [<Literal>] IsCreateDone = "isCreateDone"
+    let [<Literal>] IsProcessDone = "isProcessDone"
+    let [<Literal>] SeeOther = "seeOther"
+    let [<Literal>] ToContent = "toContent"
+
+    let createSeeOther =
+        decision CreateSeeOther false
+
+    let hasMultipleChoices =
+        decision HasMultipleChoices false
+
+    let isCreateDone =
+        decision IsCreateDone true
+
+    let isProcessDone =
+        decision IsProcessDone true
+
+    let seeOther =
+        decision SeeOther false
+
+    let toContent =
+        decision ToContent true
+
+(* Graph *)
+
+[<RequireQualifiedAccess>]
+module Graph =
+
+    let operations =
+        [ Ref Decisions.CreateSeeOther                          =.        Binary Decisions.createSeeOther
+          Ref Decisions.HasMultipleChoices                      =.        Binary Decisions.hasMultipleChoices
+          Ref Decisions.IsCreateDone                            =.        Binary Decisions.isCreateDone
+          Ref Decisions.IsProcessDone                           =.        Binary Decisions.isProcessDone
+          Ref Decisions.SeeOther                                =.        Binary Decisions.seeOther
+          Ref Decisions.ToContent                               =.        Binary Decisions.toContent
+          
+          Ref Create.Decisions.Create                           >+        Ref Decisions.IsCreateDone
+          Ref Process.Decisions.IsMethodHeadGet                 >+        Ref Decisions.SeeOther
+          Ref Process.Decisions.ProcessDelete                   >+        Ref Decisions.IsProcessDone
+          Ref Process.Decisions.Process                         >+        Ref Decisions.IsProcessDone
+          Ref Decisions.IsCreateDone                            >+        Ref Decisions.CreateSeeOther
+          Ref Decisions.IsCreateDone                            >-        Ref Common.Operations.Accepted
+          Ref Decisions.CreateSeeOther                          >+        Ref Common.Operations.SeeOther
+          Ref Decisions.CreateSeeOther                          >-        Ref Common.Operations.Created
+          Ref Decisions.ToContent                               >+        Ref Common.Operations.Ok
+          Ref Decisions.ToContent                               >-        Ref Common.Operations.NoContent
+          Ref Decisions.HasMultipleChoices                      >+        Ref Common.Operations.MultipleChoices
+          Ref Decisions.HasMultipleChoices                      >-        Ref Decisions.ToContent
+          Ref Decisions.SeeOther                                >+        Ref Common.Operations.SeeOther
+          Ref Decisions.SeeOther                                >-        Ref Decisions.HasMultipleChoices
+          Ref Decisions.IsProcessDone                           >+        Ref Decisions.SeeOther
+          Ref Decisions.IsProcessDone                           >-        Ref Common.Operations.Accepted ]
