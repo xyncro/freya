@@ -10,7 +10,7 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 | Platform |  BuildScript | Status of last build |
 | :------ | :------: | :------: |
 | **Mono** | [build.sh](https://github.com/freya-fs/freya/blob/master/build.sh) | [![Travis build status](https://travis-ci.org/freya-fs/freya.svg?branch=develop)](https://travis-ci.org/freya-fs/freya) |
-| **Windows** | [build.cmd](https://github.com/freya-fs/freya/blob/master/build.cmd) | [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/a0lwth322atew5vm/branch/develop?svg=true)](https://ci.appveyor.com/project/panesofglass/freya) |
+| **Windows** | [build.cmd](https://github.com/freya-fs/freya/blob/master/build.cmd) | [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/hbm3c402ip371dn5/branch/master?svg=true)](https://ci.appveyor.com/project/freyafs/freya/branch/master) |
 
 [![Issue Stats][badge-issue-stats]][link-issue-stats] [![Pull Requests Stats][badge-pr-stats]][link-issue-stats]
 
