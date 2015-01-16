@@ -123,6 +123,6 @@ type FreyaMachineBuilder with
 
     (* Decisions *)
 
-    [<CustomOperation (Accept.Decisions.IgnoreAcceptMismatches, MaintainsVariableSpaceUsingBind = true)>]
-    member x.IgnoreAcceptMismatches (m, ignoreAcceptMismatches: Freya<bool>) =
-        x.Map (m, set Accept.Decisions.IgnoreAcceptMismatches ignoreAcceptMismatches)
+//    [<CustomOperation (Accept.Decisions.IgnoreAcceptMismatches, MaintainsVariableSpaceUsingBind = true)>]
+//    member x.IgnoreAcceptMismatches (m, ignoreAcceptMismatches: Freya<bool>) =
+//        x.Map (m, set Accept.Decisions.IgnoreAcceptMismatches ignoreAcceptMismatches)

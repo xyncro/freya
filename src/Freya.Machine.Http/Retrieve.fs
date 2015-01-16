@@ -70,9 +70,7 @@ module Graph =
           Ref Decisions.MovedPermanently                        =.        Binary Decisions.movedPermanently
           Ref Decisions.MovedTemporarily                        =.        Binary Decisions.movedTemporarily
 
-          Ref Accept.Decisions.HasAcceptEncoding                >-        Ref Decisions.Missing
-          Ref Accept.Decisions.AcceptEncodingMatches            >+        Ref Decisions.Missing
-          Ref Accept.Decisions.IgnoreAcceptMismatches           >+        Ref Decisions.Missing
+          Ref Accept.Decisions.IsAcceptOk                       >+        Ref Decisions.Missing
           Ref Decisions.Moved                                   >+        Ref Decisions.MovedPermanently
           Ref Decisions.MovedPermanently                        >+        Ref Common.Operations.PermanentRedirect
           Ref Decisions.MovedPermanently                        >-        Ref Decisions.MovedTemporarily
