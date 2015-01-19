@@ -38,16 +38,20 @@ open Freya.Machine.Operators
    * Additional decisions added to give a granular configuration of which
      Accept-* header mismatches can be ignored, as opposed to the diagram
      defined single decision.
+
    * Additional final decision isAcceptOk to give a custom opportunity to
      return a NotAcceptable response for reasons outside the scope of the
      common headers (custom Accept-* semantic headers may be valid).
-   * Removal of node ignoreAcceptBlockMismatches
-   * Addition of nodes:
+
+   * Decisions added:
      - ignoreAcceptCharsetMismatch
      - ignoreAcceptEncodingMismatch
      - ignoreAcceptLanguageMismatch
      - ignoreAcceptMismatch
-   * Addition of node isAcceptOk. *)
+     - isAcceptOk
+
+   * Decisions removed:
+     - ignoreAcceptBlockMismatches *)
 
 (* Decisions *)
 

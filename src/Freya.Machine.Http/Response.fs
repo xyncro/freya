@@ -77,7 +77,8 @@ module Graph =
           Ref Decisions.SeeOther                                =.        Binary Decisions.seeOther
           Ref Decisions.ToContent                               =.        Binary Decisions.toContent
           
-          Ref Create.Decisions.Create                           >+        Ref Decisions.IsCreateDone
+          Ref Create.Decisions.CreatePost                       >+        Ref Decisions.IsCreateDone
+          Ref Create.Decisions.CreatePut                        >+        Ref Decisions.IsCreateDone
           Ref Process.Decisions.IsMethodHeadGet                 >+        Ref Decisions.SeeOther
           Ref Process.Decisions.ProcessDelete                   >+        Ref Decisions.IsProcessDone
           Ref Process.Decisions.Process                         >+        Ref Decisions.IsProcessDone

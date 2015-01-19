@@ -21,6 +21,7 @@
 [<RequireQualifiedAccess>]
 module internal Freya.Machine.Http.Create
 
+open Freya.Core
 open Freya.Machine
 open Freya.Machine.Operators
 
@@ -34,46 +35,71 @@ open Freya.Machine.Operators
 
    Delta/Notes:
 
-   * createHasConflict transfers to create in the false case
-     rather than the response block. The diagram is assumed to be wrong
-     here, as this would imply that a valid put action will never be
-     passed to create and thus never executed.
+   * Topology changed to only support POST and PUT as create methods,
+     as support for custom verbs should be added as a graph extension
+     if required.
 
-   * isMethodCreate has been translated to createIsMethodPost, as we
-     only intend to support PUT or POST for creation in a standard HTTP
-     graph. Custom verb support can be added by a graph extension
-     if required. Though the defaults in the published docs imply PATCH
-     as a valid creational verb, I would dispute this. *)
+   * Create path decision removed as this is not sufficiently specified
+     to implement at this stage.
+
+   * Path checking for partial request and conflict now run for both PUT
+     and POST, before branching to decide whether to run createPost or 
+     createPut decision.
+
+   * create decision has been split in to two separate decisions for a
+     more granular end user experience, avoiding the potential need
+     for the developer to check the current verb in a function to decide
+     which logic to run in cases where POST and PUT logic differs.
+
+   * Decisions removed:
+     - create
+     - createPath
+     - createIsMethodPut
+     - createPartialPut
+     - isMethodCreate
+
+   * Decisions added:
+     - createhasConflict
+     - createIsPost
+     - createIsPut
+     - createPartial
+     - createPost
+     - createPut
+     - isMethodPostOrPut *)
 
 (* Decisions *)
 
 [<RequireQualifiedAccess>]
 module Decisions =
 
-    let [<Literal>] Create = "create"
     let [<Literal>] CreateHasConflict = "createHasConflict"
-    let [<Literal>] CreateIsMethodPost = "createIsMethodPost"
-    let [<Literal>] CreateIsMethodPut = "createIsMethodPut"
-    let [<Literal>] CreatePartialPut = "createPartialPut"
-    let [<Literal>] CreatePath = "createPath"
-
-    let create =
-        decision Create false
+    let [<Literal>] CreateIsPost = "createIsPost"
+    let [<Literal>] CreateIsPut = "createIsPut"
+    let [<Literal>] CreatePartial = "createPartial"
+    let [<Literal>] CreatePost = "createPost"
+    let [<Literal>] CreatePut = "createPut"
+    let [<Literal>] IsMethodPostOrPut = "isMethodPostOrPut"
 
     let createHasConflict =
         decision CreateHasConflict false
 
-    let createIsMethodPost =
-        decision CreateIsMethodPost false
+    let createIsPost _ =
+        unconfigurable, Freya.init false
 
-    let createIsMethodPut =
-        decision CreateIsMethodPut false
+    let createIsPut _ =
+        unconfigurable, Freya.init false
 
-    let createPartialPut =
-        decision CreatePartialPut false
+    let createPartial _ =
+        unconfigurable, Freya.init false
 
-    let createPath =
-        decision CreatePath false
+    let createPost =
+        decision CreatePost false
+
+    let createPut =
+        decision CreatePut false
+
+    let isMethodPostOrPut _ =
+        unconfigurable, Freya.init false
 
 (* Graph *)
 
@@ -81,23 +107,25 @@ module Decisions =
 module Graph =
 
     let operations =
-        [ Ref Decisions.Create                                  =.        Binary Decisions.create
-          Ref Decisions.CreateHasConflict                       =.        Binary Decisions.createHasConflict
-          Ref Decisions.CreateIsMethodPut                       =.        Binary Decisions.createIsMethodPut
-          Ref Decisions.CreatePartialPut                        =.        Binary Decisions.createPartialPut
-          Ref Decisions.CreatePath                              =.        Binary Decisions.createPath
-          Ref Decisions.CreateIsMethodPost                      =.        Binary Decisions.createIsMethodPost
+        [ Ref Decisions.CreateHasConflict                       =.        Binary Decisions.createHasConflict
+          Ref Decisions.CreateIsPost                            =.        Binary Decisions.createIsPost
+          Ref Decisions.CreateIsPut                             =.        Binary Decisions.createIsPut
+          Ref Decisions.CreatePartial                           =.        Binary Decisions.createPartial
+          Ref Decisions.CreatePost                              =.        Binary Decisions.createPost
+          Ref Decisions.CreatePut                               =.        Binary Decisions.createPut
+          Ref Decisions.IsMethodPostOrPut                       =.        Binary Decisions.isMethodPostOrPut
           
-          Ref Retrieve.Decisions.Moved                          >-        Ref Decisions.CreateIsMethodPut
-          Ref Retrieve.Decisions.GonePermanently                >-        Ref Decisions.CreateIsMethodPut
-          Ref Decisions.CreateIsMethodPut                       >+        Ref Decisions.CreatePartialPut
-          Ref Decisions.CreateIsMethodPut                       >-        Ref Decisions.CreateIsMethodPost
-          Ref Decisions.CreateIsMethodPost                      >+        Ref Decisions.CreatePath
-          Ref Decisions.CreateIsMethodPost                      >-        Ref Common.Operations.NotFound
-          Ref Decisions.CreatePath                              >+        Ref Decisions.Create
-          Ref Decisions.CreatePath                              >-        Ref Common.Operations.InternalServerError
-          Ref Decisions.CreatePartialPut                        >+        Ref Common.Operations.BadRequest
-          Ref Decisions.CreatePartialPut                        >-        Ref Decisions.CreateHasConflict
-          Ref Decisions.Create                                  >-        Ref Common.Operations.InternalServerError
+          Ref Retrieve.Decisions.Moved                          >-        Ref Decisions.IsMethodPostOrPut
+          Ref Retrieve.Decisions.GonePermanently                >-        Ref Decisions.IsMethodPostOrPut
+          Ref Decisions.IsMethodPostOrPut                       >+        Ref Decisions.CreatePartial
+          Ref Decisions.IsMethodPostOrPut                       >-        Ref Common.Operations.NotFound
+          Ref Decisions.CreatePartial                           >+        Ref Common.Operations.BadRequest
+          Ref Decisions.CreatePartial                           >-        Ref Decisions.CreateHasConflict
           Ref Decisions.CreateHasConflict                       >+        Ref Common.Operations.Conflict
-          Ref Decisions.CreateHasConflict                       >-        Ref Decisions.Create ]
+          Ref Decisions.CreateHasConflict                       >-        Ref Decisions.CreateIsPost
+          Ref Decisions.CreateIsPost                            >+        Ref Decisions.CreatePost
+          Ref Decisions.CreateIsPost                            >-        Ref Decisions.CreateIsPut
+          Ref Decisions.CreatePost                              >-        Ref Common.Operations.InternalServerError
+          Ref Decisions.CreateIsPut                             >+        Ref Decisions.CreatePut
+          Ref Decisions.CreateIsPut                             >-        Ref Common.Operations.InternalServerError
+          Ref Decisions.CreatePut                               >-        Ref Common.Operations.InternalServerError ]

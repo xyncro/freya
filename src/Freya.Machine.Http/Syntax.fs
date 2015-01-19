@@ -123,6 +123,18 @@ type FreyaMachineBuilder with
 
     (* Decisions *)
 
-//    [<CustomOperation (Accept.Decisions.IgnoreAcceptMismatches, MaintainsVariableSpaceUsingBind = true)>]
-//    member x.IgnoreAcceptMismatches (m, ignoreAcceptMismatches: Freya<bool>) =
-//        x.Map (m, set Accept.Decisions.IgnoreAcceptMismatches ignoreAcceptMismatches)
+    [<CustomOperation (Accept.Decisions.IgnoreAcceptCharsetMismatch, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IgnoreAcceptCharsetMismatch (m, ignoreAcceptCharsetMismatch: Freya<bool>) =
+        x.Map (m, set Accept.Decisions.IgnoreAcceptCharsetMismatch ignoreAcceptCharsetMismatch)
+
+    [<CustomOperation (Accept.Decisions.IgnoreAcceptEncodingMismatch, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IgnoreAcceptEncodingMismatch (m, ignoreAcceptEncodingMismatch: Freya<bool>) =
+        x.Map (m, set Accept.Decisions.IgnoreAcceptEncodingMismatch ignoreAcceptEncodingMismatch)
+
+    [<CustomOperation (Accept.Decisions.IgnoreAcceptLanguageMismatch, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IgnoreAcceptLanguageMismatch (m, ignoreAcceptLanguageMismatch: Freya<bool>) =
+        x.Map (m, set Accept.Decisions.IgnoreAcceptLanguageMismatch ignoreAcceptLanguageMismatch)
+
+    [<CustomOperation (Accept.Decisions.IgnoreAcceptMismatch, MaintainsVariableSpaceUsingBind = true)>]
+    member x.IgnoreAcceptMismatch (m, ignoreAcceptMismatch: Freya<bool>) =
+        x.Map (m, set Accept.Decisions.IgnoreAcceptMismatch ignoreAcceptMismatch)
