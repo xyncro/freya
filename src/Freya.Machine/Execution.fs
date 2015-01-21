@@ -41,24 +41,24 @@ type Ref =
 
 let private start (x: CompilationStartNode) =
     freya {
-        printfn "start"
+        //printfn "start"
         return x.Next }
 
 let private finish _ =
     freya {
-        printfn "finish"
+        //printfn "finish"
         return () }
 
 let private unary ref (x: CompilationUnaryNode) =
     freya {
-        printfn "unary: %s" ref
+        //printfn "unary: %s" ref
         do! x.Unary
 
         return x.Next }
 
 let private binary ref (x: CompilationBinaryNode) =
     freya {
-        printfn "binary: %s" ref
+        //printfn "binary: %s" ref
         let! result = x.Binary
 
         match result with
@@ -68,11 +68,11 @@ let private binary ref (x: CompilationBinaryNode) =
 let executeCompilation (map: CompilationMap) =
     let rec eval ref =
         freya {
-            match ref, Map.find ref map with
-            | Ref.Start, Start x -> return! start x >>= eval
-            | Ref.Finish, Finish -> return! finish ()
-            | Ref.Ref ref, Unary x -> return! unary ref x >>= eval
-            | Ref.Ref ref, Binary x -> return! binary ref x >>= eval
+            match ref, Map.tryFind ref map with
+            | Ref.Start, Some (Start x) -> return! start x >>= eval
+            | Ref.Finish, Some Finish -> return! finish ()
+            | Ref.Ref ref, Some (Unary x) -> return! unary ref x >>= eval
+            | Ref.Ref ref, Some (Binary x) -> return! binary ref x >>= eval
             | _ -> failwith "Invalid Compilation" }
 
     eval Ref.Start

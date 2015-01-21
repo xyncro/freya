@@ -18,42 +18,54 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module internal Freya.Machine.Http.Prelude
+[<RequireQualifiedAccess>]
+module internal Freya.Machine.Extensions.Http.Defaults
 
+open System
 open Freya.Core
-open Freya.Machine
+open Freya.Types.Http
+open Freya.Types.Language
 
-(* Configuration *)
+(* Charsets *)
 
-let config<'a> =
-    tryGetConfiguration<'a>
+let charsetsSupported =
+    Freya.init [ Charset.Iso88591 ]
 
-(* Configuration Metadata *)
+(* Encodings *)
 
-let configured =
-    { Configurable = true
-      Configured = true }
+let encodingsSupported =
+    Freya.init List.empty<ContentCoding>
 
-let unconfigured =
-    { Configurable = true
-      Configured = false }
+(* Languages *)
 
-let unconfigurable =
-    { Configurable = false
-      Configured = false }
+let languagesSupported =
+    Freya.init List.empty<LanguageTag>
 
-(* Decisions and Handlers *)
+(* Media Types *)
 
-let decision key def c =
-    match config key c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init def
+let mediaTypesSupported =
+    Freya.init List.empty<MediaType>
 
-let handler key c =
-    match config key c with
-    | Some m -> configured, m
-    | _ -> unconfigured, Freya.init ()
+(* Methods *)
 
-let operation f (_: FreyaMachineConfiguration) =
-    unconfigurable, f
+let methodsKnown =
+    Freya.init [
+        CONNECT
+        DELETE
+        HEAD
+        GET
+        OPTIONS
+        POST
+        PUT
+        TRACE
+        Method.Custom "PATCH" ]
+
+let methodsSupported =
+    Freya.init [
+        GET
+        HEAD ]
+
+(* Modification *)
+
+let lastModified =
+    Freya.init Option<DateTime>.None

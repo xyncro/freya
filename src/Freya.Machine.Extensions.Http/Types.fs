@@ -15,26 +15,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Recorder.Integration
+module Freya.Machine.Extensions.Http.Types
 
-open Freya.Core
-open Freya.Core.Operators
+open Freya.Types.Http
+open Freya.Types.Language
 
-(* Execution *)
+(* Negotiation *)
 
-let initializeRecord =
-    setPLM requestIdPLens =<< (Freya.fromAsync initialize =<< Freya.init ())
+type Negotiation<'a> =
+    | Negotiated of 'a list
+    | Free
 
-let updateRecord f =
-    Option.iter (fun id -> update id f) <!> getPLM requestIdPLens
+(* Representation *)
 
-(* Inspection *)
+type Representation =
+    { Data: byte []
+      Description: Description }
 
-let listRecords =
-    Freya.fromAsync list =<< Freya.init ()
+and Specification =
+    { Charsets: Negotiation<Charset>
+      Encodings: Negotiation<ContentCoding>
+      MediaTypes: Negotiation<MediaType>
+      Languages: Negotiation<LanguageTag> }
 
-let getRecord id =
-    Freya.fromAsync read =<< Freya.init id
+and Description =
+    { Charset: Charset option
+      Encodings: ContentCoding list option
+      MediaType: MediaType option
+      Languages: LanguageTag list option }

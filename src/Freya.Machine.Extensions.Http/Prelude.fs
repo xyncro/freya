@@ -15,35 +15,51 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Cors.Constants
+module internal Freya.Machine.Extensions.Http.Prelude
 
+open Freya.Core
+open Freya.Machine
+
+(* Configuration Metadata *)
+
+let configured =
+    { Configurable = true
+      Configured = true }
+
+let unconfigured =
+    { Configurable = true
+      Configured = false }
+
+let unconfigurable =
+    { Configurable = false
+      Configured = false }
+
+(* Functions *)
+
+let inline flip f a b = 
+    f b a
+
+(* List Extensions *)
 
 [<RequireQualifiedAccess>]
-module Configuration =
+module List =
 
-    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
-    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
-    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
-    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
+    let chooseMaxBy projection =
+            List.map (fun x -> x, projection x)
+         >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
+         >> List.sortBy (fun (_, y) -> y)
+         >> List.map fst
+         >> function | [] -> None | x :: _ -> Some x
 
-
-[<RequireQualifiedAccess>]
-module Decisions =
-
-    let [<Literal>] CorsEnabled = "corsEnabled"
-    let [<Literal>] CorsOptions = "corsOptions"
-    let [<Literal>] CorsOrigin = "corsOrigin"
-    let [<Literal>] CorsPreflight = "corsPreflight"
-
+(* Option Extensions *)
 
 [<RequireQualifiedAccess>]
-module Operations =
-
-    let [<Literal>] private prefix = "op"
-
-    let [<Literal>] CorsPreflight = prefix + "CorsPreflight"
-    let [<Literal>] CorsActual = prefix + "CorsActual"
-    let [<Literal>] CorsOrigin = prefix + "CorsOrigin"
+module Option =
+    
+    let orElse def =
+        function | Some x -> x
+                 | _ -> def

@@ -25,6 +25,7 @@ module Freya.Types.Http.Types
 open System
 open System.Globalization
 open System.Runtime.CompilerServices
+open Aether
 open FParsec
 open Freya.Types
 open Freya.Types.Language
@@ -334,6 +335,15 @@ let private parametersP =
 type MediaType =
     | MediaType of Type * SubType * Parameters
 
+    static member TypeLens : Lens<MediaType, Type> =
+        (fun (MediaType (x, _, _)) -> x), (fun x (MediaType (_, y, z)) -> MediaType (x, y, z))
+
+    static member SubTypeLens : Lens<MediaType, SubType> =
+        (fun (MediaType (_, y, _)) -> y), (fun y (MediaType (x, _, z)) -> MediaType (x, y, z))
+
+    static member ParametersLens : Lens<MediaType, Parameters> =
+        (fun (MediaType (_, _, z)) -> z), (fun z (MediaType (x, y, _)) -> MediaType (x, y, z))
+
 and Type =
     | Type of string
 
@@ -392,6 +402,9 @@ type MediaType with
 
 type ContentType =
     | ContentType of MediaType
+
+    static member MediaTypeLens : Lens<ContentType, MediaType> =
+        (fun (ContentType x) -> x), (fun x _ -> ContentType x)
 
 let private contentTypeF =
     function | ContentType x -> mediaTypeF x
@@ -538,22 +551,22 @@ type ContentLocation with
    See [http://tools.ietf.org/html/rfc7231#section-4] *)
 
 type Method =
+    | CONNECT
     | DELETE 
     | HEAD 
     | GET 
     | OPTIONS 
-    | PATCH 
     | POST 
     | PUT 
     | TRACE 
     | Custom of string
 
 let internal methodF =
-    function | DELETE -> append "DELETE" 
+    function | CONNECT -> append "CONNECT"
+             | DELETE -> append "DELETE" 
              | HEAD -> append "HEAD" 
              | GET -> append "GET" 
              | OPTIONS -> append "OPTIONS"
-             | PATCH -> append "PATCH" 
              | POST -> append "POST" 
              | PUT -> append "PUT"  
              | TRACE -> append "TRACE"
@@ -561,11 +574,11 @@ let internal methodF =
 
 let internal methodP =
     choice [
+        skipStringCI "connect" >>% CONNECT
         skipStringCI "delete" >>% DELETE
         skipStringCI "head" >>% HEAD
         skipStringCI "get" >>% GET
         skipStringCI "options" >>% OPTIONS
-        skipStringCI "patch" >>% PATCH
         skipStringCI "post" >>% POST
         skipStringCI "put" >>% PUT
         skipStringCI "trace" >>% TRACE

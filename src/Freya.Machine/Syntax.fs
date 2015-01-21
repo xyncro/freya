@@ -26,7 +26,7 @@ open Aether
 type FreyaMachineBuilder with
 
     [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
-    member x.Include (m, definition) = 
+    member x.Including (m, definition) = 
         x.Combine (m, definition)
 
     [<CustomOperation ("using", MaintainsVariableSpaceUsingBind = true)>]

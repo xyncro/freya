@@ -19,22 +19,32 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Prelude
+module Freya.Machine.Extensions.Http.Extension
 
-(* Equality/Comparison
+open Freya.Machine
+open Freya.Machine.Operators
 
-   Functions for simplifying the customization of equality
-   and comparison on types where this is required. *)
+(* Operations
 
-let equalsOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> (f x = f y)
-    | _ -> false
- 
-let hashOn f x = 
-    hash (f x)
- 
-let compareOn f x (y: obj) =
-    match y with
-    | :? 'T as y -> compare (f x) (f y)
-    | _ -> invalidArg "y" "cannot compare values of different types"
+   The complete list of operations embodying the HTTP graph, composed
+   of subsection listings. *)
+
+let private operations =
+      [ Start      >/        Finish
+        Start      >.        Ref Decisions.ServiceAvailable ]
+    @ Actions.operations
+    @ Decisions.operations
+    @ Handlers.operations
+    @ Operations.operations
+
+(* Extension
+
+   A concrete machine extension embodying the HTTP graph, generally
+   expected to form the basis of most machine installations. With no
+   dependencies, it is assumed that this extension will be the first
+   modification of the default graph. *)
+
+let http =
+    { Name = "http"
+      Dependencies = Set.empty
+      Operations = operations }

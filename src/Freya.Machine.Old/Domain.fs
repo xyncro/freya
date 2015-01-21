@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -688,7 +689,6 @@ module Method =
           HEAD
           GET
           OPTIONS
-          PATCH
           POST
           PUT
           TRACE ]
@@ -742,7 +742,7 @@ module Method =
             <!> meth
 
         let patch : FreyaMachineDecision =
-                (=) PATCH 
+                (=) (Method.Custom "PATCH") 
             <!> meth
 
         let post : FreyaMachineDecision =

@@ -39,6 +39,8 @@ let private configurationPLens<'a> key =
    overhead, but is only used at reification time in general cases. *)
 
 let tryGetConfiguration<'a> key =
+    printfn "getting config %s" key
+
     getPL (configurationPLens<'a> key)
 
 let setConfiguration<'a> key =

@@ -29,7 +29,7 @@ let inline init x : Freya<'T> =
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
 /// into a <see cref="Freya{T}" /> computation.
-let inline toAsync f =
+let inline fromAsync f =
     (fun f -> 
         fun env -> 
             async { 

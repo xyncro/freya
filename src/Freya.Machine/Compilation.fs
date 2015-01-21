@@ -74,8 +74,6 @@ and CompilationBinaryNode =
 // nodes, etc. Is this a good/bad thing?
 
 let private findRefPair (graph: FreyaMachineGraph) ref value =
-    printfn "%A %A" ref value
-
     Map.findKey (fun (RefPair.Pair (n, _)) (Value v) ->
         n = ref && v = value) graph.Edges
 

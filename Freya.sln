@@ -45,14 +45,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1AF60757-05E6-45AA-AFDA-AE56B3F577A8}"
 	ProjectSection(SolutionItems) = preProject
 		tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references = tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references
-		tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references = tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references
 		tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references = tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references
 		tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references = tests\Freya.Router.Tests\Freya.Router.Tests.fsproj.paket.references
-		tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references = tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references
-		tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references = tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references
-		tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references = tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references
-		tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references = tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references
-		tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references = tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Inspector", "src\Freya.Inspector\Freya.Inspector.fsproj", "{27EC7C3C-DAFC-48FC-9953-42C58BF85354}"
@@ -102,10 +96,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Old", "src\Fr
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine", "src\Freya.Machine\Freya.Machine.fsproj", "{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Http", "src\Freya.Machine.Http\Freya.Machine.Http.fsproj", "{F932C80A-555E-4691-8F05-2AC0982AE45B}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Cors", "src\Freya.Machine.Cors\Freya.Machine.Cors.fsproj", "{5B292E3F-6729-4697-B7D4-60BB02CA3869}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "machine", "machine", "{BE698B7A-9E77-4581-AB6D-E8D3364701B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{435075A8-2EA8-4D8F-9665-00E845BB5CA8}"
@@ -152,6 +142,31 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "machine", "machine", "{9104ED49-4374-4B39-A14D-70E7DAD1CF01}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "router", "router", "{ACAD85F6-13F6-43BF-91D1-F13659D2D833}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{17DA0259-4B69-4A61-A015-C13A0F4A2866}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Extensions.Http", "src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj", "{F394E9C1-0681-4653-B946-30C4FBA1226F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Extensions.Cors", "src\Freya.Machine.Extensions.Cors\Freya.Machine.Extensions.Cors.fsproj", "{943D55E7-040B-4BB9-BA6B-14AF515D4743}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{F96F886D-CB1A-4954-A140-E268C023A6B2}"
+	ProjectSection(SolutionItems) = preProject
+		src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.references = src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "machine", "machine", "{6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references = tests\Freya.Machine.Tests\Freya.Machine.Tests.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "types", "types", "{BB3531B7-07FD-434B-B68B-BECCC5C66886}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references = tests\Freya.Types.Cors.Tests\Freya.Types.Cors.Tests.fsproj.paket.references
+		tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references = tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references
+		tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references = tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references
+		tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references = tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references
+		tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references = tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -255,18 +270,18 @@ Global
 		{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F932C80A-555E-4691-8F05-2AC0982AE45B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F932C80A-555E-4691-8F05-2AC0982AE45B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F932C80A-555E-4691-8F05-2AC0982AE45B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F932C80A-555E-4691-8F05-2AC0982AE45B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5B292E3F-6729-4697-B7D4-60BB02CA3869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5B292E3F-6729-4697-B7D4-60BB02CA3869}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5B292E3F-6729-4697-B7D4-60BB02CA3869}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B292E3F-6729-4697-B7D4-60BB02CA3869}.Release|Any CPU.Build.0 = Release|Any CPU
 		{38367406-E983-42E8-AF0D-759EE41554D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{38367406-E983-42E8-AF0D-759EE41554D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38367406-E983-42E8-AF0D-759EE41554D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38367406-E983-42E8-AF0D-759EE41554D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F394E9C1-0681-4653-B946-30C4FBA1226F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F394E9C1-0681-4653-B946-30C4FBA1226F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F394E9C1-0681-4653-B946-30C4FBA1226F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F394E9C1-0681-4653-B946-30C4FBA1226F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{943D55E7-040B-4BB9-BA6B-14AF515D4743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{943D55E7-040B-4BB9-BA6B-14AF515D4743}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{943D55E7-040B-4BB9-BA6B-14AF515D4743}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{943D55E7-040B-4BB9-BA6B-14AF515D4743}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -305,8 +320,6 @@ Global
 		{B34D7BD9-09B5-4BFC-AF0A-E3F02214111A} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
 		{0A570763-69E7-4E5B-8640-A848A4E2239F} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
 		{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
-		{F932C80A-555E-4691-8F05-2AC0982AE45B} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
-		{5B292E3F-6729-4697-B7D4-60BB02CA3869} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
 		{BE698B7A-9E77-4581-AB6D-E8D3364701B2} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
 		{88C54E9A-5D3E-427D-97F8-E7E172E98513} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
 		{32CC81FC-D42C-4D92-A7A6-2304B96EF95E} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
@@ -318,5 +331,11 @@ Global
 		{EB3B4A54-7B25-4AAE-ABEA-4AF38F5E12EF} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{9104ED49-4374-4B39-A14D-70E7DAD1CF01} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{ACAD85F6-13F6-43BF-91D1-F13659D2D833} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{17DA0259-4B69-4A61-A015-C13A0F4A2866} = {BE698B7A-9E77-4581-AB6D-E8D3364701B2}
+		{F394E9C1-0681-4653-B946-30C4FBA1226F} = {17DA0259-4B69-4A61-A015-C13A0F4A2866}
+		{943D55E7-040B-4BB9-BA6B-14AF515D4743} = {17DA0259-4B69-4A61-A015-C13A0F4A2866}
+		{F96F886D-CB1A-4954-A140-E268C023A6B2} = {75494D1F-A3BA-49A9-8B0F-C8190126E94F}
+		{6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999} = {1AF60757-05E6-45AA-AFDA-AE56B3F577A8}
+		{BB3531B7-07FD-434B-B68B-BECCC5C66886} = {1AF60757-05E6-45AA-AFDA-AE56B3F577A8}
 	EndGlobalSection
 EndGlobal
