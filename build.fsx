@@ -97,12 +97,33 @@ let freya =
                           Local "Freya.Types.Http"
                           Local "Freya.Types.Language"
                           Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Extensions.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Extensions.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Machine.Extensions.Http"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Http.Cors"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Machine.Router"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Local "Freya.Core"
                           Local "Freya.Machine"
                           Local "Freya.Pipeline"
+                          Local "Freya.Router"
                           Local "Freya.Types.Http" ] }
                   { Name = "Freya.Pipeline"
                     Dependencies =
@@ -127,14 +148,6 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "FParsec" ] }
-                  { Name = "Freya.Types.Cors"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "FParsec"
-                          Local "Freya.Types"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Types.Http"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -143,6 +156,14 @@ let freya =
                           Local "Freya.Core"
                           Local "Freya.Types"
                           Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Types.Http.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "FParsec"
+                          Local "Freya.Types"
+                          Local "Freya.Types.Http"
                           Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Types.Language"
                     Dependencies =
