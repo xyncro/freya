@@ -67,14 +67,19 @@
     <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Freya.Machine.Old\Freya.Machine.Old.fsproj">
-      <Name>Freya.Machine.Old</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
+    <ProjectReference Include="..\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
+      <Name>Freya.Machine.Extensions.Http</Name>
+      <Project>{f394e9c1-0681-4653-b946-30c4fba1226f}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine.Router\Freya.Machine.Router.fsproj">
       <Name>Freya.Machine.Router</Name>
       <Project>{b34d7bd9-09b5-4bfc-af0a-e3f02214111a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
+      <Name>Freya.Machine</Name>
+      <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">

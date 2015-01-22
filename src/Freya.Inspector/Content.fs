@@ -23,6 +23,7 @@ module internal Freya.Inspector.Content
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Router
 open Freya.Types.Http
@@ -52,13 +53,13 @@ let private css =
     freyaMachine {
         including defaults
         mediaTypesSupported css
-        handleOk getCss } |> compileFreyaMachine
+        handleOk getCss } |> Machine.toPipeline
 
 let private html =
     freyaMachine {
         including defaults
         mediaTypesSupported html
-        handleOk getHtml } |> compileFreyaMachine
+        handleOk getHtml } |> Machine.toPipeline
 
 (* Routes *)
 

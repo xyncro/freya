@@ -27,6 +27,7 @@ open Fleece
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
 open Freya.Types.Http
 open Freya.Types.Language
 
@@ -60,6 +61,7 @@ let json =
 
 let defaults =
     freyaMachine {
+        using http
         charsetsSupported utf8
         languagesSupported en
         mediaTypesSupported json }
@@ -92,7 +94,7 @@ let private encode =
     string >> Encoding.UTF8.GetBytes
 
 let represent n x =
-    { Metadata =
+    { Description =
         { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.UTF8)
           Encodings = None
           MediaType = Some (n.MediaTypes |> firstNegotiatedOrElse MediaType.Text)
@@ -100,7 +102,7 @@ let represent n x =
       Data = x }
 
 let representJSON x =
-    { Metadata =
+    { Description =
         { Charset = Some Charset.UTF8
           Encodings = None
           MediaType = Some MediaType.JSON

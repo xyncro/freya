@@ -23,7 +23,6 @@ module internal Freya.Machine.Execution
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 
 (* Aliases
 
@@ -41,24 +40,26 @@ type Ref =
 
 let private start (x: CompilationStartNode) =
     freya {
-        //printfn "start"
+        do! addFreyaMachineExecutionRecord Ref.Start
+
         return x.Next }
 
 let private finish _ =
     freya {
-        //printfn "finish"
+        do! addFreyaMachineExecutionRecord Ref.Finish
+
         return () }
 
 let private unary ref (x: CompilationUnaryNode) =
     freya {
-        //printfn "unary: %s" ref
+        do! addFreyaMachineExecutionRecord ref
         do! x.Unary
 
         return x.Next }
 
 let private binary ref (x: CompilationBinaryNode) =
     freya {
-        //printfn "binary: %s" ref
+        do! addFreyaMachineExecutionRecord ref
         let! result = x.Binary
 
         match result with
@@ -71,8 +72,8 @@ let executeCompilation (map: CompilationMap) =
             match ref, Map.tryFind ref map with
             | Ref.Start, Some (Start x) -> return! start x >>= eval
             | Ref.Finish, Some Finish -> return! finish ()
-            | Ref.Ref ref, Some (Unary x) -> return! unary ref x >>= eval
-            | Ref.Ref ref, Some (Binary x) -> return! binary ref x >>= eval
+            | ref, Some (Unary x) -> return! unary ref x >>= eval
+            | ref, Some (Binary x) -> return! binary ref x >>= eval
             | _ -> failwith "Invalid Compilation" }
 
     eval Ref.Start

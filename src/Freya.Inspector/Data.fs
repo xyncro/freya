@@ -27,6 +27,7 @@ open Fleece.Operators
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
@@ -86,19 +87,19 @@ let private inspectionExists inspectors =
 let private records =
     freyaMachine {
         including defaults
-        handleOk recordsGet } |> compileFreyaMachine
+        handleOk recordsGet } |> Machine.toPipeline
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
-        handleOk recordGet } |> compileFreyaMachine
+        handleOk recordGet } |> Machine.toPipeline
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
-        handleOk (inspectionGet inspectors) } |> compileFreyaMachine
+        handleOk (inspectionGet inspectors) } |> Machine.toPipeline
 
 (* Routes *)
 

@@ -105,16 +105,23 @@ let private applyOperations operations graph =
     List.fold (fun result operation ->
         match result with
         | Choice1Of2 graph -> operation graph
-        | Choice2Of2 e -> Choice2Of2 e) graph operations
+        | Choice2Of2 e -> failwith e) graph operations
 
 (* Creation *)
+
+// TODO: Tidy this up!
 
 let generateGraph spec =
     match orderExtensions spec.Extensions with
     | Choice1Of2 extensions ->
-        List.fold (fun graph extension ->
-            match graph with
-            | Choice1Of2 graph -> applyOperations extension.Operations (Choice1Of2 graph)
-            | Choice2Of2 e -> Choice2Of2 e) (Choice1Of2 defaultFreyaMachineGraph) extensions
+        let graph =
+            List.fold (fun graph extension ->
+                match graph with
+                | Choice1Of2 graph -> applyOperations extension.Operations (Choice1Of2 graph)
+                | Choice2Of2 e -> failwith e) (Choice1Of2 defaultFreyaMachineGraph) extensions
+
+        match graph with
+        | Choice1Of2 graph -> graph
+        | Choice2Of2 e -> failwith e
     | Choice2Of2 e ->
-        Choice2Of2 e
+        failwith e

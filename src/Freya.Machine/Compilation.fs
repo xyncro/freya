@@ -128,8 +128,6 @@ let private mapGraph (graph: FreyaMachineGraph) configuration : CompilationMap =
    to compilation maps, via an intermediary stage of creating a
    machine graph from the specification. *)
 
-let compileSpecification spec =
-    match generateGraph spec with
-    | Choice1Of2 graph -> Choice1Of2 (mapGraph graph spec.Configuration)
-    | Choice2Of2 e -> Choice2Of2 e
+let compileGraph graph (spec: FreyaMachineSpecification) =
+    mapGraph graph spec.Configuration
 

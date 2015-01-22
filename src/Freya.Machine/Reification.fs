@@ -21,7 +21,7 @@
 [<AutoOpen>]
 module internal Freya.Machine.Reification
 
-open Freya.Core.Operators
+open Freya.Core
 open Freya.Pipeline
 
 (* Defaults
@@ -42,7 +42,12 @@ let private defaultFreyaMachineSpecification =
 
 let reifyMachine (machine: FreyaMachine) =
     let spec = snd (machine defaultFreyaMachineSpecification)
+    let graph = generateGraph spec
+    let comp = compileGraph graph spec
+    let record = freyaMachineGraphRecord comp
 
-    match compileSpecification spec with
-    | Choice1Of2 compilation -> executeCompilation compilation *> halt
-    | Choice2Of2 e -> failwith e
+    freya {
+        do! setFreyaMachineGraphRecord record
+        do! executeCompilation comp
+
+        return Halt }
