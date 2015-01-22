@@ -22,14 +22,8 @@ module Freya.Types.Language.Types
 
 #nowarn "60"
 
-open System.Runtime.CompilerServices
 open FParsec
 open Freya.Types
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
-do ()
 
 (* RFC 5646
 

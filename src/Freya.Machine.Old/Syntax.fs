@@ -22,8 +22,8 @@ module Freya.Machine.Syntax
 
 open System
 open Freya.Core
-open Freya.Types.Cors
 open Freya.Types.Http
+open Freya.Types.Http.Cors
 open Freya.Types.Language
 open Freya.Types.Uri
 

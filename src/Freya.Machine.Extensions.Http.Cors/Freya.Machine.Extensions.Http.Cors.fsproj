@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>943d55e7-040b-4bb9-ba6b-14af515d4743</ProjectGuid>
+    <ProjectGuid>9e1e2cdc-81a2-4f7c-8a61-0c2312cecd2f</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Machine.Extensions.Cors</RootNamespace>
-    <AssemblyName>Freya.Machine.Extensions.Cors</AssemblyName>
+    <RootNamespace>Freya.Machine.Extensions.Http.Cors</RootNamespace>
+    <AssemblyName>Freya.Machine.Extensions.Http.Cors</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Machine.Extensions.Cors</Name>
+    <Name>Freya.Machine.Extensions.Http.Cors</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Machine.Extensions.Cors.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Machine.Extensions.Http.Cors.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Machine.Extensions.Cors.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Machine.Extensions.Http.Cors.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

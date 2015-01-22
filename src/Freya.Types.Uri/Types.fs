@@ -24,15 +24,8 @@ module Freya.Types.Uri.Types
 
 open System.Net
 open System.Net.Sockets
-open System.Runtime.CompilerServices
 open FParsec
 open Freya.Types
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Types.Cors")>]
-[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
-do ()
 
 (* RFC 3986
 

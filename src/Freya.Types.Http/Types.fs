@@ -24,17 +24,11 @@ module Freya.Types.Http.Types
 
 open System
 open System.Globalization
-open System.Runtime.CompilerServices
 open Aether
 open FParsec
 open Freya.Types
 open Freya.Types.Language
 open Freya.Types.Uri
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Types.Cors")>]
-do ()
 
 (* RFC 7230
 

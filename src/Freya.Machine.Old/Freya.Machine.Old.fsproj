@@ -69,9 +69,10 @@
       <Name>Freya.Recorder</Name>
       <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Cors\Freya.Types.Cors.fsproj">
-      <Name>Freya.Types.Cors</Name>
-      <Project>{43CC0142-CFFA-4E50-A3BD-12C9F59CE8D2}</Project>
+    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
+      <Name>Freya.Types.Http.Cors</Name>
+      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
       <Name>Freya.Types.Http</Name>

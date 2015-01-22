@@ -64,3 +64,17 @@ let mutDictPLens<'k,'v> k : PLens<IDictionary<'k,'v>, 'v> =
 /// Provides isomorphisms for boxing and unboxing.
 let boxIso<'a> : Iso<obj, 'a> =
     unbox<'a>, box
+
+(* Functions *)
+
+let inline flip f a b = 
+    f b a
+
+(* Option Extensions *)
+
+[<RequireQualifiedAccess>]
+module Option =
+    
+    let orElse def =
+        function | Some x -> x
+                 | _ -> def

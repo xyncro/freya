@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Cors.Lenses
+module Freya.Types.Http.Cors.Lenses
 
 open Aether.Operators
 open Freya.Types.Http

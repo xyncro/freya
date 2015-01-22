@@ -19,20 +19,12 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Extensions.Http.Prelude
+module internal Freya.Types.Uri.Prelude
 
-open Freya.Machine
+open System.Runtime.CompilerServices
 
-(* Configuration Metadata *)
+(* Internals *)
 
-let configured =
-    { Configurable = true
-      Configured = true }
-
-let unconfigured =
-    { Configurable = true
-      Configured = false }
-
-let unconfigurable =
-    { Configurable = false
-      Configured = false }
+[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
+[<assembly:InternalsVisibleTo ("Freya.Types.Http.Cors")>]
+do ()

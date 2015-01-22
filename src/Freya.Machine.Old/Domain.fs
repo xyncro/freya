@@ -24,8 +24,8 @@ module internal Freya.Machine.Domain
 open System
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Cors
 open Freya.Types.Http
+open Freya.Types.Http.Cors
 open Freya.Types.Language
 
 (* Cache Control

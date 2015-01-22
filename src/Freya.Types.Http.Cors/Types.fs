@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Cors.Types
+module Freya.Types.Http.Cors.Types
 
 #nowarn "60"
 

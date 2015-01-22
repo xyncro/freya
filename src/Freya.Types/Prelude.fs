@@ -18,14 +18,14 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Prelude
+module internal Freya.Types.Prelude
 
 open System.Runtime.CompilerServices
 
 (* Internals *)
 
-[<assembly:InternalsVisibleTo ("Freya.Types.Cors")>]
 [<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
+[<assembly:InternalsVisibleTo ("Freya.Types.Http.Cors")>]
 [<assembly:InternalsVisibleTo ("Freya.Types.Language")>]
 [<assembly:InternalsVisibleTo ("Freya.Types.Uri")>]
 do ()
