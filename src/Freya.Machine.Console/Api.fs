@@ -26,6 +26,7 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Freya.Machine.Extensions.Http.Cors
 open Freya.Machine.Router
 open Freya.Router
 open Freya.Types.Http
@@ -150,6 +151,7 @@ let updateAction =
 let common =
     freyaMachine {
         using http
+        using httpCors
 
         charsetsSupported utf8
 //        corsHeadersSupported corsHeaders

@@ -15,35 +15,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Machine.Builder
+module Freya.Machine.Extensions.Http.Cors.Extension
 
-open Aether
+open Freya.Machine
+open Freya.Machine.Operators
 
-(* Builder
+(* Operations
 
-   The Computation Expression builder to give Machine the declarative
-   computation expression syntax for specifying Machine Definitions.
-   Specific strongly typed custom operations are defined in
-   Machine.Syntax.fs. *)
+   The complete list of operations embodying the CORS graph, composed
+   of subsection listings. *)
 
-type FreyaMachineBuilder () =
+let private operations =
+      Decisions.operations
+    @ Operations.operations
 
-    member __.Return _ : FreyaMachine =
-        fun definition -> (), definition
+(* Extension
 
-    member __.ReturnFrom machine : FreyaMachine = 
-        machine
+   A machine extension adding CORS support to the standard HTTP
+   decision graph. *)
 
-    member __.Bind (m, k) : FreyaMachine = 
-        m >> fun (result, definition) -> (k result) definition
-
-    member x.Combine (m1, m2) : FreyaMachine = 
-        x.Bind (m1, fun () -> m2)
-
-    member internal x.Set (r, lens, value) = 
-        x.Bind ((fun res -> (), setPL lens value res), fun _ -> x.ReturnFrom r)
-
-let freyaMachine = FreyaMachineBuilder ()
+let httpCors =
+    { Name = "httpCors"
+      Dependencies = set [ "http" ]
+      Operations = operations }

@@ -9,9 +9,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Machine.Extensions.Http.Cors</RootNamespace>
     <AssemblyName>Freya.Machine.Extensions.Http.Cors</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Freya.Machine.Extensions.Http.Cors</Name>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,15 +33,6 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\Freya.Machine.Extensions.Http.Cors.XML</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -57,6 +49,64 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
+  <ItemGroup>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="Defaults.fs" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="Decisions.fs" />
+    <Compile Include="Operations.fs" />
+    <Compile Include="Extension.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
+      <Name>Freya.Machine.Extensions.Http</Name>
+      <Project>{f394e9c1-0681-4653-b946-30c4fba1226f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
+      <Name>Freya.Machine</Name>
+      <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
+      <Name>Freya.Types.Http.Cors</Name>
+      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
+      <Name>Freya.Types.Uri</Name>
+      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">
+      <Name>Freya.Types</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -64,4 +114,15 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>

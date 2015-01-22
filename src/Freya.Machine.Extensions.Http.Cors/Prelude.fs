@@ -19,15 +19,9 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Machine.Extensions.Http.Prelude
+module internal Freya.Machine.Extensions.Http.Cors.Prelude
 
 open Freya.Machine
-open System.Runtime.CompilerServices
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Machine.Extensions.Http.Cors")>]
-do ()
 
 (* Configuration Metadata *)
 

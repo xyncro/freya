@@ -144,6 +144,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Machine.Extensions.Ht
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{F96F886D-CB1A-4954-A140-E268C023A6B2}"
 	ProjectSection(SolutionItems) = preProject
+		src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj.paket.references = src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj.paket.references
 		src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.references = src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.references
 	EndProjectSection
 EndProject

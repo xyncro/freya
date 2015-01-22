@@ -15,37 +15,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module internal Freya.Machine.Prelude
-
-open System
-open System.Runtime.CompilerServices
-
-(* Internals *)
-
-[<assembly:InternalsVisibleTo ("Freya.Machine.Tests")>]
-do ()
-
-(* Operators *)
-
-let (==) s1 s2 =
-    String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-(* Functions *)
-
-let inline flip f a b = 
-    f b a
-
-(* List Extensions *)
-
 [<RequireQualifiedAccess>]
-module List =
+module internal Freya.Machine.Extensions.Http.Cors.Defaults
 
-    let chooseMaxBy projection =
-            List.map (fun x -> x, projection x)
-         >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
-         >> List.sortBy (fun (_, y) -> y)
-         >> List.map fst
-         >> function | [] -> None | x :: _ -> Some x
+open Freya.Core
+open Freya.Types.Http
+open Freya.Types.Http.Cors
+
+let corsHeadersExposed =
+    Freya.init List.empty<string>
+
+let corsHeadersSupported =
+    Freya.init List.empty<string>
+
+let corsMethodsSupported =
+    Freya.init List.empty<Method>
+
+let corsOriginsSupported =
+    Freya.init Option<AccessControlAllowOriginRange>.None
