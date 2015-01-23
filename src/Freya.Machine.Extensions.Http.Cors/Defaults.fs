@@ -35,4 +35,4 @@ let corsMethodsSupported =
     Freya.init List.empty<Method>
 
 let corsOriginsSupported =
-    Freya.init Option<AccessControlAllowOriginRange>.None
+    Freya.init (AccessControlAllowOriginRange.Origins (OriginListOrNull.Null))

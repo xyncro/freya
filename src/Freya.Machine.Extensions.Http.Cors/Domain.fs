@@ -35,76 +35,17 @@ open Freya.Types.Http.Cors
 [<RequireQualifiedAccess>]
 module Cors =
 
-    (* Configuration *)
-
-//    let private corsHeadersExposed =
-//        configurationKey Configuration.CorsHeadersExposed
-//
-//    let private corsHeadersSupported =
-//        configurationKey Configuration.CorsHeadersSupported
-//
-//    let private corsMethodsSupported =
-//        configurationKey Configuration.CorsMethodsSupported
-//
-//    let private corsOriginsSupported =
-//        configurationKey Configuration.CorsOriginsSupported
-
-    (* Request *)
-
-//    let private accessControlRequestHeaders =
-//        getPLM Request.Headers.accessControlRequestHeaders
-//
-//    let private accessControlRequestMethod =
-//        getPLM Request.Headers.accessControlRequestMethod
-//
-//    let private meth =
-//        getLM Request.meth
-//
-//    let private origin =
-//        getPLM Request.Headers.origin
-
-    (* Derived *)
-
-//    let private accessControlRequestHeaders' =
-//            (function | Some (AccessControlRequestHeaders x) -> x
-//                      | _ -> [])
-//        <!> accessControlRequestHeaders
-//
-//    let private accessControlRequestMethod' =
-//            (Option.map (fun (AccessControlRequestMethod x) -> x) >> Option.get)
-//        <!> accessControlRequestMethod
-//
-//    let private corsHeadersExposed' =
-//            (function | Some x -> x
-//                      | _ -> [])
-//        <!> corsHeadersExposed
-//
-//    let private corsHeadersSupported' =
-//            (function | Some x -> x
-//                      | _ -> [])
-//        <!> corsHeadersSupported
-//
-//    let private corsMethodsSupported' =
-//            (function | Some x -> x
-//                      | _ -> [])
-//        <!> corsMethodsSupported
-//
-//    let private origin' =
-//            (Option.map (fun (Origin x) -> x) >> Option.get) 
-//        <!> origin
-
     (* Decisions *)
 
     let enabled corsOriginsSupported =
-            Option.isSome
-        <!> corsOriginsSupported
+        Freya.init (Option.isSome corsOriginsSupported)
 
     let originAllowed origin corsOriginsSupported =
             fun origin origins ->
                 match origin, origins with
-                | Some _, Some (AccessControlAllowOriginRange.Any) -> true
+                | Some _, AccessControlAllowOriginRange.Any -> true
                 | Some (Origin (OriginListOrNull.Origins (x :: []))),
-                  Some (Origins (OriginListOrNull.Origins xs)) -> List.exists ((=) x) xs
+                  Origins (OriginListOrNull.Origins xs) -> List.exists ((=) x) xs
                 | _ -> false
         <!> origin   
         <*> corsOriginsSupported
@@ -118,6 +59,8 @@ module Cors =
         <!> accessControlRequestMethod
 
     (* Operations *)
+
+    // TODO: Reinstate this logic
 
     let private corsHeadersAllowed accessControlRequestHeaders corsHeadersSupported =
             fun headers supported ->

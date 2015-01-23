@@ -31,16 +31,17 @@ open Freya.Types.Http.Cors
 (* Decisions *)
 
 let private systemDecision f =
-    Binary (fun config -> unconfigurable, f config)
+    Binary (fun config -> 
+        unconfigurable, f config)
 
 let private corsEnabled config =
     Cors.enabled
-        (tryGetConfiguration Configuration.CorsOriginsSupported config |> Option.orElse Defaults.corsOriginsSupported)
+        (tryGetConfig Configuration.CorsOriginsSupported config)
 
 let private corsOriginAllowed config =
     Cors.originAllowed
         (getPLM Request.Headers.origin)
-        (tryGetConfiguration Configuration.CorsOriginsSupported config |> Option.orElse Defaults.corsOriginsSupported)
+        (tryGetConfigOrElse Configuration.CorsOriginsSupported Defaults.corsOriginsSupported config)
 
 let private corsOptions _ =
     Cors.options
@@ -53,18 +54,18 @@ let private corsPreflight _ =
 (* Graph *)
 
 let operations =
-    [ Ref Decisions.CorsEnabled                        =.        systemDecision corsEnabled
-      Ref Decisions.CorsOptions                        =.        systemDecision corsOptions
-      Ref Decisions.CorsOriginAllowed                  =.        systemDecision corsOriginAllowed
-      Ref Decisions.CorsPreflight                      =.        systemDecision corsPreflight
+    [ Ref Decisions.CorsEnabled                  =.        systemDecision corsEnabled
+      Ref Decisions.CorsOptions                  =.        systemDecision corsOptions
+      Ref Decisions.CorsOriginAllowed            =.        systemDecision corsOriginAllowed
+      Ref Decisions.CorsPreflight                =.        systemDecision corsPreflight
     
-      Ref Decisions.EntityLengthValid                  >/        Ref Decisions.MethodOptions
-      Ref Decisions.EntityLengthValid                  >+        Ref Decisions.CorsEnabled
-      Ref Decisions.CorsEnabled                        >+        Ref Decisions.CorsOriginAllowed
-      Ref Decisions.CorsEnabled                        >-        Ref Decisions.MethodOptions
-      Ref Decisions.CorsOriginAllowed                  >+        Ref Decisions.CorsOptions
-      Ref Decisions.CorsOriginAllowed                  >-        Ref Decisions.MethodOptions
-      Ref Decisions.CorsOptions                        >+        Ref Decisions.CorsPreflight
-      Ref Decisions.CorsOptions                        >-        Ref Operations.CorsActual
-      Ref Decisions.CorsPreflight                      >+        Ref Operations.CorsPreflight
-      Ref Decisions.CorsPreflight                      >-        Ref Operations.CorsActual ]
+      Ref Decisions.EntityLengthValid            >/        Ref Decisions.MethodOptions
+      Ref Decisions.EntityLengthValid            >+        Ref Decisions.CorsEnabled
+      Ref Decisions.CorsEnabled                  >+        Ref Decisions.CorsOriginAllowed
+      Ref Decisions.CorsEnabled                  >-        Ref Decisions.MethodOptions
+      Ref Decisions.CorsOriginAllowed            >+        Ref Decisions.CorsOptions
+      Ref Decisions.CorsOriginAllowed            >-        Ref Decisions.MethodOptions
+      Ref Decisions.CorsOptions                  >+        Ref Decisions.CorsPreflight
+      Ref Decisions.CorsOptions                  >-        Ref Operations.CorsActual
+      Ref Decisions.CorsPreflight                >+        Ref Operations.CorsPreflight
+      Ref Decisions.CorsPreflight                >-        Ref Operations.CorsActual ]

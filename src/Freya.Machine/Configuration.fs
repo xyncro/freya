@@ -27,7 +27,7 @@ open Freya.Core
 
 (* Lenses *)
 
-let private configurationPLens<'a> key =
+let private configPLens<'a> key =
          FreyaMachineConfiguration.DataLens
     >-?> mapPLens key
     <?-> boxIso<'a>
@@ -38,10 +38,11 @@ let private configurationPLens<'a> key =
    machine specifications, in a typed way (imposes a boxing and unboxing
    overhead, but is only used at reification time in general cases. *)
 
-let tryGetConfiguration<'a> key =
-    printfn "getting config %s" key
+let tryGetConfig<'a> key =
+    getPL (configPLens<'a> key)
 
-    getPL (configurationPLens<'a> key)
+let tryGetConfigOrElse key def =
+    tryGetConfig key >> Option.orElse def
 
-let setConfiguration<'a> key =
-    setPL (configurationPLens<'a> key)
+let setConfig<'a> key =
+    setPL (configPLens<'a> key)

@@ -56,6 +56,7 @@
     <Compile Include="Domain.fs" />
     <Compile Include="Decisions.fs" />
     <Compile Include="Operations.fs" />
+    <Compile Include="Syntax.fs" />
     <Compile Include="Extension.fs" />
   </ItemGroup>
   <ItemGroup>

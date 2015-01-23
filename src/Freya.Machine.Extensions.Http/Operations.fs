@@ -30,33 +30,33 @@ open Freya.Types.Http
 
 (* Helpers *)
 
-let allow config =
-    let x = tryGetConfiguration Configuration.MethodsSupported config |> Option.orElse Defaults.methodsSupported
-
-    setPLM Response.Headers.allow =<< (Allow <!> x)
+let allow =
+       tryGetConfig Configuration.MethodsSupported
+    >> Option.map (fun x -> setPLM Response.Headers.allow =<< (Allow <!> x))
+    >> Option.orElse (setPLM Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
 
 let date =
     setPLM Response.Headers.date (Date.Date DateTime.UtcNow)
 
 let eTag =
-    tryGetConfiguration Configuration.ETag >>
-    function | Some x -> setPLM Response.Headers.eTag =<< (ETag <!> x)
-             | _ -> Freya.init ()
+       tryGetConfig Configuration.ETag
+    >> Option.map (fun x -> setPLM Response.Headers.expires =<< (Expires <!> x))
+    >> Option.orElse (Freya.init ())
 
 let expires =
-    tryGetConfiguration Configuration.Expires >>
-    function | Some x -> setPLM Response.Headers.expires =<< (Expires <!> x)
-             | _ -> Freya.init ()
+       tryGetConfig Configuration.Expires 
+    >> Option.map (fun x -> setPLM Response.Headers.expires =<< (Expires <!> x))
+    >> Option.orElse (Freya.init ())
 
 let lastModified =
-    tryGetConfiguration Configuration.LastModified >>
-    function | Some x -> setPLM Response.Headers.lastModified =<< (LastModified <!> x)
-             | _ -> Freya.init ()
+       tryGetConfig Configuration.LastModified 
+    >> Option.map (fun x -> setPLM Response.Headers.lastModified =<< (LastModified <!> x))
+    >> Option.orElse (Freya.init ())
 
 let location =
-    tryGetConfiguration Configuration.Location >>
-    function | Some x -> setPLM Response.Headers.location =<< (Location <!> x)
-             | _ -> Freya.init ()
+       tryGetConfig Configuration.Location
+    >> Option.map (fun x -> setPLM Response.Headers.location =<< (Location <!> x))
+    >> Option.orElse (Freya.init ())
 
 let phrase =
     setPLM Response.reasonPhrase
@@ -217,56 +217,56 @@ let uriTooLong _ =
 (* Graph *)
 
 let operations =
-    [ Ref Operations.Accepted                          =.        systemOperation accepted
-      Ref Operations.BadRequest                        =.        systemOperation badRequest
-      Ref Operations.Conflict                          =.        systemOperation conflict
-      Ref Operations.Created                           =.        systemOperation created
-      Ref Operations.Forbidden                         =.        systemOperation forbidden
-      Ref Operations.Gone                              =.        systemOperation gone
-      Ref Operations.MethodNotAllowed                  =.        systemOperation methodNotAllowed
-      Ref Operations.MovedPermanently                  =.        systemOperation movedPermanently
-      Ref Operations.MovedTemporarily                  =.        systemOperation movedTemporarily
-      Ref Operations.MultipleRepresentations           =.        systemOperation multipleRepresentations
-      Ref Operations.NoContent                         =.        systemOperation noContent
-      Ref Operations.NotAcceptable                     =.        systemOperation notAcceptable
-      Ref Operations.NotFound                          =.        systemOperation notFound
-      Ref Operations.NotImplemented                    =.        systemOperation notImplemented
-      Ref Operations.NotModified                       =.        systemOperation notModified
-      Ref Operations.OK                                =.        systemOperation ok
-      Ref Operations.Options                           =.        systemOperation options
-      Ref Operations.PreconditionFailed                =.        systemOperation preconditionFailed
-      Ref Operations.RequestEntityTooLarge             =.        systemOperation requestEntityTooLarge
-      Ref Operations.SeeOther                          =.        systemOperation seeOther
-      Ref Operations.ServiceUnavailable                =.        systemOperation serviceUnavailable
-      Ref Operations.Unauthorized                      =.        systemOperation unauthorized
-      Ref Operations.UnknownMethod                     =.        systemOperation unknownMethod
-      Ref Operations.UnprocessableEntity               =.        systemOperation unprocessableEntity
-      Ref Operations.UnsupportedMediaType              =.        systemOperation unsupportedMediaType
-      Ref Operations.UriTooLong                        =.        systemOperation uriTooLong
+    [ Ref Operations.Accepted                    =.        systemOperation accepted
+      Ref Operations.BadRequest                  =.        systemOperation badRequest
+      Ref Operations.Conflict                    =.        systemOperation conflict
+      Ref Operations.Created                     =.        systemOperation created
+      Ref Operations.Forbidden                   =.        systemOperation forbidden
+      Ref Operations.Gone                        =.        systemOperation gone
+      Ref Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
+      Ref Operations.MovedPermanently            =.        systemOperation movedPermanently
+      Ref Operations.MovedTemporarily            =.        systemOperation movedTemporarily
+      Ref Operations.MultipleRepresentations     =.        systemOperation multipleRepresentations
+      Ref Operations.NoContent                   =.        systemOperation noContent
+      Ref Operations.NotAcceptable               =.        systemOperation notAcceptable
+      Ref Operations.NotFound                    =.        systemOperation notFound
+      Ref Operations.NotImplemented              =.        systemOperation notImplemented
+      Ref Operations.NotModified                 =.        systemOperation notModified
+      Ref Operations.OK                          =.        systemOperation ok
+      Ref Operations.Options                     =.        systemOperation options
+      Ref Operations.PreconditionFailed          =.        systemOperation preconditionFailed
+      Ref Operations.RequestEntityTooLarge       =.        systemOperation requestEntityTooLarge
+      Ref Operations.SeeOther                    =.        systemOperation seeOther
+      Ref Operations.ServiceUnavailable          =.        systemOperation serviceUnavailable
+      Ref Operations.Unauthorized                =.        systemOperation unauthorized
+      Ref Operations.UnknownMethod               =.        systemOperation unknownMethod
+      Ref Operations.UnprocessableEntity         =.        systemOperation unprocessableEntity
+      Ref Operations.UnsupportedMediaType        =.        systemOperation unsupportedMediaType
+      Ref Operations.UriTooLong                  =.        systemOperation uriTooLong
 
-      Ref Operations.Accepted                          >.        Ref Handlers.Accepted
-      Ref Operations.BadRequest                        >.        Ref Handlers.BadRequest
-      Ref Operations.Conflict                          >.        Ref Handlers.Conflict
-      Ref Operations.Created                           >.        Ref Handlers.Created
-      Ref Operations.Forbidden                         >.        Ref Handlers.Forbidden
-      Ref Operations.Gone                              >.        Ref Handlers.Gone
-      Ref Operations.MethodNotAllowed                  >.        Ref Handlers.MethodNotAllowed
-      Ref Operations.MovedPermanently                  >.        Ref Handlers.MovedPermanently
-      Ref Operations.MovedTemporarily                  >.        Ref Handlers.MovedTemporarily
-      Ref Operations.MultipleRepresentations           >.        Ref Handlers.MultipleRepresentations
-      Ref Operations.NoContent                         >.        Ref Handlers.NoContent
-      Ref Operations.NotAcceptable                     >.        Ref Handlers.NotAcceptable
-      Ref Operations.NotFound                          >.        Ref Handlers.NotFound
-      Ref Operations.NotImplemented                    >.        Ref Handlers.NotImplemented
-      Ref Operations.NotModified                       >.        Ref Handlers.NotModified
-      Ref Operations.OK                                >.        Ref Handlers.OK
-      Ref Operations.Options                           >.        Ref Handlers.Options
-      Ref Operations.PreconditionFailed                >.        Ref Handlers.PreconditionFailed
-      Ref Operations.RequestEntityTooLarge             >.        Ref Handlers.RequestEntityTooLarge
-      Ref Operations.SeeOther                          >.        Ref Handlers.SeeOther
-      Ref Operations.ServiceUnavailable                >.        Ref Handlers.ServiceUnavailable
-      Ref Operations.Unauthorized                      >.        Ref Handlers.Unauthorized
-      Ref Operations.UnknownMethod                     >.        Ref Handlers.UnknownMethod
-      Ref Operations.UnprocessableEntity               >.        Ref Handlers.UnprocessableEntity
-      Ref Operations.UnsupportedMediaType              >.        Ref Handlers.UnsupportedMediaType
-      Ref Operations.UriTooLong                        >.        Ref Handlers.UriTooLong ]
+      Ref Operations.Accepted                    >.        Ref Handlers.Accepted
+      Ref Operations.BadRequest                  >.        Ref Handlers.BadRequest
+      Ref Operations.Conflict                    >.        Ref Handlers.Conflict
+      Ref Operations.Created                     >.        Ref Handlers.Created
+      Ref Operations.Forbidden                   >.        Ref Handlers.Forbidden
+      Ref Operations.Gone                        >.        Ref Handlers.Gone
+      Ref Operations.MethodNotAllowed            >.        Ref Handlers.MethodNotAllowed
+      Ref Operations.MovedPermanently            >.        Ref Handlers.MovedPermanently
+      Ref Operations.MovedTemporarily            >.        Ref Handlers.MovedTemporarily
+      Ref Operations.MultipleRepresentations     >.        Ref Handlers.MultipleRepresentations
+      Ref Operations.NoContent                   >.        Ref Handlers.NoContent
+      Ref Operations.NotAcceptable               >.        Ref Handlers.NotAcceptable
+      Ref Operations.NotFound                    >.        Ref Handlers.NotFound
+      Ref Operations.NotImplemented              >.        Ref Handlers.NotImplemented
+      Ref Operations.NotModified                 >.        Ref Handlers.NotModified
+      Ref Operations.OK                          >.        Ref Handlers.OK
+      Ref Operations.Options                     >.        Ref Handlers.Options
+      Ref Operations.PreconditionFailed          >.        Ref Handlers.PreconditionFailed
+      Ref Operations.RequestEntityTooLarge       >.        Ref Handlers.RequestEntityTooLarge
+      Ref Operations.SeeOther                    >.        Ref Handlers.SeeOther
+      Ref Operations.ServiceUnavailable          >.        Ref Handlers.ServiceUnavailable
+      Ref Operations.Unauthorized                >.        Ref Handlers.Unauthorized
+      Ref Operations.UnknownMethod               >.        Ref Handlers.UnknownMethod
+      Ref Operations.UnprocessableEntity         >.        Ref Handlers.UnprocessableEntity
+      Ref Operations.UnsupportedMediaType        >.        Ref Handlers.UnsupportedMediaType
+      Ref Operations.UriTooLong                  >.        Ref Handlers.UriTooLong ]

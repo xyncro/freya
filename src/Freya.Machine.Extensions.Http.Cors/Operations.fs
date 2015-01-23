@@ -36,7 +36,7 @@ let private systemOperation f =
 
 let private corsActual config =
     Cors.actual
-        (tryGetConfiguration Configuration.CorsHeadersExposed config |> Option.orElse Defaults.corsHeadersExposed)
+        (tryGetConfigOrElse Configuration.CorsHeadersExposed Defaults.corsHeadersExposed config)
 
 let private corsOrigin _ =
     Cors.origin
@@ -44,16 +44,16 @@ let private corsOrigin _ =
 
 let private corsPreflight config =
     Cors.preflight
-        (tryGetConfiguration Configuration.CorsHeadersSupported config |> Option.orElse Defaults.corsHeadersSupported)
-        (tryGetConfiguration Configuration.CorsMethodsSupported config |> Option.orElse Defaults.corsMethodsSupported)
+        (tryGetConfigOrElse Configuration.CorsHeadersSupported Defaults.corsHeadersSupported config)
+        (tryGetConfigOrElse Configuration.CorsMethodsSupported Defaults.corsMethodsSupported config)
 
 (* Graph *)
 
 let operations =
-    [ Ref Operations.CorsActual                        =.        systemOperation corsActual
-      Ref Operations.CorsPreflight                     =.        systemOperation corsPreflight
-      Ref Operations.CorsOrigin                        =.        systemOperation corsOrigin
+    [ Ref Operations.CorsActual                  =.        systemOperation corsActual
+      Ref Operations.CorsPreflight               =.        systemOperation corsPreflight
+      Ref Operations.CorsOrigin                  =.        systemOperation corsOrigin
       
-      Ref Operations.CorsActual                        >.        Ref Operations.CorsOrigin
-      Ref Operations.CorsPreflight                     >.        Ref Operations.CorsOrigin
-      Ref Operations.CorsOrigin                        >.        Ref Decisions.MethodOptions ]
+      Ref Operations.CorsActual                  >.        Ref Operations.CorsOrigin
+      Ref Operations.CorsPreflight               >.        Ref Operations.CorsOrigin
+      Ref Operations.CorsOrigin                  >.        Ref Decisions.MethodOptions ]

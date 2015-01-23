@@ -30,8 +30,8 @@ open Freya.Machine.Operators
    of subsection listings. *)
 
 let private operations =
-      [ Start                                          >/        Finish
-        Start                                          >.        Ref Decisions.ServiceAvailable ]
+      [ Start                                    >/        Finish
+        Start                                    >.        Ref Decisions.ServiceAvailable ]
     @ Actions.operations
     @ Decisions.operations
     @ Handlers.operations

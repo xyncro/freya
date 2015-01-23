@@ -28,7 +28,6 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-//open Freya.Types.Cors
 open Freya.Types.Http
 open Freya.Types.Language
 
@@ -46,14 +45,6 @@ let tuple x y =
    properties for some of the arguments to freyaMachine computation operations.
    It saves having to use (freya { ... }) in multiple places within the
    computation expression, which can reduce duplication and help readability. *)
-
-//let corsOrigins =
-//    freya {
-//        return AccessControlAllowOriginRange.Any }
-//
-//let corsHeaders =
-//    freya {
-//        return [ "accept"; "content-type" ] }
 
 let en =
     freya {

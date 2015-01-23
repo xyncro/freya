@@ -28,19 +28,19 @@ open Freya.Machine.Operators
 (* Actions *)
 
 let userAction key =
-    Unary (tryGetConfiguration key
-           >> Option.map (fun x -> configured, x)
-           >> Option.orElse (unconfigured, Freya.init ()))
+    Unary (tryGetConfig key
+        >> Option.map (fun x -> configured, x)
+        >> Option.orElse (unconfigured, Freya.init ()))
 
 (* Graph *)
 
 let operations =
-    [ Ref Actions.Delete                               =.        userAction Actions.Delete
-      Ref Actions.Patch                                =.        userAction Actions.Patch
-      Ref Actions.Post                                 =.        userAction Actions.Post
-      Ref Actions.Put                                  =.        userAction Actions.Put
+    [ Ref Actions.Delete                         =.        userAction Actions.Delete
+      Ref Actions.Patch                          =.        userAction Actions.Patch
+      Ref Actions.Post                           =.        userAction Actions.Post
+      Ref Actions.Put                            =.        userAction Actions.Put
 
-      Ref Actions.Delete                               >.        Ref Decisions.Deleted
-      Ref Actions.Patch                                >.        Ref Decisions.RespondWithEntity
-      Ref Actions.Post                                 >.        Ref Decisions.PostRedirect
-      Ref Actions.Put                                  >.        Ref Decisions.Created ]
+      Ref Actions.Delete                         >.        Ref Decisions.Deleted
+      Ref Actions.Patch                          >.        Ref Decisions.RespondWithEntity
+      Ref Actions.Post                           >.        Ref Decisions.PostRedirect
+      Ref Actions.Put                            >.        Ref Decisions.Created ]
