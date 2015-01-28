@@ -72,10 +72,15 @@ let private js =
         mediaTypesSupported js
         handleOk getJs } |> Machine.toPipeline
 
-(* Routes *)
+(* Routes
+
+   Note: This routing will probably need to be modified to allow for
+   additional tools under the /freya/* path namespace at some point, but
+   this will require some tweaks to the directory structure of the
+   freya.ui.* projects involved. *)
 
 let content =
     freyaRouter {
-        resource "/freya" html
-        resource "/freya/css" css
-        resource "/freya/js" js } |> Router.toPipeline
+        resource "/freya/inspector" html
+        resource "/freya/css/app.css" css
+        resource "/freya/js/app.js" js } |> Router.toPipeline

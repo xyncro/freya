@@ -116,13 +116,19 @@ let private inspection inspectors =
         handleOk (inspectionGet inspectors)
         mediaTypesSupported json } |> Machine.toPipeline
 
-(* Routes *)
+(* Routes
+
+   Note: More thought should be given to a more expandable API
+   path namespacing approach in the near future. *)
 
 let private map =
     List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
 
 let data config =
+    let inspectors =
+        inspection (map config.Inspectors)
+
     freyaRouter {
-        resource "/freya/api/records" records
-        resource "/freya/api/records/:id" record
-        resource "/freya/api/records/:id/extensions/:ext" (inspection (map config.Inspectors)) } |> Router.toPipeline
+        resource "/freya/inspector/api/records" records
+        resource "/freya/inspector/api/records/:id" record
+        resource "/freya/inspector/api/records/:id/extensions/:ext" inspectors } |> Router.toPipeline

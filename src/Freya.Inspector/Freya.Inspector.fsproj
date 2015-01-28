@@ -236,9 +236,15 @@
     </When>
   </Choose>
   <ItemGroup>
-    <EmbeddedResource Include="content\css\app.css" />
-    <EmbeddedResource Include="content\html\index.html" />
-    <EmbeddedResource Include="content\js\app.js" />
+    <EmbeddedResource Include="..\..\ui\inspector\dist\css\app.css">
+      <Link>content\css\app.css</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\ui\inspector\dist\js\app.js">
+      <Link>content\js\app.js</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\ui\inspector\dist\index.html">
+      <Link>content\index.html</Link>
+    </EmbeddedResource>
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Content.fs" />
