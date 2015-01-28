@@ -20,8 +20,14 @@
 [<AutoOpen>]
 module Freya.Recorder.Integration
 
+open System
 open Freya.Core
 open Freya.Core.Operators
+
+(* Lenses *)
+
+let private requestIdPLens =
+    environmentKeyPLens<Guid> requestIdKey
 
 (* Execution *)
 

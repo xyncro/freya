@@ -26,15 +26,17 @@ open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Router
-open Freya.Types.Http
 
 (* Content *)
 
 let private cssContent =
-    resource "site.css"
+    resource "app.css"
 
 let private htmlContent = 
     resource "index.html"
+
+let private jsContent =
+    resource "app.js"
 
 (* Functions *)
 
@@ -46,6 +48,9 @@ let private getCss =
 
 let private getHtml =
     getContent htmlContent
+
+let private getJs =
+    getContent jsContent
 
 (* Resources *)
 
@@ -61,9 +66,16 @@ let private html =
         mediaTypesSupported html
         handleOk getHtml } |> Machine.toPipeline
 
+let private js =
+    freyaMachine {
+        including defaults
+        mediaTypesSupported js
+        handleOk getJs } |> Machine.toPipeline
+
 (* Routes *)
 
 let content =
     freyaRouter {
         resource "/freya" html
-        resource "/freya/css" css } |> Router.toPipeline
+        resource "/freya/css" css
+        resource "/freya/js" js } |> Router.toPipeline

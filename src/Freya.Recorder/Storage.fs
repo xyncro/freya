@@ -22,12 +22,11 @@ module internal Freya.Recorder.Storage
 
 open System
 open Aether
-open Aether.Operators
 open Freya.Core
 
 (* Keys *)
 
-let [<Literal>] private requestIdKey = 
+let [<Literal>] internal requestIdKey = 
     "freya.Inspector.RequestId"
 
 (* Types *)
@@ -41,26 +40,15 @@ type StorageProtocol =
 type private StorageState =
     { Records: FreyaRecorderRecord seq }
 
-(* Lenses *)
-
-let internal requestIdPLens =
-    environmentKeyPLens<Guid> requestIdKey
-
-let private recordsLens =
-    (fun x -> x.Records), (fun r x -> { x with Records = r })
-
-let private dataLens =
-    (fun x -> x.Data), (fun d x -> { x with Data = d })
-
-let internal recordPLens<'a> k =
-    dataLens >-?> mapPLens k <?-> boxIso<'a>
+    static member RecordsLens =
+        (fun x -> x.Records), (fun r x -> { x with Records = r })
 
 (* Constructors *)
 
 let private state =
     { Records = Seq.empty }
 
-let private entry id =
+let private record id =
     { Id = id
       Timestamp = DateTime.UtcNow
       Data = Map.empty }
@@ -71,18 +59,18 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = modL recordsLens (Seq.append [ entry id ] >> Seq.truncate 10) state
+        let state = modL StorageState.RecordsLens (Seq.append [ record id ] >> Seq.truncate 10) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = modL recordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
+        let state = modL StorageState.RecordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
         state
     | Read (id, chan) ->
-        let x = (getL recordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
+        let x = (getL StorageState.RecordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
         chan.Reply (x)
         state
     | List (chan) ->
-        let x = getL recordsLens state
+        let x = getL StorageState.RecordsLens state
         chan.Reply (List.ofSeq x)
         state
 

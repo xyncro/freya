@@ -23,11 +23,15 @@ module Freya.TodoBackend.Api
 
 open System
 open Freya.Core
+open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
+open Freya.Machine.Inspector
 open Freya.Machine.Router
+open Freya.Pipeline.Operators
 open Freya.Router
+open Freya.Router.Inspector
 open Freya.Types.Http
 open Freya.Types.Http.Cors
 
@@ -213,6 +217,17 @@ let todoRoutes =
         resource "/" todos
         resource "/:id" todo } |> Router.toPipeline
 
+(* Inspectors *)
+
+let config =
+    { Inspectors = 
+        [ freyaRequestInspector
+          freyaMachineInspector
+          freyaRouterInspector ] }
+
+let inspect =
+    freyaInspector config
+
 (* API
 
    Finally we expose our actual API. In more complex applications than this
@@ -220,4 +235,4 @@ let todoRoutes =
    to form a more complex whole, but in this case we only have our single router. *)
 
 let api =
-    todoRoutes
+    inspect >?= todoRoutes

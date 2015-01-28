@@ -20,7 +20,10 @@
 [<AutoOpen>]
 module Freya.Inspector.Types
 
+open System
 open System.Json
+open Fleece
+open Fleece.Operators
 open Freya.Core
 open Freya.Recorder
 
@@ -39,3 +42,25 @@ and FreyaInspectorRuntime =
 
 and FreyaInspectorInspection =
     { Data: FreyaRecorderRecord -> JsonValue option }
+
+(* Record Models *)
+
+type FreyaRecorderRecordHeader =
+    { Id: Guid
+      Timestamp: DateTime }
+
+    static member ToJSON (x: FreyaRecorderRecordHeader) =
+        jobj [
+            "id" .= x.Id
+            "timestamp" .= x.Timestamp ]
+
+type FreyaRecorderRecordDetail =
+    { Id: Guid
+      Timestamp: DateTime
+      Extensions: string list }
+
+    static member ToJSON (x: FreyaRecorderRecordDetail) =
+        jobj [
+            "id" .= x.Id
+            "timestamp" .= x.Timestamp
+            "extensions" .= x.Extensions ]

@@ -23,12 +23,12 @@ module internal Freya.Inspector.Prelude
 open System.IO
 open System.Reflection
 open System.Text
-open Fleece
 open Freya.Core
-open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Freya.Machine.Extensions.Http.Cors
 open Freya.Types.Http
+open Freya.Types.Http.Cors
 open Freya.Types.Language
 
 (* Presets
@@ -54,6 +54,9 @@ let css =
 let html =
     Freya.init [ MediaType.HTML ]
 
+let js =
+    Freya.init [ MediaType (Type "application", SubType "javascript", Map.empty) ]
+
 let json =
     Freya.init [ MediaType.JSON ]
 
@@ -62,9 +65,14 @@ let json =
 let defaults =
     freyaMachine {
         using http
+        using httpCors
+
+        corsHeadersSupported (Freya.init [ "accept"; "content-type" ])
+        corsMethodsSupported (Freya.init [ GET; OPTIONS ])
+        corsOriginsSupported (Freya.init AccessControlAllowOriginRange.Any)
+
         charsetsSupported utf8
-        languagesSupported en
-        mediaTypesSupported json }
+        languagesSupported en }
 
 (* Functions
 
