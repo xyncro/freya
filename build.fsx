@@ -306,9 +306,9 @@ Target "Source.Test" (fun _ ->
             { x with
                 DisableShadowCopy = true
                 TimeOut = TimeSpan.FromMinutes 20.
-                OutputFile = "TestResults.xml" })
+                OutputFile = "bin/TestResults.xml" })
     finally
-        AppVeyor.UploadTestResultsXml NUnit "")
+        AppVeyor.UploadTestResultsXml NUnit "bin")
 
 (* Builds
 
