@@ -1,11 +1,12 @@
 version: '{build}'
+install:
+- git submodule update --init --recursive
 nuget:
   project_feed: true
+  disable_publish_on_pr: true
 build_script:
 - build.cmd Default
-environment:
-  VisualStudioVersion: 12.0
 test: off
 artifacts:
-- path: bin/*.nupkg
+- path: bin/Freya.*.nupkg
   name: nuget
