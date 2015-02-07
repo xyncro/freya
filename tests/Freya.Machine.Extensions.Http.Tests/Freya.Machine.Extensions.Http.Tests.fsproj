@@ -6,10 +6,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Machine.Tests</RootNamespace>
-    <AssemblyName>Freya.Machine.Tests</AssemblyName>
+    <RootNamespace>Freya.Machine.Extensions.Http.Tests</RootNamespace>
+    <AssemblyName>Freya.Machine.Extensions.Http.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>Freya.Machine.Tests</Name>
+    <Name>Freya.Machine.Extensions.Http.Tests</Name>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -19,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Machine.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Machine.Extensions.Http.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Machine.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Machine.Extensions.Http.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

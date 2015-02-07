@@ -6,11 +6,13 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Types.Cors.Tests</RootNamespace>
-    <AssemblyName>Freya.Types.Cors.Tests</AssemblyName>
+    <RootNamespace>Freya.Types.Http.Cors.Tests</RootNamespace>
+    <AssemblyName>Freya.Types.Http.Cors.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Types.Cors.Tests</Name>
+    <Name>Freya.Types.Http.Cors.Tests</Name>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Types.Cors.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Types.Http.Cors.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,7 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Types.Cors.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Types.Http.Cors.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
