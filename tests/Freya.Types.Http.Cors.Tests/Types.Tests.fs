@@ -1,9 +1,9 @@
-﻿module Freya.Types.Cors.Tests
+﻿module Freya.Types.Http.Cors.Tests
 
 open System
 open NUnit.Framework
-open Freya.Types.Cors
 open Freya.Types.Http
+open Freya.Types.Http.Cors
 open Freya.Types.Tests
 open Freya.Types.Uri
 

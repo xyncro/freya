@@ -160,7 +160,7 @@ module ContentNegotiation =
             >> sort
             >> choose
 
-        let private negotiate supported =
+        let negotiate supported =
             function | Some (AcceptCharset x) -> Negotiated (run x supported)
                      | _ -> Free
 
@@ -214,7 +214,7 @@ module ContentNegotiation =
             >> sort
             >> choose
 
-        let private negotiate supported =
+        let negotiate supported =
             function | Some (AcceptEncoding x) -> Negotiated (run x supported)
                      | _ -> Free
 
@@ -292,7 +292,7 @@ module ContentNegotiation =
             >> Seq.distinct
             >> Seq.toList
 
-        let private negotiate supported =
+        let negotiate supported =
             function | Some (AcceptLanguage x) -> Negotiated (run supported x)
                      | _ -> Free
 

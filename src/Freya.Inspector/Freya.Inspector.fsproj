@@ -55,6 +55,83 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\ui\inspector\dist\css\app.css">
+      <Link>content\css\app.css</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\ui\inspector\dist\js\app.js">
+      <Link>content\js\app.js</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\ui\inspector\dist\index.html">
+      <Link>content\index.html</Link>
+    </EmbeddedResource>
+    <Compile Include="Prelude.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Content.fs" />
+    <Compile Include="Data.fs" />
+    <Compile Include="Recording.fs" />
+    <Compile Include="Inspector.fs" />
+    <Compile Include="Pipeline.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
+      <Name>Freya.Machine.Extensions.Http.Cors</Name>
+      <Project>{9e1e2cdc-81a2-4f7c-8a61-0c2312cecd2f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
+      <Name>Freya.Machine.Extensions.Http</Name>
+      <Project>{f394e9c1-0681-4653-b946-30c4fba1226f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine.Router\Freya.Machine.Router.fsproj">
+      <Name>Freya.Machine.Router</Name>
+      <Project>{b34d7bd9-09b5-4bfc-af0a-e3f02214111a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
+      <Name>Freya.Machine</Name>
+      <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
+      <Name>Freya.Recorder</Name>
+      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
+      <Name>Freya.Router</Name>
+      <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
+      <Name>Freya.Types.Http.Cors</Name>
+      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
+      <Name>Freya.Types.Language</Name>
+      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
+      <Name>Freya.Types.Uri</Name>
+      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
+    </ProjectReference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
       <ItemGroup>
@@ -235,81 +312,4 @@
       </ItemGroup>
     </When>
   </Choose>
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\ui\inspector\dist\css\app.css">
-      <Link>content\css\app.css</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\ui\inspector\dist\js\app.js">
-      <Link>content\js\app.js</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\..\ui\inspector\dist\index.html">
-      <Link>content\index.html</Link>
-    </EmbeddedResource>
-    <Compile Include="Prelude.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="Content.fs" />
-    <Compile Include="Data.fs" />
-    <Compile Include="Recording.fs" />
-    <Compile Include="Inspector.fs" />
-    <Compile Include="Pipeline.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
-      <Name>Freya.Machine.Extensions.Http.Cors</Name>
-      <Project>{9e1e2cdc-81a2-4f7c-8a61-0c2312cecd2f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
-      <Name>Freya.Machine.Extensions.Http</Name>
-      <Project>{f394e9c1-0681-4653-b946-30c4fba1226f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine.Router\Freya.Machine.Router.fsproj">
-      <Name>Freya.Machine.Router</Name>
-      <Project>{b34d7bd9-09b5-4bfc-af0a-e3f02214111a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
-      <Name>Freya.Machine</Name>
-      <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
-      <Name>Freya.Recorder</Name>
-      <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Router\Freya.Router.fsproj">
-      <Name>Freya.Router</Name>
-      <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Name>Freya.Types.Http.Cors</Name>
-      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Name>Freya.Types.Http</Name>
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
-      <Name>Freya.Types.Language</Name>
-      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
-      <Name>Freya.Types.Uri</Name>
-      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
-    </ProjectReference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
-      <Name>Freya.Core</Name>
-      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

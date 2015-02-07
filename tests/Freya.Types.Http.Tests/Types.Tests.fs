@@ -138,7 +138,7 @@ let ``Method Formatting/Parsing`` () =
 
     roundTrip (Method.Format, Method.Parse) [
         Method.GET, "GET"
-        Method.Custom "CONNECT", "CONNECT" ]
+        Method.Custom "PATCH", "PATCH" ]
 
 [<Test>]
 let ``Expect Formatting/Parsing`` () =

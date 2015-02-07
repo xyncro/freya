@@ -52,6 +52,11 @@
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
+      <Name>Freya.Types.Http.Cors</Name>
+      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
       <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>

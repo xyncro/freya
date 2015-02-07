@@ -61,7 +61,7 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="Negotiation.Tests.fs" />
+    <Compile Include="Domain.Tests.fs" />
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
@@ -69,9 +69,9 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Machine.Old\Freya.Machine.Old.fsproj">
-      <Name>Freya.Machine.Old</Name>
-      <Project>{0a570763-69e7-4e5b-8640-a848a4e2239f}</Project>
+    <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
+      <Name>Freya.Machine.Extensions.Http</Name>
+      <Project>{f394e9c1-0681-4653-b946-30c4fba1226f}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
@@ -83,6 +83,17 @@
       <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
     </ProjectReference>
   </ItemGroup>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETCore') Or ($(TargetFrameworkProfile) == 'Profile7') Or ($(TargetFrameworkProfile) == 'Profile44')">
       <ItemGroup>
