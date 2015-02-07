@@ -106,7 +106,7 @@ let freya =
                           Local "Freya.Types.Http"
                           Local "Freya.Types.Language"
                           Local "Freya.Types.Uri" ] }
-                  { Name = "Freya.Machine.Extensions.Http"
+                  { Name = "Freya.Machine.Extensions.Http.Cors"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
@@ -177,11 +177,11 @@ let freya =
                           Local "Freya.Types" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
-                  { Name = "Freya.Machine.Tests" }
+                  { Name = "Freya.Machine.Extensions.Http.Tests" }
                   { Name = "Freya.Pipeline.Tests" }
                   { Name = "Freya.Router.Tests" }
                   { Name = "Freya.Types.Tests" }
-                  { Name = "Freya.Types.Cors.Tests" }
+                  { Name = "Freya.Types.Http.Cors.Tests" }
                   { Name = "Freya.Types.Http.Tests" }
                   { Name = "Freya.Types.Language.Tests" }
                   { Name = "Freya.Types.Uri.Tests" } ] } }
