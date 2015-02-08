@@ -21,22 +21,56 @@
 [<AutoOpen>]
 module internal Freya.Machine.Extension
 
-// TODO: Proper error handling
-// TODO: Refactor
+open Hekate
 
-let private mapExtension e =
-    Dependency (Ref e.Name,
-                Set.map Ref e.Dependencies)
+(* Types
 
-let private mapAndOrderExtensions =
-       Set.map mapExtension
-    >> createDependencyGraph
-    >> orderDependencyGraph
+   Basic type representing the results of ordering a set of Freya
+   Machine Extensions. A set of extensions may not be able to be
+   ordered in certain cases. *)
 
-let private findExtension extensions (Ref x) =
-    List.find (fun e -> e.Name = x) (Set.toList extensions)
+type FreyaMachineExtensionOrdering =
+    | Ordered of FreyaMachineExtension list
+    | Cyclic
 
-let orderExtensions (extensions: Set<FreyaMachineExtension>) =
-    match mapAndOrderExtensions extensions with
-    | Ordered order -> Choice1Of2 (List.map (findExtension extensions) order)
-    | Cyclic -> Choice2Of2 "Cyclic Dependencies"
+(* Functions
+
+   Functions to order a set of machine dependencies. The sort/ordering
+   is essentially a variation on Kahn's algorithm, which can be more
+   simply expressed here as our graph library handles to the removal
+   of relevant edges as part of removing nodes.
+   
+   See [https://en.wikipedia.org/wiki/Topological_sorting] for details
+   of topological sorting in general, and Kahn's algorithm in particular. *)
+
+let private graph (extensions: FreyaMachineExtension list) =
+    let nodes =
+        extensions
+        |> List.map (fun e -> e.Name, e)
+
+    let edges =
+        extensions
+        |> List.map (fun e -> e.Name, Set.toList e.Dependencies)
+        |> List.map (fun (n, es) -> List.map (fun e -> e, n, ()) es)
+        |> List.concat
+
+    Graph.create nodes edges
+
+let private independent g =
+    Graph.nodes g
+    |> List.tryFind (fun (v, _) -> Graph.inwardDegree v g = Some 0)
+    |> Option.map (fun (v, l) -> l, Graph.removeNode v g)
+
+let rec private sort ls g =
+    match independent g with
+    | Some (l, g) -> sort (l :: ls) g
+    | _ when Graph.isEmpty g -> Ordered ls
+    | _ -> Cyclic
+
+let private order =
+    sort []
+
+let orderExtensions =
+       Set.toList 
+    >> graph 
+    >> order

@@ -113,7 +113,7 @@ let private applyOperations operations graph =
 
 let generateGraph spec =
     match orderExtensions spec.Extensions with
-    | Choice1Of2 extensions ->
+    | Ordered extensions ->
         let graph =
             List.fold (fun graph extension ->
                 match graph with
@@ -123,5 +123,5 @@ let generateGraph spec =
         match graph with
         | Choice1Of2 graph -> graph
         | Choice2Of2 e -> failwith e
-    | Choice2Of2 e ->
-        failwith e
+    | Cyclic ->
+        failwith "Extension Ordering Failed"

@@ -54,7 +54,6 @@
     <Compile Include="Types.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Configuration.fs" />
-    <Compile Include="Dependency.fs" />
     <Compile Include="Extension.fs" />
     <Compile Include="Definition.fs" />
     <Compile Include="Compilation.fs" />
