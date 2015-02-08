@@ -21,8 +21,6 @@
 [<AutoOpen>]
 module Freya.Machine.Builder
 
-open Aether
-
 (* Builder
 
    The Computation Expression builder to give Machine the declarative

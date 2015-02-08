@@ -25,11 +25,13 @@ open Hekate
 
 (* Types
 
-   Basic type representing the results of ordering a set of Freya
+   Basic type representing the result of ordering a set of Freya
    Machine Extensions. A set of extensions may not be able to be
-   ordered in certain cases. *)
+   ordered in certain cases (the case where cycles exist within a
+   dependency graph is detected here, but preconditions to detect
+   other categories of problem are possible in future. *)
 
-type FreyaMachineExtensionOrdering =
+type ExtensionOrdering =
     | Ordered of FreyaMachineExtension list
     | Cyclic
 
@@ -37,9 +39,9 @@ type FreyaMachineExtensionOrdering =
 
    Functions to order a set of machine dependencies. The sort/ordering
    is essentially a variation on Kahn's algorithm, which can be more
-   simply expressed here as our graph library handles to the removal
-   of relevant edges as part of removing nodes.
-   
+   simply expressed here as our graph library handles the removal of
+   relevant edges as part of removing nodes.
+
    See [https://en.wikipedia.org/wiki/Topological_sorting] for details
    of topological sorting in general, and Kahn's algorithm in particular. *)
 
