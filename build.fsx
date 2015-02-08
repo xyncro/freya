@@ -308,7 +308,7 @@ Target "Source.Test" (fun _ ->
                 TimeOut = TimeSpan.FromMinutes 20.
                 OutputFile = "bin/TestResults.xml" })
     finally
-        AppVeyor.UploadTestResultsXml NUnit "bin")
+        AppVeyor.UploadTestResultsXml AppVeyor.TestResultsType.NUnit "bin")
 
 (* Builds
 
