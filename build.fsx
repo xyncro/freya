@@ -335,13 +335,16 @@ Target "Source.Clean" (fun _ ->
         "temp" ])
 
 Target "Source.Test" (fun _ ->
-    freya.Structure.Projects.Test 
-    |> List.map (fun project -> testAssembly project)
-    |> NUnit (fun x ->
-        { x with
-            DisableShadowCopy = true
-            TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "TestResults.xml" }))
+    try
+        freya.Structure.Projects.Test
+        |> List.map (fun project -> testAssembly project)
+        |> NUnit (fun x ->
+            { x with
+                DisableShadowCopy = true
+                TimeOut = TimeSpan.FromMinutes 20.
+                OutputFile = "bin/TestResults.xml" })
+    finally
+        AppVeyor.UploadTestResultsXml AppVeyor.TestResultsType.NUnit "bin")
 
 (* Builds
 
