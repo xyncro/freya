@@ -23,17 +23,7 @@ module Freya.Machine.Types
 
 open System
 open Freya.Core
-
-(* Functions
-
-   Common type aliases for core functions used throughout
-   Machine as basic node types. *)
-
-type FreyaMachineUnary =
-    Freya<unit>
-
-type FreyaMachineBinary =
-    Freya<bool>
+open Hekate
 
 (* Configuration *)
 
@@ -43,72 +33,44 @@ type FreyaMachineConfiguration =
     static member DataLens =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-type FreyaMachineConfigurationMetadata =
+(* Node *)
+
+type FreyaMachineNode =
+    | Start
+    | Operation of string
+    | Finish
+
+(* Node Label *)
+
+type FreyaMachineNodeLabel =
+    | Node of FreyaMachineOperation * FreyaMachineOperationMetadata
+
+and FreyaMachineOperation =
+    | Unary of Freya<unit>
+    | Binary of Freya<bool>
+
+and FreyaMachineOperationMetadata =
     { Configurable: bool
       Configured: bool }
 
-(* Graph
+(* Edge Label *)
 
-   Types used for defining elements of graphs, common to multiple
-   graph definition types. Node and edge references are defined with
-   simple string keys, relying on regular comparison. *)
+type FreyaMachineEdgeLabel =
+    | Edge of bool
 
-type FreyaMachineRef =
-    | Start
-    | Finish
-    | Ref of string
+(* Builders *)
 
-type FreyaMachineRefPair =
-    | Pair of FreyaMachineRef * FreyaMachineRef
+type FreyaMachineNodeCompiler =
+    | NodeCompiler of (FreyaMachineConfiguration -> (FreyaMachineOperation * FreyaMachineOperationMetadata))
 
-(* Definition
-
-   Types representing the definition used to produce an execution
-   graph, using a standard nodes and edges representation. Operations on
-   the graph are represented as being able to succeed, as a mapping of
-   definition graph -> definition graph, or fail as an error. *)
-
-type FreyaMachineGraph =
-    { Nodes: Map<FreyaMachineRef, FreyaMachineNode option>
-      Edges: Map<FreyaMachineRefPair, FreyaMachineEdge> }
-
-    static member NodesLens =
-        (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
-
-    static member EdgesLens =
-        (fun x -> x.Edges), (fun e x -> { x with Edges = e })
-
-and FreyaMachineNode =
-    | Unary of FreyaMachineUnaryNode
-    | Binary of FreyaMachineBinaryNode
-
-and FreyaMachineUnaryNode =
-    FreyaMachineConfiguration -> FreyaMachineConfigurationMetadata * FreyaMachineUnary
-
-and FreyaMachineBinaryNode =
-    FreyaMachineConfiguration -> FreyaMachineConfigurationMetadata * FreyaMachineBinary
-
-and FreyaMachineEdge =
-    | Value of bool option
-
-type FreyaMachineGraphOperation =
-    FreyaMachineGraph -> Choice<FreyaMachineGraph, string>
-
-(* Extension
-
-   Types supporting the extension of the basic (empty) machine graph
-   through applying a set of operations to map the graph in to a new form.
-   Names and dependencies are used to ensure some level of preconditional
-   safety before operations from multiple extensions are applied.
-
-   See the commentary around Dependency.fs more. *)
+(* Extension *)
 
 [<CustomEquality>]
 [<CustomComparison>]
 type FreyaMachineExtension =
     { Name: string
       Dependencies: Set<string>
-      Operations: FreyaMachineGraphOperation list }
+      Operations: FreyaMachineExtensionOperation list }
 
     static member private Comparable (x: FreyaMachineExtension) =
         x.Name.ToLowerInvariant ()
@@ -124,6 +86,12 @@ type FreyaMachineExtension =
         member x.CompareTo y =
             compareOn FreyaMachineExtension.Comparable x y
 
+and FreyaMachineExtensionOperation =
+    | AddNode of FreyaMachineNode * FreyaMachineNodeCompiler option
+    | RemoveNode of FreyaMachineNode
+    | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdgeLabel option
+    | RemoveEdge of FreyaMachineNode * FreyaMachineNode
+
 (* Computation Expression *)
 
 type FreyaMachine =
@@ -134,7 +102,7 @@ and FreyaMachineSpecification =
       Extensions: Set<FreyaMachineExtension> }
 
     static member ConfigurationLens =
-        (fun x -> x.Configuration), (fun d x -> { x with Configuration = d })
+        (fun x -> x.Configuration), (fun c x -> { x with Configuration = c })
 
     static member ExtensionsLens =
         (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })

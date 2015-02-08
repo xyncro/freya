@@ -36,7 +36,6 @@ open Freya.Recorder
 type Ref =
     FreyaMachineRef
 
-
 (* Keys *)
 
 let [<Literal>] freyaMachineRecordKey =
