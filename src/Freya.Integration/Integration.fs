@@ -17,21 +17,11 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Core.Integration
+module Freya.Integration
 
 open System
 open System.Threading.Tasks
-
-(* OWIN Types *)
-
-/// Type alias of <see cref="FreyaEnvironment" /> in terms of OWIN.
-type OwinEnvironment =
-    FreyaEnvironment
-
-/// Type alias for the OWIN AppFunc signature.
-type OwinAppFunc = 
-    Func<OwinEnvironment, Task>
+open Freya.Core
 
 (* OWIN Conversion *)
 
@@ -39,12 +29,15 @@ type OwinAppFunc =
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
-
-    /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
-    [<CompiledName ("FromFreya")>]
-    let fromFreya (freya: Freya<_>) =
-        OwinAppFunc (fun e ->
-            async {
-                do! freya { Environment = e
-                            Meta = { Memos = Map.empty } } |> Async.Ignore }
-            |> Async.StartAsTask :> Task)
+    
+    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
+    /// to allow use of standard OWIN components within Freya.
+    /// NOTE: EXPERIMENTAL
+    [<CompiledName ("ToFreya")>]
+    let toFreya (app: OwinAppFunc) : Freya<unit> =
+        fun s -> async {
+            let! token = Async.CancellationToken
+            // Apply and mutate the OwinEnvironment asynchronously
+            do! Async.AwaitTask <| app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+            // Return the result as a unit value and the mutated FreyaState
+            return (), s }

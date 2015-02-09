@@ -28,7 +28,6 @@ let ``getLM, setLM, modLM behave correctly`` () =
 open System
 open System.Collections.Generic
 open System.Threading.Tasks
-open Freya.Core.Integration
 
 [<Test>]
 let ``freya computation can be run as an OWIN application`` () =

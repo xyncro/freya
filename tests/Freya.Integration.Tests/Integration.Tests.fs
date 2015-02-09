@@ -9,7 +9,7 @@ let private answerLens =
 
 (* Integration *)
 
-open Freya.Core.Integration
+open Freya.Integration
 open System.Threading.Tasks
 
 [<Test>]
