@@ -110,64 +110,64 @@ let private handle config m =
         do! data representation.Data }
 
 let private userHandler key =
-    Unary (fun config ->
+    Some (NodeCompiler (fun config ->
         tryGetConfig key config
-        |> Option.map (fun m -> configured, handle config m)
-        |> Option.orElse (unconfigured, Freya.init ()))
+        |> Option.map (fun m -> Unary (handle config m), configured)
+        |> Option.orElse (Unary (Freya.init ()), unconfigured)))
 
 (* Graph *)
 
 let operations =
-    [ Ref Handlers.Accepted                      =.        userHandler Handlers.Accepted
-      Ref Handlers.BadRequest                    =.        userHandler Handlers.BadRequest
-      Ref Handlers.Conflict                      =.        userHandler Handlers.Conflict
-      Ref Handlers.Created                       =.        userHandler Handlers.Created
-      Ref Handlers.Forbidden                     =.        userHandler Handlers.Forbidden
-      Ref Handlers.Gone                          =.        userHandler Handlers.Gone
-      Ref Handlers.MethodNotAllowed              =.        userHandler Handlers.MethodNotAllowed
-      Ref Handlers.MovedPermanently              =.        userHandler Handlers.MovedPermanently
-      Ref Handlers.MovedTemporarily              =.        userHandler Handlers.MovedTemporarily
-      Ref Handlers.MultipleRepresentations       =.        userHandler Handlers.MultipleRepresentations
-      Ref Handlers.NoContent                     =.        userHandler Handlers.NoContent
-      Ref Handlers.NotAcceptable                 =.        userHandler Handlers.NotAcceptable
-      Ref Handlers.NotFound                      =.        userHandler Handlers.NotFound
-      Ref Handlers.NotImplemented                =.        userHandler Handlers.NotImplemented
-      Ref Handlers.NotModified                   =.        userHandler Handlers.NotModified
-      Ref Handlers.OK                            =.        userHandler Handlers.OK
-      Ref Handlers.Options                       =.        userHandler Handlers.Options
-      Ref Handlers.PreconditionFailed            =.        userHandler Handlers.PreconditionFailed
-      Ref Handlers.RequestEntityTooLarge         =.        userHandler Handlers.RequestEntityTooLarge
-      Ref Handlers.SeeOther                      =.        userHandler Handlers.SeeOther
-      Ref Handlers.ServiceUnavailable            =.        userHandler Handlers.ServiceUnavailable
-      Ref Handlers.Unauthorized                  =.        userHandler Handlers.Unauthorized
-      Ref Handlers.UnknownMethod                 =.        userHandler Handlers.UnknownMethod
-      Ref Handlers.UnprocessableEntity           =.        userHandler Handlers.UnprocessableEntity
-      Ref Handlers.UnsupportedMediaType          =.        userHandler Handlers.UnsupportedMediaType
-      Ref Handlers.UriTooLong                    =.        userHandler Handlers.UriTooLong
+    [ Operation Handlers.Accepted                      =.        userHandler Handlers.Accepted
+      Operation Handlers.BadRequest                    =.        userHandler Handlers.BadRequest
+      Operation Handlers.Conflict                      =.        userHandler Handlers.Conflict
+      Operation Handlers.Created                       =.        userHandler Handlers.Created
+      Operation Handlers.Forbidden                     =.        userHandler Handlers.Forbidden
+      Operation Handlers.Gone                          =.        userHandler Handlers.Gone
+      Operation Handlers.MethodNotAllowed              =.        userHandler Handlers.MethodNotAllowed
+      Operation Handlers.MovedPermanently              =.        userHandler Handlers.MovedPermanently
+      Operation Handlers.MovedTemporarily              =.        userHandler Handlers.MovedTemporarily
+      Operation Handlers.MultipleRepresentations       =.        userHandler Handlers.MultipleRepresentations
+      Operation Handlers.NoContent                     =.        userHandler Handlers.NoContent
+      Operation Handlers.NotAcceptable                 =.        userHandler Handlers.NotAcceptable
+      Operation Handlers.NotFound                      =.        userHandler Handlers.NotFound
+      Operation Handlers.NotImplemented                =.        userHandler Handlers.NotImplemented
+      Operation Handlers.NotModified                   =.        userHandler Handlers.NotModified
+      Operation Handlers.OK                            =.        userHandler Handlers.OK
+      Operation Handlers.Options                       =.        userHandler Handlers.Options
+      Operation Handlers.PreconditionFailed            =.        userHandler Handlers.PreconditionFailed
+      Operation Handlers.RequestEntityTooLarge         =.        userHandler Handlers.RequestEntityTooLarge
+      Operation Handlers.SeeOther                      =.        userHandler Handlers.SeeOther
+      Operation Handlers.ServiceUnavailable            =.        userHandler Handlers.ServiceUnavailable
+      Operation Handlers.Unauthorized                  =.        userHandler Handlers.Unauthorized
+      Operation Handlers.UnknownMethod                 =.        userHandler Handlers.UnknownMethod
+      Operation Handlers.UnprocessableEntity           =.        userHandler Handlers.UnprocessableEntity
+      Operation Handlers.UnsupportedMediaType          =.        userHandler Handlers.UnsupportedMediaType
+      Operation Handlers.UriTooLong                    =.        userHandler Handlers.UriTooLong
 
-      Ref Handlers.Accepted                      >.        Finish
-      Ref Handlers.BadRequest                    >.        Finish
-      Ref Handlers.Conflict                      >.        Finish
-      Ref Handlers.Created                       >.        Finish
-      Ref Handlers.Forbidden                     >.        Finish
-      Ref Handlers.Gone                          >.        Finish
-      Ref Handlers.MethodNotAllowed              >.        Finish
-      Ref Handlers.MovedPermanently              >.        Finish
-      Ref Handlers.MovedTemporarily              >.        Finish
-      Ref Handlers.MultipleRepresentations       >.        Finish
-      Ref Handlers.NoContent                     >.        Finish
-      Ref Handlers.NotAcceptable                 >.        Finish
-      Ref Handlers.NotFound                      >.        Finish
-      Ref Handlers.NotImplemented                >.        Finish
-      Ref Handlers.NotModified                   >.        Finish
-      Ref Handlers.OK                            >.        Finish
-      Ref Handlers.Options                       >.        Finish
-      Ref Handlers.PreconditionFailed            >.        Finish
-      Ref Handlers.RequestEntityTooLarge         >.        Finish
-      Ref Handlers.SeeOther                      >.        Finish
-      Ref Handlers.ServiceUnavailable            >.        Finish
-      Ref Handlers.Unauthorized                  >.        Finish
-      Ref Handlers.UnknownMethod                 >.        Finish
-      Ref Handlers.UnprocessableEntity           >.        Finish
-      Ref Handlers.UnsupportedMediaType          >.        Finish
-      Ref Handlers.UriTooLong                    >.        Finish ]
+      Operation Handlers.Accepted                      >.        Finish
+      Operation Handlers.BadRequest                    >.        Finish
+      Operation Handlers.Conflict                      >.        Finish
+      Operation Handlers.Created                       >.        Finish
+      Operation Handlers.Forbidden                     >.        Finish
+      Operation Handlers.Gone                          >.        Finish
+      Operation Handlers.MethodNotAllowed              >.        Finish
+      Operation Handlers.MovedPermanently              >.        Finish
+      Operation Handlers.MovedTemporarily              >.        Finish
+      Operation Handlers.MultipleRepresentations       >.        Finish
+      Operation Handlers.NoContent                     >.        Finish
+      Operation Handlers.NotAcceptable                 >.        Finish
+      Operation Handlers.NotFound                      >.        Finish
+      Operation Handlers.NotImplemented                >.        Finish
+      Operation Handlers.NotModified                   >.        Finish
+      Operation Handlers.OK                            >.        Finish
+      Operation Handlers.Options                       >.        Finish
+      Operation Handlers.PreconditionFailed            >.        Finish
+      Operation Handlers.RequestEntityTooLarge         >.        Finish
+      Operation Handlers.SeeOther                      >.        Finish
+      Operation Handlers.ServiceUnavailable            >.        Finish
+      Operation Handlers.Unauthorized                  >.        Finish
+      Operation Handlers.UnknownMethod                 >.        Finish
+      Operation Handlers.UnprocessableEntity           >.        Finish
+      Operation Handlers.UnsupportedMediaType          >.        Finish
+      Operation Handlers.UriTooLong                    >.        Finish ]

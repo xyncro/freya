@@ -32,13 +32,13 @@ do ()
 (* Configuration Metadata *)
 
 let configured =
-    { FreyaMachineConfigurationMetadata.Configurable = true
+    { Configurable = true
       Configured = true }
 
 let unconfigured =
-    { FreyaMachineConfigurationMetadata.Configurable = true
+    { Configurable = true
       Configured = false }
 
 let unconfigurable =
-    { FreyaMachineConfigurationMetadata.Configurable = false
+    { Configurable = false
       Configured = false }

@@ -104,15 +104,21 @@ let private extend extensions g =
 
 (* Compilation
 
-   Functions to create a new ExecutionGraph by extending an empty BuildGraph
+   Functions to create a new ExecutionGraph by extending a default BuildGraph
    with the extensions contained within the specification (if possible after
    ordering), before compiling the BuildGraph to an Execution graph (by
    applying the compiler functions at nodes when present). *)
+
+let private defaultBuildGraph : BuildGraph =
+    Graph.create
+        [ Start, None
+          Finish, None ]
+        [ Start, Finish, None ]
 
 let private build config : BuildGraph -> ExecutionGraph =
     Graph.mapNodes (Option.map (fun (NodeCompiler n) -> Node (n config)))
 
 let compile (s: FreyaMachineSpecification) : ExecutionGraph =
-    match extend s.Extensions Graph.empty with
+    match extend s.Extensions defaultBuildGraph with
     | Extended g -> build s.Configuration g
     | Invalid -> failwith ""

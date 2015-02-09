@@ -43,10 +43,10 @@ let private freyaMachineSpecification =
 let reifyMachine (machine: FreyaMachine) =
     let specification = snd (machine freyaMachineSpecification)
     let graph = compile specification
-    let record = freyaMachineGraphRecord comp
+    //let record = freyaMachineGraphRecord comp
 
     freya {
-        do! setFreyaMachineGraphRecord record
-        do! executeCompilation comp
+        //do! setFreyaMachineGraphRecord record
+        do! execute graph
 
         return Halt }

@@ -26,20 +26,20 @@ module Freya.Machine.Operators
    definition graph operations. Combined, these operators enable a
    moderately visual DSL for working with definition graphs. *)
 
-let (>+) source dest =
-    addNewEdge source dest (Value (Some true))
-
-let (>-) source dest =
-    addNewEdge source dest (Value (Some false))
-
-let (>.) source dest =
-    addNewEdge source dest (Value (None))
-
-let (>/) =
-    removeExistingEdge 
-
 let (=.) id n =
-    addNewNode id n
+    AddNode (id, n)
 
 let (=/) id () =
-    removeExistingNode id
+    RemoveNode (id)
+
+let (>+) source dest =
+    AddEdge (source, dest, Some (Edge true))
+
+let (>-) source dest =
+    AddEdge (source, dest, Some (Edge false))
+
+let (>.) source dest =
+    AddEdge (source, dest, None)
+
+let (>/) source dest =
+    RemoveEdge (source, dest)
