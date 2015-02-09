@@ -72,3 +72,18 @@ module OwinMidFunc =
                     | Halt -> return () }
                 |> Async.StartAsTask :> Task
             OwinAppFunc app)
+
+    // NOTES:
+    // * Incorporating the MidFunc will require evaluating the state of the Task after running the middleware.
+    // * If the Task is completed, return Halt.
+    // * If the Task is not completed, return Next.
+    // * How do you spilt the MidFunc? A MidFunc can take actions on the way in and on the way out.
+//    [<CompiledName("ToFreya")>]
+//    let toFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> =
+//        fun s -> async {
+//            let! token = Async.CancellationToken
+//            // Apply and mutate the OwinEnvironment asynchronously
+//            do! Async.AwaitTask <| midFunc.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+//            // Return the result as a unit value and the mutated FreyaState
+//            return Next, s
+//        }
