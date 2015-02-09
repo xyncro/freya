@@ -25,44 +25,22 @@ let ``getLM, setLM, modLM behave correctly`` () =
 
 (* Integration *)
 
-open Freya.Core.Integration
+open System
+open System.Collections.Generic
 open System.Threading.Tasks
+open Freya.Core.Integration
 
 [<Test>]
-let ``freya computation can compose with an OwinAppFunc`` () =
-    let app =
-        OwinAppFunc(fun (env: OwinEnvironment) ->
-            env.["Answer"] <- 42
-            Task.FromResult<obj>(null) :> Task)
+let ``freya computation can be run as an OWIN application`` () =
+    let m = setLM answerLens 42
 
-    let converted = OwinAppFunc.toFreya app
-
-    let m =
-        freya {
-            do! converted
-            let! v1 = getLM answerLens
-            return v1 }
+    let app = OwinAppFunc.fromFreya m
+    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
     
-    let result = run m
-    fst result =? 42
-
-[<Test>]
-let ``freya computation can roundtrip to and from OwinAppFunc`` () =
-    let app = setLM answerLens 42
-
-    let converted =
-        app
-        |> OwinAppFunc.fromFreya
-        |> OwinAppFunc.toFreya
-
-    let m =
-        freya {
-            do! converted
-            let! v1 = getLM answerLens
-            return v1 }
-    
-    let result = run m
-    fst result =? 42
+    app.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+    env.["Answer"] |> unbox =? 42
 
 (* Operators *)
 
