@@ -8,9 +8,6 @@ let private freyaState () =
     let env = 
         Dictionary<string, obj> () :> IDictionary<string, obj>
 
-    env.["o1"] <- false
-    env.["o2"] <- false
-
     { Environment = env
       Meta =
         { Memos = Map.empty } }

@@ -56,10 +56,10 @@ module OwinMidFunc =
     let fromFreya (pipeline: Freya<FreyaPipelineChoice>) =
         OwinMidFunc(fun next ->
             let app e =
+                // Convert to FreyaState
+                let s = { Environment = e
+                          Meta = { Memos = Map.empty } }
                 async {
-                    // Convert to FreyaState
-                    let s = { Environment = e
-                              Meta = { Memos = Map.empty } }
                     // Execute the pipeline
                     let! choice, s' = pipeline s
                     match choice with

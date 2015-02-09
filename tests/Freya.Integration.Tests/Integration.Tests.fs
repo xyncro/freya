@@ -63,7 +63,7 @@ let ``pipeline executes both monads if first returns next`` () =
     let composed = o1.Invoke(o2.Invoke(app))
     let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    app.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
     |> Async.AwaitTask
     |> Async.RunSynchronously
 
@@ -81,10 +81,47 @@ let ``pipeline executes only the first monad if first returns terminate`` () =
     let composed = o1.Invoke(o2.Invoke(app))
     let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    app.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
     |> Async.AwaitTask
     |> Async.RunSynchronously
 
     unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
+    env.ContainsKey("o2") =? false
+    env.ContainsKey("Answer") =? false
+
+[<Test>]
+let ``pipeline executes both monads if first returns next with composed pipeline`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
+
+    let composed = pipe.Invoke app
+    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
+
+    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? 42
+
+[<Test>]
+let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
+
+    let composed = pipe.Invoke app
+    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
+
+    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+    unbox env.["o1"] =? true
+    env.ContainsKey("o2") =? false
     env.ContainsKey("Answer") =? false
