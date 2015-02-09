@@ -81,8 +81,8 @@ let private (|Binary|_|) =
 
 let private next v l =
        Graph.successors v
-    >> function | Some xs -> (List.tryFind (fun (_, l') -> l = l') >> Option.map fst) xs
-                | _ -> None
+    >> Option.map (List.tryFind (fun (_, l') -> l = l'))
+    >> Option.map fst
 
 let execute (graph: ExecutionGraph) =
     let rec eval node =
