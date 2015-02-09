@@ -130,7 +130,7 @@ let ``MidFunc can be split and used to wrap a pipeline`` () =
                 async {
                     env.["o3"] <- true
                     env.["o3 time"] <- stopwatch.ElapsedMilliseconds
-                    do! = next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    do! next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
                     env.["o4"] <- true
                     env.["o4 time"] <- stopwatch.ElapsedMilliseconds
                 } |> Async.StartAsTask :> Task ))
