@@ -1,16 +1,15 @@
 ﻿module Freya.Integration.Tests.Core
 
-open Freya.Core
+open System.Threading.Tasks
 open NUnit.Framework
 open Swensen.Unquote
+open Freya.Core
+open Freya.Integration
+
+(* AppFunc *)
 
 let private answerLens =
     environmentKeyLens "Answer"
-
-(* Integration *)
-
-open Freya.Integration
-open System.Threading.Tasks
 
 [<Test>]
 let ``freya computation can compose with an OwinAppFunc`` () =
@@ -47,3 +46,45 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
     
     let result = run m
     fst result =? 42
+
+(** MidFunc **)
+
+open System.Collections.Generic
+open Freya.Core.Operators
+open Freya.Pipeline
+open Freya.Pipeline.Operators
+
+[<Test>]
+let ``pipeline executes both monads if first returns next`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.fromFreya
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
+
+    let composed = o1.Invoke(o2.Invoke(app))
+    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
+
+    app.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? 42
+
+[<Test>]
+let ``pipeline executes only the first monad if first returns terminate`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.fromFreya
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
+
+    let composed = o1.Invoke(o2.Invoke(app))
+    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
+
+    app.Invoke(env).ContinueWith<unit>(fun _ -> ())
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? false
+    env.ContainsKey("Answer") =? false

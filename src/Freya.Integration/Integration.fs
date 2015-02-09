@@ -41,3 +41,32 @@ module OwinAppFunc =
             do! Async.AwaitTask <| app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
             // Return the result as a unit value and the mutated FreyaState
             return (), s }
+
+open Freya.Pipeline
+
+/// Type alias for the OWIN MidFunc signature.
+type OwinMidFunc =
+    Func<OwinAppFunc, OwinAppFunc>
+
+/// Provides transformation functions for converting to/from OWIN middlewares from/to Freya Pipelines.
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module OwinMidFunc =
+    
+    let fromFreya (pipeline: Freya<FreyaPipelineChoice>) =
+        OwinMidFunc(fun next ->
+            let app e =
+                async {
+                    // Convert to FreyaState
+                    let s = { Environment = e
+                              Meta = { Memos = Map.empty } }
+                    // Execute the pipeline
+                    let! choice, s' = pipeline s
+                    match choice with
+                    // Execute the next OwinAppFunc
+                    | Next ->
+                        return! next.Invoke(s'.Environment).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    // Complete the Task
+                    | Halt -> return () }
+                |> Async.StartAsTask :> Task
+            OwinAppFunc app)

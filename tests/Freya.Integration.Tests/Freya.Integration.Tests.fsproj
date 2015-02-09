@@ -70,6 +70,11 @@
       <Project>{fdf2c01f-7420-4e1d-8ba1-382c3d801c0c}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
