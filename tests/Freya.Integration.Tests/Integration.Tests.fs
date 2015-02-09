@@ -108,3 +108,44 @@ let ``pipeline executes only the first monad if first returns terminate with com
     unbox env.["o1"] =? true
     unbox env.["o2"] =? false
     env.ContainsKey("Answer") =? false
+
+[<Test; Explicit("Implementation has a bug that causes the test to hang.")>]
+let ``MidFunc can be split and used to wrap a pipeline`` () =
+    let stopwatch = System.Diagnostics.Stopwatch()
+    let o1 =
+        modM (fun x ->
+            x.Environment.["o1"] <- true
+            x.Environment.["o1 time"] <- stopwatch.ElapsedMilliseconds
+            x)
+        *> next
+    let o2 =
+        modM (fun x ->
+            x.Environment.["o2"] <- true
+            x.Environment.["o2 time"] <- stopwatch.ElapsedMilliseconds
+            x)
+        *> next
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                env.["o3"] <- true
+                env.["o3 time"] <- stopwatch.ElapsedMilliseconds
+                let task = next.Invoke env
+                env.["o4"] <- true
+                env.["o4 time"] <- stopwatch.ElapsedMilliseconds
+                task ))
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+
+    stopwatch.Start()
+    let result = run (before >?= o1 >?= o2 >?= after)
+    stopwatch.Stop()
+
+    let env = (snd result).Environment
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("o4") =? true
+    unbox env.["o4"] =? true
+    unbox env.["o3 time"] <? unbox env.["o1 time"]
+    unbox env.["o1 time"] <? unbox env.["o2 time"]
+    unbox env.["o2 time"] <? unbox env.["o4 time"]

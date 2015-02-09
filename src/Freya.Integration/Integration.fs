@@ -73,17 +73,33 @@ module OwinMidFunc =
                 |> Async.StartAsTask :> Task
             OwinAppFunc app)
 
-    // NOTES:
-    // * Incorporating the MidFunc will require evaluating the state of the Task after running the middleware.
-    // * If the Task is completed, return Halt.
-    // * If the Task is not completed, return Next.
-    // * How do you spilt the MidFunc? A MidFunc can take actions on the way in and on the way out.
-//    [<CompiledName("ToFreya")>]
-//    let toFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> =
-//        fun s -> async {
-//            let! token = Async.CancellationToken
-//            // Apply and mutate the OwinEnvironment asynchronously
-//            do! Async.AwaitTask <| midFunc.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
-//            // Return the result as a unit value and the mutated FreyaState
-//            return Next, s
-//        }
+    /// Splits a MidFunc into a before and after Freya.Pipeline.
+    [<CompiledName("SplitIntoFreya")>]
+    let splitIntoFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> * Freya<FreyaPipelineChoice> =
+        let nextWasRun = ref false
+        let resumed = new Event<unit>()
+        let nextSignal =
+            OwinAppFunc(fun _ ->
+                async {
+                    nextWasRun := true
+                    // Pause while the rest of the pipeline runs.
+                    do! resumed.Publish |> Async.AwaitEvent
+                    // Complete the Task.
+                    return ()
+                } |> Async.StartAsTask :> Task)
+        let before s =
+            async {
+                let! token = Async.CancellationToken
+                // Apply and mutate the OwinEnvironment asynchronously.
+                do! Async.AwaitTask <| midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+                if !nextWasRun then
+                    // Return the result as a unit value and the mutated FreyaState.
+                    return Next, s
+                else return Halt, s }
+        let after s =
+            async {
+                // Trigger the resumed event to allow the MidFunc to continue processing.
+                resumed.Trigger ()
+                // NOTE: This should be ignored; it is here purely to support the correct signature.
+                return Next, s }
+        before, after
