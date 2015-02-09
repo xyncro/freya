@@ -53,6 +53,8 @@ type OwinMidFunc =
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinMidFunc =
     
+    /// Converts a Freya.Pipeline to an OWIN MidFunc.
+    [<CompiledName("FromFreya")>]
     let fromFreya (pipeline: Freya<FreyaPipelineChoice>) =
         OwinMidFunc(fun next ->
             let app e =
