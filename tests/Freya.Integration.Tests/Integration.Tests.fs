@@ -49,7 +49,6 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
 
 (** MidFunc **)
 
-open System.Collections.Generic
 open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Pipeline.Operators
@@ -59,13 +58,9 @@ let ``pipeline executes both monads if first returns next`` () =
     let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.fromFreya
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
-
     let composed = o1.Invoke(o2.Invoke(app))
-    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
+    let env = invoke composed
 
     unbox env.["o1"] =? true
     unbox env.["o2"] =? true
@@ -77,16 +72,12 @@ let ``pipeline executes only the first monad if first returns terminate`` () =
     let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.fromFreya
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
-
     let composed = o1.Invoke(o2.Invoke(app))
-    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
+    let env = invoke composed
 
     unbox env.["o1"] =? true
-    env.ContainsKey("o2") =? false
+    unbox env.["o2"] =? false
     env.ContainsKey("Answer") =? false
 
 [<Test>]
@@ -95,13 +86,9 @@ let ``pipeline executes both monads if first returns next with composed pipeline
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
     let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
-
     let composed = pipe.Invoke app
-    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
+    let env = invoke composed
 
     unbox env.["o1"] =? true
     unbox env.["o2"] =? true
@@ -114,14 +101,10 @@ let ``pipeline executes only the first monad if first returns terminate with com
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
     let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
-
     let composed = pipe.Invoke app
-    let env = Dictionary<string, obj>() :> IDictionary<string, obj>
 
-    composed.Invoke(env).ContinueWith<unit>(fun _ -> ())
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
+    let env = invoke composed
 
     unbox env.["o1"] =? true
-    env.ContainsKey("o2") =? false
+    unbox env.["o2"] =? false
     env.ContainsKey("Answer") =? false
