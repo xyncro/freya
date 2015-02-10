@@ -44,6 +44,6 @@ type TodoBackend () =
 
 [<EntryPoint>]
 let main _ = 
-    let _ = WebApp.Start<TodoBackend> ("http://192.168.0.3:7000")
+    let _ = WebApp.Start<TodoBackend> ("http://localhost:7000")
     let _ = System.Console.ReadLine ()
     0

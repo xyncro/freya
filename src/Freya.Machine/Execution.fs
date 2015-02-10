@@ -31,46 +31,26 @@ open Hekate
    Machine operations, return the result of the operation when
    applicable (as in Binary operations). *)
 
+let private record =
+    addFreyaMachineExecutionRecord
+
 let private start =
-    freya {
-        return None }
+        record "start" 
+     *> Freya.init None
 
 let private finish =
-    freya {
-        return () }
+        record "finish"
+     *> Freya.init ()
 
-let private unary m =
-    freya {
-        do! m
+let private unary v operation =
+        record v
+     *> operation
+     *> Freya.init None
 
-        return None }
-
-let private binary m =
-    freya {
-        let! x = m
-
-        return Some (Edge x) }
-
-(* Patterns
-
-   Active patterns to make the execution logic more readable,
-   extracting relevant data from finding nodes within an ExecutionGraph *)
-
-let private (|Start|_|) =
-    function | Some (Start, _) -> Some ()
-             | _ -> None
-
-let private (|Finish|_|) =
-    function | Some (Finish, _) -> Some ()
-             | _ -> None
-
-let private (|Unary|_|) =
-    function | Some (v, Some (Node (Unary m, _))) -> Some (v, m)
-             | _ -> None
-
-let private (|Binary|_|) =
-    function | Some (v, Some (Node (Binary m, _))) -> Some (v, m)
-             | _ -> None
+let private binary v operation =
+        record v
+     *> operation
+    >>= fun x -> Freya.init (Some (Edge x))
 
 (* Execution
 
@@ -79,10 +59,26 @@ let private (|Binary|_|) =
    unreachable, whether because the current node has no matching successors,
    or because the next node can't be found. *)
 
-let private next v l =
-       Graph.successors v
-    >> Option.map (List.tryFind (fun (_, l') -> l = l'))
-    >> Option.map fst
+let private next v l : ExecutionGraph -> FreyaMachineNode option =
+        Graph.successors v
+     >> Option.bind (List.tryFind (fun (_, l') -> l = l'))
+     >> Option.map fst
+
+let private (|Start|_|) =
+    function | Some (Start, _) -> Some (flip (next FreyaMachineNode.Start))
+             | _ -> None
+
+let private (|Finish|_|) =
+    function | Some (Finish, _) -> Some ()
+             | _ -> None
+
+let private (|Unary|_|) =
+    function | Some (Operation v, Some (Node (Unary m, _))) -> Some (flip (next (Operation v)), v, m)
+             | _ -> None
+
+let private (|Binary|_|) =
+    function | Some (Operation v, Some (Node (Binary m, _))) -> Some (flip (next (Operation v)), v, m)
+             | _ -> None
 
 let execute (graph: ExecutionGraph) =
     let rec eval node =
@@ -90,10 +86,10 @@ let execute (graph: ExecutionGraph) =
             match node with
             | Some node ->
                 match Graph.tryFindNode node graph with
-                | Start -> return! (flip (next Start) graph) <!> start >>= eval
+                | Start (f) -> return! f graph <!> start >>= eval
                 | Finish -> return! finish
-                | Unary (v, m) -> return! (flip (next v) graph) <!> unary m >>= eval
-                | Binary (v, m) -> return! (flip (next v) graph) <!> binary m >>= eval
+                | Unary (f, v, m) -> return! f graph <!> unary v m >>= eval
+                | Binary (f, v, m) -> return! f graph <!> binary v m >>= eval
                 | _ -> failwith (sprintf "Next Node %A Not Found" node)
             | _ ->
                 failwith (sprintf "Next Node %A Not Determined" node) }

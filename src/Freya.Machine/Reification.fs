@@ -41,12 +41,12 @@ let private defaultSpecification =
    compilation of the specification to a compilation map. *)
 
 let reifyMachine (machine: FreyaMachine) =
-    let specification = snd (machine defaultSpecification)
-    let graph = compile specification
-    //let record = freyaMachineGraphRecord comp
+    let spec = snd (machine defaultSpecification)
+    let graph = compile spec
+    let record = record graph
 
     freya {
-        //do! setFreyaMachineGraphRecord record
+        do! setFreyaMachineGraphRecord record
         do! execute graph
 
         return Halt }
