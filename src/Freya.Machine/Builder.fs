@@ -21,8 +21,6 @@
 [<AutoOpen>]
 module Freya.Machine.Builder
 
-open Aether
-
 (* Builder
 
    The Computation Expression builder to give Machine the declarative
@@ -33,10 +31,10 @@ open Aether
 type FreyaMachineBuilder () =
 
     member __.Return _ : FreyaMachine =
-        fun definition -> (), definition
+        fun spec -> (), spec
 
-    member __.ReturnFrom machine : FreyaMachine = 
-        machine
+    member __.ReturnFrom m : FreyaMachine = 
+        m
 
     member __.Bind (m, k) : FreyaMachine = 
         m >> fun (result, definition) -> (k result) definition

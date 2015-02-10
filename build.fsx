@@ -90,6 +90,7 @@ let freya =
                         [ Package "FSharp.Core"
                           Package "Aether"
                           Package "Fleece"
+                          Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
                           Local "Freya.Recorder"

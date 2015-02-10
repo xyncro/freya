@@ -29,13 +29,13 @@ open Freya.Types.Http
 (* Decisions *)
 
 let private systemDecision f =
-    Binary (fun config -> 
-        unconfigurable, f config)
+    Some (NodeCompiler (fun config -> 
+        Binary (f config), unconfigurable))
 
 let private userDecision key def =
-    Binary (tryGetConfig key
-        >> Option.map (fun x -> configured, x)
-        >> Option.orElse (unconfigured, Freya.init def))
+    Some (NodeCompiler (tryGetConfig key
+        >> Option.map (fun x -> Binary x, configured)
+        >> Option.orElse (Binary (Freya.init def), unconfigured)))
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
@@ -168,185 +168,185 @@ let private methodSupported config =
 (* Graph *)
 
 let operations =
-    [ Ref Decisions.Allowed                      =.        userDecision Decisions.Allowed true
-      Ref Decisions.Authorized                   =.        userDecision Decisions.Authorized true
-      Ref Decisions.AllowPostToGone              =.        userDecision Decisions.AllowPostToGone false
-      Ref Decisions.AllowPostToMissing           =.        userDecision Decisions.AllowPostToMissing true
-      Ref Decisions.AllowPutToMissing            =.        userDecision Decisions.AllowPutToMissing true
-      Ref Decisions.CharsetsStrict               =.        userDecision Decisions.CharsetsStrict false
-      Ref Decisions.Conflicts                    =.        userDecision Decisions.Conflicts false
-      Ref Decisions.ContentTypeKnown             =.        userDecision Decisions.ContentTypeKnown true
-      Ref Decisions.ContentTypeValid             =.        userDecision Decisions.ContentTypeValid true
-      Ref Decisions.Created                      =.        userDecision Decisions.Created true
-      Ref Decisions.Deleted                      =.        userDecision Decisions.Deleted true
-      Ref Decisions.EncodingsStrict              =.        userDecision Decisions.EncodingsStrict false
-      Ref Decisions.EntityLengthValid            =.        userDecision Decisions.EntityLengthValid true
-      Ref Decisions.Existed                      =.        userDecision Decisions.Existed false
-      Ref Decisions.Exists                       =.        userDecision Decisions.Exists true
-      Ref Decisions.LanguagesStrict              =.        userDecision Decisions.LanguagesStrict false
-      Ref Decisions.Malformed                    =.        userDecision Decisions.Malformed false
-      Ref Decisions.MediaTypesStrict             =.        userDecision Decisions.MediaTypesStrict true
-      Ref Decisions.MovedPermanently             =.        userDecision Decisions.MovedPermanently false
-      Ref Decisions.MovedTemporarily             =.        userDecision Decisions.MovedTemporarily false
-      Ref Decisions.MultipleRepresentations      =.        userDecision Decisions.MultipleRepresentations false
-      Ref Decisions.PostRedirect                 =.        userDecision Decisions.PostRedirect false
-      Ref Decisions.Processable                  =.        userDecision Decisions.Processable true
-      Ref Decisions.PutToDifferentUri            =.        userDecision Decisions.PutToDifferentUri false
-      Ref Decisions.RespondWithEntity            =.        userDecision Decisions.RespondWithEntity true
-      Ref Decisions.ServiceAvailable             =.        userDecision Decisions.ServiceAvailable true
-      Ref Decisions.UriTooLong                   =.        userDecision Decisions.UriTooLong false
+    [ Operation Decisions.Allowed                      =.        userDecision Decisions.Allowed true
+      Operation Decisions.Authorized                   =.        userDecision Decisions.Authorized true
+      Operation Decisions.AllowPostToGone              =.        userDecision Decisions.AllowPostToGone false
+      Operation Decisions.AllowPostToMissing           =.        userDecision Decisions.AllowPostToMissing true
+      Operation Decisions.AllowPutToMissing            =.        userDecision Decisions.AllowPutToMissing true
+      Operation Decisions.CharsetsStrict               =.        userDecision Decisions.CharsetsStrict false
+      Operation Decisions.Conflicts                    =.        userDecision Decisions.Conflicts false
+      Operation Decisions.ContentTypeKnown             =.        userDecision Decisions.ContentTypeKnown true
+      Operation Decisions.ContentTypeValid             =.        userDecision Decisions.ContentTypeValid true
+      Operation Decisions.Created                      =.        userDecision Decisions.Created true
+      Operation Decisions.Deleted                      =.        userDecision Decisions.Deleted true
+      Operation Decisions.EncodingsStrict              =.        userDecision Decisions.EncodingsStrict false
+      Operation Decisions.EntityLengthValid            =.        userDecision Decisions.EntityLengthValid true
+      Operation Decisions.Existed                      =.        userDecision Decisions.Existed false
+      Operation Decisions.Exists                       =.        userDecision Decisions.Exists true
+      Operation Decisions.LanguagesStrict              =.        userDecision Decisions.LanguagesStrict false
+      Operation Decisions.Malformed                    =.        userDecision Decisions.Malformed false
+      Operation Decisions.MediaTypesStrict             =.        userDecision Decisions.MediaTypesStrict true
+      Operation Decisions.MovedPermanently             =.        userDecision Decisions.MovedPermanently false
+      Operation Decisions.MovedTemporarily             =.        userDecision Decisions.MovedTemporarily false
+      Operation Decisions.MultipleRepresentations      =.        userDecision Decisions.MultipleRepresentations false
+      Operation Decisions.PostRedirect                 =.        userDecision Decisions.PostRedirect false
+      Operation Decisions.Processable                  =.        userDecision Decisions.Processable true
+      Operation Decisions.PutToDifferentUri            =.        userDecision Decisions.PutToDifferentUri false
+      Operation Decisions.RespondWithEntity            =.        userDecision Decisions.RespondWithEntity true
+      Operation Decisions.ServiceAvailable             =.        userDecision Decisions.ServiceAvailable true
+      Operation Decisions.UriTooLong                   =.        userDecision Decisions.UriTooLong false
         
-      Ref Decisions.CharsetNegotiable            =.        systemDecision charsetNegotiable
-      Ref Decisions.CharsetRequested             =.        systemDecision charsetRequested
-      Ref Decisions.EncodingNegotiable           =.        systemDecision encodingNegotiable
-      Ref Decisions.EncodingRequested            =.        systemDecision encodingRequested
-      Ref Decisions.IfMatchAny                   =.        systemDecision ifMatchAny
-      Ref Decisions.IfMatchExistsForMissing      =.        systemDecision ifMatchExistsForMissing
-      Ref Decisions.IfMatchRequested             =.        systemDecision ifMatchRequested
-      Ref Decisions.IfModifiedSinceModified      =.        systemDecision ifModifiedSinceModified
-      Ref Decisions.IfModifiedSinceRequested     =.        systemDecision ifModifiedSinceRequested
-      Ref Decisions.IfModifiedSinceValid         =.        systemDecision ifModifiedSinceValid
-      Ref Decisions.IfNoneMatchAny               =.        systemDecision ifNoneMatchAny
-      Ref Decisions.IfNoneMatchRequested         =.        systemDecision ifNoneMatchRequested
-      Ref Decisions.IfUnmodifiedSinceModified    =.        systemDecision ifUnmodifiedSinceModified
-      Ref Decisions.IfUnmodifiedSinceRequested   =.        systemDecision ifUnmodifiedSinceRequested
-      Ref Decisions.IfUnmodifiedSinceValid       =.        systemDecision ifUnmodifiedSinceValid
-      Ref Decisions.LanguageNegotiable           =.        systemDecision languageNegotiable
-      Ref Decisions.LanguageRequested            =.        systemDecision languageRequested
-      Ref Decisions.MediaTypeNegotiable          =.        systemDecision mediaTypeNegotiable
-      Ref Decisions.MediaTypeRequested           =.        systemDecision mediaTypeRequested
-      Ref Decisions.MethodDelete                 =.        systemDecision methodDelete
-      Ref Decisions.MethodGetOrHead              =.        systemDecision methodGetOrHead
-      Ref Decisions.MethodKnown                  =.        systemDecision methodKnown
-      Ref Decisions.MethodOptions                =.        systemDecision methodOptions
-      Ref Decisions.MethodPatch                  =.        systemDecision methodPatch
-      Ref Decisions.MethodPostToExisting         =.        systemDecision methodPostToExisting
-      Ref Decisions.MethodPostToGone             =.        systemDecision methodPostToGone
-      Ref Decisions.MethodPostToMissing          =.        systemDecision methodPostToMissing
-      Ref Decisions.MethodPut                    =.        systemDecision methodPut
-      Ref Decisions.MethodPutToExisting          =.        systemDecision methodPutToExisting
-      Ref Decisions.MethodSupported              =.        systemDecision methodSupported
+      Operation Decisions.CharsetNegotiable            =.        systemDecision charsetNegotiable
+      Operation Decisions.CharsetRequested             =.        systemDecision charsetRequested
+      Operation Decisions.EncodingNegotiable           =.        systemDecision encodingNegotiable
+      Operation Decisions.EncodingRequested            =.        systemDecision encodingRequested
+      Operation Decisions.IfMatchAny                   =.        systemDecision ifMatchAny
+      Operation Decisions.IfMatchExistsForMissing      =.        systemDecision ifMatchExistsForMissing
+      Operation Decisions.IfMatchRequested             =.        systemDecision ifMatchRequested
+      Operation Decisions.IfModifiedSinceModified      =.        systemDecision ifModifiedSinceModified
+      Operation Decisions.IfModifiedSinceRequested     =.        systemDecision ifModifiedSinceRequested
+      Operation Decisions.IfModifiedSinceValid         =.        systemDecision ifModifiedSinceValid
+      Operation Decisions.IfNoneMatchAny               =.        systemDecision ifNoneMatchAny
+      Operation Decisions.IfNoneMatchRequested         =.        systemDecision ifNoneMatchRequested
+      Operation Decisions.IfUnmodifiedSinceModified    =.        systemDecision ifUnmodifiedSinceModified
+      Operation Decisions.IfUnmodifiedSinceRequested   =.        systemDecision ifUnmodifiedSinceRequested
+      Operation Decisions.IfUnmodifiedSinceValid       =.        systemDecision ifUnmodifiedSinceValid
+      Operation Decisions.LanguageNegotiable           =.        systemDecision languageNegotiable
+      Operation Decisions.LanguageRequested            =.        systemDecision languageRequested
+      Operation Decisions.MediaTypeNegotiable          =.        systemDecision mediaTypeNegotiable
+      Operation Decisions.MediaTypeRequested           =.        systemDecision mediaTypeRequested
+      Operation Decisions.MethodDelete                 =.        systemDecision methodDelete
+      Operation Decisions.MethodGetOrHead              =.        systemDecision methodGetOrHead
+      Operation Decisions.MethodKnown                  =.        systemDecision methodKnown
+      Operation Decisions.MethodOptions                =.        systemDecision methodOptions
+      Operation Decisions.MethodPatch                  =.        systemDecision methodPatch
+      Operation Decisions.MethodPostToExisting         =.        systemDecision methodPostToExisting
+      Operation Decisions.MethodPostToGone             =.        systemDecision methodPostToGone
+      Operation Decisions.MethodPostToMissing          =.        systemDecision methodPostToMissing
+      Operation Decisions.MethodPut                    =.        systemDecision methodPut
+      Operation Decisions.MethodPutToExisting          =.        systemDecision methodPutToExisting
+      Operation Decisions.MethodSupported              =.        systemDecision methodSupported
 
-      Ref Decisions.ETagMatchesIf                =.        Binary (fun _ -> unconfigured, Freya.init true)
-      Ref Decisions.ETagMatchesIfNone            =.        Binary (fun _ -> unconfigured, Freya.init true)
+      Operation Decisions.ETagMatchesIf                =.        systemDecision (fun _ -> Freya.init true)
+      Operation Decisions.ETagMatchesIfNone            =.        systemDecision (fun _ -> Freya.init true)
 
-      Ref Decisions.CharsetNegotiable            >+        Ref Decisions.EncodingRequested           
-      Ref Decisions.CharsetNegotiable            >-        Ref Decisions.CharsetsStrict
-      Ref Decisions.CharsetRequested             >+        Ref Decisions.CharsetNegotiable           
-      Ref Decisions.CharsetRequested             >-        Ref Decisions.EncodingRequested
-      Ref Decisions.EncodingNegotiable           >+        Ref Decisions.Processable                 
-      Ref Decisions.EncodingNegotiable           >-        Ref Decisions.EncodingsStrict
-      Ref Decisions.EncodingRequested            >+        Ref Decisions.EncodingNegotiable          
-      Ref Decisions.EncodingRequested            >-        Ref Decisions.Processable
-      Ref Decisions.IfMatchAny                   >+        Ref Decisions.IfUnmodifiedSinceRequested  
-      Ref Decisions.IfMatchAny                   >-        Ref Decisions.ETagMatchesIf
-      Ref Decisions.IfMatchExistsForMissing      >+        Ref Operations.PreconditionFailed         
-      Ref Decisions.IfMatchExistsForMissing      >-        Ref Decisions.MethodPut
-      Ref Decisions.IfMatchRequested             >+        Ref Decisions.IfMatchAny                  
-      Ref Decisions.IfMatchRequested             >-        Ref Decisions.IfUnmodifiedSinceRequested
-      Ref Decisions.IfModifiedSinceModified      >+        Ref Decisions.MethodDelete                
-      Ref Decisions.IfModifiedSinceModified      >-        Ref Operations.NotModified
-      Ref Decisions.IfModifiedSinceRequested     >+        Ref Decisions.IfModifiedSinceValid        
-      Ref Decisions.IfModifiedSinceRequested     >-        Ref Decisions.MethodDelete
-      Ref Decisions.IfModifiedSinceValid         >+        Ref Decisions.IfModifiedSinceModified     
-      Ref Decisions.IfModifiedSinceValid         >-        Ref Decisions.MethodDelete
-      Ref Decisions.IfNoneMatchAny               >+        Ref Decisions.MethodGetOrHead             
-      Ref Decisions.IfNoneMatchAny               >-        Ref Decisions.ETagMatchesIfNone
-      Ref Decisions.IfNoneMatchRequested         >+        Ref Decisions.IfNoneMatchAny              
-      Ref Decisions.IfNoneMatchRequested         >-        Ref Decisions.IfModifiedSinceRequested
-      Ref Decisions.IfUnmodifiedSinceModified    >+        Ref Decisions.IfNoneMatchRequested        
-      Ref Decisions.IfUnmodifiedSinceModified    >-        Ref Operations.PreconditionFailed
-      Ref Decisions.IfUnmodifiedSinceRequested   >+        Ref Decisions.IfUnmodifiedSinceValid      
-      Ref Decisions.IfUnmodifiedSinceRequested   >-        Ref Decisions.IfNoneMatchRequested
-      Ref Decisions.IfUnmodifiedSinceValid       >+        Ref Decisions.IfUnmodifiedSinceModified   
-      Ref Decisions.IfUnmodifiedSinceValid       >-        Ref Decisions.IfNoneMatchRequested
-      Ref Decisions.LanguageNegotiable           >+        Ref Decisions.CharsetRequested            
-      Ref Decisions.LanguageNegotiable           >-        Ref Decisions.LanguagesStrict
-      Ref Decisions.LanguageRequested            >+        Ref Decisions.LanguageNegotiable          
-      Ref Decisions.LanguageRequested            >-        Ref Decisions.CharsetRequested
-      Ref Decisions.MediaTypeNegotiable          >+        Ref Decisions.LanguageRequested           
-      Ref Decisions.MediaTypeNegotiable          >-        Ref Decisions.MediaTypesStrict
-      Ref Decisions.MediaTypeRequested           >+        Ref Decisions.MediaTypeNegotiable         
-      Ref Decisions.MediaTypeRequested           >-        Ref Decisions.LanguageRequested
-      Ref Decisions.MethodDelete                 >+        Ref Actions.Delete                        
-      Ref Decisions.MethodDelete                 >-        Ref Decisions.MethodPatch
-      Ref Decisions.MethodGetOrHead              >+        Ref Operations.NotModified                
-      Ref Decisions.MethodGetOrHead              >-        Ref Operations.PreconditionFailed
-      Ref Decisions.MethodKnown                  >+        Ref Decisions.UriTooLong                  
-      Ref Decisions.MethodKnown                  >-        Ref Operations.UnknownMethod
-      Ref Decisions.MethodOptions                >+        Ref Operations.Options                    
-      Ref Decisions.MethodOptions                >-        Ref Decisions.MediaTypeRequested
-      Ref Decisions.MethodPatch                  >+        Ref Actions.Patch                         
-      Ref Decisions.MethodPatch                  >-        Ref Decisions.MethodPostToExisting
-      Ref Decisions.MethodPostToExisting         >+        Ref Actions.Post                          
-      Ref Decisions.MethodPostToExisting         >-        Ref Decisions.MethodPutToExisting
-      Ref Decisions.MethodPostToGone             >+        Ref Decisions.AllowPostToGone             
-      Ref Decisions.MethodPostToGone             >-        Ref Operations.Gone
-      Ref Decisions.MethodPostToMissing          >+        Ref Decisions.AllowPostToMissing          
-      Ref Decisions.MethodPostToMissing          >-        Ref Operations.NotFound
-      Ref Decisions.MethodPut                    >+        Ref Decisions.PutToDifferentUri           
-      Ref Decisions.MethodPut                    >-        Ref Decisions.Existed
-      Ref Decisions.MethodPutToExisting          >+        Ref Decisions.Conflicts                   
-      Ref Decisions.MethodPutToExisting          >-        Ref Decisions.MultipleRepresentations
-      Ref Decisions.MethodSupported              >+        Ref Decisions.Malformed                   
-      Ref Decisions.MethodSupported              >-        Ref Operations.MethodNotAllowed
+      Operation Decisions.CharsetNegotiable            >+        Operation Decisions.EncodingRequested           
+      Operation Decisions.CharsetNegotiable            >-        Operation Decisions.CharsetsStrict
+      Operation Decisions.CharsetRequested             >+        Operation Decisions.CharsetNegotiable           
+      Operation Decisions.CharsetRequested             >-        Operation Decisions.EncodingRequested
+      Operation Decisions.EncodingNegotiable           >+        Operation Decisions.Processable                 
+      Operation Decisions.EncodingNegotiable           >-        Operation Decisions.EncodingsStrict
+      Operation Decisions.EncodingRequested            >+        Operation Decisions.EncodingNegotiable          
+      Operation Decisions.EncodingRequested            >-        Operation Decisions.Processable
+      Operation Decisions.IfMatchAny                   >+        Operation Decisions.IfUnmodifiedSinceRequested  
+      Operation Decisions.IfMatchAny                   >-        Operation Decisions.ETagMatchesIf
+      Operation Decisions.IfMatchExistsForMissing      >+        Operation Operations.PreconditionFailed         
+      Operation Decisions.IfMatchExistsForMissing      >-        Operation Decisions.MethodPut
+      Operation Decisions.IfMatchRequested             >+        Operation Decisions.IfMatchAny                  
+      Operation Decisions.IfMatchRequested             >-        Operation Decisions.IfUnmodifiedSinceRequested
+      Operation Decisions.IfModifiedSinceModified      >+        Operation Decisions.MethodDelete                
+      Operation Decisions.IfModifiedSinceModified      >-        Operation Operations.NotModified
+      Operation Decisions.IfModifiedSinceRequested     >+        Operation Decisions.IfModifiedSinceValid        
+      Operation Decisions.IfModifiedSinceRequested     >-        Operation Decisions.MethodDelete
+      Operation Decisions.IfModifiedSinceValid         >+        Operation Decisions.IfModifiedSinceModified     
+      Operation Decisions.IfModifiedSinceValid         >-        Operation Decisions.MethodDelete
+      Operation Decisions.IfNoneMatchAny               >+        Operation Decisions.MethodGetOrHead             
+      Operation Decisions.IfNoneMatchAny               >-        Operation Decisions.ETagMatchesIfNone
+      Operation Decisions.IfNoneMatchRequested         >+        Operation Decisions.IfNoneMatchAny              
+      Operation Decisions.IfNoneMatchRequested         >-        Operation Decisions.IfModifiedSinceRequested
+      Operation Decisions.IfUnmodifiedSinceModified    >+        Operation Decisions.IfNoneMatchRequested        
+      Operation Decisions.IfUnmodifiedSinceModified    >-        Operation Operations.PreconditionFailed
+      Operation Decisions.IfUnmodifiedSinceRequested   >+        Operation Decisions.IfUnmodifiedSinceValid      
+      Operation Decisions.IfUnmodifiedSinceRequested   >-        Operation Decisions.IfNoneMatchRequested
+      Operation Decisions.IfUnmodifiedSinceValid       >+        Operation Decisions.IfUnmodifiedSinceModified   
+      Operation Decisions.IfUnmodifiedSinceValid       >-        Operation Decisions.IfNoneMatchRequested
+      Operation Decisions.LanguageNegotiable           >+        Operation Decisions.CharsetRequested            
+      Operation Decisions.LanguageNegotiable           >-        Operation Decisions.LanguagesStrict
+      Operation Decisions.LanguageRequested            >+        Operation Decisions.LanguageNegotiable          
+      Operation Decisions.LanguageRequested            >-        Operation Decisions.CharsetRequested
+      Operation Decisions.MediaTypeNegotiable          >+        Operation Decisions.LanguageRequested           
+      Operation Decisions.MediaTypeNegotiable          >-        Operation Decisions.MediaTypesStrict
+      Operation Decisions.MediaTypeRequested           >+        Operation Decisions.MediaTypeNegotiable         
+      Operation Decisions.MediaTypeRequested           >-        Operation Decisions.LanguageRequested
+      Operation Decisions.MethodDelete                 >+        Operation Actions.Delete                        
+      Operation Decisions.MethodDelete                 >-        Operation Decisions.MethodPatch
+      Operation Decisions.MethodGetOrHead              >+        Operation Operations.NotModified                
+      Operation Decisions.MethodGetOrHead              >-        Operation Operations.PreconditionFailed
+      Operation Decisions.MethodKnown                  >+        Operation Decisions.UriTooLong                  
+      Operation Decisions.MethodKnown                  >-        Operation Operations.UnknownMethod
+      Operation Decisions.MethodOptions                >+        Operation Operations.Options                    
+      Operation Decisions.MethodOptions                >-        Operation Decisions.MediaTypeRequested
+      Operation Decisions.MethodPatch                  >+        Operation Actions.Patch                         
+      Operation Decisions.MethodPatch                  >-        Operation Decisions.MethodPostToExisting
+      Operation Decisions.MethodPostToExisting         >+        Operation Actions.Post                          
+      Operation Decisions.MethodPostToExisting         >-        Operation Decisions.MethodPutToExisting
+      Operation Decisions.MethodPostToGone             >+        Operation Decisions.AllowPostToGone             
+      Operation Decisions.MethodPostToGone             >-        Operation Operations.Gone
+      Operation Decisions.MethodPostToMissing          >+        Operation Decisions.AllowPostToMissing          
+      Operation Decisions.MethodPostToMissing          >-        Operation Operations.NotFound
+      Operation Decisions.MethodPut                    >+        Operation Decisions.PutToDifferentUri           
+      Operation Decisions.MethodPut                    >-        Operation Decisions.Existed
+      Operation Decisions.MethodPutToExisting          >+        Operation Decisions.Conflicts                   
+      Operation Decisions.MethodPutToExisting          >-        Operation Decisions.MultipleRepresentations
+      Operation Decisions.MethodSupported              >+        Operation Decisions.Malformed                   
+      Operation Decisions.MethodSupported              >-        Operation Operations.MethodNotAllowed
 
-      Ref Decisions.ETagMatchesIf                >+        Ref Decisions.IfUnmodifiedSinceRequested  
-      Ref Decisions.ETagMatchesIf                >-        Ref Operations.PreconditionFailed
-      Ref Decisions.ETagMatchesIfNone            >+        Ref Decisions.MethodGetOrHead             
-      Ref Decisions.ETagMatchesIfNone            >-        Ref Decisions.IfModifiedSinceRequested
+      Operation Decisions.ETagMatchesIf                >+        Operation Decisions.IfUnmodifiedSinceRequested  
+      Operation Decisions.ETagMatchesIf                >-        Operation Operations.PreconditionFailed
+      Operation Decisions.ETagMatchesIfNone            >+        Operation Decisions.MethodGetOrHead             
+      Operation Decisions.ETagMatchesIfNone            >-        Operation Decisions.IfModifiedSinceRequested
 
-      Ref Decisions.Allowed                      >+        Ref Decisions.ContentTypeValid
-      Ref Decisions.Allowed                      >-        Ref Operations.Forbidden
-      Ref Decisions.Authorized                   >+        Ref Decisions.Allowed
-      Ref Decisions.Authorized                   >-        Ref Operations.Unauthorized
-      Ref Decisions.AllowPostToGone              >+        Ref Actions.Post
-      Ref Decisions.AllowPostToGone              >-        Ref Operations.Gone
-      Ref Decisions.AllowPostToMissing           >+        Ref Actions.Post
-      Ref Decisions.AllowPostToMissing           >-        Ref Operations.NotFound
-      Ref Decisions.AllowPutToMissing            >+        Ref Decisions.Conflicts
-      Ref Decisions.AllowPutToMissing            >-        Ref Operations.NotImplemented
-      Ref Decisions.CharsetsStrict               >+        Ref Operations.NotAcceptable
-      Ref Decisions.CharsetsStrict               >-        Ref Decisions.EncodingRequested
-      Ref Decisions.Conflicts                    >+        Ref Operations.Conflict
-      Ref Decisions.Conflicts                    >-        Ref Actions.Put
-      Ref Decisions.ContentTypeKnown             >+        Ref Decisions.EntityLengthValid
-      Ref Decisions.ContentTypeKnown             >-        Ref Operations.UnsupportedMediaType
-      Ref Decisions.ContentTypeValid             >+        Ref Decisions.ContentTypeKnown
-      Ref Decisions.ContentTypeValid             >-        Ref Operations.NotImplemented
-      Ref Decisions.Created                      >+        Ref Operations.Created
-      Ref Decisions.Created                      >-        Ref Decisions.RespondWithEntity
-      Ref Decisions.Deleted                      >+        Ref Decisions.RespondWithEntity
-      Ref Decisions.Deleted                      >-        Ref Operations.Accepted
-      Ref Decisions.EncodingsStrict              >+        Ref Operations.NotAcceptable
-      Ref Decisions.EncodingsStrict              >-        Ref Decisions.Processable
-      Ref Decisions.EntityLengthValid            >+        Ref Decisions.MethodOptions
-      Ref Decisions.EntityLengthValid            >-        Ref Operations.RequestEntityTooLarge
-      Ref Decisions.Existed                      >+        Ref Decisions.MovedPermanently
-      Ref Decisions.Existed                      >-        Ref Decisions.MethodPostToMissing
-      Ref Decisions.Exists                       >+        Ref Decisions.IfMatchRequested
-      Ref Decisions.Exists                       >-        Ref Decisions.IfMatchExistsForMissing
-      Ref Decisions.LanguagesStrict              >+        Ref Operations.NotAcceptable
-      Ref Decisions.LanguagesStrict              >-        Ref Decisions.CharsetRequested
-      Ref Decisions.Malformed                    >+        Ref Operations.BadRequest
-      Ref Decisions.Malformed                    >-        Ref Decisions.Authorized
-      Ref Decisions.MediaTypesStrict             >+        Ref Operations.NotAcceptable
-      Ref Decisions.MediaTypesStrict             >-        Ref Decisions.LanguageRequested
-      Ref Decisions.MovedPermanently             >+        Ref Operations.MovedPermanently
-      Ref Decisions.MovedPermanently             >-        Ref Decisions.MovedTemporarily
-      Ref Decisions.MovedTemporarily             >+        Ref Operations.MovedTemporarily
-      Ref Decisions.MovedTemporarily             >-        Ref Decisions.MethodPostToGone
-      Ref Decisions.MultipleRepresentations      >+        Ref Operations.MultipleRepresentations
-      Ref Decisions.MultipleRepresentations      >-        Ref Operations.OK
-      Ref Decisions.PostRedirect                 >+        Ref Operations.SeeOther
-      Ref Decisions.PostRedirect                 >-        Ref Decisions.Created
-      Ref Decisions.Processable                  >+        Ref Decisions.Exists
-      Ref Decisions.Processable                  >-        Ref Operations.UnprocessableEntity
-      Ref Decisions.PutToDifferentUri            >+        Ref Operations.MovedPermanently
-      Ref Decisions.PutToDifferentUri            >-        Ref Decisions.AllowPutToMissing
-      Ref Decisions.RespondWithEntity            >+        Ref Decisions.MultipleRepresentations
-      Ref Decisions.RespondWithEntity            >-        Ref Operations.NoContent
-      Ref Decisions.ServiceAvailable             >+        Ref Decisions.MethodKnown
-      Ref Decisions.ServiceAvailable             >-        Ref Operations.ServiceUnavailable
-      Ref Decisions.UriTooLong                   >+        Ref Operations.UriTooLong
-      Ref Decisions.UriTooLong                   >-        Ref Decisions.MethodSupported ]
+      Operation Decisions.Allowed                      >+        Operation Decisions.ContentTypeValid
+      Operation Decisions.Allowed                      >-        Operation Operations.Forbidden
+      Operation Decisions.Authorized                   >+        Operation Decisions.Allowed
+      Operation Decisions.Authorized                   >-        Operation Operations.Unauthorized
+      Operation Decisions.AllowPostToGone              >+        Operation Actions.Post
+      Operation Decisions.AllowPostToGone              >-        Operation Operations.Gone
+      Operation Decisions.AllowPostToMissing           >+        Operation Actions.Post
+      Operation Decisions.AllowPostToMissing           >-        Operation Operations.NotFound
+      Operation Decisions.AllowPutToMissing            >+        Operation Decisions.Conflicts
+      Operation Decisions.AllowPutToMissing            >-        Operation Operations.NotImplemented
+      Operation Decisions.CharsetsStrict               >+        Operation Operations.NotAcceptable
+      Operation Decisions.CharsetsStrict               >-        Operation Decisions.EncodingRequested
+      Operation Decisions.Conflicts                    >+        Operation Operations.Conflict
+      Operation Decisions.Conflicts                    >-        Operation Actions.Put
+      Operation Decisions.ContentTypeKnown             >+        Operation Decisions.EntityLengthValid
+      Operation Decisions.ContentTypeKnown             >-        Operation Operations.UnsupportedMediaType
+      Operation Decisions.ContentTypeValid             >+        Operation Decisions.ContentTypeKnown
+      Operation Decisions.ContentTypeValid             >-        Operation Operations.NotImplemented
+      Operation Decisions.Created                      >+        Operation Operations.Created
+      Operation Decisions.Created                      >-        Operation Decisions.RespondWithEntity
+      Operation Decisions.Deleted                      >+        Operation Decisions.RespondWithEntity
+      Operation Decisions.Deleted                      >-        Operation Operations.Accepted
+      Operation Decisions.EncodingsStrict              >+        Operation Operations.NotAcceptable
+      Operation Decisions.EncodingsStrict              >-        Operation Decisions.Processable
+      Operation Decisions.EntityLengthValid            >+        Operation Decisions.MethodOptions
+      Operation Decisions.EntityLengthValid            >-        Operation Operations.RequestEntityTooLarge
+      Operation Decisions.Existed                      >+        Operation Decisions.MovedPermanently
+      Operation Decisions.Existed                      >-        Operation Decisions.MethodPostToMissing
+      Operation Decisions.Exists                       >+        Operation Decisions.IfMatchRequested
+      Operation Decisions.Exists                       >-        Operation Decisions.IfMatchExistsForMissing
+      Operation Decisions.LanguagesStrict              >+        Operation Operations.NotAcceptable
+      Operation Decisions.LanguagesStrict              >-        Operation Decisions.CharsetRequested
+      Operation Decisions.Malformed                    >+        Operation Operations.BadRequest
+      Operation Decisions.Malformed                    >-        Operation Decisions.Authorized
+      Operation Decisions.MediaTypesStrict             >+        Operation Operations.NotAcceptable
+      Operation Decisions.MediaTypesStrict             >-        Operation Decisions.LanguageRequested
+      Operation Decisions.MovedPermanently             >+        Operation Operations.MovedPermanently
+      Operation Decisions.MovedPermanently             >-        Operation Decisions.MovedTemporarily
+      Operation Decisions.MovedTemporarily             >+        Operation Operations.MovedTemporarily
+      Operation Decisions.MovedTemporarily             >-        Operation Decisions.MethodPostToGone
+      Operation Decisions.MultipleRepresentations      >+        Operation Operations.MultipleRepresentations
+      Operation Decisions.MultipleRepresentations      >-        Operation Operations.OK
+      Operation Decisions.PostRedirect                 >+        Operation Operations.SeeOther
+      Operation Decisions.PostRedirect                 >-        Operation Decisions.Created
+      Operation Decisions.Processable                  >+        Operation Decisions.Exists
+      Operation Decisions.Processable                  >-        Operation Operations.UnprocessableEntity
+      Operation Decisions.PutToDifferentUri            >+        Operation Operations.MovedPermanently
+      Operation Decisions.PutToDifferentUri            >-        Operation Decisions.AllowPutToMissing
+      Operation Decisions.RespondWithEntity            >+        Operation Decisions.MultipleRepresentations
+      Operation Decisions.RespondWithEntity            >-        Operation Operations.NoContent
+      Operation Decisions.ServiceAvailable             >+        Operation Decisions.MethodKnown
+      Operation Decisions.ServiceAvailable             >-        Operation Operations.ServiceUnavailable
+      Operation Decisions.UriTooLong                   >+        Operation Operations.UriTooLong
+      Operation Decisions.UriTooLong                   >-        Operation Decisions.MethodSupported ]

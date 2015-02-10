@@ -30,7 +30,7 @@ open Freya.Pipeline
    an empty machine specification with no existing configuration
    and no extensions (not a machine which will do much). *)
 
-let private defaultFreyaMachineSpecification =
+let private defaultSpecification =
     { Configuration = 
         { Data = Map.empty }
       Extensions = Set.empty }
@@ -41,13 +41,12 @@ let private defaultFreyaMachineSpecification =
    compilation of the specification to a compilation map. *)
 
 let reifyMachine (machine: FreyaMachine) =
-    let spec = snd (machine defaultFreyaMachineSpecification)
-    let graph = generateGraph spec
-    let comp = compileGraph graph spec
-    let record = freyaMachineGraphRecord comp
+    let spec = snd (machine defaultSpecification)
+    let graph = compile spec
+    let record = record graph
 
     freya {
         do! setFreyaMachineGraphRecord record
-        do! executeCompilation comp
+        do! execute graph
 
         return Halt }

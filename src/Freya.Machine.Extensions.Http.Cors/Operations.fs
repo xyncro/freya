@@ -31,8 +31,8 @@ open Freya.Types.Http.Cors
 (* Operations *)
 
 let private systemOperation f =
-    Unary (fun c ->
-        unconfigurable, f c)
+    Some (NodeCompiler (fun config ->
+        Unary (f config), unconfigurable))
 
 let private corsActual config =
     Cors.actual
@@ -50,10 +50,10 @@ let private corsPreflight config =
 (* Graph *)
 
 let operations =
-    [ Ref Operations.CorsActual                  =.        systemOperation corsActual
-      Ref Operations.CorsPreflight               =.        systemOperation corsPreflight
-      Ref Operations.CorsOrigin                  =.        systemOperation corsOrigin
+    [ Operation Operations.CorsActual                  =.        systemOperation corsActual
+      Operation Operations.CorsPreflight               =.        systemOperation corsPreflight
+      Operation Operations.CorsOrigin                  =.        systemOperation corsOrigin
       
-      Ref Operations.CorsActual                  >.        Ref Operations.CorsOrigin
-      Ref Operations.CorsPreflight               >.        Ref Operations.CorsOrigin
-      Ref Operations.CorsOrigin                  >.        Ref Decisions.MethodOptions ]
+      Operation Operations.CorsActual                  >.        Operation Operations.CorsOrigin
+      Operation Operations.CorsPreflight               >.        Operation Operations.CorsOrigin
+      Operation Operations.CorsOrigin                  >.        Operation Decisions.MethodOptions ]
