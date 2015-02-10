@@ -12,4 +12,3 @@ nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake
 nuget Nuget.CommandLine
-nuget Hekate
