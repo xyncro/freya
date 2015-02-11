@@ -31,8 +31,8 @@ open Freya.Types.Http.Cors
 (* Operations *)
 
 let private systemOperation f =
-    Some (NodeCompiler (fun config ->
-        Unary (f config), unconfigurable))
+    Some (Compile (fun config ->
+        Compiled (Unary (f config), unconfigurable)))
 
 let private corsActual config =
     Cors.actual

@@ -42,11 +42,11 @@ let private defaultSpecification =
 
 let reifyMachine (machine: FreyaMachine) =
     let spec = snd (machine defaultSpecification)
-    let graph = compile spec
-    let record = record graph
+    let execution, metadata = compile spec
+    let record = record metadata
 
     freya {
         do! setFreyaMachineGraphRecord record
-        do! execute graph
+        do! execute execution
 
         return Halt }

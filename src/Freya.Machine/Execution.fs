@@ -73,11 +73,11 @@ let private (|Finish|_|) =
              | _ -> None
 
 let private (|Unary|_|) =
-    function | Some (Operation v, Some (Node (Unary m, _))) -> Some (flip (next (Operation v)), v, m)
+    function | Some (Operation v, Some (Unary m)) -> Some (flip (next (Operation v)), v, m)
              | _ -> None
 
 let private (|Binary|_|) =
-    function | Some (Operation v, Some (Node (Binary m, _))) -> Some (flip (next (Operation v)), v, m)
+    function | Some (Operation v, Some (Binary m)) -> Some (flip (next (Operation v)), v, m)
              | _ -> None
 
 let execute (graph: ExecutionGraph) =

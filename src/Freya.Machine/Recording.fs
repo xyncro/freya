@@ -115,14 +115,14 @@ let private (|StartOrFinish|_|) =
              | _ -> None
 
 let private (|Unary|_|) =
-    function | Name n, Some (Node (Unary _, c)) -> Some (n, "unary", c.Configurable, c.Configured)
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "unary", c.Configurable, c.Configured)
              | _ -> None
 
 let private (|Binary|_|) =
-    function | Name n, Some (Node (Binary _, c)) -> Some (n, "binary", c.Configurable, c.Configured)
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let internal record (graph: ExecutionGraph) =
+let internal record (graph: MetadataGraph) =
     { Nodes =
         Graph.nodes graph
         |> List.map (fun (v, l) ->

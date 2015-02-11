@@ -23,7 +23,6 @@ module Freya.Machine.Types
 
 open System
 open Freya.Core
-open Hekate
 
 (* Configuration *)
 
@@ -33,35 +32,38 @@ type FreyaMachineConfiguration =
     static member DataLens =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-(* Node *)
+(* Nodes *)
 
 type FreyaMachineNode =
     | Start
     | Operation of string
     | Finish
 
-(* Node Label *)
+(* Edges *)
 
-type FreyaMachineNodeLabel =
-    | Node of FreyaMachineOperation * FreyaMachineOperationMetadata
+type FreyaMachineEdge =
+    | Edge of bool
 
-and FreyaMachineOperation =
+(* Operations *)
+
+type FreyaMachineOperation =
     | Unary of Freya<unit>
     | Binary of Freya<bool>
 
-and FreyaMachineOperationMetadata =
+type FreyaMachineOperationMetadata =
     { Configurable: bool
       Configured: bool }
 
-(* Edge Label *)
+(* Compilation *)
 
-type FreyaMachineEdgeLabel =
-    | Edge of bool
+type FreyaMachineCompiler =
+    | Compile of FreyaMachineCompile
 
-(* Builders *)
+and FreyaMachineCompile =
+    FreyaMachineConfiguration -> FreyaMachineCompilation
 
-type FreyaMachineNodeCompiler =
-    | NodeCompiler of (FreyaMachineConfiguration -> (FreyaMachineOperation * FreyaMachineOperationMetadata))
+and FreyaMachineCompilation =
+    | Compiled of FreyaMachineOperation * FreyaMachineOperationMetadata
 
 (* Extension *)
 
@@ -87,9 +89,9 @@ type FreyaMachineExtension =
             compareOn FreyaMachineExtension.Comparable x y
 
 and FreyaMachineExtensionOperation =
-    | AddNode of FreyaMachineNode * FreyaMachineNodeCompiler option
+    | AddNode of FreyaMachineNode * FreyaMachineCompiler option
     | RemoveNode of FreyaMachineNode
-    | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdgeLabel option
+    | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdge option
     | RemoveEdge of FreyaMachineNode * FreyaMachineNode
 
 (* Computation Expression *)

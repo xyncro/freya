@@ -29,13 +29,13 @@ open Freya.Types.Http
 (* Decisions *)
 
 let private systemDecision f =
-    Some (NodeCompiler (fun config -> 
-        Binary (f config), unconfigurable))
+    Some (Compile (fun config -> 
+        Compiled (Binary (f config), unconfigurable)))
 
 let private userDecision key def =
-    Some (NodeCompiler (tryGetConfig key
-        >> Option.map (fun x -> Binary x, configured)
-        >> Option.orElse (Binary (Freya.init def), unconfigured)))
+    Some (Compile (tryGetConfig key
+        >> Option.map (fun x -> Compiled (Binary x, configured))
+        >> Option.orElse (Compiled (Binary (Freya.init def), unconfigured))))
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable

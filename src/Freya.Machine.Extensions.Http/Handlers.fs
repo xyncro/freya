@@ -110,10 +110,10 @@ let private handle config m =
         do! data representation.Data }
 
 let private userHandler key =
-    Some (NodeCompiler (fun config ->
+    Some (Compile (fun config ->
         tryGetConfig key config
-        |> Option.map (fun m -> Unary (handle config m), configured)
-        |> Option.orElse (Unary (Freya.init ()), unconfigured)))
+        |> Option.map (fun m -> Compiled (Unary (handle config m), configured))
+        |> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 
 (* Graph *)
 

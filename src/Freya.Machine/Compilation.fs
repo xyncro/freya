@@ -30,13 +30,16 @@ open Hekate
    types to signify internal intermediary stages of compilation. *)
 
 type ExecutionGraph =
-    Graph<FreyaMachineNode, FreyaMachineNodeLabel option, FreyaMachineEdgeLabel option>
+    Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
 
-type private BuildGraph =
-    Graph<FreyaMachineNode, FreyaMachineNodeCompiler option, FreyaMachineEdgeLabel option>
+type MetadataGraph =
+    Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
+
+type private SourceGraph =
+    Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
 type private Extension =
-    | Extended of BuildGraph
+    | Extended of SourceGraph
     | Invalid
 
 type private Ordering =
@@ -109,16 +112,20 @@ let private extend extensions g =
    ordering), before compiling the BuildGraph to an Execution graph (by
    applying the compiler functions at nodes when present). *)
 
-let private defaultBuildGraph : BuildGraph =
+let private defaultSourceGraph : SourceGraph =
     Graph.create
         [ Start, None
           Finish, None ]
         [ Start, Finish, None ]
 
-let private build config : BuildGraph -> ExecutionGraph =
-    Graph.mapNodes (Option.map (fun (NodeCompiler n) -> Node (n config)))
+let private build config graph =
+    let g1 = Graph.mapNodes (Option.map (fun (Compile n) -> n config)) graph
+    let g2 = Graph.mapNodes (Option.map (fun (Compiled (o, _)) -> o)) g1
+    let g3 = Graph.mapNodes (Option.map (fun (Compiled (_, m)) -> m)) g1
 
-let compile (s: FreyaMachineSpecification) : ExecutionGraph =
-    match extend s.Extensions defaultBuildGraph with
-    | Extended g -> build s.Configuration g
+    g2, g3
+
+let compile (spec: FreyaMachineSpecification) : (ExecutionGraph * MetadataGraph) =
+    match extend spec.Extensions defaultSourceGraph with
+    | Extended g -> build spec.Configuration g
     | Invalid -> failwith ""

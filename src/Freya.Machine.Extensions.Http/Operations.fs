@@ -67,8 +67,8 @@ let status =
 (* Operations *)
 
 let systemOperation f =
-    Some (NodeCompiler (fun config ->
-        Unary (f config), unconfigurable))
+    Some (Compile (fun config ->
+        Compiled (Unary (f config), unconfigurable)))
 
 let accepted _ =
        status 202

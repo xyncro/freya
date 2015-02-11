@@ -28,9 +28,9 @@ open Freya.Machine.Operators
 (* Actions *)
 
 let private userAction key =
-    Some (NodeCompiler (tryGetConfig key
-        >> Option.map (fun x -> Unary x, configured)
-        >> Option.orElse (Unary (Freya.init ()), unconfigured)))
+    Some (Compile (tryGetConfig key
+        >> Option.map (fun x -> Compiled (Unary x, configured))
+        >> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 
 (* Graph *)
 

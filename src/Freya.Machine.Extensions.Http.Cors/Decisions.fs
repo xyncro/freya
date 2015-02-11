@@ -31,8 +31,8 @@ open Freya.Types.Http.Cors
 (* Decisions *)
 
 let private systemDecision f =
-    Some (NodeCompiler (fun config -> 
-        Binary (f config), unconfigurable))
+    Some (Compile (fun config -> 
+        Compiled (Binary (f config), unconfigurable)))
 
 let private corsEnabled config =
     Cors.enabled
