@@ -42,3 +42,4 @@ tools/
 .paket/paket.exe
 *ncrunch*
 *.userprefs
+AssemblyInfo.fs
