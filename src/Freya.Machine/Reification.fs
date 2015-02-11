@@ -22,6 +22,7 @@
 module internal Freya.Machine.Reification
 
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Pipeline
 
 (* Defaults
@@ -35,18 +36,23 @@ let private defaultSpecification =
         { Data = Map.empty }
       Extensions = Set.empty }
 
+(* Run *)
+
+let private run record exec =
+        setFreyaMachineGraphRecord record
+     *> execute exec
+     *> halt
+
 (* Reification
 
    Reify the specification of a machine into a pipeline function via
    compilation of the specification to a compilation map. *)
 
-let reifyMachine (machine: FreyaMachine) =
-    let spec = snd (machine defaultSpecification)
-    let execution, metadata = compile spec
-    let record = record metadata
-
-    freya {
-        do! setFreyaMachineGraphRecord record
-        do! execute execution
-
-        return Halt }
+let reify machine =   
+    match compile (snd (machine defaultSpecification)) with
+    | Compiled (exec, meta) ->
+        match verify exec with
+        | Verified exec -> run (record meta) exec
+        | Verification.Error e -> failwith e
+    | _ ->
+        failwith ""

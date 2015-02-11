@@ -160,15 +160,20 @@ let freyaMachineRecordPLens =
 
 (* Recording *)
 
+let private recordPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.GraphLens
+
+let private executionPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.ExecutionLens 
+    >?-> FreyaMachineExecutionRecord.NodesLens
+
 let initializeFreyaMachineRecord =
     updateRecord (setPL freyaMachineRecordPLens defaultFreyaMachineRecord)
 
 let internal setFreyaMachineGraphRecord graph =
-    updateRecord (setPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.GraphLens) graph)
+    updateRecord (setPL recordPLens graph)
 
 let internal addFreyaMachineExecutionRecord id =
-    updateRecord (modPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.ExecutionLens 
-                         >?-> FreyaMachineExecutionRecord.NodesLens)
-                        (fun es -> es @ [ { Id = id } ]))
+    updateRecord (modPL executionPLens (fun es -> es @ [ { Id = id } ]))

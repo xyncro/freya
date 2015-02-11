@@ -38,13 +38,17 @@ type MetadataGraph =
 type private SourceGraph =
     Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
-type private Extension =
-    | Extended of SourceGraph
-    | Invalid
+type Compilation =
+    | Compiled of ExecutionGraph * MetadataGraph
+    | Error of string
 
 type private Ordering =
     | Ordered of FreyaMachineExtension list
-    | Cyclic
+    | Error
+
+type private Extension =
+    | Extended of SourceGraph
+    | Error
 
 (* Ordering
 
@@ -60,9 +64,9 @@ let private nodes =
     List.map (fun e -> e.Name, e)
 
 let private edges =
-       List.map (fun e -> e.Name, Set.toList e.Dependencies)
-    >> List.map (fun (e, es) -> List.map (fun e' -> e', e, ()) es)
-    >> List.concat
+        List.map (fun e -> e.Name, Set.toList e.Dependencies)
+     >> List.map (fun (e, es) -> List.map (fun e' -> e', e, ()) es)
+     >> List.concat
 
 let private graph extensions =
     Graph.create (nodes extensions) (edges extensions)
@@ -76,12 +80,12 @@ let rec private sort extensions graph =
     match independent graph with
     | Some (e, g) -> sort (e :: extensions) g
     | _ when Graph.isEmpty graph -> Ordered extensions
-    | _ -> Cyclic
+    | _ -> Ordering.Error
 
 let private order =
-       Set.toList 
-    >> graph 
-    >> sort []
+        Set.toList 
+     >> graph 
+     >> sort []
 
 (* Application
 
@@ -101,9 +105,7 @@ let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
 let private extend extensions g =
-    match order extensions with
-    | Ordered es -> Extended (applyExtensions es g)
-    | Cyclic -> Invalid
+    Extended (applyExtensions extensions g)
 
 (* Compilation
 
@@ -120,12 +122,18 @@ let private defaultSourceGraph : SourceGraph =
 
 let private build config graph =
     let g1 = Graph.mapNodes (Option.map (fun (Compile n) -> n config)) graph
-    let g2 = Graph.mapNodes (Option.map (fun (Compiled (o, _)) -> o)) g1
-    let g3 = Graph.mapNodes (Option.map (fun (Compiled (_, m)) -> m)) g1
+    let g2 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
+    let g3 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
 
     g2, g3
 
-let compile (spec: FreyaMachineSpecification) : (ExecutionGraph * MetadataGraph) =
-    match extend spec.Extensions defaultSourceGraph with
-    | Extended g -> build spec.Configuration g
-    | Invalid -> failwith ""
+let compile (spec: FreyaMachineSpecification) =
+    match order spec.Extensions with
+    | Ordered extensions ->
+        match extend extensions defaultSourceGraph with
+        | Extended source ->
+            Compiled (build spec.Configuration source)
+        | _ ->
+            Compilation.Error ""
+    | _ ->
+        Compilation.Error ""
