@@ -21,15 +21,32 @@
 [<AutoOpen>]
 module internal Freya.Machine.Verification
 
+(* NOTE: This verification system is rather basic at the moment
+   and everything down to the stylistic choice of design (perhaps
+   *especially* the stylistic choice of design!) is open to
+   reconsideration and suggestion.
+
+   Ideally a fairly declarative system of constraints might be
+   designed, which would possibly have relevance to being ported
+   back in to the core Hekate library. *)
+
 open Hekate
 
-(* Types *)
+(* Types
+
+   Type supporting the verification of execution graphs, by a set of
+   graph postconditions, ensuring some level of runtime safety when
+   executing a verified graph. *)
 
 type Verification =
     | Verified of ExecutionGraph
     | Error of string
 
-(* Combinators *)
+(* Operators
+
+   Simple operator based functions for expressing the combinations and
+   multiple applications of property constraints to projections of an
+   execution graph. *)
 
 let private (.&) v1 v2 =
     fun g ->
@@ -53,7 +70,11 @@ let private binaryNodes =
      >> List.choose (function | (v, Some (Binary _)) -> Some v
                               | _ -> None)
 
-(* Properties *)
+(* Properties
+
+   Property based verifications of singlular "facts" which should be true
+   about an entity, in this case properties of nodes, though this may well be
+   extended. *)
 
 let private exists v g =
     Graph.tryFindNode v g
@@ -77,8 +98,11 @@ let private hasBinarySuccessors v g =
 
 (* Constraints
 
-   Functions for static verification of the eventual graph, based on
-   required properties of the eventual execution graph. *)
+   Constraints defined as composites of property constraints, based
+   on individual node types within execution graphs. This set of
+   constraints should potentially be extended, especially to check
+   for aberrant cases of the graph overall (cyclic paths, etc.) when
+   Hekate supports more general algorithms over graphs. *)
 
 let private start =
         exists Start
@@ -94,7 +118,13 @@ let private unary =
 let private binary =
     binaryNodes .* hasBinarySuccessors
 
-(* Verification *)
+(* Verification
+
+   Verification of execution graphs, given some reasonable set of
+   constraints. Implicitly this forms a postcondition for graph construction.
+   It would be nice to find ways of making safety more available at
+   compile time, but given the limitations of the type system at
+   the moment, this is a reasonable compromise. *)
 
 let private verifications =
     [ start
@@ -105,5 +135,5 @@ let private verifications =
 let private apply g s v =
     ((fun _ -> s) .& v) g
 
-let verify (graph: ExecutionGraph) =
-    List.fold (apply graph) (Verified graph) verifications
+let verify exec =
+    List.fold (apply exec) (Verified exec) verifications

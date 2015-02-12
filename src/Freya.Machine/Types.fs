@@ -108,3 +108,14 @@ and FreyaMachineSpecification =
 
     static member ExtensionsLens =
         (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })
+
+(* Defaults
+
+   Default instances of data types, in this case
+   an empty machine specification with no existing configuration
+   and no extensions (not a machine which will do much). *)
+
+let internal defaultFreyaMachineSpecification =
+    { Configuration = 
+        { Data = Map.empty }
+      Extensions = Set.empty }

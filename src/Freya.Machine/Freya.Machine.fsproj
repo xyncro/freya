@@ -54,6 +54,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Configuration.fs" />
+    <Compile Include="Precompilation.fs" />
     <Compile Include="Compilation.fs" />
     <Compile Include="Verification.fs" />
     <Compile Include="Recording.fs" />

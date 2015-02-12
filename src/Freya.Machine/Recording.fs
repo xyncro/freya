@@ -28,6 +28,13 @@ open Fleece.Operators
 open Hekate
 open Freya.Recorder
 
+(* Errors *)
+
+exception RecordingError of string
+
+let private fail e =
+    raise (RecordingError e)
+
 (* Keys *)
 
 let [<Literal>] freyaMachineRecordKey =
@@ -122,23 +129,23 @@ let private (|Binary|_|) =
     function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let internal record (graph: MetadataGraph) =
+let internal record meta =
     { Nodes =
-        Graph.nodes graph
+        Graph.nodes meta
         |> List.map (fun (v, l) ->
             let id, t, c1, c2 =
                 match v, l with
                 | StartOrFinish x 
                 | Unary x 
                 | Binary x -> x
-                | _ -> failwith ""
+                | _ -> fail "Recording Node Match Failure"
                     
             { Id = id
               Type = t
               Configurable = c1
               Configured = c2 })
       Edges =
-        Graph.edges graph
+        Graph.edges meta
         |> List.map (fun (Name v1, Name v2, l) ->
             { From =  v1
               To = v2

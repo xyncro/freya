@@ -25,6 +25,18 @@ open Freya.Core
 open Freya.Core.Operators
 open Hekate
 
+(* Errors
+
+   Execution may (although should not) fail at runtime. Though
+   the possibility of this for reasons captured by the type system
+   should be small due to the verification system, we raise a specific
+   error type in this instance. *)
+
+exception ExecutionError of string
+
+let private fail e =
+    raise (ExecutionError e)
+
 (* Operations
 
    Functions representing the execution and recording of monadic
@@ -35,7 +47,7 @@ let private record =
     addFreyaMachineExecutionRecord
 
 let private start =
-        record "start" 
+        record "start"
      *> Freya.init None
 
 let private finish =
@@ -54,7 +66,7 @@ let private binary v operation =
 
 (* Execution
 
-   Functions for executing against an ExecutionGraph, traversing the
+   Functions for executing against an execution graph, traversing the
    graph until either a Finish node is reached, or a node is
    unreachable, whether because the current node has no matching successors,
    or because the next node can't be found. *)
@@ -80,18 +92,18 @@ let private (|Binary|_|) =
     function | Some (Operation v, Some (Binary m)) -> Some (flip (next (Operation v)), v, m)
              | _ -> None
 
-let execute (graph: ExecutionGraph) =
+let execute exec =
     let rec eval node =
         freya {
             match node with
             | Some node ->
-                match Graph.tryFindNode node graph with
-                | Start (f) -> return! f graph <!> start >>= eval
+                match Graph.tryFindNode node exec with
+                | Start (f) -> return! f exec <!> start >>= eval
                 | Finish -> return! finish
-                | Unary (f, v, m) -> return! f graph <!> unary v m >>= eval
-                | Binary (f, v, m) -> return! f graph <!> binary v m >>= eval
-                | _ -> failwith (sprintf "Next Node %A Not Found" node)
+                | Unary (f, v, m) -> return! f exec <!> unary v m >>= eval
+                | Binary (f, v, m) -> return! f exec <!> binary v m >>= eval
+                | _ -> fail (sprintf "Next Node %A Not Found" node)
             | _ ->
-                failwith (sprintf "Next Node %A Not Determined" node) }
+                fail (sprintf "Next Node %A Not Determined" node) }
 
     eval (Some Start)

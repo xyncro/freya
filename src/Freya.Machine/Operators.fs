@@ -20,11 +20,10 @@
 
 module Freya.Machine.Operators
 
-(* Definition
+(* Extension
 
-   Infix operators for working with definition graphs, producing
-   definition graph operations. Combined, these operators enable a
-   moderately visual DSL for working with definition graphs. *)
+   Infix operators for working with graph extensions, as part
+   of the general model of machine extensions. *)
 
 let (=.) id n =
     AddNode (id, n)
