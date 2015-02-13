@@ -73,7 +73,7 @@ let rec private add node =
     function | (segment :: path, pipeline, meth) -> 
                 (find segment node |> update segment path pipeline meth) node
              | (_, pipeline, meth) -> 
-                modL CompilationTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
+                Lens.map CompilationTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
 
 and private find segment =
     function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = segment) x
@@ -83,10 +83,10 @@ and private update segment path pipeline meth =
              | _ -> append segment path pipeline meth
 
 and private extend i path pipeline meth =
-    modPL (childPLens i) (flip add (path, pipeline, meth))
+    Lens.mapPartial (childPLens i) (flip add (path, pipeline, meth))
 
 and private append segment path pipeline meth =
-    modL CompilationTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
+    Lens.map CompilationTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
 
 let private addRoute route =
     (flip add) (segmentize route.Path, route.Pipeline, route.Method)

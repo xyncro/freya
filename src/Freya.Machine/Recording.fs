@@ -177,10 +177,10 @@ let private executionPLens =
     >?-> FreyaMachineExecutionRecord.NodesLens
 
 let initializeFreyaMachineRecord =
-    updateRecord (setPL freyaMachineRecordPLens defaultFreyaMachineRecord)
+    updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)
 
 let internal setFreyaMachineGraphRecord graph =
-    updateRecord (setPL recordPLens graph)
+    updateRecord (Lens.setPartial recordPLens graph)
 
 let internal addFreyaMachineExecutionRecord id =
-    updateRecord (modPL executionPLens (fun es -> es @ [ { Id = id } ]))
+    updateRecord (Lens.mapPartial executionPLens (fun es -> es @ [ { Id = id } ]))

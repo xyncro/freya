@@ -128,26 +128,26 @@ let private add chan newTodo =
     newTodo
     |> todo
     |> reply chan
-    |> (fun todo -> modL StorageState.TodosLens (Map.add todo.Id todo))
+    |> (fun todo -> Lens.map StorageState.TodosLens (Map.add todo.Id todo))
 
 let private clear chan =
     ()
     |> reply chan
-    |> (fun () -> setL StorageState.TodosLens Map.empty)
+    |> (fun () -> Lens.set StorageState.TodosLens Map.empty)
 
 let private delete chan id =
     ()
     |> reply chan
-    |> (fun _ -> modL StorageState.TodosLens (Map.remove id))
+    |> (fun _ -> Lens.map StorageState.TodosLens (Map.remove id))
 
 let private get chan id state =
-    getL StorageState.TodosLens state
+    Lens.get StorageState.TodosLens state
     |> Map.tryFind id
     |> reply chan
     |> (fun _ -> state)
 
 let private list chan state =
-    getL StorageState.TodosLens state
+    Lens.get StorageState.TodosLens state
     |> Map.toList
     |> List.map snd
     |> reply chan

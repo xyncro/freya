@@ -34,7 +34,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL freyaRouterRecordPLens >> Option.map toJSON
+    Lens.getPartial freyaRouterRecordPLens >> Option.map toJSON
 
 let private inspection =
     { Data = data }
