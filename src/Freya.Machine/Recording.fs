@@ -23,8 +23,8 @@ module Freya.Machine.Recording
 
 open Aether
 open Aether.Operators
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
 open Hekate
 open Freya.Recorder
 
