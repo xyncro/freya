@@ -59,18 +59,18 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = modL StorageState.RecordsLens (Seq.append [ record id ] >> Seq.truncate 10) state
+        let state = Lens.map StorageState.RecordsLens (Seq.append [ record id ] >> Seq.truncate 10) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = modL StorageState.RecordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
+        let state = Lens.map StorageState.RecordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
         state
     | Read (id, chan) ->
-        let x = (getL StorageState.RecordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
+        let x = (Lens.get StorageState.RecordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
         chan.Reply (x)
         state
     | List (chan) ->
-        let x = getL StorageState.RecordsLens state
+        let x = Lens.get StorageState.RecordsLens state
         chan.Reply (List.ofSeq x)
         state
 

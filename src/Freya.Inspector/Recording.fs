@@ -56,4 +56,4 @@ let internal freyaRequestRecordPLens =
 (* Functions *)
 
 let internal initializeFreyaRequestRecord meth path =
-    updateRecord (setPL freyaRequestRecordPLens (freyaRequestRecord meth path))
+    updateRecord (Lens.setPartial freyaRequestRecordPLens (freyaRequestRecord meth path))

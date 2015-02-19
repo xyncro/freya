@@ -31,7 +31,7 @@ let private testLens =
 (* Functions *)
 
 let private get =
-    getPL testLens
+    Lens.getPartial testLens
 
 let private set i =
     setPLM testLens i *> next

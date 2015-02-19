@@ -31,4 +31,4 @@ type FreyaMachineBuilder with
 
     [<CustomOperation ("using", MaintainsVariableSpaceUsingBind = true)>]
     member x.Using (m, extension) =
-        x.Map (m, modL FreyaMachineSpecification.ExtensionsLens (Set.add extension))
+        x.Map (m, Lens.map FreyaMachineSpecification.ExtensionsLens (Set.add extension))

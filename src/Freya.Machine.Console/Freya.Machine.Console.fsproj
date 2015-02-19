@@ -195,7 +195,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0')">
       <ItemGroup>
         <Reference Include="LinqBridge">
           <HintPath>..\..\packages\LinqBridge\lib\net20\LinqBridge.dll</HintPath>

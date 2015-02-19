@@ -110,17 +110,23 @@ let freyaRouterRecordPLens =
 
 (* Recording *)
 
+let private triePLens =
+         freyaRouterRecordPLens
+    >?-> FreyaRouterRecord.TrieLens
+
+let private executionPLens =
+         freyaRouterRecordPLens
+    >?-> FreyaRouterRecord.ExecutionLens
+    >?-> FreyaRouterExecutionRecord.TriesLens
+
 let initializeFreyaRouterRecord =
-    updateRecord (setPL freyaRouterRecordPLens freyaRouterRecord)
+    updateRecord (Lens.setPartial freyaRouterRecordPLens freyaRouterRecord)
 
 let internal setFreyaRouterTrieRecord trie =
-    updateRecord (setPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.TrieLens) trie)
+    updateRecord (Lens.setPartial triePLens trie)
 
 let internal addFreyaRouterExecutionRecord key value result =
-    updateRecord (modPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.ExecutionLens
-                         >?-> FreyaRouterExecutionRecord.TriesLens)
+    updateRecord (Lens.mapPartial executionPLens
                         (fun x -> x @ [ { Key = key
                                           Value = value
                                           Result = result } ]))

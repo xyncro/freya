@@ -20,26 +20,25 @@
 
 module Freya.Machine.Operators
 
-(* Definition
+(* Extension
 
-   Infix operators for working with definition graphs, producing
-   definition graph operations. Combined, these operators enable a
-   moderately visual DSL for working with definition graphs. *)
-
-let (>+) source dest =
-    addNewEdge source dest (Value (Some true))
-
-let (>-) source dest =
-    addNewEdge source dest (Value (Some false))
-
-let (>.) source dest =
-    addNewEdge source dest (Value (None))
-
-let (>/) =
-    removeExistingEdge 
+   Infix operators for working with graph extensions, as part
+   of the general model of machine extensions. *)
 
 let (=.) id n =
-    addNewNode id n
+    AddNode (id, n)
 
 let (=/) id () =
-    removeExistingNode id
+    RemoveNode (id)
+
+let (>+) source dest =
+    AddEdge (source, dest, Some (Edge true))
+
+let (>-) source dest =
+    AddEdge (source, dest, Some (Edge false))
+
+let (>.) source dest =
+    AddEdge (source, dest, None)
+
+let (>/) source dest =
+    RemoveEdge (source, dest)

@@ -67,8 +67,8 @@ let status =
 (* Operations *)
 
 let systemOperation f =
-    Unary (fun c ->
-        unconfigurable, f c)
+    Some (Compile (fun config ->
+        Compiled (Unary (f config), unconfigurable)))
 
 let accepted _ =
        status 202
@@ -217,56 +217,56 @@ let uriTooLong _ =
 (* Graph *)
 
 let operations =
-    [ Ref Operations.Accepted                    =.        systemOperation accepted
-      Ref Operations.BadRequest                  =.        systemOperation badRequest
-      Ref Operations.Conflict                    =.        systemOperation conflict
-      Ref Operations.Created                     =.        systemOperation created
-      Ref Operations.Forbidden                   =.        systemOperation forbidden
-      Ref Operations.Gone                        =.        systemOperation gone
-      Ref Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
-      Ref Operations.MovedPermanently            =.        systemOperation movedPermanently
-      Ref Operations.MovedTemporarily            =.        systemOperation movedTemporarily
-      Ref Operations.MultipleRepresentations     =.        systemOperation multipleRepresentations
-      Ref Operations.NoContent                   =.        systemOperation noContent
-      Ref Operations.NotAcceptable               =.        systemOperation notAcceptable
-      Ref Operations.NotFound                    =.        systemOperation notFound
-      Ref Operations.NotImplemented              =.        systemOperation notImplemented
-      Ref Operations.NotModified                 =.        systemOperation notModified
-      Ref Operations.OK                          =.        systemOperation ok
-      Ref Operations.Options                     =.        systemOperation options
-      Ref Operations.PreconditionFailed          =.        systemOperation preconditionFailed
-      Ref Operations.RequestEntityTooLarge       =.        systemOperation requestEntityTooLarge
-      Ref Operations.SeeOther                    =.        systemOperation seeOther
-      Ref Operations.ServiceUnavailable          =.        systemOperation serviceUnavailable
-      Ref Operations.Unauthorized                =.        systemOperation unauthorized
-      Ref Operations.UnknownMethod               =.        systemOperation unknownMethod
-      Ref Operations.UnprocessableEntity         =.        systemOperation unprocessableEntity
-      Ref Operations.UnsupportedMediaType        =.        systemOperation unsupportedMediaType
-      Ref Operations.UriTooLong                  =.        systemOperation uriTooLong
+    [ Operation Operations.Accepted                    =.        systemOperation accepted
+      Operation Operations.BadRequest                  =.        systemOperation badRequest
+      Operation Operations.Conflict                    =.        systemOperation conflict
+      Operation Operations.Created                     =.        systemOperation created
+      Operation Operations.Forbidden                   =.        systemOperation forbidden
+      Operation Operations.Gone                        =.        systemOperation gone
+      Operation Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
+      Operation Operations.MovedPermanently            =.        systemOperation movedPermanently
+      Operation Operations.MovedTemporarily            =.        systemOperation movedTemporarily
+      Operation Operations.MultipleRepresentations     =.        systemOperation multipleRepresentations
+      Operation Operations.NoContent                   =.        systemOperation noContent
+      Operation Operations.NotAcceptable               =.        systemOperation notAcceptable
+      Operation Operations.NotFound                    =.        systemOperation notFound
+      Operation Operations.NotImplemented              =.        systemOperation notImplemented
+      Operation Operations.NotModified                 =.        systemOperation notModified
+      Operation Operations.OK                          =.        systemOperation ok
+      Operation Operations.Options                     =.        systemOperation options
+      Operation Operations.PreconditionFailed          =.        systemOperation preconditionFailed
+      Operation Operations.RequestEntityTooLarge       =.        systemOperation requestEntityTooLarge
+      Operation Operations.SeeOther                    =.        systemOperation seeOther
+      Operation Operations.ServiceUnavailable          =.        systemOperation serviceUnavailable
+      Operation Operations.Unauthorized                =.        systemOperation unauthorized
+      Operation Operations.UnknownMethod               =.        systemOperation unknownMethod
+      Operation Operations.UnprocessableEntity         =.        systemOperation unprocessableEntity
+      Operation Operations.UnsupportedMediaType        =.        systemOperation unsupportedMediaType
+      Operation Operations.UriTooLong                  =.        systemOperation uriTooLong
 
-      Ref Operations.Accepted                    >.        Ref Handlers.Accepted
-      Ref Operations.BadRequest                  >.        Ref Handlers.BadRequest
-      Ref Operations.Conflict                    >.        Ref Handlers.Conflict
-      Ref Operations.Created                     >.        Ref Handlers.Created
-      Ref Operations.Forbidden                   >.        Ref Handlers.Forbidden
-      Ref Operations.Gone                        >.        Ref Handlers.Gone
-      Ref Operations.MethodNotAllowed            >.        Ref Handlers.MethodNotAllowed
-      Ref Operations.MovedPermanently            >.        Ref Handlers.MovedPermanently
-      Ref Operations.MovedTemporarily            >.        Ref Handlers.MovedTemporarily
-      Ref Operations.MultipleRepresentations     >.        Ref Handlers.MultipleRepresentations
-      Ref Operations.NoContent                   >.        Ref Handlers.NoContent
-      Ref Operations.NotAcceptable               >.        Ref Handlers.NotAcceptable
-      Ref Operations.NotFound                    >.        Ref Handlers.NotFound
-      Ref Operations.NotImplemented              >.        Ref Handlers.NotImplemented
-      Ref Operations.NotModified                 >.        Ref Handlers.NotModified
-      Ref Operations.OK                          >.        Ref Handlers.OK
-      Ref Operations.Options                     >.        Ref Handlers.Options
-      Ref Operations.PreconditionFailed          >.        Ref Handlers.PreconditionFailed
-      Ref Operations.RequestEntityTooLarge       >.        Ref Handlers.RequestEntityTooLarge
-      Ref Operations.SeeOther                    >.        Ref Handlers.SeeOther
-      Ref Operations.ServiceUnavailable          >.        Ref Handlers.ServiceUnavailable
-      Ref Operations.Unauthorized                >.        Ref Handlers.Unauthorized
-      Ref Operations.UnknownMethod               >.        Ref Handlers.UnknownMethod
-      Ref Operations.UnprocessableEntity         >.        Ref Handlers.UnprocessableEntity
-      Ref Operations.UnsupportedMediaType        >.        Ref Handlers.UnsupportedMediaType
-      Ref Operations.UriTooLong                  >.        Ref Handlers.UriTooLong ]
+      Operation Operations.Accepted                    >.        Operation Handlers.Accepted
+      Operation Operations.BadRequest                  >.        Operation Handlers.BadRequest
+      Operation Operations.Conflict                    >.        Operation Handlers.Conflict
+      Operation Operations.Created                     >.        Operation Handlers.Created
+      Operation Operations.Forbidden                   >.        Operation Handlers.Forbidden
+      Operation Operations.Gone                        >.        Operation Handlers.Gone
+      Operation Operations.MethodNotAllowed            >.        Operation Handlers.MethodNotAllowed
+      Operation Operations.MovedPermanently            >.        Operation Handlers.MovedPermanently
+      Operation Operations.MovedTemporarily            >.        Operation Handlers.MovedTemporarily
+      Operation Operations.MultipleRepresentations     >.        Operation Handlers.MultipleRepresentations
+      Operation Operations.NoContent                   >.        Operation Handlers.NoContent
+      Operation Operations.NotAcceptable               >.        Operation Handlers.NotAcceptable
+      Operation Operations.NotFound                    >.        Operation Handlers.NotFound
+      Operation Operations.NotImplemented              >.        Operation Handlers.NotImplemented
+      Operation Operations.NotModified                 >.        Operation Handlers.NotModified
+      Operation Operations.OK                          >.        Operation Handlers.OK
+      Operation Operations.Options                     >.        Operation Handlers.Options
+      Operation Operations.PreconditionFailed          >.        Operation Handlers.PreconditionFailed
+      Operation Operations.RequestEntityTooLarge       >.        Operation Handlers.RequestEntityTooLarge
+      Operation Operations.SeeOther                    >.        Operation Handlers.SeeOther
+      Operation Operations.ServiceUnavailable          >.        Operation Handlers.ServiceUnavailable
+      Operation Operations.Unauthorized                >.        Operation Handlers.Unauthorized
+      Operation Operations.UnknownMethod               >.        Operation Handlers.UnknownMethod
+      Operation Operations.UnprocessableEntity         >.        Operation Handlers.UnprocessableEntity
+      Operation Operations.UnsupportedMediaType        >.        Operation Handlers.UnsupportedMediaType
+      Operation Operations.UriTooLong                  >.        Operation Handlers.UriTooLong ]
