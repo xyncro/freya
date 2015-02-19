@@ -43,6 +43,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1AF60757-05E6-45AA-AFDA-AE56B3F577A8}"
 	ProjectSection(SolutionItems) = preProject
 		tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references = tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references
+		tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj.paket.references = tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj.paket.references
 		tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references = tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references
 	EndProjectSection
 EndProject
@@ -101,6 +102,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A04CCABD-7D4
 	ProjectSection(SolutionItems) = preProject
 		src\Freya.Core\Freya.Core.fsproj.paket.references = src\Freya.Core\Freya.Core.fsproj.paket.references
 		src\Freya.Inspector\Freya.Inspector.fsproj.paket.references = src\Freya.Inspector\Freya.Inspector.fsproj.paket.references
+		src\Freya.Integration\Freya.Integration.fsproj.paket.references = src\Freya.Integration\Freya.Integration.fsproj.paket.references
 		src\Freya.Pipeline\Freya.Pipeline.fsproj.paket.references = src\Freya.Pipeline\Freya.Pipeline.fsproj.paket.references
 		src\Freya.Recorder\Freya.Recorder.fsproj.paket.references = src\Freya.Recorder\Freya.Recorder.fsproj.paket.references
 	EndProjectSection
@@ -173,6 +175,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", 
 	ProjectSection(SolutionItems) = preProject
 		tests\Freya.Machine.Extensions.Http.Tests\Freya.Machine.Extensions.Http.Tests.fsproj.paket.references = tests\Freya.Machine.Extensions.Http.Tests\Freya.Machine.Extensions.Http.Tests.fsproj.paket.references
 	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Integration.Tests", "tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj", "{D7B4915E-910C-476D-A2AA-B48991F11E17}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Integration", "src\Freya.Integration\Freya.Integration.fsproj", "{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -284,6 +290,14 @@ Global
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7B4915E-910C-476D-A2AA-B48991F11E17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7B4915E-910C-476D-A2AA-B48991F11E17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7B4915E-910C-476D-A2AA-B48991F11E17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7B4915E-910C-476D-A2AA-B48991F11E17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -341,5 +355,7 @@ Global
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5} = {54F04F84-4D44-4E21-8F94-8AEEEDBA53E1}
 		{12B490BE-1918-45EB-82E0-AB6EC5398D6F} = {1AF60757-05E6-45AA-AFDA-AE56B3F577A8}
 		{50F16B9C-964A-4949-B696-93D8F0454AFC} = {6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999}
+		{D7B4915E-910C-476D-A2AA-B48991F11E17} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
+		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
 	EndGlobalSection
 EndGlobal
