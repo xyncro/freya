@@ -52,10 +52,9 @@ type FreyaMachineRecord =
     static member GraphLens =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member ToJSON (x: FreyaMachineRecord) =
-        jobj [
-            "execution" .= x.Execution
-            "graph" .= x.Graph ]
+    static member ToJson (x: FreyaMachineRecord) =
+            Json.write "execution" x.Execution
+         *> Json.write "graph" x.Graph
 
 (* Graph *)
 
@@ -63,10 +62,9 @@ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-    static member ToJSON (x: FreyaMachineGraphRecord) =
-        jobj [
-            "nodes" .= x.Nodes
-            "edges" .= x.Edges ]
+    static member ToJson (x: FreyaMachineGraphRecord) =
+            Json.write "nodes" x.Nodes
+         *> Json.write "edges" x.Edges
 
 and FreyaMachineGraphNodeRecord =
     { Id: string
@@ -74,22 +72,20 @@ and FreyaMachineGraphNodeRecord =
       Configurable: bool
       Configured: bool }
 
-    static member ToJSON (x: FreyaMachineGraphNodeRecord) =
-        jobj [
-            "id" .= x.Id
-            "type" .= x.Type
-            "configurable" .= x.Configurable
-            "configured" .= x.Configured ]
+    static member ToJson (x: FreyaMachineGraphNodeRecord) =
+            Json.write "id" x.Id
+         *> Json.write "type" x.Type
+         *> Json.write "configurable" x.Configurable
+         *> Json.write "configured" x.Configured
 
 and FreyaMachineGraphEdgeRecord =
     { From: string
       To: string
       Value: bool option }
 
-    static member ToJSON (x:FreyaMachineGraphEdgeRecord) =
-        jobj [
-            "from" .= x.From
-            "to" .= x.To ]
+    static member ToJson (x:FreyaMachineGraphEdgeRecord) =
+            Json.write "from" x.From
+         *> Json.write "to" x.To
 
 (* Execution *)
 
@@ -99,16 +95,14 @@ and FreyaMachineExecutionRecord =
     static member NodesLens =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-    static member ToJSON (x: FreyaMachineExecutionRecord) =
-        jobj [
-            "nodes" .= x.Nodes ]
+    static member ToJson (x: FreyaMachineExecutionRecord) =
+        Json.write "nodes" x.Nodes
 
 and FreyaMachineExecutionNodeRecord =
     { Id: string }
 
-    static member ToJSON (x: FreyaMachineExecutionNodeRecord) =
-        jobj [
-            "id" .= x.Id ]
+    static member ToJson (x: FreyaMachineExecutionNodeRecord) =
+        Json.write "id" x.Id
 
 (* Construction *)
 

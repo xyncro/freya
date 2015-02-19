@@ -158,7 +158,8 @@ let corsOrigins =
 
 let corsHeaders =
     freya {
-        return [ "accept"; "content-type" ] }
+        return [ "accept"
+                 "content-type" ] }
 
 let common =
     freyaMachine {
