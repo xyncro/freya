@@ -86,7 +86,7 @@ let private independent graph =
 
 let rec private sort extensions graph =
     match independent graph with
-    | Some (e, g) -> sort (e :: extensions) g
+    | Some (e, g) -> sort (extensions @ [ e ]) g
     | _ when Graph.isEmpty graph -> Ordered extensions
     | _ -> Ordering.Error "Extension Dependencies Cyclic"
 

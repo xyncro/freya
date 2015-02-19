@@ -85,7 +85,7 @@ let todo (x: NewTodo) =
     let id = Guid.NewGuid ()
 
     { Id = id
-      Url = sprintf "http://192.168.0.3:7000/%A" id
+      Url = sprintf "http://localhost:7000/%A" id
       Order = x.Order
       Title = x.Title
       Completed = false }
