@@ -22,32 +22,56 @@
 module internal Freya.Machine.Reification
 
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Pipeline
 
-(* Defaults
+(* Errors
 
-   Default instances of data types, in this case
-   an empty machine specification with no existing configuration
-   and no extensions (not a machine which will do much). *)
+   Reification may reasonably fail at runtime given the graph
+   extension and verification involved. This is reported using a
+   sprecifically defined reification exception, as this state is
+   not meaningfully recoverable. It is likely that reification will
+   occur early in the lifecycle of most programs, so while this is
+   a runtime error, it is unlikely to be one which goes undiscovered
+   for long.
 
-let private defaultFreyaMachineSpecification =
-    { Configuration = 
-        { Data = Map.empty }
-      Extensions = Set.empty }
+   Errors in execution are dealt with separately.*)
+
+exception ReificationError of string
+
+let private fail e =
+    raise (ReificationError e)
+
+(* Run
+
+   Running an execution with recording of metadata to the inspector.
+   The graphs are effectively captured as a closure here, eliminating
+   concerns about generation efficiency. *)
+
+let private run exec record =
+        setFreyaMachineGraphRecord record
+     *> execute exec
+     *> halt
 
 (* Reification
 
    Reify the specification of a machine into a pipeline function via
-   compilation of the specification to a compilation map. *)
+   precompilation/compilation/verification, producing both execution
+   and metadata graphs. *)
 
-let reifyMachine (machine: FreyaMachine) =
+let reify machine =
     let spec = snd (machine defaultFreyaMachineSpecification)
-    let graph = generateGraph spec
-    let comp = compileGraph graph spec
-    let record = freyaMachineGraphRecord comp
 
-    freya {
-        do! setFreyaMachineGraphRecord record
-        do! executeCompilation comp
-
-        return Halt }
+    match precompile spec with
+    | Precompiled source ->
+        match compile spec source with
+        | Compiled (exec, meta) ->
+            match verify exec with
+            | Verified exec ->
+                run exec (record meta)
+            | Verification.Error e ->
+                fail e
+        | Compilation.Error e ->
+            fail e
+    | Precompilation.Error e ->
+        fail e

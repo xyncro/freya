@@ -31,8 +31,8 @@ open Freya.Types.Http.Cors
 (* Decisions *)
 
 let private systemDecision f =
-    Binary (fun config -> 
-        unconfigurable, f config)
+    Some (Compile (fun config -> 
+        Compiled (Binary (f config), unconfigurable)))
 
 let private corsEnabled config =
     Cors.enabled
@@ -54,18 +54,18 @@ let private corsPreflight _ =
 (* Graph *)
 
 let operations =
-    [ Ref Decisions.CorsEnabled                  =.        systemDecision corsEnabled
-      Ref Decisions.CorsOptions                  =.        systemDecision corsOptions
-      Ref Decisions.CorsOriginAllowed            =.        systemDecision corsOriginAllowed
-      Ref Decisions.CorsPreflight                =.        systemDecision corsPreflight
+    [ Operation Decisions.CorsEnabled                  =.        systemDecision corsEnabled
+      Operation Decisions.CorsOptions                  =.        systemDecision corsOptions
+      Operation Decisions.CorsOriginAllowed            =.        systemDecision corsOriginAllowed
+      Operation Decisions.CorsPreflight                =.        systemDecision corsPreflight
     
-      Ref Decisions.EntityLengthValid            >/        Ref Decisions.MethodOptions
-      Ref Decisions.EntityLengthValid            >+        Ref Decisions.CorsEnabled
-      Ref Decisions.CorsEnabled                  >+        Ref Decisions.CorsOriginAllowed
-      Ref Decisions.CorsEnabled                  >-        Ref Decisions.MethodOptions
-      Ref Decisions.CorsOriginAllowed            >+        Ref Decisions.CorsOptions
-      Ref Decisions.CorsOriginAllowed            >-        Ref Decisions.MethodOptions
-      Ref Decisions.CorsOptions                  >+        Ref Decisions.CorsPreflight
-      Ref Decisions.CorsOptions                  >-        Ref Operations.CorsActual
-      Ref Decisions.CorsPreflight                >+        Ref Operations.CorsPreflight
-      Ref Decisions.CorsPreflight                >-        Ref Operations.CorsActual ]
+      Operation Decisions.EntityLengthValid            >/        Operation Decisions.MethodOptions
+      Operation Decisions.EntityLengthValid            >+        Operation Decisions.CorsEnabled
+      Operation Decisions.CorsEnabled                  >+        Operation Decisions.CorsOriginAllowed
+      Operation Decisions.CorsEnabled                  >-        Operation Decisions.MethodOptions
+      Operation Decisions.CorsOriginAllowed            >+        Operation Decisions.CorsOptions
+      Operation Decisions.CorsOriginAllowed            >-        Operation Decisions.MethodOptions
+      Operation Decisions.CorsOptions                  >+        Operation Decisions.CorsPreflight
+      Operation Decisions.CorsOptions                  >-        Operation Operations.CorsActual
+      Operation Decisions.CorsPreflight                >+        Operation Operations.CorsPreflight
+      Operation Decisions.CorsPreflight                >-        Operation Operations.CorsActual ]

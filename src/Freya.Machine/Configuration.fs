@@ -39,10 +39,10 @@ let private configPLens<'a> key =
    overhead, but is only used at reification time in general cases. *)
 
 let tryGetConfig<'a> key =
-    getPL (configPLens<'a> key)
+    Lens.getPartial (configPLens<'a> key)
 
 let tryGetConfigOrElse key def =
     tryGetConfig key >> Option.orElse def
 
 let setConfig<'a> key =
-    setPL (configPLens<'a> key)
+    Lens.setPartial (configPLens<'a> key)

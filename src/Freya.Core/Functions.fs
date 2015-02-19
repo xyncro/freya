@@ -41,24 +41,24 @@ let modM f =
 
 /// Gets part of the Core State within a Core monad using an Aether lens
 let getLM l = 
-    getL l <!> getM
+    Lens.get l <!> getM
 
 /// Gets part of the Core State within a Core monad using a partial Aether lens
 let getPLM l = 
-    getPL l <!> getM
+    Lens.getPartial l <!> getM
 
 /// Sets part of the Core State within a Core monad using an Aether lens
 let setLM l v = 
-    setL l v |> modM
+    Lens.set l v |> modM
 
 /// Sets part of the Core State within a Core monad using a partial Aether lens
 let setPLM l v = 
-    setPL l v |> modM
+    Lens.setPartial l v |> modM
 
 /// Modifies part of the Core State within a Core monad using an Aether lens
 let modLM l f = 
-    modL l f |> modM
+    Lens.map l f |> modM
 
 /// Modifies part of the Core State within a Core monad using a partial Aether lens
 let modPLM l f = 
-    modPL l f |> modM
+    Lens.mapPartial l f |> modM

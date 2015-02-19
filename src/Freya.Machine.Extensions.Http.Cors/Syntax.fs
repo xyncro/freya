@@ -30,7 +30,7 @@ open Freya.Types.Http.Cors
 (* Helper Functions *)
 
 let private setConfig<'a> key a =
-    modL FreyaMachineSpecification.ConfigurationLens (setConfig<'a> key a)
+    Lens.map FreyaMachineSpecification.ConfigurationLens (setConfig<'a> key a)
 
 (* Custom Operations
 

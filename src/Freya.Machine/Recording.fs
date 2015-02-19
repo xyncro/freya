@@ -25,29 +25,20 @@ open Aether
 open Aether.Operators
 open Fleece
 open Fleece.Operators
+open Hekate
 open Freya.Recorder
 
-(* Aliases
+(* Errors *)
 
-   Convenience type aliases when we have some more specific unions
-   etc. in scope, in this case clashes between machine level refs
-   and compilation refs. *)
+exception RecordingError of string
 
-type Ref =
-    FreyaMachineRef
-
+let private fail e =
+    raise (RecordingError e)
 
 (* Keys *)
 
 let [<Literal>] freyaMachineRecordKey =
     "machine"
-
-(* Helpers *)
-
-let refString =
-    function | Ref.Start -> "start"
-             | Ref.Ref x -> x
-             | Ref.Finish -> "finish"
 
 (* Types *)
 
@@ -78,26 +69,27 @@ and FreyaMachineGraphRecord =
             "edges" .= x.Edges ]
 
 and FreyaMachineGraphNodeRecord =
-    { Id: Ref
+    { Id: string
       Type: string
       Configurable: bool
       Configured: bool }
 
     static member ToJSON (x: FreyaMachineGraphNodeRecord) =
         jobj [
-            "id" .= refString x.Id
+            "id" .= x.Id
             "type" .= x.Type
             "configurable" .= x.Configurable
             "configured" .= x.Configured ]
 
 and FreyaMachineGraphEdgeRecord =
-    { From: Ref
-      To: Ref }
+    { From: string
+      To: string
+      Value: bool option }
 
     static member ToJSON (x:FreyaMachineGraphEdgeRecord) =
         jobj [
-            "from" .= refString x.From
-            "to" .= refString x.To ]
+            "from" .= x.From
+            "to" .= x.To ]
 
 (* Execution *)
 
@@ -112,60 +104,61 @@ and FreyaMachineExecutionRecord =
             "nodes" .= x.Nodes ]
 
 and FreyaMachineExecutionNodeRecord =
-    { Id: Ref }
+    { Id: string }
 
     static member ToJSON (x: FreyaMachineExecutionNodeRecord) =
         jobj [
-            "id" .= refString x.Id ]
+            "id" .= x.Id ]
 
-(* Constructors *)
+(* Construction *)
 
-let private freyaMachineRecord =
-    { Graph = 
+let private (|Name|) =
+    function | Start -> "start"
+             | Finish -> "finish"
+             | Operation v -> v
+
+let private (|StartOrFinish|_|) =
+    function | Name n, None -> Some (n, n, false, false)
+             | _ -> None
+
+let private (|Unary|_|) =
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "unary", c.Configurable, c.Configured)
+             | _ -> None
+
+let private (|Binary|_|) =
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
+             | _ -> None
+
+let internal record meta =
+    { Nodes =
+        Graph.nodes meta
+        |> List.map (fun (v, l) ->
+            let id, t, c1, c2 =
+                match v, l with
+                | StartOrFinish x 
+                | Unary x 
+                | Binary x -> x
+                | _ -> fail "Recording Node Match Failure"
+                    
+            { Id = id
+              Type = t
+              Configurable = c1
+              Configured = c2 })
+      Edges =
+        Graph.edges meta
+        |> List.map (fun (Name v1, Name v2, l) ->
+            { From =  v1
+              To = v2
+              Value = Option.map (fun (Edge l) -> l) l }) }
+
+(* Defaults *)
+
+let private defaultFreyaMachineRecord =
+    { Execution =
+        { Nodes = List.empty }
+      Graph =
         { Nodes = List.empty
-          Edges = List.empty }
-      Execution =
-        { Nodes = List.empty } }
-
-let private freyaMachineGraphNodeRecord id t c1 c2 =
-    { Id = id
-      Type = t
-      Configurable = c1
-      Configured = c2 }
-
-let private freyaMachineGraphEdgeRecord from t =
-    { From = from
-      To = t }
-
-let internal freyaMachineGraphRecord (map: CompilationMap) =
-    let list = 
-        Map.toList map
-
-    let node =
-        freyaMachineGraphNodeRecord
-
-    let edge =
-        freyaMachineGraphEdgeRecord
-
-    let nodes =
-        List.map (fun (k, v) ->
-            match k, v with
-            | Ref.Start, Start _ -> node Ref.Start "start" false false
-            | Ref.Ref r, Unary x -> node (Ref.Ref r) "unary" x.Configuration.Configurable x.Configuration.Configured
-            | Ref.Ref r, Binary x -> node (Ref.Ref r) "binary" x.Configuration.Configurable x.Configuration.Configured
-            | Ref.Finish, _ -> node Ref.Finish "finish" false false
-            | _ -> failwith "invalid compilation") list
-
-    let edges = 
-        List.map (fun (k, v) ->
-            match k, v with
-            | Ref.Start, Start x -> [ edge Ref.Start x.Next ]
-            | Ref.Ref r, Unary x -> [ edge (Ref.Ref r) x.Next ]
-            | Ref.Ref r, Binary x -> [ edge (Ref.Ref r) x.True; edge (Ref.Ref r) x.False ]
-            | _ -> []) list |> List.concat
-
-    { FreyaMachineGraphRecord.Nodes = nodes
-      Edges = edges }
+          Edges = List.empty } }
 
 (* Lenses *)
 
@@ -174,15 +167,20 @@ let freyaMachineRecordPLens =
 
 (* Recording *)
 
+let private recordPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.GraphLens
+
+let private executionPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.ExecutionLens 
+    >?-> FreyaMachineExecutionRecord.NodesLens
+
 let initializeFreyaMachineRecord =
-    updateRecord (setPL freyaMachineRecordPLens freyaMachineRecord)
+    updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)
 
 let internal setFreyaMachineGraphRecord graph =
-    updateRecord (setPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.GraphLens) graph)
+    updateRecord (Lens.setPartial recordPLens graph)
 
 let internal addFreyaMachineExecutionRecord id =
-    updateRecord (modPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.ExecutionLens 
-                         >?-> FreyaMachineExecutionRecord.NodesLens)
-                        (fun es -> es @ [ { Id = id } ]))
+    updateRecord (Lens.mapPartial executionPLens (fun es -> es @ [ { Id = id } ]))
