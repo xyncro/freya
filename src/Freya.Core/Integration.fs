@@ -42,7 +42,7 @@ module OwinAppFunc =
 
     /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
     [<CompiledName ("FromFreya")>]
-    let fromFreya (freya: Freya<_>) =
+    let ofFreya (freya: Freya<_>) =
         OwinAppFunc (fun e ->
             async {
                 do! freya { Environment = e

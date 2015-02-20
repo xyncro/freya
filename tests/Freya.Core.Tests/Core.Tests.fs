@@ -33,7 +33,7 @@ open System.Threading.Tasks
 let ``freya computation can be run as an OWIN application`` () =
     let m = setLM answerLens 42
 
-    let app = OwinAppFunc.fromFreya m
+    let app = OwinAppFunc.ofFreya m
     let env = Dictionary<string, obj>() :> IDictionary<string, obj>
     
     app.Invoke(env).ContinueWith<unit>(fun _ -> ())

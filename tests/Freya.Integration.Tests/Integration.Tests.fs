@@ -35,7 +35,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
 
     let converted =
         app
-        |> OwinAppFunc.fromFreya
+        |> OwinAppFunc.ofFreya
         |> OwinAppFunc.toFreya
 
     let m =
@@ -55,9 +55,9 @@ open Freya.Pipeline.Operators
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.fromFreya
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.ofFreya
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -69,9 +69,9 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.fromFreya
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.fromFreya
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.ofFreya
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -82,10 +82,10 @@ let ``pipeline executes only the first monad if first returns terminate`` () =
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with composed pipeline`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
-    let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
+    let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
     let env = invoke composed
@@ -97,14 +97,45 @@ let ``pipeline executes both monads if first returns next with composed pipeline
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.fromFreya
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
     let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
     let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
-    let pipe = o1 >?= o2 |> OwinMidFunc.fromFreya
+    let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
     let env = invoke composed
 
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? false
+    env.ContainsKey("Answer") =? false
+
+[<Test>]
+let ``pipeline executes both monads if first returns next with wrapped pipeline OwinMidFunc`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
+    let composed = midFunc.Invoke app
+
+    let env = invoke composed
+
+    // TODO: show that o2 was run after app
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? 42
+
+[<Test>]
+let ``pipeline executes only the first monad if first returns terminate with wrapped pipeline OwinMidFunc`` () =
+    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
+    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
+    let composed = midFunc.Invoke app
+
+    let env = invoke composed
+
+    // TODO: show that o2 was run after app
     unbox env.["o1"] =? true
     unbox env.["o2"] =? false
     env.ContainsKey("Answer") =? false

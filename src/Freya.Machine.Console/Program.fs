@@ -32,7 +32,7 @@ open Microsoft.Owin.Hosting
 
 type TodoBackend () =
     member __.Configuration () =
-        OwinAppFunc.fromFreya (api)
+        OwinAppFunc.ofFreya (api)
 
 (* Main
 

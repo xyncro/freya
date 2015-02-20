@@ -53,9 +53,9 @@ type OwinMidFunc =
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinMidFunc =
     
-    /// Converts a Freya.Pipeline to an OWIN MidFunc.
+    /// Converts a Freya.Pipeline to an OWIN MidFunc run before executing the next OwinAppFunc.
     [<CompiledName("FromFreya")>]
-    let fromFreya (pipeline: Freya<FreyaPipelineChoice>) =
+    let ofFreya (pipeline: Freya<FreyaPipelineChoice>) =
         OwinMidFunc(fun next ->
             let app e =
                 // Convert to FreyaState
@@ -68,6 +68,51 @@ module OwinMidFunc =
                     // Execute the next OwinAppFunc
                     | Next ->
                         return! next.Invoke(s'.Environment).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    // Complete the Task
+                    | Halt -> return () }
+                |> Async.StartAsTask :> Task
+            OwinAppFunc app)
+    
+    /// Converts a Freya.Pipeline to an OWIN MidFunc run after executing the next OwinAppFunc.
+    [<CompiledName("FromFreyaAfter")>]
+    let ofFreyaAfter (pipeline: Freya<FreyaPipelineChoice>) =
+        OwinMidFunc(fun next ->
+            let app e =
+                async {
+                    let task = next.Invoke e
+                    do! task.ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    // Check the result. If the Task is complete run the after pipeline.
+                    if (task.Status = TaskStatus.RanToCompletion) then
+                        // Convert to FreyaState
+                        let s = { Environment = e
+                                  Meta = { Memos = Map.empty } }
+                        // Execute the pipeline
+                        do! pipeline s |> Async.Ignore
+                    else return () }
+                |> Async.StartAsTask :> Task
+            OwinAppFunc app)
+
+    /// Converts a Freya.Pipeline to an OWIN MidFunc.
+    [<CompiledName("FromFreyaWrapped")>]
+    let ofFreyaWrapped (before: Freya<FreyaPipelineChoice>) (after: Freya<FreyaPipelineChoice>) =
+        OwinMidFunc(fun next ->
+            let app e =
+                // Convert to FreyaState
+                let s = { Environment = e
+                          Meta = { Memos = Map.empty } }
+                async {
+                    // Execute the before pipeline
+                    let! choice, s' = before s
+                    match choice with
+                    // Execute the next OwinAppFunc
+                    | Next ->
+                        let task = next.Invoke(s'.Environment)
+                        do! task.ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                        // Check the result. If the Task is complete run the after pipeline.
+                        if (task.Status = TaskStatus.RanToCompletion) then
+                            // Execute the after pipeline
+                            do! after s' |> Async.Ignore
+                        else return ()
                     // Complete the Task
                     | Halt -> return () }
                 |> Async.StartAsTask :> Task
