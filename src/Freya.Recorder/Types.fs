@@ -23,8 +23,8 @@ module Freya.Recorder.Types
 open System
 open Aether
 open Aether.Operators
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
 open Freya.Core
 
 (* Types *)
@@ -34,11 +34,10 @@ type FreyaRecorderRecord =
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member ToJSON (x: FreyaRecorderRecord) =
-        jobj [
-            "id" .= x.Id
-            "timestamp" .= x.Timestamp
-            "inspections" .= (x.Data |> Map.toList |> List.map fst) ]
+    static member ToJson (x: FreyaRecorderRecord) =
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
+         *> Json.write "inspections" ((Map.toList >> List.map fst) x.Data)
 
     static member DataLens =
         (fun x -> x.Data), (fun d x -> { x with Data = d })

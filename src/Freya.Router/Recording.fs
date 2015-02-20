@@ -22,8 +22,8 @@ module Freya.Router.Recording
 
 open Aether
 open Aether.Operators
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
 open Freya.Recorder
 
 (* Keys *)
@@ -43,10 +43,9 @@ type FreyaRouterRecord =
     static member TrieLens =
         (fun x -> x.Trie), (fun t x -> { x with Trie = t })
 
-    static member ToJSON (x: FreyaRouterRecord) =
-        jobj [
-            "execution" .= x.Execution
-            "trie" .= x.Trie ]
+    static member ToJson (x: FreyaRouterRecord) =
+            Json.write "execution" x.Execution
+         *> Json.write "trie" x.Trie
 
 (* Trie *)
 
@@ -54,10 +53,9 @@ and FreyaRouterTrieRecord =
     { Key: string
       Children: FreyaRouterTrieRecord list }
 
-    static member ToJSON (x: FreyaRouterTrieRecord) =
-        jobj [
-            "key" .= x.Key
-            "children" .= x.Children ]
+    static member ToJson (x: FreyaRouterTrieRecord) =
+            Json.write "key" x.Key
+         *> Json.write "children" x.Children
 
 (* Execution *)
 
@@ -67,23 +65,20 @@ and FreyaRouterExecutionRecord =
     static member TriesLens =
         (fun x -> x.Tries), (fun t x -> { x with Tries = t })
 
-    static member ToJSON (x: FreyaRouterExecutionRecord) =
-        jobj [
-            "tries" .= x.Tries ]
+    static member ToJson (x: FreyaRouterExecutionRecord) =
+        Json.write "tries" x.Tries
 
 and FreyaRouterExecutionTrieRecord =
     { Key: string
       Value: string
       Result: FreyaRouterExecutionResult }
 
-    static member ToJSON (x: FreyaRouterExecutionTrieRecord) =
-        jobj [
-            "key" .= x.Key
-            "value" .= x.Value
-            "result" .=
-                ((function | Captured -> "captured"
-                           | Failed -> "failed"
-                           | Matched -> "matched") x.Result) ]
+    static member ToJson (x: FreyaRouterExecutionTrieRecord) =
+            Json.write "key" x.Key
+         *> Json.write "value" x.Value
+         *> Json.write "result" ((function | Captured -> "captured"
+                                           | Failed -> "failed"
+                                           | Matched -> "matched") x.Result)
 
 and FreyaRouterExecutionResult =
     | Captured

@@ -21,8 +21,7 @@
 module internal Freya.Inspector.Data
 
 open System
-open System.Json
-open Fleece
+open Chiron
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
@@ -51,7 +50,7 @@ let private recordHeaders =
                 { FreyaRecorderRecordHeader.Id = r.Id
                   Timestamp = r.Timestamp })
 
-        return toJSON recordHeaders }
+        return Json.serialize recordHeaders }
 
 let private recordDetail =
     freya {
@@ -65,7 +64,7 @@ let private recordDetail =
                   Timestamp = r.Timestamp
                   Extensions = r.Data |> Map.toList |> List.map fst })
 
-        return Option.map toJSON recordDetail }
+        return Option.map Json.serialize recordDetail }
 
 let private inspectionData inspectors =
     freya {
@@ -100,21 +99,21 @@ let private records =
     freyaMachine {
         including defaults
         handleOk recordsGet
-        mediaTypesSupported json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> Machine.toPipeline
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
         handleOk recordGet
-        mediaTypesSupported json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> Machine.toPipeline
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
         handleOk (inspectionGet inspectors)
-        mediaTypesSupported json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> Machine.toPipeline
 
 (* Routes
 

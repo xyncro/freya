@@ -21,8 +21,8 @@
 module Freya.Inspector.Recording
 
 open Aether
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
 open Freya.Recorder
 open Freya.Types.Http
 
@@ -37,10 +37,9 @@ type FreyaRequestRecord =
     { Method: Method
       Path: string }
 
-    static member ToJSON (x: FreyaRequestRecord) =
-        jobj [
-            "method" .= Method.Format (x.Method)
-            "path" .= x.Path ]
+    static member ToJson (x: FreyaRequestRecord) =
+            Json.write "method" (Method.Format (x.Method))
+         *> Json.write "path" x.Path
 
 (* Constructors *)
 
