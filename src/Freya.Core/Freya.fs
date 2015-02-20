@@ -47,23 +47,22 @@ let inline fromAsync f =
 /// takes the value from the <see cref="Freya{T}" /> computation and
 /// computes a new <see cref="Freya{T}" /> computation of a possibly
 /// different type.
-let inline bind (m: Freya<'T1>) (f: 'T1 -> Freya<'T2>) : Freya<'T2> =
+let inline bind (f: 'T1 -> Freya<'T2>) (m: Freya<'T1>) : Freya<'T2> =
     fun s -> 
         async { 
-            let! r, s = m s
-            return! (f r) s }
+            let! r, s' = m s
+            return! (f r) s' }
 
 /// Applies a function wrapped in a <see cref="Freya{T}" /> computation
 /// onto a <see cref="Freya{T}" /> computation value.
 let inline apply f m : Freya<'T> =
-    bind f (fun f' ->
-    bind m (fun m' ->
-    init (f' m')))
+    bind (fun f' ->
+    bind (fun m' ->
+    init (f' m')) m) f
 
 /// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
 let inline map f m : Freya<'T> =
-    bind m (fun m' ->
-    init (f m'))
+    bind (fun m' -> init (f m')) m
 
 /// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
 let inline map2 f m1 m2 =
