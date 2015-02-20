@@ -50,7 +50,7 @@ open Freya.Types.Http.Cors
 let id =
     freya {
         let! id = Freya.getLensPartial (Route.valuesKey "id")
-        return (Option.get >> Guid.Parse) id } |> memo
+        return (Option.get >> Guid.Parse) id } |> Freya.memo
 
 (* Body Properties
 
@@ -59,10 +59,10 @@ let id =
    inferring the type to be returned from the context in which they're used. *)
 
 let newTodo =
-    memo (body ())
+    Freya.memo (body ())
 
 let patchTodo =
-    memo (body ())
+    Freya.memo (body ())
 
 (* Domain Operations
 
@@ -78,31 +78,31 @@ let patchTodo =
 let add =
     freya {
         let! newTodo = newTodo
-        return! (Freya.fromAsync addTodo) newTodo.Value } |> memo
+        return! (Freya.fromAsync addTodo) newTodo.Value } |> Freya.memo
 
 let clear =
     freya {
-        return! (Freya.fromAsync clearTodos) () } |> memo
+        return! (Freya.fromAsync clearTodos) () } |> Freya.memo
 
 let delete =
     freya {
         let! id = id
-        return! (Freya.fromAsync deleteTodo) id } |> memo
+        return! (Freya.fromAsync deleteTodo) id } |> Freya.memo
 
 let get =
     freya {
         let! id = id
-        return! (Freya.fromAsync getTodo) id } |> memo
+        return! (Freya.fromAsync getTodo) id } |> Freya.memo
 
 let list =
     freya {
-        return! (Freya.fromAsync listTodos) () } |> memo
+        return! (Freya.fromAsync listTodos) () } |> Freya.memo
 
 let update =
     freya {
         let! id = id
         let! patchTodo = patchTodo
-        return! (Freya.fromAsync updateTodo) (id, patchTodo.Value) } |> memo
+        return! (Freya.fromAsync updateTodo) (id, patchTodo.Value) } |> Freya.memo
 
 (* Machine
 
