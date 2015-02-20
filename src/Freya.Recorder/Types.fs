@@ -35,8 +35,8 @@ type FreyaRecorderRecord =
       Data: Map<string, obj> }
 
     static member ToJson (x: FreyaRecorderRecord) =
-            Json.write "id" (string x.Id)
-         *> Json.write "timestamp" (string x.Timestamp)
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
          *> Json.write "inspections" ((Map.toList >> List.map fst) x.Data)
 
     static member DataLens =

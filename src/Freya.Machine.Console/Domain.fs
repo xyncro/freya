@@ -69,7 +69,7 @@ type Todo =
       Completed: bool }
 
     static member ToJson (x: Todo) =
-            Json.write "id" (string x.Id)
+            Json.write "id" x.Id
          *> Json.write "url" x.Url
          *> Json.write "order" x.Order
          *> Json.write "title" x.Title

@@ -23,6 +23,7 @@ module internal Freya.Inspector.Prelude
 open System.IO
 open System.Reflection
 open System.Text
+open Chiron
 open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
@@ -99,7 +100,7 @@ let private firstNegotiatedOrElse def =
              | _ -> def
 
 let private encode =
-    string >> Encoding.UTF8.GetBytes
+    Json.format >> Encoding.UTF8.GetBytes
 
 let represent n x =
     { Description =

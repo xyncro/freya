@@ -49,8 +49,8 @@ type FreyaRecorderRecordHeader =
       Timestamp: DateTime }
 
     static member ToJson (x: FreyaRecorderRecordHeader) =
-            Json.write "id" (string x.Id)
-         *> Json.write "timestamp" (string x.Timestamp)
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
 
 type FreyaRecorderRecordDetail =
     { Id: Guid
@@ -58,6 +58,6 @@ type FreyaRecorderRecordDetail =
       Extensions: string list }
 
     static member ToJson (x: FreyaRecorderRecordDetail) =
-            Json.write "id" (string x.Id)
-         *> Json.write "timestamp" (string x.Timestamp)
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
          *> Json.write "extensions" x.Extensions
