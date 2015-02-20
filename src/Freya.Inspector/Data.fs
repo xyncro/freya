@@ -33,10 +33,10 @@ open Freya.Router
 (* Route *)
 
 let routeId =
-    memo ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
+    memo ((Option.get >> Guid.Parse ) <!> Freya.getLensPartial (Route.valuesKey "id"))
 
 let routeExtension =
-    memo ((Option.get) <!> getPLM (Route.valuesKey "ext"))
+    memo ((Option.get) <!> Freya.getLensPartial (Route.valuesKey "ext"))
 
 (* Data *)
 

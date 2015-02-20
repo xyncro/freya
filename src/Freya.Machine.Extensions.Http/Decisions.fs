@@ -39,130 +39,130 @@ let private userDecision key def =
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
-        (getPLM Request.Headers.acceptCharset)
+        (Freya.getLensPartial Request.Headers.acceptCharset)
         (tryGetConfigOrElse Configuration.CharsetsSupported Defaults.charsetsSupported config)
 
 let private charsetRequested _ =
     ContentNegotiation.Charset.requested 
-        (getPLM Request.Headers.acceptCharset)
+        (Freya.getLensPartial Request.Headers.acceptCharset)
 
 let private encodingNegotiable config =
     ContentNegotiation.Encoding.negotiable
-        (getPLM Request.Headers.acceptEncoding)
+        (Freya.getLensPartial Request.Headers.acceptEncoding)
         (tryGetConfigOrElse Configuration.EncodingsSupported Defaults.encodingsSupported config)
 
 let private encodingRequested _ =
     ContentNegotiation.Encoding.requested 
-        (getPLM Request.Headers.acceptEncoding)
+        (Freya.getLensPartial Request.Headers.acceptEncoding)
 
 let private ifMatchAny _ =
     CacheControl.IfMatch.any 
-        (getPLM Request.Headers.ifMatch)
+        (Freya.getLensPartial Request.Headers.ifMatch)
 
 let private ifMatchExistsForMissing _ =
     CacheControl.IfMatch.requested 
-        (getPLM Request.Headers.ifMatch)
+        (Freya.getLensPartial Request.Headers.ifMatch)
 
 let private ifMatchRequested _ =
     CacheControl.IfMatch.requested 
-        (getPLM Request.Headers.ifMatch)
+        (Freya.getLensPartial Request.Headers.ifMatch)
 
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
-        (getPLM Request.Headers.ifModifiedSince)
+        (Freya.getLensPartial Request.Headers.ifModifiedSince)
         (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
-        (getPLM Request.Headers.ifModifiedSince)
+        (Freya.getLensPartial Request.Headers.ifModifiedSince)
 
 let private ifModifiedSinceValid _ =
     CacheControl.IfModifiedSince.valid
-        (getPLM Request.Headers.ifModifiedSince)
+        (Freya.getLensPartial Request.Headers.ifModifiedSince)
 
 let private ifNoneMatchAny _ =
     CacheControl.IfNoneMatch.any
-        (getPLM Request.Headers.ifNoneMatch)
+        (Freya.getLensPartial Request.Headers.ifNoneMatch)
 
 let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
-        (getPLM Request.Headers.ifNoneMatch)
+        (Freya.getLensPartial Request.Headers.ifNoneMatch)
 
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
-        (getPLM Request.Headers.ifUnmodifiedSince)
+        (Freya.getLensPartial Request.Headers.ifUnmodifiedSince)
         (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
-        (getPLM Request.Headers.ifUnmodifiedSince)
+        (Freya.getLensPartial Request.Headers.ifUnmodifiedSince)
 
 let private ifUnmodifiedSinceValid _ =
     CacheControl.IfUnmodifiedSince.valid
-        (getPLM Request.Headers.ifUnmodifiedSince)
+        (Freya.getLensPartial Request.Headers.ifUnmodifiedSince)
 
 let private languageNegotiable config =
     ContentNegotiation.Language.negotiable
-        (getPLM Request.Headers.acceptLanguage)
+        (Freya.getLensPartial Request.Headers.acceptLanguage)
         (tryGetConfigOrElse Configuration.LanguagesSupported Defaults.languagesSupported config)
 
 let private languageRequested _ =
     ContentNegotiation.Language.requested
-        (getPLM Request.Headers.acceptLanguage)
+        (Freya.getLensPartial Request.Headers.acceptLanguage)
 
 let private mediaTypeNegotiable config =
     ContentNegotiation.MediaType.negotiable
-        (getPLM Request.Headers.accept)
+        (Freya.getLensPartial Request.Headers.accept)
         (tryGetConfigOrElse Configuration.MediaTypesSupported Defaults.mediaTypesSupported config)
 
 let private mediaTypeRequested _ =
     ContentNegotiation.MediaType.requested
-        (getPLM Request.Headers.accept)
+        (Freya.getLensPartial Request.Headers.accept)
 
 let private methodDelete _ =
     Method.delete
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodGetOrHead _ =
     Method.getOrHead
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodKnown config =
     Method.known
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
         (tryGetConfigOrElse Configuration.MethodsKnown Defaults.methodsKnown config)
 
 let private methodOptions _ =
     Method.options
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPatch _ =
     Method.patch
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPostToExisting _ =
     Method.post
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPostToGone _ =
     Method.post
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPostToMissing _ =
     Method.post
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPut _ =
     Method.put
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodPutToExisting _ =
     Method.put
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private methodSupported config =
     Method.supported
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
         (tryGetConfigOrElse Configuration.MethodsSupported Defaults.methodsSupported config)
 
 (* Graph *)

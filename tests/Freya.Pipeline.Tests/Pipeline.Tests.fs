@@ -11,8 +11,8 @@ open Freya.Pipeline.Operators
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> next
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
 
     let choice, env = run (o1 >?= o2)
 
@@ -22,8 +22,8 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate`` () =
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> halt
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
 
     let choice, env = run (o1 >?= o2)
 

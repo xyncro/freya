@@ -39,13 +39,13 @@ let memo<'a> (m: Freya<'a>) : Freya<'a> =
     let memoPLens = memoPLens (Guid.NewGuid ())
 
     freya {
-        let! memo = getPLM memoPLens
+        let! memo = Freya.getLensPartial memoPLens
 
         match memo with
         | Some memo ->
             return memo
         | _ ->
             let! memo = m
-            do! setPLM memoPLens memo
+            do! Freya.setLensPartial memoPLens memo
 
             return memo }
