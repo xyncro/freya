@@ -23,7 +23,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = getLM answerLens
+            let! v1 = Freya.getLens answerLens
             return v1 }
     
     let result = run m
@@ -31,7 +31,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
 
 [<Test>]
 let ``freya computation can roundtrip to and from OwinAppFunc`` () =
-    let app = setLM answerLens 42
+    let app = Freya.setLens answerLens 42
 
     let converted =
         app
@@ -41,7 +41,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = getLM answerLens
+            let! v1 = Freya.getLens answerLens
             return v1 }
     
     let result = run m
@@ -55,9 +55,9 @@ open Freya.Pipeline.Operators
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.ofFreya
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> next |> OwinMidFunc.ofFreya
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -69,9 +69,9 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.ofFreya
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> halt |> OwinMidFunc.ofFreya
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -82,9 +82,9 @@ let ``pipeline executes only the first monad if first returns terminate`` () =
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with composed pipeline`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> next
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -97,9 +97,9 @@ let ``pipeline executes both monads if first returns next with composed pipeline
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> halt
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -111,9 +111,9 @@ let ``pipeline executes only the first monad if first returns terminate with com
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with wrapped pipeline OwinMidFunc`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> next
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> next
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -127,9 +127,9 @@ let ``pipeline executes both monads if first returns next with wrapped pipeline 
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with wrapped pipeline OwinMidFunc`` () =
-    let app = setLM answerLens 42 |> OwinAppFunc.ofFreya
-    let o1 = modM (fun x -> x.Environment.["o1"] <- true; x) *> halt
-    let o2 = modM (fun x -> x.Environment.["o2"] <- true; x) *> next
+    let app = Freya.setLens answerLens 42 |> OwinAppFunc.ofFreya
+    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> halt
+    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -144,13 +144,13 @@ let ``pipeline executes only the first monad if first returns terminate with wra
 let ``MidFunc can be split and used to wrap a pipeline`` () =
     let stopwatch = System.Diagnostics.Stopwatch()
     let o1 =
-        modM (fun x ->
+        Freya.mapState (fun x ->
             x.Environment.["o1"] <- true
             x.Environment.["o1 time"] <- stopwatch.ElapsedMilliseconds
             x)
         *> next
     let o2 =
-        modM (fun x ->
+        Freya.mapState (fun x ->
             x.Environment.["o2"] <- true
             x.Environment.["o2 time"] <- stopwatch.ElapsedMilliseconds
             x)

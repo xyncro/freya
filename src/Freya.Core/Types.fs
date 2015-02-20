@@ -17,8 +17,7 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Core.Types
+namespace Freya.Core
 
 open System
 open System.Collections.Generic

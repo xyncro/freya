@@ -22,6 +22,7 @@ module Freya.Core.Integration
 
 open System
 open System.Threading.Tasks
+open Freya.Core
 
 (* OWIN Types *)
 
