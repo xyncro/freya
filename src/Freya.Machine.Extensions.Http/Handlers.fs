@@ -33,22 +33,22 @@ open Freya.Types.Http
 
 let private charsetsNegotiated config =
     ContentNegotiation.Charset.negotiated
-        (getPLM Request.Headers.acceptCharset)
+        (Freya.getLensPartial Request.Headers.acceptCharset)
         (tryGetConfigOrElse Configuration.CharsetsSupported Defaults.charsetsSupported config)
 
 let private encodingsNegotiated config =
     ContentNegotiation.Encoding.negotiated
-        (getPLM Request.Headers.acceptEncoding)
+        (Freya.getLensPartial Request.Headers.acceptEncoding)
         (tryGetConfigOrElse Configuration.EncodingsSupported Defaults.encodingsSupported config)
 
 let private mediaTypesNegotiated config =
     ContentNegotiation.MediaType.negotiated
-        (getPLM Request.Headers.accept)
+        (Freya.getLensPartial Request.Headers.accept)
         (tryGetConfigOrElse Configuration.MediaTypesSupported Defaults.mediaTypesSupported config)
 
 let private languagesNegotiated config =
     ContentNegotiation.Language.negotiated
-        (getPLM Request.Headers.acceptLanguage)
+        (Freya.getLensPartial Request.Headers.acceptLanguage)
         (tryGetConfigOrElse Configuration.LanguagesSupported Defaults.languagesSupported config)
 
 (* Specification *)
@@ -73,19 +73,19 @@ let private charsetPLens =
    >??> mapPLens "charset"
 
 let private charset =
-        Option.map (fun (Charset x) -> setPLM charsetPLens x)
+        Option.map (fun (Charset x) -> Freya.setLensPartial charsetPLens x)
      >> Option.orElse (Freya.init ())
 
 let private encodings =
-        Option.map (fun x -> setPLM Response.Headers.contentEncoding (ContentEncoding x))
+        Option.map (fun x -> Freya.setLensPartial Response.Headers.contentEncoding (ContentEncoding x))
      >> Option.orElse (Freya.init ())
 
 let private mediaType =
-        Option.map (fun x -> setPLM Response.Headers.contentType (ContentType x))
+        Option.map (fun x -> Freya.setLensPartial Response.Headers.contentType (ContentType x))
      >> Option.orElse (Freya.init ())
 
 let private languages =
-        Option.map (fun x -> setPLM Response.Headers.contentLanguage (ContentLanguage x))
+        Option.map (fun x -> Freya.setLensPartial Response.Headers.contentLanguage (ContentLanguage x))
      >> Option.orElse (Freya.init ())
 
 let private description x =
@@ -95,7 +95,7 @@ let private description x =
      *> languages x.Languages
 
 let private data x =
-    modLM Response.body (fun b -> b.Write (x, 0, x.Length); b)
+    Freya.mapLens Response.body (fun b -> b.Write (x, 0, x.Length); b)
 
 (* Handlers *)
 

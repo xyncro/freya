@@ -62,7 +62,6 @@
     <Compile Include="Freya.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Builder.fs" />
-    <Compile Include="Functions.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Integration.fs" />
     <Compile Include="Utilities.fs" />

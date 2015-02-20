@@ -40,16 +40,16 @@ let private corsEnabled config =
 
 let private corsOriginAllowed config =
     Cors.originAllowed
-        (getPLM Request.Headers.origin)
+        (Freya.getLensPartial Request.Headers.origin)
         (tryGetConfigOrElse Configuration.CorsOriginsSupported Defaults.corsOriginsSupported config)
 
 let private corsOptions _ =
     Cors.options
-        (getLM Request.meth)
+        (Freya.getLens Request.meth)
 
 let private corsPreflight _ =
     Cors.isPreflight
-        (getPLM Request.Headers.accessControlRequestMethod)
+        (Freya.getLensPartial Request.Headers.accessControlRequestMethod)
 
 (* Graph *)
 
