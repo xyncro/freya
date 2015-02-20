@@ -45,15 +45,15 @@ and private pick segment data tries =
         match tries with
         | [] -> return None
         | tries ->
-            let! env = getM
+            let! state = Freya.getState
 
-            let x, env =
-                List.fold (fun (x, env) trie ->
+            let x, state =
+                List.fold (fun (x, state) trie ->
                     match x with
-                    | Some (trie, data) -> (Some (trie, data), env)
-                    | None -> Async.RunSynchronously (recognize segment data trie env)) (None, env) tries
+                    | Some (trie, data) -> (Some (trie, data), state)
+                    | None -> Async.RunSynchronously (recognize segment data trie state)) (None, state) tries
 
-            do! setM env
+            do! Freya.setState state
 
             return x }
 
@@ -87,10 +87,10 @@ let private matchMethod meth x =
 
 let executeCompilation trie =
     freya {
-        let! meth = getLM Request.meth
-        let! path = segmentize <!> getLM Request.path
+        let! meth = Freya.getLens Request.meth
+        let! path = segmentize <!> Freya.getLens Request.path
         let! res = (findTrie path Map.empty >=> matchMethod meth) trie
         
         match res with
-        | Some (pipeline, data) -> return! setPLM Route.values data *> pipeline
+        | Some (pipeline, data) -> return! Freya.setLensPartial Route.values data *> pipeline
         | _ -> return Next }

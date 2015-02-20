@@ -21,7 +21,7 @@
 module Freya.Machine.Inspector
 
 open Aether
-open Fleece
+open Chiron
 open Freya.Inspector
 
 (* Runtime *)
@@ -35,7 +35,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    Lens.getPartial freyaMachineRecordPLens >> Option.map toJSON
+    Lens.getPartial freyaMachineRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }

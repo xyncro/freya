@@ -40,7 +40,7 @@ let private corsActual config =
 
 let private corsOrigin _ =
     Cors.origin
-        (Option.map (fun (Origin x) -> x) >> Option.get <!> getPLM Request.Headers.origin)
+        (Option.map (fun (Origin x) -> x) >> Option.get <!> Freya.getLensPartial Request.Headers.origin)
 
 let private corsPreflight config =
     Cors.preflight

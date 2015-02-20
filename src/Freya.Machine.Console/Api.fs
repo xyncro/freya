@@ -49,7 +49,7 @@ open Freya.Types.Http.Cors
 
 let id =
     freya {
-        let! id = getPLM (Route.valuesKey "id")
+        let! id = Freya.getLensPartial (Route.valuesKey "id")
         return (Option.get >> Guid.Parse) id } |> memo
 
 (* Body Properties
@@ -158,7 +158,8 @@ let corsOrigins =
 
 let corsHeaders =
     freya {
-        return [ "accept"; "content-type" ] }
+        return [ "accept"
+                 "content-type" ] }
 
 let common =
     freyaMachine {

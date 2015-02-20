@@ -94,7 +94,7 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
                           Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
@@ -139,13 +139,13 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
                           Local "Freya.Core" ] }
                   { Name = "Freya.Router"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
                           Local "Freya.Recorder"

@@ -22,6 +22,13 @@
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Freya
 
+open Aether
+
+(* Basic
+
+   Commonly used functions for initialization, conversion, etc. of the
+   Freya<'T> function. *)
+
 /// Wraps a value x in a <see cref="Freya{T}" /> computation.
 let inline init x : Freya<'T> = 
     fun env -> 
@@ -61,3 +68,48 @@ let inline map f m : Freya<'T> =
 /// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
 let inline map2 f m1 m2 =
     apply (apply (init f) m1) m2
+
+(* State
+
+   Functions for working with the state within a Freya<'T> function. *)
+
+/// Gets the Freya State within a Freya monad
+let getState =
+    fun state -> async { return state, state }
+
+/// Sets the Freya State within a Freya monad
+let setState state =
+    fun _ -> async { return (), state }
+
+/// Modifies the Freya State within a Freya monad
+let mapState f =
+    fun state -> async { return (), f state }
+
+(* Lens
+
+   Functions for working with the state within a Freya<'T> function, using
+   Aether based lenses. *)
+
+/// Gets part of the Core State within a Core monad using an Aether lens
+let getLens l = 
+    map (Lens.get l) getState
+
+/// Gets part of the Core State within a Core monad using a partial Aether lens
+let getLensPartial l = 
+    map (Lens.getPartial l) getState
+
+/// Sets part of the Core State within a Core monad using an Aether lens
+let setLens l v =
+    mapState (Lens.set l v)
+
+/// Sets part of the Core State within a Core monad using a partial Aether lens
+let setLensPartial l v = 
+    mapState (Lens.setPartial l v)
+
+/// Modifies part of the Core State within a Core monad using an Aether lens
+let mapLens l f = 
+    mapState (Lens.map l f)
+
+/// Modifies part of the Core State within a Core monad using a partial Aether lens
+let mapLensPartial l f = 
+    mapState (Lens.mapPartial l f)

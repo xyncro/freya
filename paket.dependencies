@@ -1,7 +1,7 @@
 source https://nuget.org/api/v2
 
 nuget Aether
-nuget Fleece
+nuget Chiron
 nuget FParsec
 nuget FSharp.Core
 nuget Hekate

@@ -32,37 +32,37 @@ open Freya.Types.Http
 
 let allow =
        tryGetConfig Configuration.MethodsSupported
-    >> Option.map (fun x -> setPLM Response.Headers.allow =<< (Allow <!> x))
-    >> Option.orElse (setPLM Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
+    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.allow =<< (Allow <!> x))
+    >> Option.orElse (Freya.setLensPartial Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
 
 let date =
-    setPLM Response.Headers.date (Date.Date DateTime.UtcNow)
+    Freya.setLensPartial Response.Headers.date (Date.Date DateTime.UtcNow)
 
 let eTag =
        tryGetConfig Configuration.ETag
-    >> Option.map (fun x -> setPLM Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let expires =
        tryGetConfig Configuration.Expires 
-    >> Option.map (fun x -> setPLM Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let lastModified =
        tryGetConfig Configuration.LastModified 
-    >> Option.map (fun x -> setPLM Response.Headers.lastModified =<< (LastModified <!> x))
+    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.lastModified =<< (LastModified <!> x))
     >> Option.orElse (Freya.init ())
 
 let location =
        tryGetConfig Configuration.Location
-    >> Option.map (fun x -> setPLM Response.Headers.location =<< (Location <!> x))
+    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.location =<< (Location <!> x))
     >> Option.orElse (Freya.init ())
 
 let phrase =
-    setPLM Response.reasonPhrase
+    Freya.setLensPartial Response.reasonPhrase
 
 let status =
-    setPLM Response.statusCode
+    Freya.setLensPartial Response.statusCode
 
 (* Operations *)
 

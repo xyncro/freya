@@ -20,6 +20,11 @@
 /// Custom operators for composing <see cref="Freya{T}" /> computations.
 module Freya.Core.Operators
 
+(* Compositional
+
+   Operators for the composition of Freya<'T> functions in
+   various forms. *)
+
 let inline (>>=) m f =
     Freya.bind m f
 
@@ -46,3 +51,26 @@ let inline (>=>) m1 m2 =
 
 let inline (<=<) m1 m2 =
     fun x -> m2 x >>= m1
+
+(* Lens
+
+   Operators for lens based operations over the Freya<'T> state,
+   providing operator based alternatives to Freya.getLens, etc. *)
+
+let inline (!.) l =
+    Freya.getLens l
+
+let inline (!?.) l =
+    Freya.getLensPartial l
+
+let inline (.=) l v =
+    Freya.setLens l v
+
+let inline (.?=) l v =
+    Freya.setLensPartial l v
+
+let inline (%=) l f =
+    Freya.mapLens l f
+
+let inline (%?=) l f =
+    Freya.mapLensPartial l f

@@ -109,6 +109,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A04CCABD-7D4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "machine", "machine", "{75494D1F-A3BA-49A9-8B0F-C8190126E94F}"
 	ProjectSection(SolutionItems) = preProject
+		src\Freya.Machine.Console\Freya.Machine.Console.fsproj.paket.references = src\Freya.Machine.Console\Freya.Machine.Console.fsproj.paket.references
 		src\Freya.Machine\Freya.Machine.fsproj.paket.references = src\Freya.Machine\Freya.Machine.fsproj.paket.references
 		src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj.paket.references = src\Freya.Machine.Inspector\Freya.Machine.Inspector.fsproj.paket.references
 		src\Freya.Machine.Router\Freya.Machine.Router.fsproj.paket.references = src\Freya.Machine.Router\Freya.Machine.Router.fsproj.paket.references
