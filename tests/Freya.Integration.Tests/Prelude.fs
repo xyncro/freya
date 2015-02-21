@@ -10,6 +10,10 @@ let env () =
     e.["o2"] <- false
     e
 
+let appendString str = function
+    | Some s -> sprintf "%s,%s" s str
+    | None   -> str
+
 let private freyaState () =
     { Environment = env()
       Meta =
