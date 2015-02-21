@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d7b4915e-910c-476d-a2aa-b48991f11e17</ProjectGuid>
+    <ProjectGuid>{D7B4915E-910C-476D-A2AA-B48991F11E17}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Freya.Integration.Tests</RootNamespace>
     <AssemblyName>Freya.Integration.Tests</AssemblyName>
@@ -62,18 +61,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Integration\Freya.Integration.fsproj">
       <Name>Freya.Integration</Name>
-      <Project>{fdf2c01f-7420-4e1d-8ba1-382c3d801c0c}</Project>
-      <Private>True</Private>
+      <Project>{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
       <Name>Freya.Pipeline</Name>
-      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
-      <Private>True</Private>
+      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -144,7 +140,6 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>

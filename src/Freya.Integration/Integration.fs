@@ -121,30 +121,36 @@ module OwinMidFunc =
     /// Splits a MidFunc into a before and after Freya.Pipeline.
     [<CompiledName("SplitIntoFreya")>]
     let splitIntoFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> * Freya<FreyaPipelineChoice> =
+        // TODO: find a better way than using TaskCompletionSource instances
         let nextWasRun = ref false
-        let resumed = new Event<unit>()
+        let signalCh = TaskCompletionSource<unit>()
+        let continueCh = TaskCompletionSource<unit>()
+        let midFuncCh = ref Unchecked.defaultof<Task<unit>>
         let nextSignal =
             OwinAppFunc(fun _ ->
-                async {
-                    nextWasRun := true
-                    // Pause while the rest of the pipeline runs.
-                    do! resumed.Publish |> Async.AwaitEvent
-                    // Complete the Task.
-                    return ()
-                } |> Async.StartAsTask :> Task)
+                nextWasRun := true
+                signalCh.SetResult ()
+                continueCh.Task :> Task)
         let before s =
             async {
                 let! token = Async.CancellationToken
                 // Apply and mutate the OwinEnvironment asynchronously.
-                do! Async.AwaitTask <| midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+                midFuncCh := midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+                // If haltCh completes first, nextWasRun will be false, and nothing further is necessary.
+                // Otherwise, we'll continue on and call back into the midFunc in the after pipe.
+                let! _ = Async.AwaitTask <| Task.WhenAny([| signalCh.Task; !midFuncCh |])
                 if !nextWasRun then
                     // Return the result as a unit value and the mutated FreyaState.
                     return Next, s
                 else return Halt, s }
         let after s =
             async {
-                // Trigger the resumed event to allow the MidFunc to continue processing.
-                resumed.Trigger ()
-                // NOTE: This should be ignored; it is here purely to support the correct signature.
-                return Next, s }
+                // Set the continueCh result to complete the signal Task and allow the middleware to complete.
+                continueCh.SetResult ()
+                // Await the completion of the midFuncCh to know when the midFunc completes
+                let! _ = Async.AwaitTask <| !midFuncCh
+                // Return Next or Halt depending on the Task.Status
+                if (!midFuncCh).Status = TaskStatus.RanToCompletion then
+                    return Next, s
+                else return Halt, s }
         before, after

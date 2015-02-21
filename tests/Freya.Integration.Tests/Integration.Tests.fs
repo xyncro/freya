@@ -210,44 +210,26 @@ let ``pipeline executes only the first monad if first returns terminate with wra
     unbox env.["o2"] =? false
     unbox env.["Answer"] =? "1"
 
-[<Test; Explicit("Implementation has a bug that causes the test to hang.")>]
-let ``MidFunc can be split and used to wrap a pipeline`` () =
-    let stopwatch = System.Diagnostics.Stopwatch()
-    let o1 =
-        Freya.mapState (fun x ->
-            x.Environment.["o1"] <- true
-            x.Environment.["o1 time"] <- stopwatch.ElapsedMilliseconds
-            x)
-        *> next
-    let o2 =
-        Freya.mapState (fun x ->
-            x.Environment.["o2"] <- true
-            x.Environment.["o2 time"] <- stopwatch.ElapsedMilliseconds
-            x)
-        *> next
+[<Test>]
+let ``MidFunc can roundtrip to Freya Pipeline before / after and back`` () =
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
                 async {
                     env.["o3"] <- true
-                    env.["o3 time"] <- stopwatch.ElapsedMilliseconds
                     do! next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
                     env.["o4"] <- true
-                    env.["o4 time"] <- stopwatch.ElapsedMilliseconds
                 } |> Async.StartAsTask :> Task ))
+
     let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped before after
+    let composed = pipe.Invoke app
 
-    stopwatch.Start()
-    let result = run (before >?= o1 >?= o2 >?= after)
-    stopwatch.Stop()
+    let env = invoke composed
 
-    let env = (snd result).Environment
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? "42"
     env.ContainsKey("o3") =? true
     unbox env.["o3"] =? true
     env.ContainsKey("o4") =? true
     unbox env.["o4"] =? true
-    unbox env.["o3 time"] <? unbox env.["o1 time"]
-    unbox env.["o1 time"] <? unbox env.["o2 time"]
-    unbox env.["o2 time"] <? unbox env.["o4 time"]
