@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>20c92caf-233f-492d-8743-6b4bd848cd53</ProjectGuid>
+    <ProjectGuid>39224678-043e-4424-96a5-b4b4987968ee</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Arachne.Language</RootNamespace>
-    <AssemblyName>Arachne.Language</AssemblyName>
+    <RootNamespace>Arachne.Http</RootNamespace>
+    <AssemblyName>Arachne.Http</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Arachne.Language</Name>
+    <Name>Arachne.Http</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Arachne.Language.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Arachne.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Arachne.Language.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Arachne.Http.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -43,6 +43,16 @@
     <Compile Include="Types.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Arachne.Language\Arachne.Language.fsproj">
+      <Name>Arachne.Language</Name>
+      <Project>{20c92caf-233f-492d-8743-6b4bd848cd53}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Arachne.Uri\Arachne.Uri.fsproj">
+      <Name>Arachne.Uri</Name>
+      <Project>{bf772bfe-a163-41f5-81d6-abf9efeeca12}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Arachne\Arachne.fsproj">
       <Name>Arachne (src\arachne\Arachne)</Name>
       <Project>{d745817b-9356-44da-9b23-102ec428e4fc}</Project>
