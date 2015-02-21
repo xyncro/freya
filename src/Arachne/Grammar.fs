@@ -17,8 +17,9 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Types.Grammar
+module Arachne.Grammar
+
+open Parsing
 
 (* RFC 5234
 

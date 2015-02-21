@@ -17,41 +17,43 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Types.Grammar
+module Arachne.Parsing
 
-(* RFC 5234
+open FParsec
 
-   Core ABNF grammar rules as defined in RFC 5234.
+(* Parsing *)
 
-   Taken from RFC 5234, Appendix B.1 Core Rules
-   See [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
+let parse (p: Parse<'a>) s =
+    match run p s with
+    | Success (x, _, _) -> x
+    | Failure (e, _, _) -> failwith e
 
-let alpha = 
-    Set.unionMany [ 
-        charRange 0x41 0x5a
-        charRange 0x61 0x7a ]
+let tryParse (p: Parse<'a>) s =
+    match run p s with
+    | Success (x, _, _) -> Some x
+    | Failure (_, _, _) -> None
 
-let digit = 
-    charRange 0x30 0x39
+(* Helpers *)
 
-let dquote = 
-    char 0x22
+let charRange x y =
+    set (List.map char [ x .. y ])
 
-let htab = 
-    char 0x09
+let (?>) xs x =
+    Set.contains x xs
 
-let sp = 
-    char 0x20
+(* Common *)
 
-let vchar =
-    charRange 0x21 0x7e
+let ampersandP : Parser<unit, unit> =
+    skipChar '&'
 
-let hexdig =
-    Set.unionMany [
-        digit
-        set [ 'A'; 'B'; 'C'; 'D'; 'E'; 'F'
-              'a'; 'b'; 'c'; 'd'; 'e'; 'f' ] ]
+let commaP : Parser<unit, unit> =
+    skipChar ','
 
-let wsp = 
-    set [ sp; htab ]
+let semicolonP : Parser<unit, unit> =
+    skipChar ';'
+
+let slashP : Parser<unit, unit> =
+    skipChar '/'
+
+let spaceP : Parser<unit, unit> =
+    skipChar ' '

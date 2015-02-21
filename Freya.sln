@@ -175,6 +175,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", 
 		tests\Freya.Machine.Extensions.Http.Tests\Freya.Machine.Extensions.Http.Tests.fsproj.paket.references = tests\Freya.Machine.Extensions.Http.Tests\Freya.Machine.Extensions.Http.Tests.fsproj.paket.references
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "arachne", "arachne", "{BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Arachne.Uri", "src\Arachne.Uri\Arachne.Uri.fsproj", "{BF772BFE-A163-41F5-81D6-ABF9EFEECA12}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Arachne", "src\Arachne\Arachne.fsproj", "{D745817B-9356-44DA-9B23-102EC428E4FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "arachne", "arachne", "{9A7FD323-9932-42A7-9853-73AF54523072}"
+	ProjectSection(SolutionItems) = preProject
+		src\Arachne\Arachne.fsproj.paket.references = src\Arachne\Arachne.fsproj.paket.references
+		src\Arachne.Uri\Arachne.Uri.fsproj.paket.references = src\Arachne.Uri\Arachne.Uri.fsproj.paket.references
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +297,14 @@ Global
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF772BFE-A163-41F5-81D6-ABF9EFEECA12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF772BFE-A163-41F5-81D6-ABF9EFEECA12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF772BFE-A163-41F5-81D6-ABF9EFEECA12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF772BFE-A163-41F5-81D6-ABF9EFEECA12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D745817B-9356-44DA-9B23-102EC428E4FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D745817B-9356-44DA-9B23-102EC428E4FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D745817B-9356-44DA-9B23-102EC428E4FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D745817B-9356-44DA-9B23-102EC428E4FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -342,5 +362,9 @@ Global
 		{7D4982FC-B098-44CE-B8CE-85AA331CE6F5} = {54F04F84-4D44-4E21-8F94-8AEEEDBA53E1}
 		{12B490BE-1918-45EB-82E0-AB6EC5398D6F} = {1AF60757-05E6-45AA-AFDA-AE56B3F577A8}
 		{50F16B9C-964A-4949-B696-93D8F0454AFC} = {6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999}
+		{BC056B62-B8A1-4DED-8A2C-0D3780EB40E4} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
+		{BF772BFE-A163-41F5-81D6-ABF9EFEECA12} = {BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}
+		{D745817B-9356-44DA-9B23-102EC428E4FC} = {BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}
+		{9A7FD323-9932-42A7-9853-73AF54523072} = {A04CCABD-7D4C-4791-973C-41ED152359E9}
 	EndGlobalSection
 EndGlobal
