@@ -233,3 +233,22 @@ let ``MidFunc can roundtrip to Freya Pipeline before / after and back`` () =
     unbox env.["o3"] =? true
     env.ContainsKey("o4") =? true
     unbox env.["o4"] =? true
+
+[<Test>]
+let ``MidFunc that terminates early and doesn't call next Halts correctly as a Freya Pipeline`` () =
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                env.["o3"] <- true
+                Task.FromResult<obj>(null) :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped before after
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("Answer") =? false
+    env.ContainsKey("o4") =? false
