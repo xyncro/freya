@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>bf772bfe-a163-41f5-81d6-abf9efeeca12</ProjectGuid>
+    <ProjectGuid>ad654a1b-9530-4e99-8885-03ff404a4d23</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Arachne.Uri</RootNamespace>
-    <AssemblyName>Arachne.Uri</AssemblyName>
+    <RootNamespace>Freya.Typed.Http</RootNamespace>
+    <AssemblyName>Freya.Typed.Http</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Arachne.Uri</Name>
+    <Name>Freya.Typed.Http</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Arachne.Uri.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Typed.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Arachne.Uri.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Typed.Http.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -40,14 +40,24 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Arachne.Http\Arachne.Http.fsproj">
+      <Name>Arachne.Http</Name>
+      <Project>{39224678-043e-4424-96a5-b4b4987968ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Arachne\Arachne.fsproj">
       <Name>Arachne (src\arachne\Arachne)</Name>
       <Project>{d745817b-9356-44da-9b23-102ec428e4fc}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Uri.fs" />
+    <Compile Include="Http.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -75,13 +85,8 @@
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
       <ItemGroup>
-        <Reference Include="FParsec">
-          <HintPath>..\..\packages\FParsec\lib\net40-client\FParsec.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="FParsecCS">
-          <HintPath>..\..\packages\FParsec\lib\net40-client\FParsecCS.dll</HintPath>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

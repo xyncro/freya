@@ -40,7 +40,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Types.fs" />
+    <Compile Include="Http.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Arachne.Language\Arachne.Language.fsproj">

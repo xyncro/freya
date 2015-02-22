@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>bf772bfe-a163-41f5-81d6-abf9efeeca12</ProjectGuid>
+    <ProjectGuid>07dbfd10-ba4b-4651-b6e6-616d7753fd10</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Arachne.Uri</RootNamespace>
-    <AssemblyName>Arachne.Uri</AssemblyName>
+    <RootNamespace>Arachne.Http.Cors</RootNamespace>
+    <AssemblyName>Arachne.Http.Cors</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Arachne.Uri</Name>
+    <Name>Arachne.Http.Cors</Name>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Arachne.Uri.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Arachne.Http.Cors.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,7 +31,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Arachne.Uri.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Arachne.Http.Cors.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -40,14 +40,24 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cors.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Arachne.Http\Arachne.Http.fsproj">
+      <Name>Arachne.Http</Name>
+      <Project>{39224678-043e-4424-96a5-b4b4987968ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Arachne.Uri\Arachne.Uri.fsproj">
+      <Name>Arachne.Uri</Name>
+      <Project>{bf772bfe-a163-41f5-81d6-abf9efeeca12}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Arachne\Arachne.fsproj">
       <Name>Arachne (src\arachne\Arachne)</Name>
       <Project>{d745817b-9356-44da-9b23-102ec428e4fc}</Project>
       <Private>True</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Uri.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

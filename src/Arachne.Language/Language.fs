@@ -20,6 +20,7 @@
 module Arachne.Language
 
 open System.ComponentModel
+open Arachne
 open Arachne.Formatting
 open Arachne.Parsing
 open FParsec
@@ -45,22 +46,22 @@ open FParsec
 
 (* Helpers *)
 
-let private isAlpha =
+let internal isAlpha =
     ((?>) Grammar.alpha)
 
-let private isDigit =
+let internal isDigit =
     ((?>) Grammar.digit)
 
-let private isAlphaNum x =
+let internal isAlphaNum x =
     (Grammar.alpha ?> x || Grammar.digit ?> x)
 
-let private alphaP min max =
+let internal alphaP min max =
     manyMinMaxSatisfy min max isAlpha .>>? notFollowedBy (skipSatisfy isAlpha)
 
-let private digitP min max =
+let internal digitP min max =
     manyMinMaxSatisfy min max isDigit .>>? notFollowedBy (skipSatisfy isDigit)
 
-let private alphaNumP min max =
+let internal alphaNumP min max =
     manyMinMaxSatisfy min max isAlphaNum .>>? notFollowedBy (skipSatisfy isAlphaNum)
 
 (* Language *)
@@ -177,10 +178,7 @@ type Variant =
 (* Language Tag *)
 
 type LanguageTag =
-    { Language: Language
-      Script: Script option
-      Region: Region option
-      Variant: Variant }
+    | LanguageTag of Language * Script option * Region option * Variant
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member TypeMapping =
@@ -191,23 +189,17 @@ type LanguageTag =
                    (opt (attempt Region.TypeMapping.Parse))
                    (Variant.TypeMapping.Parse)
             |>> fun (language, script, region, variant) ->
-                { Language = language
-                  Script = script
-                  Region = region
-                  Variant = variant }
+                LanguageTag (language, script, region, variant)
 
         let languageTagF =
-            function | { Language = language
-                         Script = script
-                         Region = region
-                         Variant = variant } ->
+            function | LanguageTag (language, script, region, variant) ->
                          let formatters =
                             [ Language.TypeMapping.Format language
                               (function | Some x -> Script.TypeMapping.Format x | _ -> id) script
                               (function | Some x -> Region.TypeMapping.Format x | _ -> id) region
                               Variant.TypeMapping.Format variant ]
 
-                         fun b -> List.fold (fun b f -> f b) b formatters
+                         fun b -> List.fold (|>) b formatters
 
         { Parse = languageTagP
           Format = languageTagF }

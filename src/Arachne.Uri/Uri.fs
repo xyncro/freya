@@ -105,9 +105,7 @@ type Scheme =
 (* Section 3.2 *)
 
 type Authority =
-    { Host: Host
-      Port: Port option
-      UserInfo: UserInfo option }
+    | Authority of Host * Port option * UserInfo option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member TypeMapping =
@@ -116,23 +114,18 @@ type Authority =
             opt (attempt UserInfo.TypeMapping.Parse) 
             .>>. Host.TypeMapping.Parse 
             .>>. opt Port.TypeMapping.Parse
-            |>> fun ((user, host), port) ->
-                { Host = host
-                  Port = port
-                  UserInfo = user }
+            |>> fun ((user, host), port) -> Authority (host, port, user)
 
         let authorityF =
-            function | { Host = h
-                         Port = p
-                         UserInfo = u } ->
-                            let formatters =
-                                [ (function | Some u -> UserInfo.TypeMapping.Format u 
-                                            | _ -> id) u
-                                  Host.TypeMapping.Format h
-                                  (function | Some p -> Port.TypeMapping.Format p 
-                                            | _ -> id) p ]
+            function | Authority (h, p, u) ->
+                        let formatters =
+                            [ (function | Some u -> UserInfo.TypeMapping.Format u 
+                                        | _ -> id) u
+                              Host.TypeMapping.Format h
+                              (function | Some p -> Port.TypeMapping.Format p 
+                                        | _ -> id) p ]
 
-                            fun b -> List.fold (|>) b formatters
+                        fun b -> List.fold (|>) b formatters
 
         { Parse = authorityP
           Format = authorityF }
@@ -494,10 +487,7 @@ type Fragment =
    creation will still allow this case. *)
 
 type Uri =
-    { Scheme: Scheme
-      Hierarchy: HierarchyPart
-      Query: Query option
-      Fragment: Fragment option }
+    | Uri of Scheme * HierarchyPart * Query option * Fragment option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member TypeMapping =
@@ -508,24 +498,18 @@ type Uri =
             .>>. opt Query.TypeMapping.Parse
             .>>. opt Fragment.TypeMapping.Parse
             |>> fun (((scheme, hierarchy), query), fragment) ->
-                { Scheme = scheme
-                  Hierarchy = hierarchy
-                  Query = query
-                  Fragment = fragment }
+                Uri (scheme, hierarchy, query, fragment)
 
         let uriF =
-            function | { Scheme = s
-                         Hierarchy = h
-                         Query = q
-                         Fragment = f } -> 
-                            let formatters =
-                                [ Scheme.TypeMapping.Format s
-                                  append ":"
-                                  HierarchyPart.TypeMapping.Format h
-                                  (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
-                                  (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
+            function | Uri (s, h, q, f) -> 
+                        let formatters =
+                            [ Scheme.TypeMapping.Format s
+                              append ":"
+                              HierarchyPart.TypeMapping.Format h
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
+                              (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
 
-                            fun b -> List.fold (fun b f -> f b) b formatters
+                        fun b -> List.fold (|>) b formatters
 
         { Parse = uriP
           Format = uriF }
@@ -583,9 +567,7 @@ and HierarchyPart =
    See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
 
 type RelativeReference =
-    { Relative: RelativePart
-      Query: Query option
-      Fragment: Fragment option }
+    | RelativeReference of RelativePart * Query option * Fragment option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member TypeMapping =
@@ -595,20 +577,16 @@ type RelativeReference =
             .>>. opt Query.TypeMapping.Parse
             .>>. opt Fragment.TypeMapping.Parse
             |>> fun ((relative, query), fragment) ->
-                { Relative = relative
-                  Query = query
-                  Fragment = fragment }
+                RelativeReference (relative, query, fragment)
 
         let relativeReferenceF =
-            function | { Relative = r
-                         Query = q
-                         Fragment = f } -> 
-                            let formatters =
-                                [ RelativePart.TypeMapping.Format r
-                                  (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
-                                  (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
+            function | RelativeReference (r, q, f) -> 
+                        let formatters =
+                            [ RelativePart.TypeMapping.Format r
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
+                              (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
 
-                            fun b -> List.fold (fun b f -> f b) b formatters
+                        fun b -> List.fold (|>) b formatters
 
         { Parse = relativeReferenceP
           Format = relativeReferenceF }
@@ -666,9 +644,7 @@ and RelativePart =
    See [http://tools.ietf.org/html/rfc3986#section-4.3] *)
 
 type AbsoluteUri =
-    { Scheme: Scheme
-      Hierarchy: HierarchyPart
-      Query: Query option }
+    | AbsoluteUri of Scheme * HierarchyPart * Query option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member TypeMapping =
@@ -678,21 +654,17 @@ type AbsoluteUri =
             .>>. HierarchyPart.TypeMapping.Parse 
             .>>. opt Query.TypeMapping.Parse
             |>> fun ((scheme, hierarchy), query) ->
-                { Scheme = scheme
-                  Hierarchy = hierarchy
-                  Query = query }
+                AbsoluteUri (scheme, hierarchy, query)
 
         let absoluteUriF =
-            function | { AbsoluteUri.Scheme = s
-                         Hierarchy = h
-                         Query = q } -> 
-                            let formatters =
-                                [ Scheme.TypeMapping.Format s
-                                  append ":"
-                                  HierarchyPart.TypeMapping.Format h
-                                  (function | Some q -> Query.TypeMapping.Format q | _ -> id) q ]
+            function | AbsoluteUri (s, h, q) -> 
+                        let formatters =
+                            [ Scheme.TypeMapping.Format s
+                              append ":"
+                              HierarchyPart.TypeMapping.Format h
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q ]
 
-                            fun b -> List.fold (fun b f -> f b) b formatters
+                        fun b -> List.fold (|>) b formatters
 
         { Parse = absoluteUriP
           Format = absoluteUriF }

@@ -184,6 +184,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "arachne", "arachne", "{9A7FD323-9932-42A7-9853-73AF54523072}"
 	ProjectSection(SolutionItems) = preProject
 		src\Arachne\Arachne.fsproj.paket.references = src\Arachne\Arachne.fsproj.paket.references
+		Arachne.Http.Cors\Arachne.Http.Cors.fsproj.paket.references = Arachne.Http.Cors\Arachne.Http.Cors.fsproj.paket.references
 		src\Arachne.Http\Arachne.Http.fsproj.paket.references = src\Arachne.Http\Arachne.Http.fsproj.paket.references
 		src\Arachne.Language\Arachne.Language.fsproj.paket.references = src\Arachne.Language\Arachne.Language.fsproj.paket.references
 		src\Arachne.Uri\Arachne.Uri.fsproj.paket.references = src\Arachne.Uri\Arachne.Uri.fsproj.paket.references
@@ -192,6 +193,20 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Arachne.Language", "src\Arachne.Language\Arachne.Language.fsproj", "{20C92CAF-233F-492D-8743-6B4BD848CD53}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Arachne.Http", "src\Arachne.Http\Arachne.Http.fsproj", "{39224678-043E-4424-96A5-B4B4987968EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "typed", "typed", "{B300652A-5BC9-4C33-8FE6-EC4D0A69E447}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Typed.Http", "src\Freya.Typed.Http\Freya.Typed.Http.fsproj", "{AD654A1B-9530-4E99-8885-03FF404A4D23}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "typed", "typed", "{060837D4-F528-469A-89CE-685038A40C63}"
+	ProjectSection(SolutionItems) = preProject
+		src\Freya.Typed.Http.Cors\Freya.Typed.Http.Cors.fsproj.paket.references = src\Freya.Typed.Http.Cors\Freya.Typed.Http.Cors.fsproj.paket.references
+		src\Freya.Typed.Http\Freya.Typed.Http.fsproj.paket.references = src\Freya.Typed.Http\Freya.Typed.Http.fsproj.paket.references
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Typed.Http.Cors", "src\Freya.Typed.Http.Cors\Freya.Typed.Http.Cors.fsproj", "{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Arachne.Http.Cors", "src\Arachne.Http.Cors\Arachne.Http.Cors.fsproj", "{07DBFD10-BA4B-4651-B6E6-616D7753FD10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -319,6 +334,18 @@ Global
 		{39224678-043E-4424-96A5-B4B4987968EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39224678-043E-4424-96A5-B4B4987968EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39224678-043E-4424-96A5-B4B4987968EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD654A1B-9530-4E99-8885-03FF404A4D23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD654A1B-9530-4E99-8885-03FF404A4D23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD654A1B-9530-4E99-8885-03FF404A4D23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD654A1B-9530-4E99-8885-03FF404A4D23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07DBFD10-BA4B-4651-B6E6-616D7753FD10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07DBFD10-BA4B-4651-B6E6-616D7753FD10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07DBFD10-BA4B-4651-B6E6-616D7753FD10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07DBFD10-BA4B-4651-B6E6-616D7753FD10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -382,5 +409,10 @@ Global
 		{9A7FD323-9932-42A7-9853-73AF54523072} = {A04CCABD-7D4C-4791-973C-41ED152359E9}
 		{20C92CAF-233F-492D-8743-6B4BD848CD53} = {BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}
 		{39224678-043E-4424-96A5-B4B4987968EE} = {BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}
+		{B300652A-5BC9-4C33-8FE6-EC4D0A69E447} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
+		{AD654A1B-9530-4E99-8885-03FF404A4D23} = {B300652A-5BC9-4C33-8FE6-EC4D0A69E447}
+		{060837D4-F528-469A-89CE-685038A40C63} = {A04CCABD-7D4C-4791-973C-41ED152359E9}
+		{2FCA1DDD-22D6-4E94-8660-0FAA1B244C5F} = {B300652A-5BC9-4C33-8FE6-EC4D0A69E447}
+		{07DBFD10-BA4B-4651-B6E6-616D7753FD10} = {BC056B62-B8A1-4DED-8A2C-0D3780EB40E4}
 	EndGlobalSection
 EndGlobal
