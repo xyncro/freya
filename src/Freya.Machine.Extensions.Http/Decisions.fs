@@ -24,7 +24,7 @@ module internal Freya.Machine.Extensions.Http.Decisions
 open Freya.Core
 open Freya.Machine
 open Freya.Machine.Operators
-open Freya.Types.Http
+open Freya.Typed.Http
 
 (* Decisions *)
 

@@ -25,7 +25,6 @@ open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Pipeline.Operators
 open Freya.Recorder
-open Freya.Types.Http
 
 (* Functions *)
 

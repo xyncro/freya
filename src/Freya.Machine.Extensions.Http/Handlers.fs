@@ -23,11 +23,12 @@ module internal Freya.Machine.Extensions.Http.Handlers
 
 open Aether
 open Aether.Operators
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Operators
-open Freya.Types.Http
+open Freya.Typed.Http
 
 (* Negotiation *)
 
@@ -68,8 +69,9 @@ let private specification config =
 
 let private charsetPLens =
         Response.Headers.contentType
-   >?-> ContentType.MediaTypeLens
+   <?-> ContentType.MediaTypeIso
    >?-> MediaType.ParametersLens
+   <?-> Parameters.ParametersIso
    >??> mapPLens "charset"
 
 let private charset =

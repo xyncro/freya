@@ -53,14 +53,15 @@
     <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Name>Freya.Types.Http</Name>
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\Arachne.Http\Arachne.Http.fsproj">
+      <Name>Arachne.Http</Name>
+      <Project>{39224678-043e-4424-96a5-b4b4987968ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>

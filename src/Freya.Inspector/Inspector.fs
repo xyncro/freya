@@ -24,7 +24,7 @@ open Aether
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
+open Freya.Typed.Http
 
 (* Runtime *)
 

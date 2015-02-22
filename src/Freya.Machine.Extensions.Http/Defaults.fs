@@ -22,9 +22,9 @@
 module internal Freya.Machine.Extensions.Http.Defaults
 
 open System
+open Arachne.Http
+open Arachne.Language
 open Freya.Core
-open Freya.Types.Http
-open Freya.Types.Language
 
 (* Charsets *)
 

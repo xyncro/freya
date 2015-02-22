@@ -21,10 +21,10 @@
 module Freya.Inspector.Recording
 
 open Aether
+open Arachne.Http
 open Chiron
 open Chiron.Operators
 open Freya.Recorder
-open Freya.Types.Http
 
 (* Keys *)
 

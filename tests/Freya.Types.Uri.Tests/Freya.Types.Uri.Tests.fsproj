@@ -62,10 +62,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Types.Uri\Freya.Types.Uri.fsproj">
-      <Name>Freya.Types.Uri</Name>
-      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
-    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

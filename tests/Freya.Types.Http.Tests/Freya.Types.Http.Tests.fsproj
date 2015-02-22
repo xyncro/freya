@@ -60,18 +60,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Name>Freya.Types.Http</Name>
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Language\Freya.Types.Language.fsproj">
-      <Name>Freya.Types.Language</Name>
-      <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Uri\Freya.Types.Uri.fsproj">
-      <Name>Freya.Types.Uri</Name>
-      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
       <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>

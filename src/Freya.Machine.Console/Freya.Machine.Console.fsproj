@@ -56,6 +56,26 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Arachne.Http.Cors\Arachne.Http.Cors.fsproj">
+      <Name>Arachne.Http.Cors</Name>
+      <Project>{07dbfd10-ba4b-4651-b6e6-616d7753fd10}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Arachne.Http\Arachne.Http.fsproj">
+      <Name>Arachne.Http</Name>
+      <Project>{39224678-043e-4424-96a5-b4b4987968ee}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Arachne.Language\Arachne.Language.fsproj">
+      <Name>Arachne.Language</Name>
+      <Project>{20c92caf-233f-492d-8743-6b4bd848cd53}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Arachne\Arachne.fsproj">
+      <Name>Arachne (src\arachne\Arachne)</Name>
+      <Project>{d745817b-9356-44da-9b23-102ec428e4fc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
@@ -106,24 +126,9 @@
       <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Name>Freya.Types.Http.Cors</Name>
-      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Name>Freya.Types.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Language\Freya.Types.Language.fsproj">
-      <Name>Freya.Types.Language</Name>
-      <Project>{105a0361-eec8-4c47-841e-e333c47572ee}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
-      <Name>Freya.Types.Uri</Name>
-      <Project>{8a5ac05b-cb43-43b0-a763-992d1a04d271}</Project>
+    <ProjectReference Include="..\Freya.Typed.Http\Freya.Typed.Http.fsproj">
+      <Name>Freya.Typed.Http</Name>
+      <Project>{ad654a1b-9530-4e99-8885-03ff404a4d23}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

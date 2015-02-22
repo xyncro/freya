@@ -340,6 +340,19 @@ type MediaType =
         { Parse = mediaTypeP
           Format = mediaTypeF }
 
+    (* Lenses *)
+
+    static member TypeLens =
+        (fun (MediaType (x, _, _)) -> x), (fun x (MediaType (_, y, z)) -> MediaType (x, y, z))
+
+    static member SubTypeLens =
+        (fun (MediaType (_, y, _)) -> y), (fun y (MediaType (x, _, z)) -> MediaType (x, y, z))
+
+    static member ParametersLens =
+        (fun (MediaType (_, _, z)) -> z), (fun z (MediaType (x, y, _)) -> MediaType (x, y, z))
+
+    (* Common *)
+
     static member Format =
         Formatting.format MediaType.TypeMapping.Format
 
@@ -352,14 +365,6 @@ type MediaType =
     override x.ToString () =
         MediaType.Format x
 
-//    static member TypeLens : Lens<MediaType, Type> =
-//        (fun (MediaType (x, _, _)) -> x), (fun x (MediaType (_, y, z)) -> MediaType (x, y, z))
-//
-//    static member SubTypeLens : Lens<MediaType, SubType> =
-//        (fun (MediaType (_, y, _)) -> y), (fun y (MediaType (x, _, z)) -> MediaType (x, y, z))
-//
-//    static member ParametersLens : Lens<MediaType, Parameters> =
-//        (fun (MediaType (_, _, z)) -> z), (fun z (MediaType (x, y, _)) -> MediaType (x, y, z))
 
 and Parameters =
     | Parameters of Map<string, string>
@@ -382,6 +387,9 @@ and Parameters =
         { Parse = parametersP
           Format = parametersF }
 
+    static member ParametersIso =
+        (fun (Parameters x) -> x), (fun x -> Parameters x)
+
 and Type =
     | Type of string
 
@@ -392,10 +400,16 @@ and SubType =
 
 type MediaType with
 
-    static member HTML =
+    static member Css =
+        MediaType (Type "text", SubType "css", Parameters Map.empty)
+
+    static member Html =
         MediaType (Type "text", SubType "html", Parameters Map.empty)
 
-    static member JSON =
+    static member JavaScript =
+        MediaType (Type "application", SubType "javascript", Parameters Map.empty)
+
+    static member Json =
         MediaType (Type "application", SubType "json", Parameters Map.empty)
 
     /// Convenience definition for "text/plain" without extra parameters
@@ -403,7 +417,7 @@ type MediaType with
         MediaType (Type "text", SubType "plain", Parameters Map.empty)
 
     /// Convenience definition for "application/xml" without extra parameters
-    static member XML =
+    static member Xml =
         MediaType (Type "application", SubType "xml", Parameters Map.empty)
 
 (* Content-Type
@@ -425,6 +439,13 @@ type ContentType =
         { Parse = contentTypeP
           Format = contentTypeF }
 
+    (* Lenses *)
+
+    static member MediaTypeIso =
+        (fun (ContentType x) -> x), (fun x -> ContentType x)
+
+    (* Common *)
+
     static member Format =
         Formatting.format ContentType.TypeMapping.Format
 
@@ -436,9 +457,6 @@ type ContentType =
 
     override x.ToString () =
         ContentType.Format x
-
-//    static member MediaTypeLens : Lens<ContentType, MediaType> =
-//        (fun (ContentType x) -> x), (fun x _ -> ContentType x)
 
 (* Content-Encoding
 
@@ -927,7 +945,7 @@ type Charset with
         Charset "unicode-1-1"
 
     /// Convenience definition for "utf-8"
-    static member UTF8 =
+    static member Utf8 =
         Charset "utf-8"
 
 (* Accept-Encoding
