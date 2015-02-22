@@ -18,7 +18,6 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
 module Freya.TodoBackend.Api
 
 open System
@@ -34,6 +33,7 @@ open Freya.Router
 open Freya.Router.Inspector
 open Freya.Types.Http
 open Freya.Types.Http.Cors
+open Freya.TodoBackend.Domain
 
 (* Route Properties
 

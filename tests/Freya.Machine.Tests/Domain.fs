@@ -18,7 +18,6 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
 module Freya.TodoBackend.Domain
 
 open System

@@ -8,6 +8,7 @@ nuget Hekate
 nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
+nuget System.Net.Http
 nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake
