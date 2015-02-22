@@ -276,3 +276,109 @@ let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya
     unbox env.["o3"] =? true
     env.ContainsKey("Answer") =? false
     env.ContainsKey("o4") =? false
+
+[<Test>]
+let ``MidFunc can work with other Freya Pipelines`` () =
+    let o1 = o1 *> next
+    let o2 = o2 *> next
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                async {
+                    env.["o3"] <- true
+                    do! next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    env.["o4"] <- true
+                } |> Async.StartAsTask :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped (before >?= o1) (o2 >?= after)
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? "1,42,2"
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("o4") =? true
+    unbox env.["o4"] =? true
+
+[<Test>]
+let ``MidFunc can work with other Freya Pipelines and correctly halt when first halts`` () =
+    let o1 = o1 *> halt
+    let o2 = o2 *> next
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                async {
+                    env.["o3"] <- true
+                    do! next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    env.["o4"] <- true
+                } |> Async.StartAsTask :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped (before >?= o1) (o2 >?= after)
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? "1"
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? false
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("o4") =? false
+
+[<Test>]
+let ``MidFunc can work with other Freya Pipelines and correctly halt when midFunc returns early`` () =
+    let o1 = o1 *> halt
+    let o2 = o2 *> next
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                env.["o3"] <- true
+                // Don't call next
+                Task.FromResult<obj>(null) :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped (before >?= o1) (o2 >?= after)
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    env.ContainsKey("Answer") =? false
+    unbox env.["o1"] =? false
+    unbox env.["o2"] =? false
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("o4") =? false
+
+[<Test>]
+let ``MidFunc can work with other Freya Pipelines and correctly halt when second halts`` () =
+    let o1 = o1 *> next
+    let o2 = o2 *> halt
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                async {
+                    env.["o3"] <- true
+                    do! next.Invoke(env).ContinueWith<unit>(fun _ -> ()) |> Async.AwaitTask
+                    env.["o4"] <- true
+                } |> Async.StartAsTask :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped (before >?= o1) (o2 >?= after)
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    env.ContainsKey("Answer") =? true
+    unbox env.["Answer"] =? "1,42,2"
+    unbox env.["o1"] =? true
+    unbox env.["o2"] =? true
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("o4") =? false
