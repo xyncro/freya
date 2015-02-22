@@ -240,6 +240,7 @@ let ``MidFunc that terminates early and doesn't call next Halts correctly as a F
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
                 env.["o3"] <- true
+                // Don't call next
                 Task.FromResult<obj>(null) :> Task ))
 
     let before, after = OwinMidFunc.splitIntoFreya midFunc
@@ -248,6 +249,29 @@ let ``MidFunc that terminates early and doesn't call next Halts correctly as a F
 
     let env = invoke composed
 
+    env.ContainsKey("o3") =? true
+    unbox env.["o3"] =? true
+    env.ContainsKey("Answer") =? false
+    env.ContainsKey("o4") =? false
+
+[<Test>]
+let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya Pipeline`` () =
+    let midFunc =
+        OwinMidFunc(fun next ->
+            OwinAppFunc(fun env ->
+                env.["o3"] <- true
+                // Don't call next
+                let tcs = TaskCompletionSource<unit>()
+                tcs.SetException(System.Exception("failed!"))
+                tcs.Task :> Task ))
+
+    let before, after = OwinMidFunc.splitIntoFreya midFunc
+    let pipe = OwinMidFunc.ofFreyaWrapped before after
+    let composed = pipe.Invoke app
+
+    let env = invoke composed
+
+    // TOOD: What *should* happen here?
     env.ContainsKey("o3") =? true
     unbox env.["o3"] =? true
     env.ContainsKey("Answer") =? false

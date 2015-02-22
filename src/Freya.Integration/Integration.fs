@@ -122,35 +122,43 @@ module OwinMidFunc =
     [<CompiledName("SplitIntoFreya")>]
     let splitIntoFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> * Freya<FreyaPipelineChoice> =
         // TODO: find a better way than using TaskCompletionSource instances
-        let nextWasRun = ref false
-        let signalCh = TaskCompletionSource<unit>()
+        let signalCh = TaskCompletionSource<bool>()
         let continueCh = TaskCompletionSource<unit>()
-        let midFuncCh = ref Unchecked.defaultof<Task<unit>>
+        let midFuncCh = ref Unchecked.defaultof<Task<bool>>
         let nextSignal =
             OwinAppFunc(fun _ ->
-                nextWasRun := true
-                signalCh.SetResult ()
+                signalCh.SetResult true
                 continueCh.Task :> Task)
         let before s =
             async {
                 let! token = Async.CancellationToken
                 // Apply and mutate the OwinEnvironment asynchronously.
-                midFuncCh := midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+                midFuncCh := midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith((fun _ -> false), token)
                 // If haltCh completes first, nextWasRun will be false, and nothing further is necessary.
                 // Otherwise, we'll continue on and call back into the midFunc in the after pipe.
-                let! _ = Async.AwaitTask <| Task.WhenAny([| signalCh.Task; !midFuncCh |])
-                if !nextWasRun then
-                    // Return the result as a unit value and the mutated FreyaState.
+                let! task = Async.AwaitTask <| Task.WhenAny([| signalCh.Task; !midFuncCh |])
+                // If the Task is in a faulted state, raise an exception.
+                if task.Status = TaskStatus.Faulted then
+                    raise task.Exception
+                // Return Next or Halt depending on the Task.Status
+                if task.Status = TaskStatus.RanToCompletion && task.Result then
+                    // Return the Next flag and the mutated FreyaState.
                     return Next, s
+                // NOTE: if we Halt here, after will never be called. This will break MidFunc expectations, I think.
                 else return Halt, s }
+        // TODO: How do we ensure that after is always called? I'm not sure what will happen if the Freya pipeline Halts before calling after.
         let after s =
             async {
                 // Set the continueCh result to complete the signal Task and allow the middleware to complete.
                 continueCh.SetResult ()
                 // Await the completion of the midFuncCh to know when the midFunc completes
-                let! _ = Async.AwaitTask <| !midFuncCh
+                let task = !midFuncCh
+                let! _ = Async.AwaitTask task
+                // If the Task is in a faulted state, raise an exception.
+                if task.Status = TaskStatus.Faulted then
+                    raise task.Exception
                 // Return Next or Halt depending on the Task.Status
-                if (!midFuncCh).Status = TaskStatus.RanToCompletion then
+                if task.Status = TaskStatus.RanToCompletion then
                     return Next, s
                 else return Halt, s }
         before, after
