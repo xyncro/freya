@@ -1,3 +1,6 @@
 Aether
 Fleece
-Microsoft.Owin.SelfHost
+Microsoft.Owin.Testing
+FSharp.Core
+Unquote
+NUnit
