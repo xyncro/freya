@@ -85,6 +85,11 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
+                  { Name = "Freya.Integration"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Local "Freya.Core"
+                          Local "Freya.Pipeline" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -178,6 +183,7 @@ let freya =
                           Local "Freya.Types" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
+                  { Name = "Freya.Integration.Tests" }
                   { Name = "Freya.Machine.Tests" }
                   { Name = "Freya.Machine.Extensions.Http.Tests" }
                   { Name = "Freya.Pipeline.Tests" }

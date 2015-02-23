@@ -37,7 +37,7 @@ open Freya.Core
 
 type TodoBackend () =
     member __.Configuration () =
-        OwinAppFunc.fromFreya Freya.TodoBackend.Api.api
+        OwinAppFunc.ofFreya Freya.TodoBackend.Api.api
 
 (* Main
 

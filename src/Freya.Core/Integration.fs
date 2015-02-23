@@ -22,6 +22,7 @@ module Freya.Core.Integration
 
 open System
 open System.Threading.Tasks
+open Freya.Core
 
 (* OWIN Types *)
 
@@ -42,23 +43,9 @@ module OwinAppFunc =
 
     /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
     [<CompiledName ("FromFreya")>]
-    let fromFreya (freya: Freya<_>) =
+    let ofFreya (freya: Freya<_>) =
         OwinAppFunc (fun e ->
             async {
                 do! freya { Environment = e
                             Meta = { Memos = Map.empty } } |> Async.Ignore }
             |> Async.StartAsTask :> Task)
-    
-    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
-    /// to allow use of standard OWIN components within Freya.
-    /// NOTE: EXPERIMENTAL
-    [<CompiledName ("ToFreya")>]
-    let toFreya (app: OwinAppFunc) : Freya<unit> =
-        // TODO: Can another, existing operator handle this scenario better?
-        fun s -> async {
-            let! token = Async.CancellationToken
-            // Apply and mutate the OwinEnvironment asynchronously
-            let! _ = app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token) |> Async.AwaitTask
-            // Return the result as a unit value and the mutated FreyaState
-            // TODO: should the current value be retrieved and threaded through, or is it more appropriate to return unit?
-            return (), s }
