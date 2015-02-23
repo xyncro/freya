@@ -63,7 +63,6 @@
     <Compile Include="Operators.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Lenses.fs" />
-    <Compile Include="Integration.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

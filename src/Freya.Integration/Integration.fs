@@ -22,6 +22,21 @@ module Freya.Integration
 open System
 open System.Threading.Tasks
 open Freya.Core
+open Freya.Pipeline
+
+(* OWIN Types *)
+
+/// Type alias of <see cref="FreyaEnvironment" /> in terms of OWIN.
+type OwinEnvironment =
+    FreyaEnvironment
+
+/// Type alias for the OWIN AppFunc signature.
+type OwinAppFunc = 
+    Func<OwinEnvironment, Task>
+
+/// Type alias for the OWIN MidFunc signature.
+type OwinMidFunc =
+    Func<OwinAppFunc, OwinAppFunc>
 
 (* OWIN Conversion *)
 
@@ -29,7 +44,16 @@ open Freya.Core
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinAppFunc =
-    
+
+    /// Converts a <see cref="Freya{T}" /> computation to an <see cref="OwinAppFunc" />.
+    [<CompiledName ("FromFreya")>]
+    let ofFreya (freya: Freya<_>) =
+        OwinAppFunc (fun e ->
+            async {
+                do! freya { Environment = e
+                            Meta = { Memos = Map.empty } } |> Async.Ignore }
+            |> Async.StartAsTask :> Task)
+
     /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
     /// to allow use of standard OWIN components within Freya.
     /// NOTE: EXPERIMENTAL
@@ -41,12 +65,6 @@ module OwinAppFunc =
             do! Async.AwaitTask <| app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
             // Return the result as a unit value and the mutated FreyaState
             return (), s }
-
-open Freya.Pipeline
-
-/// Type alias for the OWIN MidFunc signature.
-type OwinMidFunc =
-    Func<OwinAppFunc, OwinAppFunc>
 
 /// Provides transformation functions for converting to/from OWIN middlewares from/to Freya Pipelines.
 [<RequireQualifiedAccess>]
