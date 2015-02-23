@@ -26,10 +26,10 @@ module Freya.Core.Operators
    various forms. *)
 
 let inline (>>=) m f =
-    Freya.bind m f
+    Freya.bind f m
 
 let inline (=<<) f m =
-    Freya.bind m f
+    Freya.bind f m
 
 let inline (<*>) f m =
     Freya.apply f m
@@ -44,7 +44,7 @@ let inline ( <*) m1 m2 =
     Freya.map2 (fun x _ -> x) m1 m2
 
 let inline (>>.) m f =
-    Freya.bind m (fun _ -> f)
+    Freya.bind (fun _ -> f) m
 
 let inline (>=>) m1 m2 =
     fun x -> m1 x >>= m2
