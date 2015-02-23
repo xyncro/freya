@@ -5,9 +5,10 @@ nuget Chiron
 nuget FParsec
 nuget FSharp.Core
 nuget Hekate
-nuget Microsoft.Owin.SelfHost
+nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
+nuget System.Net.Http
 nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake

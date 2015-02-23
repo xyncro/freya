@@ -184,6 +184,7 @@ let freya =
               Test =
                 [ { Name = "Freya.Core.Tests" }
                   { Name = "Freya.Integration.Tests" }
+                  { Name = "Freya.Machine.Tests" }
                   { Name = "Freya.Machine.Extensions.Http.Tests" }
                   { Name = "Freya.Pipeline.Tests" }
                   { Name = "Freya.Router.Tests" }

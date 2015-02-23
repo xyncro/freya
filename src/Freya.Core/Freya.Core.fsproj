@@ -64,7 +64,6 @@
     <Compile Include="Builder.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Integration.fs" />
-    <Compile Include="Utilities.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

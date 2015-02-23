@@ -18,10 +18,15 @@
 //
 //----------------------------------------------------------------------------
 
-module Freya.TodoBackend.Program
+module Freya.Machine.Tests
 
-open Freya.Core
+open System
+open System.Net.Http
 open Microsoft.Owin.Hosting
+open Microsoft.Owin.Testing
+open NUnit.Framework
+open Swensen.Unquote
+open Freya.Core
 
 (* Katana
 
@@ -32,7 +37,7 @@ open Microsoft.Owin.Hosting
 
 type TodoBackend () =
     member __.Configuration () =
-        OwinAppFunc.ofFreya (api)
+        OwinAppFunc.ofFreya Freya.TodoBackend.Api.api
 
 (* Main
 
@@ -42,8 +47,27 @@ type TodoBackend () =
    should be easily transferrable to any OWIN compatible server, including
    IIS. *)
 
-[<EntryPoint>]
-let main _ = 
-    let _ = WebApp.Start<TodoBackend> ("http://localhost:7000")
-    let _ = System.Console.ReadLine ()
-    0
+
+// Create test server and client
+let baseAddress = Uri "http://localhost/"
+let server = TestServer.Create<TodoBackend>()
+server.BaseAddress <- baseAddress
+let client = server.HttpClient
+client.BaseAddress <- baseAddress
+
+// Add common CORS headers
+client.DefaultRequestHeaders.Add("Origin", "http://example.org/")
+
+[<TestFixtureTearDown>]
+let dispose() =
+    client.Dispose()
+    server.Dispose()
+
+[<Test>]
+let ``todobackend returns empty array at first`` () = 
+    async {
+        use request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
+        use! response = Async.AwaitTask <| client.SendAsync request
+        let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
+        result =? "[]" }
+    |> Async.RunSynchronously
