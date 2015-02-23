@@ -22,6 +22,9 @@
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Freya
 
+open System
+open Aether
+open Aether.Operators
 open Aether
 
 (* Basic
@@ -57,12 +60,13 @@ let inline bind (f: 'T1 -> Freya<'T2>) (m: Freya<'T1>) : Freya<'T2> =
 /// onto a <see cref="Freya{T}" /> computation value.
 let inline apply f m : Freya<'T> =
     bind (fun f' ->
-    bind (fun m' ->
-    init (f' m')) m) f
+        bind (fun m' ->
+            init (f' m')) m) f
 
 /// Applies a function taking one arguments to one <see cref="Freya{T}" /> computations.
 let inline map f m : Freya<'T> =
-    bind (fun m' -> init (f m')) m
+    bind (fun m' ->
+        init (f m')) m
 
 /// Applies a function taking two arguments to two <see cref="Freya{T}" /> computations.
 let inline map2 f m1 m2 =
@@ -112,3 +116,33 @@ let mapLens l f =
 /// Modifies part of the Core State within a Core monad using a partial Aether lens
 let mapLensPartial l f = 
     mapState (Lens.mapPartial l f)
+
+(* Memo
+
+   Functions for memoizing the result of a Freya<'T> function, storing
+   the computed result within the FreyaMetaState instance of the
+   Freya<'T> state, allowing for computations to be reliably executed
+   only once per state (commonly once per request in the usual Freya
+   usage model). *)
+
+let private memoPLens<'a> key =
+         FreyaState.MetaLens 
+    >--> FreyaMetaState.MemosLens 
+    >-?> mapPLens key
+    <?-> boxIso<'a>
+
+let memo<'a> (m: Freya<'a>) : Freya<'a> =
+    let memoPLens = memoPLens<'a> (Guid.NewGuid ())
+
+    fun state ->
+        async {
+            let! memo, state = getLensPartial memoPLens state
+
+            match memo with
+            | Some memo ->
+                return memo, state
+            | _ ->
+                let! memo, state = m state
+                let! _, state = setLensPartial memoPLens memo state
+
+                return memo, state }

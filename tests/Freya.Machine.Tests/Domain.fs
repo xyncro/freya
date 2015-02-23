@@ -22,9 +22,8 @@ module Freya.TodoBackend.Domain
 
 open System
 open Aether
-open Fleece
-open Fleece.Operators
-open FSharpPlus
+open Chiron
+open Chiron.Operators
 
 (* Types
 
@@ -40,30 +39,26 @@ type NewTodo =
     { Title: string
       Order: int option }
 
-    static member FromJSON (_: NewTodo) =
-        function | JObject o ->                    
-                        (fun t o -> { Title = t
-                                      Order = o }) 
-                    <!> (o .@  "title")
-                    <*> (o .@? "order") 
-                 | _ -> 
-                    Failure ("Invalid NewTodo")
+    static member FromJson (_: NewTodo) =
+            fun t o ->
+                { Title = t
+                  Order = o }
+        <!> Json.read "title"
+        <*> Json.tryRead "order"
 
 type PatchTodo =
     { Title: string option
       Order: int option
       Completed: bool option }
 
-    static member FromJSON (_: PatchTodo) =
-        function | JObject o ->
-                        (fun t o c -> { Title = t
-                                        Order = o
-                                        Completed = c })
-                    <!> (o .@? "title")
-                    <*> (o .@? "order")
-                    <*> (o .@? "completed")
-                 | _ ->
-                    Failure ("Invalid PatchTodo")
+    static member FromJson (_: PatchTodo) =
+            fun t o c ->
+                { Title = t
+                  Order = o
+                  Completed = c }
+        <!> Json.tryRead "title"
+        <*> Json.tryRead "order"
+        <*> Json.tryRead "completed"
 
 type Todo =
     { Id: Guid
@@ -72,13 +67,12 @@ type Todo =
       Title: string
       Completed: bool }
 
-    static member ToJSON (x: Todo) =
-        jobj [
-            "id" .= x.Id
-            "url" .= x.Url
-            "order" .= x.Order
-            "title" .= x.Title
-            "completed" .= x.Completed ]
+    static member ToJson (x: Todo) =
+            Json.write "id" x.Id
+         *> Json.write "url" x.Url
+         *> Json.write "order" x.Order
+         *> Json.write "title" x.Title
+         *> Json.write "completed" x.Completed
 
 (* Constructors
 
@@ -90,7 +84,7 @@ let todo (x: NewTodo) =
     let id = Guid.NewGuid ()
 
     { Id = id
-      Url = sprintf "http://192.168.0.3:7000/%A" id
+      Url = sprintf "http://localhost:7000/%A" id
       Order = x.Order
       Title = x.Title
       Completed = false }

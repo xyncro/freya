@@ -23,7 +23,7 @@ module Freya.TodoBackend.Prelude
 
 open System.IO
 open System.Text
-open Fleece
+open Chiron
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
@@ -82,9 +82,7 @@ let inline body () =
     freya {
         let! body = readBody
 
-        match parseJSON body with
-        | Choice1Of2 x -> return Some x
-        | _ -> return None }
+        return (Json.tryParse body |> Option.bind Json.tryDeserialize) }
 
 (* Content Negotiation/Representation Helper
 
@@ -101,4 +99,4 @@ let inline represent x =
           Encodings = None
           MediaType = Some MediaType.JSON
           Languages = Some [ LanguageTag.Parse "en" ] }
-      Data = (toJSON >> string >> Encoding.UTF8.GetBytes) x }
+      Data = (Json.serialize >> Json.format >> Encoding.UTF8.GetBytes) x }
