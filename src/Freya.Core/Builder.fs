@@ -35,8 +35,8 @@ type FreyaBuilder () =
     member __.ReturnFrom (m: Freya<'T>) =
         m
     
-    member __.Bind (m1: Freya<'T>, m2: 'T -> Freya<'U>) : Freya<'U> =
-        Freya.bind m1 m2
+    member __.Bind (m: Freya<'T>, f: 'T -> Freya<'U>) : Freya<'U> =
+        Freya.bind f m
     
     member __.Zero () =
         Freya.init ()
