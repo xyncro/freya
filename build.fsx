@@ -238,7 +238,7 @@ let files (x: SourceProject) =
     extensions
     |> List.map (fun ext ->
          sprintf @"..\src\%s\bin\Release\%s.%s" x.Name x.Name ext,
-         Some "lib/net40", 
+         Some "lib/net45", 
          None)
 
 let projectFile (x: SourceProject) =
