@@ -38,17 +38,6 @@ type OwinMidFunc =
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinMidFunc =
 
-    let private any (list: Async<'T>[])=
-        let tcs = new TaskCompletionSource<'T>()
-
-        list |> Array.map (fun wf->Async.Start (async{
-                    let! res=wf
-                    tcs.TrySetResult (res) |> ignore
-                }))
-             |> ignore
-
-        Async.AwaitTask tcs.Task
-    
     /// Converts a Freya.Pipeline to an OWIN MidFunc run before executing the next OwinAppFunc.
     [<CompiledName("FromFreya")>]
     let ofFreya (pipeline: Freya<FreyaPipelineChoice>) =
