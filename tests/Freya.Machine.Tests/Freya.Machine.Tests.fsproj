@@ -57,11 +57,6 @@
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
       <Name>Freya.Inspector</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Integration\Freya.Integration.fsproj">
-      <Name>Freya.Integration</Name>
-      <Project>{fdf2c01f-7420-4e1d-8ba1-382c3d801c0c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
       <Project>{9E1E2CDC-81A2-4F7C-8A61-0C2312CECD2F}</Project>
       <Name>Freya.Machine.Extensions.Http.Cors</Name>
