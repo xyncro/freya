@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -49,3 +50,15 @@ module OwinAppFunc =
                 do! freya { Environment = e
                             Meta = { Memos = Map.empty } } |> Async.Ignore }
             |> Async.StartAsTask :> Task)
+
+    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
+    /// to allow use of standard OWIN components within Freya.
+    /// NOTE: EXPERIMENTAL
+    [<CompiledName ("ToFreya")>]
+    let toFreya (app: OwinAppFunc) : Freya<unit> =
+        fun s -> async {
+            let! token = Async.CancellationToken
+            // Apply and mutate the OwinEnvironment asynchronously
+            do! Async.AwaitTask <| app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
+            // Return the result as a unit value and the mutated FreyaState
+            return (), s }

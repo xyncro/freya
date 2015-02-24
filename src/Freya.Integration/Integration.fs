@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 module Freya.Integration
@@ -22,37 +23,21 @@ module Freya.Integration
 open System
 open System.Threading.Tasks
 open Freya.Core
-
-(* OWIN Conversion *)
-
-/// Provides transformation functions for converting to/from OWIN from/to Freya.
-[<RequireQualifiedAccess>]
-[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
-module OwinAppFunc =
-    
-    /// Converts an <see cref="OwinAppFunc" /> to a <see cref="Freya{T}" /> computation
-    /// to allow use of standard OWIN components within Freya.
-    /// NOTE: EXPERIMENTAL
-    [<CompiledName ("ToFreya")>]
-    let toFreya (app: OwinAppFunc) : Freya<unit> =
-        fun s -> async {
-            let! token = Async.CancellationToken
-            // Apply and mutate the OwinEnvironment asynchronously
-            do! Async.AwaitTask <| app.Invoke(s.Environment).ContinueWith<unit>((fun _ -> ()), token)
-            // Return the result as a unit value and the mutated FreyaState
-            return (), s }
-
 open Freya.Pipeline
+
+(* OWIN Types *)
 
 /// Type alias for the OWIN MidFunc signature.
 type OwinMidFunc =
     Func<OwinAppFunc, OwinAppFunc>
 
+(* OWIN Conversion *)
+
 /// Provides transformation functions for converting to/from OWIN middlewares from/to Freya Pipelines.
 [<RequireQualifiedAccess>]
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module OwinMidFunc =
-    
+
     /// Converts a Freya.Pipeline to an OWIN MidFunc run before executing the next OwinAppFunc.
     [<CompiledName("FromFreya")>]
     let ofFreya (pipeline: Freya<FreyaPipelineChoice>) =
@@ -136,7 +121,7 @@ module OwinMidFunc =
                 midFuncCh := midFunc.Invoke(nextSignal).Invoke(s.Environment).ContinueWith((fun _ -> false), token)
                 // If haltCh completes first, nextWasRun will be false, and nothing further is necessary.
                 // Otherwise, we'll continue on and call back into the midFunc in the after pipe.
-                let! task = Async.AwaitTask <| Task.WhenAny([| signalCh.Task; !midFuncCh |])
+                let! task = Async.AwaitTask <| Task.WhenAny ([| signalCh.Task; !midFuncCh |])
                 // If the Task is in a faulted state, raise an exception.
                 if task.Status = TaskStatus.Faulted then
                     raise task.Exception

@@ -42,11 +42,11 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="Api.fs" />
     <Compile Include="Tests.fs" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Freya.Core\Freya.Core.fsproj">
