@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Types.Formatting
+module Freya.Types.Formatting
 
 open System.Text
 
@@ -28,9 +28,6 @@ let format (formatter: 'a -> StringBuilder -> StringBuilder) =
     fun a -> string (formatter a (StringBuilder ()))
 
 (* Helpers *)
-
-type Formatter<'a> =
-    'a -> StringBuilder -> StringBuilder
 
 type Separator =
     StringBuilder -> StringBuilder
@@ -44,7 +41,7 @@ let appendf1 (s: string) (v1: obj) (b: StringBuilder) =
 let appendf2 (s: string) (v1: obj) (v2: obj) (b: StringBuilder) =
     b.AppendFormat (s, v1, v2)
 
-let join<'a> (f: Formatter<'a>) (s: Separator) =
+let join<'a> (f: Format<'a>) (s: Separator) =
     let rec join values (b: StringBuilder) =
         match values with
         | [] -> b

@@ -105,6 +105,11 @@
       <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
       <Name>Freya.Types.Uri</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types\Freya.Types.fsproj">
+      <Name>Freya.Types</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

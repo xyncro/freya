@@ -17,13 +17,13 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Types.Language.Types
+module Freya.Types.Language
 
-#nowarn "60"
-
-open FParsec
+open System.ComponentModel
 open Freya.Types
+open Freya.Types.Formatting
+open Freya.Types.Parsing
+open FParsec
 
 (* RFC 5646
 
@@ -69,41 +69,45 @@ let private alphaNumP min max =
 type Language =
     | Language of string * string list option
 
-let private extF =
-    function | x -> append "-" >> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private extLangF =
-    function | xs -> join extF id xs
+        let extP =
+            skipChar '-' >>. alphaP 3 3
 
-let private languageF =
-    function | Language (x, Some e) -> append x >> extLangF e
-             | Language (x, _) -> append x 
+        let extLangP =
+            choice [
+                attempt (tuple3 extP extP extP) |>> fun (a, b, c) -> a :: b :: [ c ]
+                attempt (tuple2 extP extP) |>> fun (a, b) -> a :: [ b ]
+                extP |>> fun a -> [ a ] ]
 
-let private extP =
-    skipChar '-' >>. alphaP 3 3
+        let languageP =
+            choice [
+                alphaP 2 3 .>>. opt (attempt extLangP) |>> Language
+                alphaP 4 4 |>> (fun x -> Language (x, None))
+                alphaP 5 8 |>> (fun x -> Language (x, None)) ]
 
-let private extLangP =
-    choice [
-        attempt (tuple3 extP extP extP) |>> fun (a, b, c) -> a :: b :: [ c ]
-        attempt (tuple2 extP extP) |>> fun (a, b) -> a :: [ b ]
-        extP |>> fun a -> [ a ] ]
+        let extF =
+            function | x -> append "-" >> append x
 
-let private languageP =
-    choice [
-        alphaP 2 3 .>>. opt (attempt extLangP) |>> Language
-        alphaP 4 4 |>> (fun x -> Language (x, None))
-        alphaP 5 8 |>> (fun x -> Language (x, None)) ]
+        let extLangF =
+            function | xs -> join extF id xs
 
-type Language with
+        let languageF =
+            function | Language (x, Some e) -> append x >> extLangF e
+                     | Language (x, _) -> append x 
+
+        { Parse = languageP
+          Format = languageF }
 
     static member Format =
-        format languageF
+        Formatting.format Language.TypeMapping.Format
 
     static member Parse =
-        parseExact languageP
+        Parsing.parse Language.TypeMapping.Parse
 
     static member TryParse =
-        parseOption languageP
+        Parsing.tryParse Language.TypeMapping.Parse
 
     override x.ToString () =
         Language.Format x
@@ -113,85 +117,101 @@ type Language with
 type Script =
     | Script of string
 
-let private scriptF =
-    function | Script x -> append "-" >> append x 
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private scriptP =
-    skipChar '-' >>. alphaP 4 4 |>> Script
+        let scriptP =
+            skipChar '-' >>. alphaP 4 4 |>> Script
+
+        let scriptF =
+            function | Script x -> append "-" >> append x
+
+        { Parse = scriptP
+          Format = scriptF }
 
 (* Region *)
 
 type Region =
     | Region of string
 
-let private regionF =
-    function | Region x -> append "-" >> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private regionP =
-    skipChar '-' >>. (alphaP 2 2 <|> digitP 3 3) |>> Region
+        let regionP =
+            skipChar '-' >>. (alphaP 2 2 <|> digitP 3 3) |>> Region
+
+        let regionF =
+            function | Region x -> append "-" >> append x
+
+        { Parse = regionP
+          Format = regionF }
 
 (* Variant *)
 
 type Variant =
     | Variant of string list
 
-let private varF =
-    function | x -> append "-" >> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private variantF =
-    function | Variant xs -> join varF id xs
+        let alphaPrefixVariantP =
+            alphaNumP 5 8
 
-let private alphaPrefixVariantP =
-    alphaNumP 5 8
+        let digitPrefixVariantP =
+            satisfy isDigit .>>. alphaNumP 3 3 |>> fun (c, s) -> sprintf "%c%s" c s
 
-let private digitPrefixVariantP =
-    satisfy isDigit .>>. alphaNumP 3 3 |>> fun (c, s) -> sprintf "%c%s" c s
+        let varP =
+            skipChar '-' >>. (alphaPrefixVariantP <|> digitPrefixVariantP)
 
-let private varP =
-    skipChar '-' >>. (alphaPrefixVariantP <|> digitPrefixVariantP)
+        let variantP =
+            many varP |>> Variant
 
-let private variantP =
-    many varP |>> Variant
+        let varF =
+            function | x -> append "-" >> append x
+
+        let variantF =
+            function | Variant xs -> join varF id xs
+
+        { Parse = variantP
+          Format = variantF }
 
 (* Language Tag *)
 
 type LanguageTag =
-    { Language: Language
-      Script: Script option
-      Region: Region option
-      Variant: Variant }
+    | LanguageTag of Language * Script option * Region option * Variant
 
-let internal languageTagF =
-    function | { Language = language
-                 Script = script
-                 Region = region
-                 Variant = variant } ->
-                 let formatters =
-                    [ languageF language
-                      (function | Some x -> scriptF x | _ -> id) script
-                      (function | Some x -> regionF x | _ -> id) region
-                      variantF variant ]
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-                 fun b -> List.fold (fun b f -> f b) b formatters
+        let languageTagP =
+            tuple4 Language.TypeMapping.Parse 
+                   (opt (attempt Script.TypeMapping.Parse))
+                   (opt (attempt Region.TypeMapping.Parse))
+                   (Variant.TypeMapping.Parse)
+            |>> fun (language, script, region, variant) ->
+                LanguageTag (language, script, region, variant)
 
-let internal languageTagP =
-    tuple4 languageP (opt (attempt scriptP)) (opt (attempt regionP)) (variantP)
-    |>> fun (language, script, region, variant) ->
-        { Language = language
-          Script = script
-          Region = region
-          Variant = variant }
+        let languageTagF =
+            function | LanguageTag (language, script, region, variant) ->
+                         let formatters =
+                            [ Language.TypeMapping.Format language
+                              (function | Some x -> Script.TypeMapping.Format x | _ -> id) script
+                              (function | Some x -> Region.TypeMapping.Format x | _ -> id) region
+                              Variant.TypeMapping.Format variant ]
 
-type LanguageTag with
+                         fun b -> List.fold (|>) b formatters
+
+        { Parse = languageTagP
+          Format = languageTagF }
 
     static member Format =
-        format languageTagF
+        Formatting.format LanguageTag.TypeMapping.Format
 
     static member Parse =
-        parseExact languageTagP
+        Parsing.parse LanguageTag.TypeMapping.Parse
 
     static member TryParse =
-        parseOption languageTagP
+        Parsing.tryParse LanguageTag.TypeMapping.Parse
 
     override x.ToString () =
         LanguageTag.Format x
@@ -207,25 +227,30 @@ type LanguageRange =
     | Range of string list
     | Any
 
-let internal languageRangeF =
-    function | Range x -> join append (append "-") x
-             | Any -> append "*"
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let internal languageRangeP =
-    choice [
-        skipChar '*' >>% Any
-        alphaP 1 8 .>>. many (skipChar '-' >>. alphaNumP 1 8) |>> (fun (x, xs) -> Range (x :: xs)) ]
+        let languageRangeP =
+            choice [
+                skipChar '*' >>% Any
+                alphaP 1 8 .>>. many (skipChar '-' >>. alphaNumP 1 8) |>> (fun (x, xs) -> Range (x :: xs)) ]
 
-type LanguageRange with
+
+        let languageRangeF =
+            function | Range x -> join append (append "-") x
+                     | Any -> append "*"
+
+        { Parse = languageRangeP
+          Format = languageRangeF }
 
     static member Format =
-        format languageRangeF
+        Formatting.format LanguageRange.TypeMapping.Format
 
     static member Parse =
-        parseExact languageRangeP
+        Parsing.parse LanguageRange.TypeMapping.Parse
 
     static member TryParse =
-        parseOption languageRangeP
+        Parsing.tryParse LanguageRange.TypeMapping.Parse
 
     override x.ToString () =
         LanguageRange.Format x

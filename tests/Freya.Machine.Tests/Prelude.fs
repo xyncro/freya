@@ -52,11 +52,11 @@ let en =
 
 let json =
     freya {
-        return [ MediaType.JSON ] }
+        return [ MediaType.Json ] }
 
 let utf8 =
     freya {
-        return [ Charset.UTF8 ] }
+        return [ Charset.Utf8 ] }
 
 (* Request Body Helper
 
@@ -95,8 +95,8 @@ let inline body () =
 
 let inline represent x =
     { Description =
-        { Charset = Some Charset.UTF8
+        { Charset = Some Charset.Utf8
           Encodings = None
-          MediaType = Some MediaType.JSON
+          MediaType = Some MediaType.Json
           Languages = Some [ LanguageTag.Parse "en" ] }
       Data = (Json.serialize >> Json.format >> Encoding.UTF8.GetBytes) x }

@@ -60,7 +60,7 @@
   -->
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Prelude.fs" />
+    <Compile Include="Types.fs" />
     <Compile Include="Formatting.fs" />
     <Compile Include="Parsing.fs" />
     <Compile Include="Grammar.fs" />

@@ -68,8 +68,9 @@ let private specification config =
 
 let private charsetPLens =
         Response.Headers.contentType
-   >?-> ContentType.MediaTypeLens
+   <?-> ContentType.MediaTypeIso
    >?-> MediaType.ParametersLens
+   <?-> Parameters.ParametersIso
    >??> mapPLens "charset"
 
 let private charset =

@@ -59,6 +59,11 @@
       <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types\Freya.Types.fsproj">
+      <Name>Freya.Types</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
       <Name>Freya.Types.Tests</Name>
       <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>

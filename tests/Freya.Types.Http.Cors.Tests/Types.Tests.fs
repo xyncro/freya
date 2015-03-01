@@ -10,9 +10,12 @@ open Freya.Types.Uri
 [<Test>]
 let ``Origin Formatting/Parsing`` () =
     let originTyped =
-        Origin (OriginListOrNull.Origins [ { Scheme = Scheme "http"
-                                             Host = Name "www.example.com"
-                                             Port = Some (Port 8080) } ])
+        Origin (
+            OriginListOrNull.Origins [
+                SerializedOrigin (
+                    Scheme "http",
+                    Name "www.example.com",
+                    Some (Port 8080)) ])
 
     let originString =
         "http://www.example.com:8080"
@@ -24,9 +27,12 @@ let ``Origin Formatting/Parsing`` () =
 let ``AccessControlAllowOrigin Formatting/Parsing`` () =
     let accessControlAllowOriginTyped =
         AccessControlAllowOrigin (
-            Origins (OriginListOrNull.Origins [ { Scheme = Scheme "http"
-                                                  Host = Name "www.example.com"
-                                                  Port = Some (Port 8080) } ]))
+            Origins (
+                OriginListOrNull.Origins [
+                    SerializedOrigin (
+                        Scheme "http",
+                        Name "www.example.com",
+                        Some (Port 8080)) ]))
 
     let accessControlAllowOriginString =
         "http://www.example.com:8080"

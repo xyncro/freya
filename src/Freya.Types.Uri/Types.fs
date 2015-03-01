@@ -15,17 +15,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Types.Uri.Types
+module Freya.Types.Uri
 
-#nowarn "60"
-
+open System.ComponentModel
 open System.Net
 open System.Net.Sockets
+open Freya.Types.Formatting
+open Freya.Types.Grammar
 open FParsec
-open Freya.Types
 
 (* RFC 3986
 
@@ -45,48 +45,54 @@ let private unreserved =
         Grammar.digit
         set [ '-'; '.'; '_'; '~' ] ]
 
-let private genDelims =
-    set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
+//let private genDelims =
+//    set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
 
 let private subDelims =
     set [ '!'; '$'; '&'; '\''; '('; ')'; '*'; '+'; ','; ';'; '=' ]
 
-let private reserved =
-    Set.unionMany [
-        genDelims
-        subDelims ]
+//let private reserved =
+//    Set.unionMany [
+//        genDelims
+//        subDelims ]
 
 (* Scheme
 
    Taken from RFC 3986, Section 3.1 Scheme
    See [http://tools.ietf.org/html/rfc3986#section-3.1] *)
 
+(* Section 3.1 *)
+
 type Scheme =
     | Scheme of string
 
-let internal schemeF =
-    function | Scheme x -> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private schemeChars =
-    Set.unionMany [
-        Grammar.alpha
-        Grammar.digit
-        set [ '+'; '-'; '.' ] ]
+        let schemeChars =
+            Set.unionMany [
+                Grammar.alpha
+                Grammar.digit
+                set [ '+'; '-'; '.' ] ]
 
-let internal schemeP =
-    satisfy ((?>) Grammar.alpha) .>>. manySatisfy ((?>) schemeChars)
-    |>> ((fun (x, xs) -> sprintf "%c%s" x xs) >> Scheme)
+        let schemeP =
+            satisfy ((?>) Grammar.alpha) .>>. manySatisfy ((?>) schemeChars)
+            |>> ((fun (x, xs) -> sprintf "%c%s" x xs) >> Scheme)
 
-type Scheme with
+        let schemeF =
+            function | Scheme x -> append x
+
+        { Parse = schemeP
+          Format = schemeF }
 
     static member Format =
-        format schemeF
+        Formatting.format Scheme.TypeMapping.Format
 
     static member Parse =
-        parseExact schemeP
+        Parsing.parse Scheme.TypeMapping.Parse
 
     static member TryParse =
-        parseOption schemeP
+        Parsing.tryParse Scheme.TypeMapping.Parse
 
     override x.ToString () =
         Scheme.Format x
@@ -96,127 +102,146 @@ type Scheme with
    Taken from RFC 3986, Section 3.2 Authority
    See [http://tools.ietf.org/html/rfc3986#section-3.2] *)
 
+(* Section 3.2 *)
+
 type Authority =
-    { Host: Host
-      Port: Port option
-      UserInfo: UserInfo option }
+    | Authority of Host * Port option * UserInfo option
+
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
+
+        let authorityP =
+            opt (attempt UserInfo.TypeMapping.Parse) 
+            .>>. Host.TypeMapping.Parse 
+            .>>. opt Port.TypeMapping.Parse
+            |>> fun ((user, host), port) -> Authority (host, port, user)
+
+        let authorityF =
+            function | Authority (h, p, u) ->
+                        let formatters =
+                            [ (function | Some u -> UserInfo.TypeMapping.Format u 
+                                        | _ -> id) u
+                              Host.TypeMapping.Format h
+                              (function | Some p -> Port.TypeMapping.Format p 
+                                        | _ -> id) p ]
+
+                        fun b -> List.fold (|>) b formatters
+
+        { Parse = authorityP
+          Format = authorityF }
+
+    static member Format =
+        Formatting.format Authority.TypeMapping.Format
+
+    static member Parse =
+        Parsing.parse Authority.TypeMapping.Parse
+    
+    static member TryParse =
+        Parsing.tryParse Authority.TypeMapping.Parse
+
+    override x.ToString () =
+        Authority.Format x
+
+(* Section 3.2.1 *)
+
+and UserInfo =
+    | UserInfo of string
+
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
+
+        let userInfoChars =
+            Set.unionMany [
+                unreserved
+                subDelims
+                set [ ':' ] ]
+
+        let userInfoP =
+            manySatisfy ((?>) userInfoChars) .>> skipChar '@' |>> UserInfo
+
+        let userInfoF =
+            function | UserInfo x -> append x >> append "@"
+
+        { Parse = userInfoP
+          Format = userInfoF }
+
+(* Section 3.2.2 *)
+
+(* Note: In this instance we use the built in IP Address type and parser
+   as the standard is implemented fully and seems to handle all suitable cases.
+
+   We also make a slight restriction for practicality at the moment on
+   implementing IP-literal as an IPv6 specific type, discarding IPvFuture. As
+   it stands, that's unlikely to be an issue, but could perhaps be revisited. *)
 
 and Host =
     | IPv4 of IPAddress
     | IPv6 of IPAddress
     | Name of string
 
-and Port =
-    | Port of int
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-and UserInfo =
-    | UserInfo of string
+        let ipv6Chars =
+            Set.unionMany [
+                Grammar.hexdig
+                set [ ':' ] ]
 
-(* Section 3.2.1 *)
+        let ipv6AddressP =
+            skipChar '[' >>. (many1Satisfy ((?>) ipv6Chars) >>= (fun x ->
+                match IPAddress.TryParse x with
+                | true, x when x.AddressFamily = AddressFamily.InterNetworkV6 -> preturn (IPv6 x)
+                | _ -> pzero)) .>> skipChar ']'
 
-let private userInfoChars =
-    Set.unionMany [
-        unreserved
-        subDelims
-        set [ ':' ] ]
+        let ipv4Chars =
+            Set.unionMany [
+                Grammar.digit
+                set [ '.' ] ]
 
-let private userInfoF =
-    function | UserInfo x -> append x >> append "@"
+        let ipv4AddressP =
+            many1Satisfy ((?>) ipv4Chars) >>= (fun x ->
+                match IPAddress.TryParse x with
+                | true, x when x.AddressFamily = AddressFamily.InterNetwork -> preturn (IPv4 x)
+                | _ -> pzero)
 
-let private userInfoP =
-    manySatisfy ((?>) userInfoChars) .>> skipChar '@' |>> UserInfo
+        let regNameChars =
+            Set.unionMany [
+                unreserved
+                subDelims ]
 
-(* Section 3.2.2 *)
+        let regNameP =
+            manySatisfy ((?>) regNameChars) |>> Name
 
-(* Note: In this instance we use the built in IP Address type and parser
-   as the standard is implemented fully and seems to handle all suitable cases.
-   
-   We also make a slight restriction for practicality at the moment on
-   implementing IP-literal as an IPv6 specific type, discarding IPvFuture. As
-   it stands, that's unlikely to be an issue, but could perhaps be revisited. *)
+        let hostP =
+            choice [
+                attempt ipv6AddressP
+                attempt ipv4AddressP
+                regNameP ]
 
-let internal hostF =
-    function | IPv4 x -> append (string x)
-             | IPv6 x -> append "[" >> append (string x) >> append "]"
-             | Name x -> append x
+        let hostF =
+            function | IPv4 x -> append (string x)
+                     | IPv6 x -> append "[" >> append (string x) >> append "]"
+                     | Name x -> append x
 
-let private ipv6Chars =
-    Set.unionMany [
-        Grammar.hexdig
-        set [ ':' ] ]
-
-let private ipLiteralP =
-    skipChar '[' >>. (many1Satisfy ((?>) ipv6Chars) >>= (fun x ->
-        match IPAddress.TryParse x with
-        | true, x when x.AddressFamily = AddressFamily.InterNetworkV6 -> preturn (IPv6 x)
-        | _ -> pzero)) .>> skipChar ']'
-
-let private ipv4Chars =
-    Set.unionMany [
-        Grammar.digit
-        set [ '.' ] ]
-
-let private ipv4AddressP =
-    many1Satisfy ((?>) ipv4Chars) >>= (fun x ->
-        match IPAddress.TryParse x with
-        | true, x when x.AddressFamily = AddressFamily.InterNetwork -> preturn (IPv4 x)
-        | _ -> pzero)
-
-let private regNameChars =
-    Set.unionMany [
-        unreserved
-        subDelims ]
-
-let private regNameP =
-    manySatisfy ((?>) regNameChars) |>> Name
-
-let internal hostP =
-    choice [
-        attempt ipLiteralP
-        attempt ipv4AddressP
-        regNameP ]
+        { Parse = hostP
+          Format = hostF }
 
 (* Section 3.2.3 *)
 
-let internal portF =
-    function | Port x -> append ":" >> append (string x)
+and Port =
+    | Port of int
 
-let internal portP =
-    skipChar ':' >>. puint32 |>> (int >> Port)
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-(* Section 3.2 *)
+        let portP =
+            skipChar ':' >>. puint32 |>> (int >> Port)
 
-let private authorityF =
-    function | { Host = h
-                 Port = p
-                 UserInfo = u } ->
-                    let formatters =
-                        [ (function | Some u -> userInfoF u | _ -> id) u
-                          hostF h
-                          (function | Some p -> portF p | _ -> id) p ]
+        let portF =
+            function | Port x -> append ":" >> append (string x)
 
-                    fun b -> List.fold (fun b f -> f b)b formatters
-
-let private authorityP =
-    opt (attempt userInfoP) .>>. hostP .>>. opt portP
-    |>> fun ((user, host), port) ->
-        { Host = host
-          Port = port
-          UserInfo = user }
-
-type Authority with
-
-    static member Format =
-        format authorityF
-
-    static member Parse =
-        parseExact authorityP
-    
-    static member TryParse =
-        parseOption authorityP
-
-    override x.ToString () =
-        Authority.Format x
+        { Parse = portP
+          Format = portF }
 
 (* Path
 
@@ -246,23 +271,27 @@ let private segmentNzNcP =
 type PathAbsoluteOrEmpty =
     | PathAbsoluteOrEmpty of string list
 
-let private pathAbsoluteOrEmptyF =
-    function | PathAbsoluteOrEmpty [] -> id
-             | PathAbsoluteOrEmpty xs -> slashF >> join append slashF xs
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private pathAbsoluteOrEmptyP =
-    many (skipChar '/' >>. segmentP) |>> PathAbsoluteOrEmpty
+        let pathAbsoluteOrEmptyP =
+            many (skipChar '/' >>. segmentP) |>> PathAbsoluteOrEmpty
 
-type PathAbsoluteOrEmpty with
+        let pathAbsoluteOrEmptyF =
+            function | PathAbsoluteOrEmpty [] -> id
+                     | PathAbsoluteOrEmpty xs -> slashF >> join append slashF xs
+
+        { Parse = pathAbsoluteOrEmptyP
+          Format = pathAbsoluteOrEmptyF }
 
     static member Format =
-        format pathAbsoluteOrEmptyF
+        Formatting.format PathAbsoluteOrEmpty.TypeMapping.Format
 
     static member Parse =
-        parseExact pathAbsoluteOrEmptyP
+        Parsing.parse PathAbsoluteOrEmpty.TypeMapping.Parse
 
     static member TryParse =
-        parseOption pathAbsoluteOrEmptyP
+        Parsing.tryParse PathAbsoluteOrEmpty.TypeMapping.Parse
 
     override x.ToString () =
         PathAbsoluteOrEmpty.Format x
@@ -272,24 +301,28 @@ type PathAbsoluteOrEmpty with
 type PathAbsolute =
     | PathAbsolute of string list
 
-let private pathAbsoluteF =
-    function | PathAbsolute xs -> slashF >> join append slashF xs
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private pathAbsoluteP =
-    skipChar '/' >>. opt (segmentNzP .>>. many (skipChar '/' >>. segmentP))
-    |>> function | Some (x, xs) -> PathAbsolute (x :: xs)
-                 | _ -> PathAbsolute []
+        let pathAbsoluteP =
+            skipChar '/' >>. opt (segmentNzP .>>. many (skipChar '/' >>. segmentP))
+            |>> function | Some (x, xs) -> PathAbsolute (x :: xs)
+                         | _ -> PathAbsolute []
 
-type PathAbsolute with
+        let pathAbsoluteF =
+            function | PathAbsolute xs -> slashF >> join append slashF xs
+
+        { Parse = pathAbsoluteP
+          Format = pathAbsoluteF }
 
     static member Format =
-        format pathAbsoluteF
+        Formatting.format PathAbsolute.TypeMapping.Format
 
     static member Parse =
-        parseExact pathAbsoluteP
+        Parsing.parse PathAbsolute.TypeMapping.Parse
 
     static member TryParse =
-        parseOption pathAbsoluteP
+        Parsing.tryParse PathAbsolute.TypeMapping.Parse
 
     override x.ToString () =
         PathAbsolute.Format x
@@ -299,23 +332,27 @@ type PathAbsolute with
 type PathNoScheme =
     | PathNoScheme of string list
 
-let private pathNoSchemeF =
-    function | PathNoScheme xs -> join append slashF xs
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private pathNoSchemeP =
-    segmentNzNcP .>>. many (slashP >>. segmentP)
-    |>> fun (x, xs) -> PathNoScheme (x :: xs)
+        let pathNoSchemeP =
+            segmentNzNcP .>>. many (slashP >>. segmentP)
+            |>> fun (x, xs) -> PathNoScheme (x :: xs)
 
-type PathNoScheme with
+        let pathNoSchemeF =
+            function | PathNoScheme xs -> join append slashF xs
+
+        { Parse = pathNoSchemeP
+          Format = pathNoSchemeF }
 
     static member Format =
-        format pathNoSchemeF
+        Formatting.format PathNoScheme.TypeMapping.Format
 
     static member Parse =
-        parseExact pathNoSchemeP
+        Parsing.parse PathNoScheme.TypeMapping.Parse
 
     static member TryParse =
-        parseOption pathNoSchemeP
+        Parsing.tryParse PathNoScheme.TypeMapping.Parse
 
     override x.ToString () =
         PathNoScheme.Format x
@@ -325,23 +362,27 @@ type PathNoScheme with
 type PathRootless =
     | PathRootless of string list
 
-let private pathRootlessF =
-    function | PathRootless xs -> join append slashF xs
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private pathRootlessP =
-    segmentNzP .>>. many (skipChar '/' >>. segmentP)
-    |>> fun (x, xs) -> PathRootless (x :: xs)
+        let pathRootlessP =
+            segmentNzP .>>. many (skipChar '/' >>. segmentP)
+            |>> fun (x, xs) -> PathRootless (x :: xs)
 
-type PathRootless with
+        let pathRootlessF =
+            function | PathRootless xs -> join append slashF xs
+
+        { Parse = pathRootlessP
+          Format = pathRootlessF }
 
     static member Format =
-        format pathRootlessF
+        Formatting.format PathRootless.TypeMapping.Format
 
     static member Parse =
-        parseExact pathRootlessP
+        Parsing.parse PathRootless.TypeMapping.Parse
 
     static member TryParse =
-        parseOption pathRootlessP
+        Parsing.tryParse PathRootless.TypeMapping.Parse
 
     override x.ToString () =
         PathRootless.Format x
@@ -359,27 +400,31 @@ type PathEmpty =
 type Query =
     | Query of string
 
-let internal queryF =
-    function | Query x -> append "?" >> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private queryChars =
-    Set.unionMany [
-        pchar
-        set [ '/'; '?' ] ]
+        let queryChars =
+            Set.unionMany [
+                pchar
+                set [ '/'; '?' ] ]
 
-let internal queryP =
-    skipChar '?' >>. manySatisfy ((?>) queryChars) |>> Query
+        let queryP =
+            skipChar '?' >>. manySatisfy ((?>) queryChars) |>> Query
 
-type Query with
+        let queryF =
+            function | Query x -> append "?" >> append x
+
+        { Parse = queryP
+          Format = queryF }
 
     static member Format =
-        format queryF
+        Formatting.format Query.TypeMapping.Format
 
     static member Parse =
-        parseExact queryP
+        Parsing.parse Query.TypeMapping.Parse
 
     static member TryParse =
-        parseOption queryP
+        Parsing.tryParse Query.TypeMapping.Parse
 
     override x.ToString () =
         Query.Format x
@@ -392,27 +437,31 @@ type Query with
 type Fragment =
     | Fragment of string
 
-let private fragmentF =
-    function | Fragment x -> append "#" >> append x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
+    
+        let fragmentChars =
+            Set.unionMany [
+                pchar
+                set [ '/'; '?' ] ]
 
-let private fragmentChars =
-    Set.unionMany [
-        pchar
-        set [ '/'; '?' ] ]
+        let fragmentP =
+            skipChar '#' >>. manySatisfy ((?>) fragmentChars) |>> Fragment
 
-let private fragmentP =
-    skipChar '#' >>. manySatisfy ((?>) fragmentChars) |>> Fragment
+        let fragmentF =
+            function | Fragment x -> append "#" >> append x
 
-type Fragment with
+        { Parse = fragmentP
+          Format = fragmentF }
 
     static member Format =
-        format fragmentF
+        Formatting.format Fragment.TypeMapping.Format
 
     static member Parse =
-        parseExact fragmentP
+        Parsing.parse Fragment.TypeMapping.Parse
 
     static member TryParse =
-        parseOption fragmentP
+        Parsing.tryParse Fragment.TypeMapping.Parse
 
     override x.ToString () =
         Fragment.Format x
@@ -438,10 +487,44 @@ type Fragment with
    creation will still allow this case. *)
 
 type Uri =
-    { Scheme: Scheme
-      Hierarchy: HierarchyPart
-      Query: Query option
-      Fragment: Fragment option }
+    | Uri of Scheme * HierarchyPart * Query option * Fragment option
+
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
+
+        let uriP =
+            Scheme.TypeMapping.Parse .>> skipChar ':'
+            .>>. HierarchyPart.TypeMapping.Parse 
+            .>>. opt Query.TypeMapping.Parse
+            .>>. opt Fragment.TypeMapping.Parse
+            |>> fun (((scheme, hierarchy), query), fragment) ->
+                Uri (scheme, hierarchy, query, fragment)
+
+        let uriF =
+            function | Uri (s, h, q, f) -> 
+                        let formatters =
+                            [ Scheme.TypeMapping.Format s
+                              append ":"
+                              HierarchyPart.TypeMapping.Format h
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
+                              (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
+
+                        fun b -> List.fold (|>) b formatters
+
+        { Parse = uriP
+          Format = uriF }
+
+    static member Format =
+        Formatting.format Uri.TypeMapping.Format
+
+    static member Parse =
+        Parsing.parse Uri.TypeMapping.Parse
+
+    static member TryParse =
+        Parsing.tryParse Uri.TypeMapping.Parse
+
+    override x.ToString () =
+        Uri.Format x
 
 and HierarchyPart =
     | Authority of Authority * PathAbsoluteOrEmpty
@@ -449,60 +532,34 @@ and HierarchyPart =
     | Rootless of PathRootless
     | Empty
 
-(* Formatting *)
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let private hierarchyPartF =
-    function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
-             | Absolute p -> pathAbsoluteF p
-             | Rootless p -> pathRootlessF p
-             | Empty -> id
+        let authorityP =
+            skipString "//" >>. Authority.TypeMapping.Parse 
+            .>>. PathAbsoluteOrEmpty.TypeMapping.Parse 
+            |>> Authority
 
-let internal uriF =
-    function | { Scheme = s
-                 Hierarchy = h
-                 Query = q
-                 Fragment = f } -> 
-                    let formatters =
-                        [ schemeF s
-                          append ":"
-                          hierarchyPartF h
-                          (function | Some q -> queryF q | _ -> id) q
-                          (function | Some f -> fragmentF f | _ -> id) f ]
+        let hierarchyPartP =
+            choice [
+                authorityP
+                PathAbsolute.TypeMapping.Parse |>> Absolute
+                PathRootless.TypeMapping.Parse |>> Rootless
+                preturn Empty ]
 
-                    fun b -> List.fold (fun b f -> f b) b formatters
+        let authorityF (a, p)=
+                append "//" 
+             >> Authority.TypeMapping.Format a 
+             >> PathAbsoluteOrEmpty.TypeMapping.Format p
 
-(* Parsing *)
+        let hierarchyPartF =
+            function | Authority (a, p) -> authorityF (a, p)
+                     | Absolute p -> PathAbsolute.TypeMapping.Format p
+                     | Rootless p -> PathRootless.TypeMapping.Format p
+                     | Empty -> id
 
-let private hierarchyPartP =
-    choice [
-        skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
-        pathAbsoluteP |>> Absolute
-        pathRootlessP |>> Rootless
-        preturn Empty ]
-
-let internal uriP =
-    schemeP .>> skipChar ':' .>>. hierarchyPartP .>>. opt queryP .>>. opt fragmentP
-    |>> fun (((scheme, hierarchy), query), fragment) ->
-        { Scheme = scheme
-          Hierarchy = hierarchy
-          Query = query
-          Fragment = fragment }
-
-(* Augmentation *)
-
-type Uri with
-
-    static member Format =
-        format uriF
-
-    static member Parse =
-        parseExact uriP
-
-    static member TryParse =
-        parseOption uriP
-
-    override x.ToString () =
-        Uri.Format x
+        { Parse = hierarchyPartP
+          Format = hierarchyPartF }
 
 (* Relative Reference
 
@@ -510,9 +567,41 @@ type Uri with
    See [http://tools.ietf.org/html/rfc3986#section-4.2] *)
 
 type RelativeReference =
-    { Relative: RelativePart
-      Query: Query option
-      Fragment: Fragment option }
+    | RelativeReference of RelativePart * Query option * Fragment option
+
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
+
+        let relativeReferenceP =
+            RelativePart.TypeMapping.Parse
+            .>>. opt Query.TypeMapping.Parse
+            .>>. opt Fragment.TypeMapping.Parse
+            |>> fun ((relative, query), fragment) ->
+                RelativeReference (relative, query, fragment)
+
+        let relativeReferenceF =
+            function | RelativeReference (r, q, f) -> 
+                        let formatters =
+                            [ RelativePart.TypeMapping.Format r
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q
+                              (function | Some f -> Fragment.TypeMapping.Format f | _ -> id) f ]
+
+                        fun b -> List.fold (|>) b formatters
+
+        { Parse = relativeReferenceP
+          Format = relativeReferenceF }
+
+    static member Format =
+        Formatting.format RelativeReference.TypeMapping.Format
+
+    static member Parse =
+        Parsing.parse RelativeReference.TypeMapping.Parse
+
+    static member TryParse =
+        Parsing.tryParse RelativeReference.TypeMapping.Parse
+
+    override x.ToString () =
+        RelativeReference.Format x
 
 and RelativePart =
     | Authority of Authority * PathAbsoluteOrEmpty
@@ -520,52 +609,34 @@ and RelativePart =
     | NoScheme of PathNoScheme
     | Empty
 
-let internal relativePartF =
-    function | Authority (a, p) -> append "//" >> authorityF a >> pathAbsoluteOrEmptyF p
-             | Absolute p -> pathAbsoluteF p
-             | NoScheme p -> pathNoSchemeF p
-             | Empty -> id
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let internal relativeReferenceF =
-    function | { Relative = r
-                 Query = q
-                 Fragment = f } -> 
-                    let formatters =
-                        [ relativePartF r
-                          (function | Some q -> queryF q | _ -> id) q
-                          (function | Some f -> fragmentF f | _ -> id) f ]
+        let authorityP =
+            skipString "//" >>. Authority.TypeMapping.Parse
+            .>>. PathAbsoluteOrEmpty.TypeMapping.Parse 
+            |>> Authority
 
-                    fun b -> List.fold (fun b f -> f b) b formatters
+        let relativePartP =
+            choice [
+                authorityP
+                PathAbsolute.TypeMapping.Parse |>> Absolute
+                PathNoScheme.TypeMapping.Parse |>> NoScheme
+                preturn Empty ]
 
-let internal relativePartP =
-    choice [
-        skipString "//" >>. authorityP .>>. pathAbsoluteOrEmptyP |>> Authority
-        pathAbsoluteP |>> Absolute
-        pathNoSchemeP |>> NoScheme
-        preturn Empty ]
+        let authorityF (a, p) =
+                append "//" 
+             >> Authority.TypeMapping.Format a 
+             >> PathAbsoluteOrEmpty.TypeMapping.Format p
 
-let internal relativeReferenceP =
-    relativePartP .>>. opt queryP .>>. opt fragmentP
-    |>> fun ((relative, query), fragment) ->
-        { Relative = relative
-          Query = query
-          Fragment = fragment }
+        let relativePartF =
+            function | Authority (a, p) -> authorityF (a, p)
+                     | Absolute p -> PathAbsolute.TypeMapping.Format p
+                     | NoScheme p -> PathNoScheme.TypeMapping.Format p
+                     | Empty -> id
 
-(* Augmentation *)
-
-type RelativeReference with
-
-    static member Format =
-        format relativeReferenceF
-
-    static member Parse =
-        parseExact relativeReferenceP
-
-    static member TryParse =
-        parseOption relativeReferenceP
-
-    override x.ToString () =
-        RelativeReference.Format x
+        { Parse = relativePartP
+          Format = relativePartF }
 
 (* Absolute URI
 
@@ -573,39 +644,39 @@ type RelativeReference with
    See [http://tools.ietf.org/html/rfc3986#section-4.3] *)
 
 type AbsoluteUri =
-    { Scheme: Scheme
-      Hierarchy: HierarchyPart
-      Query: Query option }
+    | AbsoluteUri of Scheme * HierarchyPart * Query option
 
-let internal absoluteUriF =
-    function | { AbsoluteUri.Scheme = s
-                 Hierarchy = h
-                 Query = q } -> 
-                    let formatters =
-                        [ schemeF s
-                          append ":"
-                          hierarchyPartF h
-                          (function | Some q -> queryF q | _ -> id) q ]
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-                    fun b -> List.fold (fun b f -> f b) b formatters
+        let absoluteUriP =
+            Scheme.TypeMapping.Parse .>> skipChar ':' 
+            .>>. HierarchyPart.TypeMapping.Parse 
+            .>>. opt Query.TypeMapping.Parse
+            |>> fun ((scheme, hierarchy), query) ->
+                AbsoluteUri (scheme, hierarchy, query)
 
-let internal absoluteUriP =
-    schemeP .>> skipChar ':' .>>. hierarchyPartP .>>. opt queryP
-    |>> fun ((scheme, hierarchy), query) ->
-        { Scheme = scheme
-          Hierarchy = hierarchy
-          Query = query }
+        let absoluteUriF =
+            function | AbsoluteUri (s, h, q) -> 
+                        let formatters =
+                            [ Scheme.TypeMapping.Format s
+                              append ":"
+                              HierarchyPart.TypeMapping.Format h
+                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q ]
 
-type AbsoluteUri with
+                        fun b -> List.fold (|>) b formatters
+
+        { Parse = absoluteUriP
+          Format = absoluteUriF }
 
     static member Format =
-        format absoluteUriF
+        Formatting.format AbsoluteUri.TypeMapping.Format
 
     static member Parse =
-        parseExact absoluteUriP
+        Parsing.parse AbsoluteUri.TypeMapping.Parse
 
     static member TryParse =
-        parseOption absoluteUriP
+        Parsing.tryParse AbsoluteUri.TypeMapping.Parse
 
     override x.ToString () =
         AbsoluteUri.Format x
@@ -619,25 +690,29 @@ type UriReference =
     | Uri of Uri
     | Relative of RelativeReference
 
-let internal uriReferenceF =
-    function | Uri x -> uriF x
-             | Relative x -> relativeReferenceF x
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member TypeMapping =
 
-let internal uriReferenceP =
-    choice [
-        attempt uriP |>> Uri
-        relativeReferenceP |>> Relative ]
+        let uriReferenceP =
+            choice [
+                attempt Uri.TypeMapping.Parse |>> Uri
+                RelativeReference.TypeMapping.Parse |>> Relative ]
 
-type UriReference with
+        let uriReferenceF =
+            function | Uri x -> Uri.TypeMapping.Format x
+                     | Relative x -> RelativeReference.TypeMapping.Format x
+
+        { Parse = uriReferenceP
+          Format = uriReferenceF }
 
     static member Format =
-        format uriReferenceF
+        Formatting.format UriReference.TypeMapping.Format
 
     static member Parse =
-        parseExact uriReferenceP
+        Parsing.parse UriReference.TypeMapping.Parse
 
     static member TryParse =
-        parseOption uriReferenceP
+        Parsing.tryParse UriReference.TypeMapping.Parse
 
     override x.ToString () =
         UriReference.Format x

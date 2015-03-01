@@ -40,7 +40,7 @@ open Freya.Types.Language
 (* Charsets *)
 
 let utf8 =
-    Freya.init [ Charset.UTF8 ]
+    Freya.init [ Charset.Utf8 ]
 
 (* Languages *)
 
@@ -50,16 +50,16 @@ let en =
 (* MediaTypes *)
 
 let css =
-    Freya.init [ MediaType (Type "text", SubType "css", Map.empty) ]
+    Freya.init [ MediaType.Css ]
 
 let html =
-    Freya.init [ MediaType.HTML ]
+    Freya.init [ MediaType.Html ]
 
 let js =
-    Freya.init [ MediaType (Type "application", SubType "javascript", Map.empty) ]
+    Freya.init [ MediaType.JavaScript ]
 
 let json =
-    Freya.init [ MediaType.JSON ]
+    Freya.init [ MediaType.Json ]
 
 (* Defaults *)
 
@@ -104,7 +104,7 @@ let private encode =
 
 let represent n x =
     { Description =
-        { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.UTF8)
+        { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.Utf8)
           Encodings = None
           MediaType = Some (n.MediaTypes |> firstNegotiatedOrElse MediaType.Text)
           Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
@@ -112,8 +112,8 @@ let represent n x =
 
 let representJSON x =
     { Description =
-        { Charset = Some Charset.UTF8
+        { Charset = Some Charset.Utf8
           Encodings = None
-          MediaType = Some MediaType.JSON
+          MediaType = Some MediaType.Json
           Languages = Some [ LanguageTag.Parse "en" ] }
       Data = encode x }

@@ -19,12 +19,17 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Types.Uri.Prelude
+module Freya.Types.Types
 
-open System.Runtime.CompilerServices
+open System.Text
+open FParsec
 
-(* Internals *)
+type TypeMapping<'a> =
+    { Parse: Parse<'a>
+      Format: Format<'a> }
 
-[<assembly:InternalsVisibleTo ("Freya.Types.Http")>]
-[<assembly:InternalsVisibleTo ("Freya.Types.Http.Cors")>]
-do ()
+and Parse<'a> =
+    Parser<'a,unit>
+
+and Format<'a> =
+    'a -> StringBuilder -> StringBuilder

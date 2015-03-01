@@ -135,9 +135,9 @@ module ContentNegotiation =
 
         (* Negotiation *)
 
-        let private max (Charset s) =
-            function | { AcceptableCharset.Charset = CharsetRange.Charset (Charset s') } when s == s' -> Some 0
-                     | { Charset = CharsetRange.Any } -> Some 1
+        let private max (Charset c) =
+            function | AcceptableCharset (CharsetRange.Charset (Charset c'), _) when c == c' -> Some 0
+                     | AcceptableCharset (CharsetRange.Any, _) -> Some 1
                      | _ -> None
 
         let private map requested =
@@ -146,13 +146,13 @@ module ContentNegotiation =
 
         let private sort =
             List.sortBy (fun (_, y) ->
-                (function | Some { AcceptableCharset.Weight = Some weight } -> 1. - weight
+                (function | Some (AcceptableCharset (_, Some (Weight w))) -> 1. - w
                           | _ -> 0.) y)
 
         let private choose =
             List.choose (fun (x, y) ->
-                (function | Some { AcceptableCharset.Weight = Some weight } when weight > 0. -> Some x
-                          | Some { AcceptableCharset.Weight = None } -> Some x
+                (function | Some (AcceptableCharset (_, Some (Weight w))) when w > 0. -> Some x
+                          | Some (AcceptableCharset (_, None)) -> Some x
                           | _ -> None) y)
 
         let private run requested =
@@ -190,8 +190,8 @@ module ContentNegotiation =
         (* Negotiation *)
 
         let private max (ContentCoding c) =
-            function | { AcceptableEncoding.Encoding = EncodingRange.Coding (ContentCoding c') } when c == c' -> Some 0
-                     | { Encoding = EncodingRange.Any } -> Some 1
+            function | AcceptableEncoding (EncodingRange.Coding (ContentCoding c'), _) when c == c' -> Some 0
+                     | AcceptableEncoding (EncodingRange.Any, _) -> Some 1
                      | _ -> None
 
         let private map requested =
@@ -200,13 +200,13 @@ module ContentNegotiation =
 
         let private sort =
             List.sortBy (fun (_, y) ->
-                (function | Some { AcceptableEncoding.Weight = Some weight } -> 1. - weight
+                (function | Some (AcceptableEncoding (_, Some (Weight w))) -> 1. - w
                           | _ -> 0.) y)
 
         let private choose =
             List.choose (fun (x, y) ->
-                (function | Some { AcceptableEncoding.Weight = Some weight } when weight > 0. -> Some x
-                          | Some { AcceptableEncoding.Weight = None } -> Some x
+                (function | Some (AcceptableEncoding (_, Some (Weight w))) when w > 0. -> Some x
+                          | Some (AcceptableEncoding (_, None)) -> Some x
                           | _ -> None) y)
 
         let private run requested =
@@ -248,16 +248,18 @@ module ContentNegotiation =
 
         let private reify tag =
             let language, extensions =
-                (function | Language (language, Some extensions) -> [ language ], extensions
-                          | Language (language, _) -> [ language ], []) tag.Language
+                (function | LanguageTag (Language (l, Some e), _, _, _) -> [ l ], e
+                          | LanguageTag (Language (l, _), _, _, _) -> [ l ], []) tag
+
             let script =
-                (function | Some (Script script) -> [ script ]
-                          | _ -> []) tag.Script
+                (function | LanguageTag (_, Some (Script s), _, _) -> [ s ]
+                          | _ -> []) tag
+
             let region =
-                (function | Some (Region region) -> [ region ]
-                          | _ -> []) tag.Region
+                (function | LanguageTag (_, _, Some (Region r), _) -> [ r ]
+                          | _ -> []) tag
             let variant =
-                (function | Variant variant -> variant) tag.Variant
+                (function | LanguageTag (_, _, _, Variant variant) -> variant) tag
 
             List.concat [
                 language
@@ -270,19 +272,16 @@ module ContentNegotiation =
             Seq.zip (reify tag) >> Seq.forall ((<||) (==))
 
         let private sort =
-            List.sortBy (fun (x: AcceptableLanguage) -> 
-                (function | Some x -> 1. - x
-                            | _ -> 0. ) x.Weight)
+            List.sortBy (function | AcceptableLanguage (_, Some (Weight w)) -> 1. - w
+                                  | _ -> 0.)
 
         let private filter =
-            List.filter (fun (x: AcceptableLanguage) ->
-                (function | Some 0. -> false
-                            | _ -> true) x.Weight)
+            List.filter (function | AcceptableLanguage (_, Some (Weight 0.)) -> false
+                                  | _ -> true)
 
         let private map supported =
-            List.map (fun (x: AcceptableLanguage) ->
-                (function | Range x -> List.filter (flip eq x) supported
-                          | Any -> supported) x.Language)
+            List.map (function | AcceptableLanguage (Range x, _) -> List.filter (flip eq x) supported
+                               | AcceptableLanguage (Any, _) -> supported)
     
         let private run supported =
                sort
@@ -320,9 +319,9 @@ module ContentNegotiation =
         (* Negotiation *)
 
         let private max (MediaType (Type t, SubType s, _)) =
-            function | { MediaRange = Closed (Type t', SubType s', _) } when t == t' && s == s' -> Some 0
-                     | { MediaRange = MediaRange.Partial (Type t', _) } when t == t' -> Some 1
-                     | { MediaRange = Open _ } -> Some 2
+            function | AcceptableMedia (MediaRange.Closed (Type t', SubType s', _), _) when t == t' && s == s' -> Some 0
+                     | AcceptableMedia (MediaRange.Partial (Type t', _), _) when t == t' -> Some 1
+                     | AcceptableMedia (MediaRange.Open (_), _) -> Some 2
                      | _ -> None
 
         let private map requested =
@@ -331,13 +330,13 @@ module ContentNegotiation =
 
         let private sort =
             List.sortBy (fun (_, y) ->
-                (function | Some { Parameters = Some { Weight = weight } } -> 1. - weight
+                (function | Some (AcceptableMedia (_, Some (AcceptParameters (Weight w, _)))) -> 1. - w
                           | _ -> 0.) y)
 
         let private choose =
             List.choose (fun (x, y) ->
-                (function | Some { Parameters = Some { Weight = weight } } when weight > 0. -> Some x
-                          | Some { Parameters = None } -> Some x
+                (function | Some (AcceptableMedia (_, Some (AcceptParameters (Weight w, _)))) when w > 0. -> Some x
+                          | Some (AcceptableMedia (_, None)) -> Some x
                           | _ -> None) y)
 
         let private run requested =

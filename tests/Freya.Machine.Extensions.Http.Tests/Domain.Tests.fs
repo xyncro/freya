@@ -65,8 +65,8 @@ let ``Language Negotiation`` () =
 [<Test>]
 let ``MediaType Negotiation`` () =
     let supported =
-        [ MediaType.JSON
-          MediaType.XML ]
+        [ MediaType.Json
+          MediaType.Xml ]
 
     let requested1 =
         Accept.Parse "application/json;q=0.8,application/*;q=0.5"
@@ -82,12 +82,12 @@ let ``MediaType Negotiation`` () =
     let negotiated3 = ContentNegotiation.MediaType.negotiate supported (Some requested3)
         
     negotiated1 =? 
-        Negotiated ([ MediaType.JSON
-                      MediaType.XML ])
+        Negotiated ([ MediaType.Json
+                      MediaType.Xml ])
 
     negotiated2 =?
-        Negotiated ([ MediaType.XML
-                      MediaType.JSON ])
+        Negotiated ([ MediaType.Xml
+                      MediaType.Json ])
 
     negotiated3 =? 
         Negotiated ([])
