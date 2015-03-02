@@ -24,7 +24,6 @@ open System.ComponentModel
 open System.Net
 open System.Net.Sockets
 open Freya.Types.Formatting
-open Freya.Types.Grammar
 open FParsec
 
 (* RFC 3986
