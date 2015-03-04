@@ -58,19 +58,19 @@ let private css =
     freyaMachine {
         including defaults
         mediaTypesSupported css
-        handleOk getCss } |> Machine.toPipeline
+        handleOk getCss } |> FreyaMachine.toPipeline
 
 let private html =
     freyaMachine {
         including defaults
         mediaTypesSupported html
-        handleOk getHtml } |> Machine.toPipeline
+        handleOk getHtml } |> FreyaMachine.toPipeline
 
 let private js =
     freyaMachine {
         including defaults
         mediaTypesSupported js
-        handleOk getJs } |> Machine.toPipeline
+        handleOk getJs } |> FreyaMachine.toPipeline
 
 (* Routes
 
@@ -83,4 +83,4 @@ let content =
     freyaRouter {
         resource "/freya/inspector" html
         resource "/freya/css/app.css" css
-        resource "/freya/js/app.js" js } |> Router.toPipeline
+        resource "/freya/js/app.js" js } |> FreyaRouter.toPipeline

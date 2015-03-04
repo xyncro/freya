@@ -37,7 +37,7 @@ let private set i =
     Freya.setLensPartial testLens i *> next
 
 let private run meth path m =
-    let router = Router.toPipeline m
+    let router = FreyaRouter.toPipeline m
 
     Async.RunSynchronously ((   Freya.setLens Request.path path 
                              *> Freya.setLens Request.meth meth 
