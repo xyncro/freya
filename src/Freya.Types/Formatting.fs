@@ -24,8 +24,8 @@ open System.Text
 
 (* Formatting *)
 
-let format (formatter: 'a -> StringBuilder -> StringBuilder) =
-    fun a -> string (formatter a (StringBuilder ()))
+let format (format: Format<'a>) =
+    fun a -> string (format a (StringBuilder ()))
 
 (* Helpers *)
 

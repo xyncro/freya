@@ -47,25 +47,25 @@ open FParsec
 type Origin =
     | Origin of OriginListOrNull
 
-    static member TypeMapping =
+    static member Mapping =
 
         let originP =
-            OriginListOrNull.TypeMapping.Parse |>> Origin
+            OriginListOrNull.Mapping.Parse |>> Origin
 
         let originF =
-            function | Origin x -> OriginListOrNull.TypeMapping.Format x
+            function | Origin x -> OriginListOrNull.Mapping.Format x
 
         { Parse = originP
           Format = originF }
 
     static member Format =
-        Formatting.format Origin.TypeMapping.Format
+        Formatting.format Origin.Mapping.Format
 
     static member Parse =
-        Parsing.parse Origin.TypeMapping.Parse
+        Parsing.parse Origin.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Origin.TypeMapping.Parse
+        Parsing.tryParse Origin.Mapping.Parse
 
     override x.ToString () =
         Origin.Format x
@@ -74,15 +74,15 @@ and OriginListOrNull =
     | Origins of SerializedOrigin list
     | Null
 
-    static member TypeMapping =
+    static member Mapping =
 
         let originListOrNullP =
             choice [
-                attempt (sepBy1 SerializedOrigin.TypeMapping.Parse spaceP) |>> Origins
+                attempt (sepBy1 SerializedOrigin.Mapping.Parse spaceP) |>> Origins
                 skipString "null" >>% Null ]
 
         let originListOrNullF =
-            function | Origins x -> join SerializedOrigin.TypeMapping.Format spaceF x
+            function | Origins x -> join SerializedOrigin.Mapping.Format spaceF x
                      | Null -> append "null"
 
         { Parse = originListOrNullP
@@ -91,22 +91,22 @@ and OriginListOrNull =
 and SerializedOrigin =
     | SerializedOrigin of Scheme * Host * Port option
 
-    static member TypeMapping =
+    static member Mapping =
 
         let serializedOriginP =
-            Scheme.TypeMapping.Parse .>> skipString "://" 
-            .>>. Host.TypeMapping.Parse
-            .>>. opt Port.TypeMapping.Parse
+            Scheme.Mapping.Parse .>> skipString "://" 
+            .>>. Host.Mapping.Parse
+            .>>. opt Port.Mapping.Parse
             |>> fun ((scheme, host), port) ->
                 SerializedOrigin (scheme, host, port)
 
         let serializedOriginF =
             function | SerializedOrigin (s, h, p) ->
                             let formatters =
-                                [ Scheme.TypeMapping.Format s
+                                [ Scheme.Mapping.Format s
                                   append "://"
-                                  Host.TypeMapping.Format h
-                                  (function | Some p -> Port.TypeMapping.Format p | _ -> id) p ]
+                                  Host.Mapping.Format h
+                                  (function | Some p -> Port.Mapping.Format p | _ -> id) p ]
 
                             fun b -> List.fold (fun b f -> f b) b formatters
 
@@ -128,28 +128,28 @@ and SerializedOrigin =
 type AccessControlAllowOrigin =
     | AccessControlAllowOrigin of AccessControlAllowOriginRange
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlAllowOriginP =
             choice [
-                attempt OriginListOrNull.TypeMapping.Parse |>> (Origins >> AccessControlAllowOrigin)
+                attempt OriginListOrNull.Mapping.Parse |>> (Origins >> AccessControlAllowOrigin)
                 skipChar '*' >>% AccessControlAllowOrigin (Any) ]
 
         let accessControlAllowOriginF =
-            function | AccessControlAllowOrigin (Origins x) -> OriginListOrNull.TypeMapping.Format x
+            function | AccessControlAllowOrigin (Origins x) -> OriginListOrNull.Mapping.Format x
                      | AccessControlAllowOrigin (Any) -> append "*"
 
         { Parse = accessControlAllowOriginP
           Format = accessControlAllowOriginF }
 
     static member Format =
-        Formatting.format AccessControlAllowOrigin.TypeMapping.Format
+        Formatting.format AccessControlAllowOrigin.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlAllowOrigin.TypeMapping.Parse
+        Parsing.parse AccessControlAllowOrigin.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlAllowOrigin.TypeMapping.Parse
+        Parsing.tryParse AccessControlAllowOrigin.Mapping.Parse
 
     override x.ToString () =
         AccessControlAllowOrigin.Format x
@@ -166,7 +166,7 @@ and AccessControlAllowOriginRange =
 type AccessControlAllowCredentials =
     | AccessControlAllowCredentials
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlAllowCredentialsP =
             skipString "true" >>% AccessControlAllowCredentials
@@ -178,13 +178,13 @@ type AccessControlAllowCredentials =
           Format = accessControlAllowCredentialsF }
 
     static member Format =
-        Formatting.format AccessControlAllowCredentials.TypeMapping.Format
+        Formatting.format AccessControlAllowCredentials.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlAllowCredentials.TypeMapping.Parse
+        Parsing.parse AccessControlAllowCredentials.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlAllowCredentials.TypeMapping.Parse
+        Parsing.tryParse AccessControlAllowCredentials.Mapping.Parse
 
     override x.ToString () =
         AccessControlAllowCredentials.Format x
@@ -197,7 +197,7 @@ type AccessControlAllowCredentials =
 type AccessControlExposeHeaders =
     | AccessControlExposeHeaders of string list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlExposeHeadersP =
             infixP tokenP commaP |>> AccessControlExposeHeaders
@@ -209,13 +209,13 @@ type AccessControlExposeHeaders =
           Format = accessControlExposeHeadersF }
 
     static member Format =
-        Formatting.format AccessControlExposeHeaders.TypeMapping.Format
+        Formatting.format AccessControlExposeHeaders.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlExposeHeaders.TypeMapping.Parse
+        Parsing.parse AccessControlExposeHeaders.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlExposeHeaders.TypeMapping.Parse
+        Parsing.tryParse AccessControlExposeHeaders.Mapping.Parse
 
     override x.ToString () =
         AccessControlExposeHeaders.Format x
@@ -228,7 +228,7 @@ type AccessControlExposeHeaders =
 type AccessControlMaxAge =
     | AccessControlMaxAge of TimeSpan
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlMaxAgeP =
             puint32 |>> (float >> TimeSpan.FromSeconds >> AccessControlMaxAge)
@@ -240,13 +240,13 @@ type AccessControlMaxAge =
           Format = accessControlMaxAgeF }
 
     static member Format =
-        Formatting.format AccessControlMaxAge.TypeMapping.Format
+        Formatting.format AccessControlMaxAge.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlMaxAge.TypeMapping.Parse
+        Parsing.parse AccessControlMaxAge.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlMaxAge.TypeMapping.Parse
+        Parsing.tryParse AccessControlMaxAge.Mapping.Parse
 
     override x.ToString () =
         AccessControlMaxAge.Format x
@@ -259,25 +259,25 @@ type AccessControlMaxAge =
 type AccessControlAllowMethods =
     | AccessControlAllowMethods of Method list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlAllowMethodsP =
-            infixP Method.TypeMapping.Parse commaP |>> AccessControlAllowMethods
+            infixP Method.Mapping.Parse commaP |>> AccessControlAllowMethods
 
         let accessControlAllowMethodsF =
-            function | AccessControlAllowMethods x -> join Method.TypeMapping.Format commaF x
+            function | AccessControlAllowMethods x -> join Method.Mapping.Format commaF x
 
         { Parse = accessControlAllowMethodsP
           Format = accessControlAllowMethodsF }
 
     static member Format =
-        Formatting.format AccessControlAllowMethods.TypeMapping.Format
+        Formatting.format AccessControlAllowMethods.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlAllowMethods.TypeMapping.Parse
+        Parsing.parse AccessControlAllowMethods.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlAllowMethods.TypeMapping.Parse
+        Parsing.tryParse AccessControlAllowMethods.Mapping.Parse
 
     override x.ToString () =
         AccessControlAllowMethods.Format x
@@ -290,7 +290,7 @@ type AccessControlAllowMethods =
 type AccessControlAllowHeaders =
     | AccessControlAllowHeaders of string list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlAllowHeadersP =
             infixP tokenP commaP |>> AccessControlAllowHeaders
@@ -302,13 +302,13 @@ type AccessControlAllowHeaders =
           Format = accessControlAllowHeadersF }
 
     static member Format =
-        Formatting.format AccessControlAllowHeaders.TypeMapping.Format
+        Formatting.format AccessControlAllowHeaders.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlAllowHeaders.TypeMapping.Parse
+        Parsing.parse AccessControlAllowHeaders.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlAllowHeaders.TypeMapping.Parse
+        Parsing.tryParse AccessControlAllowHeaders.Mapping.Parse
 
     override x.ToString () =
         AccessControlAllowHeaders.Format x
@@ -321,25 +321,25 @@ type AccessControlAllowHeaders =
 type AccessControlRequestMethod =
     | AccessControlRequestMethod of Method
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlRequestMethodP =
-            Method.TypeMapping.Parse |>> AccessControlRequestMethod
+            Method.Mapping.Parse |>> AccessControlRequestMethod
 
         let accessControlRequestMethodF =
-            function | AccessControlRequestMethod x -> Method.TypeMapping.Format x
+            function | AccessControlRequestMethod x -> Method.Mapping.Format x
 
         { Parse = accessControlRequestMethodP
           Format = accessControlRequestMethodF }
 
     static member Format =
-        Formatting.format AccessControlRequestMethod.TypeMapping.Format
+        Formatting.format AccessControlRequestMethod.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlRequestMethod.TypeMapping.Parse
+        Parsing.parse AccessControlRequestMethod.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlRequestMethod.TypeMapping.Parse
+        Parsing.tryParse AccessControlRequestMethod.Mapping.Parse
 
     override x.ToString () =
         AccessControlRequestMethod.Format x
@@ -352,7 +352,7 @@ type AccessControlRequestMethod =
 type AccessControlRequestHeaders =
     | AccessControlRequestHeaders of string list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let accessControlRequestHeadersP =
             infixP tokenP commaP |>> AccessControlRequestHeaders
@@ -364,13 +364,13 @@ type AccessControlRequestHeaders =
           Format = accessControlRequestHeadersF }
 
     static member Format =
-        Formatting.format AccessControlRequestHeaders.TypeMapping.Format
+        Formatting.format AccessControlRequestHeaders.Mapping.Format
 
     static member Parse =
-        Parsing.parse AccessControlRequestHeaders.TypeMapping.Parse
+        Parsing.parse AccessControlRequestHeaders.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AccessControlRequestHeaders.TypeMapping.Parse
+        Parsing.tryParse AccessControlRequestHeaders.Mapping.Parse
 
     override x.ToString () =
         AccessControlRequestHeaders.Format x

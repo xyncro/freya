@@ -63,6 +63,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Formatting.fs" />
     <Compile Include="Parsing.fs" />
+    <Compile Include="Rendering.fs" />
     <Compile Include="Grammar.fs" />
   </ItemGroup>
   <ItemGroup>
