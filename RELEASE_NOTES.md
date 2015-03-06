@@ -1,4 +1,5 @@
-### New in 0.9.0-alpha - (Releases 2015/01/02)
+### New in 0.9.0-alpha - (Released 2015-03-09)
+* OWIN integration for applications and middleware #28
 * Experimental release of new Freya Stack
 
 ### New in 0.8.0 - (Released 2014/10/12)
