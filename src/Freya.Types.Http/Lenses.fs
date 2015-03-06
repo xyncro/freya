@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Http.headerPIsoes
+module Freya.Types.Http.Lenses
 
 open System.Collections.Generic
 open System.IO

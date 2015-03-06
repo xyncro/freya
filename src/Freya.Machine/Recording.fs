@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -22,9 +23,17 @@ module Freya.Machine.Recording
 
 open Aether
 open Aether.Operators
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
+open Hekate
 open Freya.Recorder
+
+(* Errors *)
+
+exception RecordingError of string
+
+let private fail e =
+    raise (RecordingError e)
 
 (* Keys *)
 
@@ -43,10 +52,9 @@ type FreyaMachineRecord =
     static member GraphLens =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member ToJSON (x: FreyaMachineRecord) =
-        jobj [
-            "execution" .= x.Execution
-            "graph" .= x.Graph ]
+    static member ToJson (x: FreyaMachineRecord) =
+            Json.write "execution" x.Execution
+         *> Json.write "graph" x.Graph
 
 (* Graph *)
 
@@ -54,32 +62,30 @@ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-    static member ToJSON (x: FreyaMachineGraphRecord) =
-        jobj [
-            "nodes" .= x.Nodes
-            "edges" .= x.Edges ]
+    static member ToJson (x: FreyaMachineGraphRecord) =
+            Json.write "nodes" x.Nodes
+         *> Json.write "edges" x.Edges
 
 and FreyaMachineGraphNodeRecord =
     { Id: string
       Type: string
-      AllowOverride: bool
-      HasOverride: bool }
+      Configurable: bool
+      Configured: bool }
 
-    static member ToJSON (x: FreyaMachineGraphNodeRecord) =
-        jobj [
-            "id" .= x.Id
-            "type" .= x.Type
-            "allowOverride" .= x.AllowOverride
-            "hasOverride" .= x.HasOverride ]
+    static member ToJson (x: FreyaMachineGraphNodeRecord) =
+            Json.write "id" x.Id
+         *> Json.write "type" x.Type
+         *> Json.write "configurable" x.Configurable
+         *> Json.write "configured" x.Configured
 
 and FreyaMachineGraphEdgeRecord =
     { From: string
-      To: string }
+      To: string
+      Value: bool option }
 
-    static member ToJSON (x:FreyaMachineGraphEdgeRecord) =
-        jobj [
-            "from" .= x.From
-            "to" .= x.To ]
+    static member ToJson (x:FreyaMachineGraphEdgeRecord) =
+            Json.write "from" x.From
+         *> Json.write "to" x.To
 
 (* Execution *)
 
@@ -89,76 +95,86 @@ and FreyaMachineExecutionRecord =
     static member NodesLens =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-    static member ToJSON (x: FreyaMachineExecutionRecord) =
-        jobj [
-            "nodes" .= x.Nodes ]
+    static member ToJson (x: FreyaMachineExecutionRecord) =
+        Json.write "nodes" x.Nodes
 
 and FreyaMachineExecutionNodeRecord =
     { Id: string }
 
-    static member ToJSON (x: FreyaMachineExecutionNodeRecord) =
-        jobj [
-            "id" .= x.Id ]
+    static member ToJson (x: FreyaMachineExecutionNodeRecord) =
+        Json.write "id" x.Id
 
-(* Constructors *)
+(* Construction *)
 
-let private freyaMachineRecord =
-    { Graph = 
+let private (|Name|) =
+    function | Start -> "start"
+             | Finish -> "finish"
+             | Operation v -> v
+
+let private (|StartOrFinish|_|) =
+    function | Name n, None -> Some (n, n, false, false)
+             | _ -> None
+
+let private (|Unary|_|) =
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "unary", c.Configurable, c.Configured)
+             | _ -> None
+
+let private (|Binary|_|) =
+    function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
+             | _ -> None
+
+let internal record meta =
+    { Nodes =
+        Graph.nodes meta
+        |> List.map (fun (v, l) ->
+            let id, t, c1, c2 =
+                match v, l with
+                | StartOrFinish x 
+                | Unary x 
+                | Binary x -> x
+                | _ -> fail "Recording Node Match Failure"
+                    
+            { Id = id
+              Type = t
+              Configurable = c1
+              Configured = c2 })
+      Edges =
+        Graph.edges meta
+        |> List.map (fun (Name v1, Name v2, l) ->
+            { From =  v1
+              To = v2
+              Value = Option.map (fun (Edge l) -> l) l }) }
+
+(* Defaults *)
+
+let private defaultFreyaMachineRecord =
+    { Execution =
+        { Nodes = List.empty }
+      Graph =
         { Nodes = List.empty
-          Edges = List.empty }
-      Execution =
-        { Nodes = List.empty } }
-
-let private freyaMachineGraphNodeRecord id t allow has =
-    { Id = id
-      Type = t
-      AllowOverride = allow
-      HasOverride = has }
-
-let private freyaMachineGraphEdgeRecord from t =
-    { From = from
-      To = t }
-
-let internal freyaMachineGraphRecord graph =
-    let list = Map.toList graph
-
-    let nodes = List.map (fun (k, v) ->
-        let node = freyaMachineGraphNodeRecord k
-
-        match v with
-        | ActionNode { Override = o } -> node "action" o.Allow o.Overridden
-        | DecisionNode { Override = o } -> node "decision" o.Allow o.Overridden
-        | HandlerNode { Override = o } -> node "handler" o.Allow o.Overridden
-        | OperationNode _ -> node "operation" false false)
-
-    let edges = List.map (fun (k, v) ->
-        let edge = freyaMachineGraphEdgeRecord k
-
-        match v with
-        | ActionNode x -> [ edge x.Next ]
-        | DecisionNode x -> [ edge x.True; edge x.False ]
-        | HandlerNode _ -> []
-        | OperationNode x -> [ edge x.Next ]) >> List.concat
-
-    { Nodes = nodes list
-      Edges = edges list }
+          Edges = List.empty } }
 
 (* Lenses *)
 
 let freyaMachineRecordPLens =
-    recordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
+    freyaRecordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
 (* Recording *)
 
+let private recordPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.GraphLens
+
+let private executionPLens =
+         freyaMachineRecordPLens 
+    >?-> FreyaMachineRecord.ExecutionLens 
+    >?-> FreyaMachineExecutionRecord.NodesLens
+
 let initializeFreyaMachineRecord =
-    updateRecord (setPL freyaMachineRecordPLens freyaMachineRecord)
+    updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)
 
 let internal setFreyaMachineGraphRecord graph =
-    updateRecord (setPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.GraphLens) graph)
+    updateRecord (Lens.setPartial recordPLens graph)
 
 let internal addFreyaMachineExecutionRecord id =
-    updateRecord (modPL (     freyaMachineRecordPLens 
-                         >?-> FreyaMachineRecord.ExecutionLens 
-                         >?-> FreyaMachineExecutionRecord.NodesLens) 
-                        (fun es -> es @ [ { Id = id } ]))
+    updateRecord (Lens.mapPartial executionPLens (fun es -> es @ [ { Id = id } ]))

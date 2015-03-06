@@ -5,7 +5,6 @@ open System
 open System.IO
 open Fake
 open Fake.AssemblyInfoFile
-open Fake.Git
 open Fake.ReleaseNotesHelper
 
 (* Types
@@ -86,16 +85,42 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
+                  { Name = "Freya.Integration"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Local "Freya.Core"
+                          Local "Freya.Pipeline" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
+                          Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
                           Local "Freya.Recorder"
                           Local "Freya.Types.Cors"
                           Local "Freya.Types.Http"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Extensions.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Machine.Extensions.Http.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Local "Freya.Core"
+                          Local "Freya.Machine"
+                          Local "Freya.Machine.Extensions.Http"
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Http.Cors"
                           Local "Freya.Types.Language"
                           Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Machine.Router"
@@ -104,6 +129,7 @@ let freya =
                           Local "Freya.Core"
                           Local "Freya.Machine"
                           Local "Freya.Pipeline"
+                          Local "Freya.Router"
                           Local "Freya.Types.Http" ] }
                   { Name = "Freya.Pipeline"
                     Dependencies =
@@ -113,13 +139,13 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
                           Local "Freya.Core" ] }
                   { Name = "Freya.Router"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
-                          Package "Fleece"
+                          Package "Chiron"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
                           Local "Freya.Recorder"
@@ -128,14 +154,6 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "FParsec" ] }
-                  { Name = "Freya.Types.Cors"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "FParsec"
-                          Local "Freya.Types"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Types.Http"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -144,6 +162,14 @@ let freya =
                           Local "Freya.Core"
                           Local "Freya.Types"
                           Local "Freya.Types.Language"
+                          Local "Freya.Types.Uri" ] }
+                  { Name = "Freya.Types.Http.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "FParsec"
+                          Local "Freya.Types"
+                          Local "Freya.Types.Http"
                           Local "Freya.Types.Uri" ] }
                   { Name = "Freya.Types.Language"
                     Dependencies =
@@ -157,11 +183,13 @@ let freya =
                           Local "Freya.Types" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
+                  { Name = "Freya.Integration.Tests" }
                   { Name = "Freya.Machine.Tests" }
+                  { Name = "Freya.Machine.Extensions.Http.Tests" }
                   { Name = "Freya.Pipeline.Tests" }
                   { Name = "Freya.Router.Tests" }
                   { Name = "Freya.Types.Tests" }
-                  { Name = "Freya.Types.Cors.Tests" }
+                  { Name = "Freya.Types.Http.Cors.Tests" }
                   { Name = "Freya.Types.Http.Tests" }
                   { Name = "Freya.Types.Language.Tests" }
                   { Name = "Freya.Types.Uri.Tests" } ] } }
@@ -173,9 +201,6 @@ let freya =
 
    Computed properties of the build based on existing data structures and/or
    environment variables, creating a derived set of properties. *)
-
-let branch =
-    getBranchName __SOURCE_DIRECTORY__
 
 let release =
     parseReleaseNotes (File.ReadAllLines freya.Metadata.Info.Notes)
@@ -213,7 +238,7 @@ let files (x: SourceProject) =
     extensions
     |> List.map (fun ext ->
          sprintf @"..\src\%s\bin\Release\%s.%s" x.Name x.Name ext,
-         Some "lib/net40", 
+         Some "lib/net45", 
          None)
 
 let projectFile (x: SourceProject) =
@@ -243,6 +268,25 @@ Target "Publish.Debug" (fun _ ->
         release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
         
         Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
+
+Target "Publish.MetaPackage" (fun _ ->
+    NuGet (fun x ->
+        { x with
+            AccessKey = getBuildParamOrDefault "nugetkey" ""
+            Authors = freya.Metadata.Authors
+            Dependencies =
+                freya.Structure.Projects.Source
+                |> List.map (fun project ->
+                    project.Name, nugetVersion)
+            Description = freya.Metadata.Description
+            Files = List.empty
+            OutputPath = "bin"
+            Project = "Freya"
+            Publish = hasBuildParam "nugetkey"
+            ReleaseNotes = notes
+            Summary = freya.Metadata.Summary
+            Tags = tags freya
+            Version = nugetVersion }) "nuget/template.nuspec")
 
 Target "Publish.Packages" (fun _ ->
     freya.Structure.Projects.Source 
@@ -326,6 +370,7 @@ Target "Publish" DoNothing
 #else
 ==> "Publish.Debug"
 ==> "Publish.Packages"
+==> "Publish.MetaPackage"
 #endif
 ==> "Publish"
 

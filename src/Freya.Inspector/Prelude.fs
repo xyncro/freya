@@ -23,11 +23,13 @@ module internal Freya.Inspector.Prelude
 open System.IO
 open System.Reflection
 open System.Text
-open Fleece
+open Chiron
 open Freya.Core
-open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
+open Freya.Machine.Extensions.Http.Cors
 open Freya.Types.Http
+open Freya.Types.Http.Cors
 open Freya.Types.Language
 
 (* Presets
@@ -37,32 +39,41 @@ open Freya.Types.Language
 
 (* Charsets *)
 
-let utf8 : Freya<Charset list> =
-    Freya.returnM [ Charset.UTF8 ]
+let utf8 =
+    Freya.init [ Charset.Utf8 ]
 
 (* Languages *)
 
-let en : Freya<LanguageTag list> =
-    Freya.returnM [ LanguageTag.Parse "en" ]
+let en =
+    Freya.init [ LanguageTag.Parse "en" ]
 
 (* MediaTypes *)
 
-let css : Freya<MediaType list> =
-    Freya.returnM [ MediaType (Type "text", SubType "css", Map.empty) ]
+let css =
+    Freya.init [ MediaType.Css ]
 
-let html : Freya<MediaType list> =
-    Freya.returnM [ MediaType.HTML ]
+let html =
+    Freya.init [ MediaType.Html ]
 
-let json : Freya<MediaType list> =
-    Freya.returnM [ MediaType.JSON ]
+let js =
+    Freya.init [ MediaType.JavaScript ]
+
+let json =
+    Freya.init [ MediaType.Json ]
 
 (* Defaults *)
 
 let defaults =
     freyaMachine {
+        using http
+        using httpCors
+
+        corsHeadersSupported (Freya.init [ "accept"; "content-type" ])
+        corsMethodsSupported (Freya.init [ GET; OPTIONS ])
+        corsOriginsSupported (Freya.init AccessControlAllowOriginRange.Any)
+
         charsetsSupported utf8
-        languagesSupported en
-        mediaTypesSupported json }
+        languagesSupported en }
 
 (* Functions
 
@@ -89,20 +100,20 @@ let private firstNegotiatedOrElse def =
              | _ -> def
 
 let private encode =
-    string >> Encoding.UTF8.GetBytes
+    Json.format >> Encoding.UTF8.GetBytes
 
 let represent n x =
-    { Metadata =
-        { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.UTF8)
+    { Description =
+        { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.Utf8)
           Encodings = None
           MediaType = Some (n.MediaTypes |> firstNegotiatedOrElse MediaType.Text)
           Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
       Data = x }
 
 let representJSON x =
-    { Metadata =
-        { Charset = Some Charset.UTF8
+    { Description =
+        { Charset = Some Charset.Utf8
           Encodings = None
-          MediaType = Some MediaType.JSON
+          MediaType = Some MediaType.Json
           Languages = Some [ LanguageTag.Parse "en" ] }
       Data = encode x }

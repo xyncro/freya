@@ -10,10 +10,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language *)
 
     let langTyped =
-        { Language = Language ("de", None)
-          Script = None
-          Region = None
-          Variant = Variant [] }
+        LanguageTag (
+            Language ("de", None),
+            None,
+            None,
+            Variant [])
 
     let langString =
         "de"
@@ -21,10 +22,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language + Script *)
 
     let langScriptTyped =
-        { Language = Language ("zh", None)
-          Script = Some (Script "Hant")
-          Region = None
-          Variant = Variant [] }
+        LanguageTag (
+            Language ("zh", None),
+            Some (Script "Hant"),
+            None,
+            Variant [])
 
     let langScriptString =
         "zh-Hant"
@@ -32,10 +34,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Extended Language + Script + Region *)
 
     let langScriptRegionTyped =
-        { Language = Language ("zh", Some [ "cmn" ])
-          Script = Some (Script "Hans")
-          Region = Some (Region "CN")
-          Variant = Variant [] }
+        LanguageTag (
+            Language ("zh", Some [ "cmn" ]),
+            Some (Script "Hans"),
+            Some (Region "CN"),
+            Variant [])
 
     let langScriptRegionString =
         "zh-cmn-Hans-CN"
@@ -43,10 +46,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language + Variant *)
 
     let langVariantTyped =
-        { Language = Language ("sl", None)
-          Script = None
-          Region = None
-          Variant = Variant [ "rozaj" ] }
+        LanguageTag (
+            Language ("sl", None),
+            None,
+            None,
+            Variant [ "rozaj" ])
 
     let langVariantString =
         "sl-rozaj"
@@ -54,10 +58,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language + Region + Variant *)
 
     let langRegionVariantTyped =
-        { Language = Language ("de", None)
-          Script = None
-          Region = Some (Region "CH")
-          Variant = Variant [ "1901" ] }
+        LanguageTag (
+            Language ("de", None),
+            None,
+            Some (Region "CH"),
+            Variant [ "1901" ])
 
     let langRegionVariantString =
         "de-CH-1901"
@@ -65,10 +70,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language + Script + Region + Variant *)
 
     let langScriptRegionVariantTyped =
-        { Language = Language ("hy", None)
-          Script = Some (Script "Latn")
-          Region = Some (Region "IT")
-          Variant = Variant [ "arevela" ] }
+        LanguageTag (
+            Language ("hy", None),
+            Some (Script "Latn"),
+            Some (Region "IT"),
+            Variant [ "arevela" ])
 
     let langScriptRegionVariantString =
         "hy-Latn-IT-arevela"
@@ -76,10 +82,11 @@ let ``LanguageTag Formatting/Parsing`` () =
     (* Language + Region *)
 
     let langRegionTyped =
-        { Language = Language ("de", None)
-          Script = None
-          Region = Some (Region "DE")
-          Variant = Variant [] }
+        LanguageTag (
+            Language ("de", None),
+            None,
+            Some (Region "DE"),
+            Variant [])
 
     let langRegionString =
         "de-DE"

@@ -22,9 +22,7 @@ let ``Authority Formatting/Parsing`` () =
     (* Host Only *)
 
     let hostTyped =
-        { Host = IPv4 (IPAddress.Parse "192.168.0.1")
-          Port = None
-          UserInfo = None }
+        Authority.Authority (IPv4 (IPAddress.Parse "192.168.0.1"), None, None)
 
     let hostString =
         "192.168.0.1"
@@ -32,9 +30,7 @@ let ``Authority Formatting/Parsing`` () =
     (* Host and Port *)
 
     let hostPortTyped =
-        { Host = IPv6 (IPAddress.Parse "2001:db8::ff00:42:8329")
-          Port = Some (Port 8080)
-          UserInfo = None }
+        Authority.Authority (IPv6 (IPAddress.Parse "2001:db8::ff00:42:8329"), Some (Port 8080), None)
 
     let hostPortString =
         "[2001:db8::ff00:42:8329]:8080"
@@ -42,9 +38,7 @@ let ``Authority Formatting/Parsing`` () =
     (* Host, Port and UserInfo *)
 
     let hostPortUserTyped =
-        { Host = Name "www.example.com"
-          Port = Some (Port 8080)
-          UserInfo = Some (UserInfo "user:pass") }
+        Authority.Authority (Name "www.example.com", Some (Port 8080),Some (UserInfo "user:pass"))
 
     let hostPortUserString =
         "user:pass@www.example.com:8080"
@@ -100,14 +94,13 @@ let ``Uri Formatting/Parsing`` () =
     (* Authority Hierarchy *)
     
     let authorityTyped =
-        { Scheme = Scheme "http"
-          Hierarchy = 
-            HierarchyPart.Authority ({ Host = Name "www.example.com"
-                                       Port = Some (Port 8080)
-                                       UserInfo = Some (UserInfo "user:pass") },
-                                     PathAbsoluteOrEmpty [ "seg1"; "seg2" ])
-          Query = Some (Query "key=val")
-          Fragment = Some (Fragment "frag1") }
+        Uri.Uri (
+            Scheme "http",
+            HierarchyPart.Authority (
+                Authority.Authority (Name "www.example.com", Some (Port 8080), Some (UserInfo "user:pass")),
+                PathAbsoluteOrEmpty [ "seg1"; "seg2" ]),
+            Some (Query "key=val"),
+            Some (Fragment "frag1"))
 
     let authorityString =
         "http://user:pass@www.example.com:8080/seg1/seg2?key=val#frag1"
@@ -115,10 +108,11 @@ let ``Uri Formatting/Parsing`` () =
     (* Rootless Hierarchy *)
 
     let rootlessTyped =
-        { Scheme = Scheme "urn"
-          Hierarchy = HierarchyPart.Rootless (PathRootless [ "example:animal:ferret:nose" ])
-          Query = None
-          Fragment = None }
+        Uri.Uri (
+            Scheme "urn",
+            HierarchyPart.Rootless (PathRootless [ "example:animal:ferret:nose" ]),
+            None,
+            None)
 
     let rootlessString =
         "urn:example:animal:ferret:nose"
@@ -126,10 +120,11 @@ let ``Uri Formatting/Parsing`` () =
     (* Absolute Hierarchy *)
 
     let absoluteTyped =
-        { Scheme = Scheme "sip"
-          Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "user"; "example" ])
-          Query = None
-          Fragment = None }
+        Uri.Uri (
+            Scheme "sip",
+            HierarchyPart.Absolute (PathAbsolute [ "user"; "example" ]),
+            None,
+            None)
 
     let absoluteString =
         "sip:/user/example"
@@ -137,10 +132,11 @@ let ``Uri Formatting/Parsing`` () =
     (* Empty Hierarchy *)
 
     let emptyTyped =
-        { Scheme = Scheme "test"
-          Hierarchy = HierarchyPart.Empty
-          Query = None
-          Fragment = None }
+        Uri.Uri (
+            Scheme "test",
+            HierarchyPart.Empty,
+            None,
+            None)
 
     let emptyString =
         "test:"

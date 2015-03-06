@@ -23,21 +23,25 @@ module internal Freya.Inspector.Content
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
+open Freya.Machine.Router
 open Freya.Router
-open Freya.Types.Http
 
 (* Content *)
 
 let private cssContent =
-    resource "site.css"
+    resource "app.css"
 
 let private htmlContent = 
     resource "index.html"
 
+let private jsContent =
+    resource "app.js"
+
 (* Functions *)
 
 let private getContent content n =
-    represent n <!> Freya.returnM content
+    represent n <!> Freya.init content
 
 let private getCss =
     getContent cssContent
@@ -45,23 +49,38 @@ let private getCss =
 let private getHtml =
     getContent htmlContent
 
+let private getJs =
+    getContent jsContent
+
 (* Resources *)
 
 let private css =
     freyaMachine {
         including defaults
         mediaTypesSupported css
-        handleOk getCss } |> compileFreyaMachine
+        handleOk getCss } |> Machine.toPipeline
 
 let private html =
     freyaMachine {
         including defaults
         mediaTypesSupported html
-        handleOk getHtml } |> compileFreyaMachine
+        handleOk getHtml } |> Machine.toPipeline
 
-(* Routes *)
+let private js =
+    freyaMachine {
+        including defaults
+        mediaTypesSupported js
+        handleOk getJs } |> Machine.toPipeline
+
+(* Routes
+
+   Note: This routing will probably need to be modified to allow for
+   additional tools under the /freya/* path namespace at some point, but
+   this will require some tweaks to the directory structure of the
+   freya.ui.* projects involved. *)
 
 let content =
     freyaRouter {
-        route All "/freya" html
-        route All "/freya/css" css } |> compileFreyaRouter
+        resource "/freya/inspector" html
+        resource "/freya/css/app.css" css
+        resource "/freya/js/app.js" js } |> Router.toPipeline

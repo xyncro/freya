@@ -20,7 +20,7 @@
 module Freya.Router.Inspector
 
 open Aether
-open Fleece
+open Chiron
 open Freya.Inspector
 
 (* Runtime *)
@@ -34,7 +34,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL freyaRouterRecordPLens >> Option.map toJSON
+    Lens.getPartial freyaRouterRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }

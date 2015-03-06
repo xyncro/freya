@@ -1,12 +1,14 @@
 source https://nuget.org/api/v2
 
 nuget Aether
-nuget Fleece
+nuget Chiron
 nuget FParsec
 nuget FSharp.Core
-nuget Microsoft.Owin.SelfHost
+nuget Hekate
+nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
+nuget System.Net.Http
 nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake

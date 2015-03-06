@@ -15,12 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module Freya.Machine.Builder
-
-open Aether
 
 (* Builder
 
@@ -32,10 +31,10 @@ open Aether
 type FreyaMachineBuilder () =
 
     member __.Return _ : FreyaMachine =
-        fun definition -> (), definition
+        fun spec -> (), spec
 
-    member __.ReturnFrom machine : FreyaMachine = 
-        machine
+    member __.ReturnFrom m : FreyaMachine = 
+        m
 
     member __.Bind (m, k) : FreyaMachine = 
         m >> fun (result, definition) -> (k result) definition
@@ -43,7 +42,7 @@ type FreyaMachineBuilder () =
     member x.Combine (m1, m2) : FreyaMachine = 
         x.Bind (m1, fun () -> m2)
 
-    member internal x.Set (r, lens, value) = 
-        x.Bind ((fun res -> (), setPL lens value res), fun _ -> x.ReturnFrom r)
+    member x.Map (m, f) =
+        x.Bind ((fun spec -> (), f spec), (fun _ -> x.ReturnFrom m))
 
 let freyaMachine = FreyaMachineBuilder ()

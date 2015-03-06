@@ -21,16 +21,17 @@
 module Freya.Inspector.Inspector
 
 open Aether
-open Fleece
+open Chiron
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Types.Http
 
 (* Runtime *)
 
 let private initialize =
     freya {
-        let! meth = getLM Request.meth
-        let! path = getLM Request.path
+        let! meth = Freya.getLens Request.meth
+        let! path = Freya.getLens Request.path
 
         do! initializeFreyaRequestRecord meth path }
 
@@ -40,7 +41,8 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL freyaRequestRecordPLens >> Option.map toJSON
+       Lens.getPartial freyaRequestRecordPLens 
+    >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }

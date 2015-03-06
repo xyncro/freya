@@ -1,2 +1,4 @@
-﻿FSharp.Core
+FParsec
+FSharp.Core
 NUnit
+Unquote

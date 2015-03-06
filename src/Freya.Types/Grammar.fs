@@ -17,13 +17,13 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module internal Freya.Types.Grammar
+module Freya.Types.Grammar
+
+open Parsing
 
 (* RFC 5234
 
    Core ABNF grammar rules as defined in RFC 5234.
-
    Taken from RFC 5234, Appendix B.1 Core Rules
    See [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 

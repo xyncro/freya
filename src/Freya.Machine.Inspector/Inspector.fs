@@ -15,12 +15,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 module Freya.Machine.Inspector
 
 open Aether
-open Fleece
+open Chiron
 open Freya.Inspector
 
 (* Runtime *)
@@ -34,7 +35,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    getPL freyaMachineRecordPLens >> Option.map toJSON
+    Lens.getPartial freyaMachineRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }

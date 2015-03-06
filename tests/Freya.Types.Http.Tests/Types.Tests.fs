@@ -13,8 +13,9 @@ open Freya.Types.Uri
 let ``PartialUri Formatting/Parsing`` () =
 
     let partialUriTyped : PartialUri =
-        { Relative = Absolute (PathAbsolute [ "some"; "path" ])
-          Query = Some (Query "key=val") }
+        PartialUri (
+            Absolute (PathAbsolute [ "some"; "path" ]),
+            Some (Query "key=val"))
 
     let partialUriString =
         "/some/path?key=val"
@@ -64,7 +65,10 @@ let ``Connection Formatting/Parsing`` () =
 let ``MediaType Formatting/Parsing`` () =
 
     let mediaTypeTyped =
-        MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf-8" ])
+        MediaType (
+            Type "application",
+            SubType "json", 
+            Parameters (Map.ofList [ "charset", "utf-8" ]))
 
     let mediaTypeString =
         "application/json;charset=utf-8"
@@ -76,7 +80,11 @@ let ``MediaType Formatting/Parsing`` () =
 let ``ContentType Formatting/Parsing`` () =
 
     let contentTypeTyped =
-        ContentType (MediaType (Type "application", SubType "json", Map.ofList [ "charset", "utf-8" ]))
+        ContentType (
+            MediaType (
+                Type "application",
+                SubType "json",
+                Parameters (Map.ofList [ "charset", "utf-8" ])))
 
     let contentTypeString =
         "application/json;charset=utf-8"
@@ -103,14 +111,16 @@ let ``ContentLanguage Formatting/Parsing`` () =
 
     let contentLanguageTyped =
         ContentLanguage [
-            { Language = Language ("en", None)
-              Script = None
-              Region = Some (Region "GB")
-              Variant = Variant [] }
-            { Language = Language ("hy", None)
-              Script = Some (Script "Latn")
-              Region = Some (Region "IT")
-              Variant = Variant [ "arvela" ] } ]
+            LanguageTag (
+                Language ("en", None),
+                None,
+                Some (Region "GB"),
+                Variant [])
+            LanguageTag (
+                Language ("hy", None),
+                Some (Script "Latn"),
+                Some (Region "IT"),
+                Variant [ "arvela" ]) ]
 
     let contentLanguageString =
         "en-GB,hy-Latn-IT-arvela"
@@ -123,9 +133,11 @@ let ``ContentLocation Formatting/Parsing`` () =
     
     let contentLocationTyped =
         ContentLocation (
-            ContentLocationUri.Absolute ({ Scheme = Scheme "http"
-                                           Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "some"; "path" ])
-                                           Query = None }))
+            ContentLocationUri.Absolute (
+                AbsoluteUri (
+                    Scheme "http",
+                    HierarchyPart.Absolute (PathAbsolute [ "some"; "path" ]),
+                    None)))
 
     let contentLocationString =
         "http:/some/path"
@@ -138,7 +150,7 @@ let ``Method Formatting/Parsing`` () =
 
     roundTrip (Method.Format, Method.Parse) [
         Method.GET, "GET"
-        Method.Custom "CONNECT", "CONNECT" ]
+        Method.Custom "PATCH", "PATCH" ]
 
 [<Test>]
 let ``Expect Formatting/Parsing`` () =
@@ -157,14 +169,15 @@ let ``Accept Formatting/Parsing`` () =
 
     let acceptTyped =
         Accept [
-            { MediaRange = Closed (Type "application", SubType "json", Map.empty)
-              Parameters = Some { Weight = 0.7
-                                  Extensions = Map.empty } }
-            { MediaRange = MediaRange.Partial (Type "text", Map.empty)
-              Parameters = Some { Weight = 0.5
-                                  Extensions = Map.empty } }
-            { MediaRange = Open (Map.empty)
-              Parameters = None } ]
+            AcceptableMedia (
+                Closed (Type "application", SubType "json", Parameters Map.empty),
+                Some (AcceptParameters (Weight 0.7, Extensions Map.empty)))
+            AcceptableMedia (
+                MediaRange.Partial (Type "text", Parameters Map.empty),
+                Some (AcceptParameters (Weight 0.5, Extensions Map.empty)))
+            AcceptableMedia (
+                Open (Parameters Map.empty),
+                None) ]
 
     let acceptString =
         "application/json;q=0.7,text/*;q=0.5,*/*"
@@ -177,10 +190,12 @@ let ``AcceptCharset Formatting/Parsing`` () =
     
     let acceptCharsetTyped =
         AcceptCharset [
-            { Charset = CharsetRange.Charset (Charset.UTF8)
-              Weight = Some 0.7 }
-            { Charset = CharsetRange.Any
-              Weight = Some 0.2 } ]
+            AcceptableCharset (
+                CharsetRange.Charset (Charset.Utf8),
+                Some (Weight 0.7))
+            AcceptableCharset (
+                CharsetRange.Any,
+                Some (Weight 0.2)) ]
 
     let acceptCharsetString =
         "utf-8;q=0.7,*;q=0.2"
@@ -193,12 +208,15 @@ let ``AcceptEncoding Formatting/Parsing`` () =
 
     let acceptEncodingTyped =
         AcceptEncoding [
-            { Encoding = Coding (ContentCoding.Compress)
-              Weight = Some 0.8 }
-            { Encoding = Identity
-              Weight = None }
-            { Encoding = EncodingRange.Any
-              Weight = Some 0.3 } ]
+            AcceptableEncoding (
+                EncodingRange.Coding (ContentCoding.Compress),
+                Some (Weight 0.8))
+            AcceptableEncoding (
+                EncodingRange.Identity,
+                None)
+            AcceptableEncoding (
+                EncodingRange.Any,
+                Some (Weight 0.3)) ]
 
     let acceptEncodingString =
         "compress;q=0.8,identity,*;q=0.3"
@@ -211,10 +229,12 @@ let ``AcceptLanguage Formatting/Parsing`` () =
 
     let acceptLanguageTyped =
         AcceptLanguage [
-            { Language = Range [ "en"; "GB" ]
-              Weight = Some 0.8 }
-            { Language = Any
-              Weight = None } ]
+            AcceptableLanguage (
+                Range [ "en"; "GB" ],
+                Some (Weight 0.8))
+            AcceptableLanguage (
+                Any,
+                None) ]
 
     let acceptLanguageString =
         "en-GB;q=0.8,*"
@@ -226,8 +246,11 @@ let ``AcceptLanguage Formatting/Parsing`` () =
 let ``Referer Formatting/Parsing`` () =
 
     let refererTyped =
-        Referer (Partial ({ Relative = RelativePart.Absolute (PathAbsolute ["some"; "path" ])
-                            Query = None }))
+        Referer (
+            Partial (
+                PartialUri (
+                    RelativePart.Absolute (PathAbsolute ["some"; "path" ]),
+                    None)))
 
     let refererString =
         "/some/path"
@@ -251,10 +274,13 @@ let ``Date Formatting/Parsing`` () =
 let ``Location Formatting/Parsing`` () =
 
     let locationTyped =
-        Location (UriReference.Uri { Scheme = Scheme "http"
-                                     Hierarchy = HierarchyPart.Absolute (PathAbsolute [ "some"; "path" ])
-                                     Query = None
-                                     Fragment = None })
+        Location (
+            UriReference.Uri (
+                Uri.Uri (
+                    Scheme "http",
+                    HierarchyPart.Absolute (PathAbsolute [ "some"; "path" ]),
+                    None,
+                    None)))
 
     let locationString =
         "http:/some/path"

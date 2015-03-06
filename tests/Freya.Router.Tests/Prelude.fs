@@ -31,16 +31,16 @@ let private testLens =
 (* Functions *)
 
 let private get =
-    getPL testLens
+    Lens.getPartial testLens
 
 let private set i =
-    setPLM testLens i *> next
+    Freya.setLensPartial testLens i *> next
 
 let private run meth path m =
-    let router = compileFreyaRouter m
+    let router = Router.toPipeline m
 
-    Async.RunSynchronously ((   setLM Request.path path 
-                             *> setLM Request.meth meth 
+    Async.RunSynchronously ((   Freya.setLens Request.path path 
+                             *> Freya.setLens Request.meth meth 
                              *> router) (freyaState ()))
 
 let result meth path m =

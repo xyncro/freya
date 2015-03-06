@@ -35,7 +35,7 @@ let private initialize =
 
 let private record config =
     freya {
-        for inspector in (config.Inspectors) do
+        for inspector in config.Inspectors do
             do! inspector.Runtime.Initialize
 
         return! next }

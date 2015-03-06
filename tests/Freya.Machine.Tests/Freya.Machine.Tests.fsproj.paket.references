@@ -1,3 +1,7 @@
-﻿FSharp.Core
-NUnit
+Aether
+Microsoft.Owin.Testing
+FSharp.Core
 Unquote
+NUnit
+System.Net.Http
+Chiron

@@ -18,18 +18,18 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Types.Parsing
+module Freya.Types.Parsing
 
 open FParsec
 
 (* Parsing *)
 
-let parseExact p s =
+let parse (p: Parse<'a>) s =
     match run p s with
     | Success (x, _, _) -> x
     | Failure (e, _, _) -> failwith e
 
-let parseOption p s =
+let tryParse (p: Parse<'a>) s =
     match run p s with
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None

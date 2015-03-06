@@ -20,21 +20,27 @@
 [<AutoOpen>]
 module Freya.Recorder.Integration
 
+open System
 open Freya.Core
 open Freya.Core.Operators
+
+(* Lenses *)
+
+let private requestIdPLens =
+    environmentKeyPLens<Guid> requestIdKey
 
 (* Execution *)
 
 let initializeRecord =
-    setPLM requestIdPLens =<< (Freya.asyncM init =<< Freya.returnM ())
+    Freya.setLensPartial requestIdPLens =<< (Freya.fromAsync initialize =<< Freya.init ())
 
 let updateRecord f =
-    Option.iter (fun id -> update id f) <!> getPLM requestIdPLens
+    Option.iter (fun id -> update id f) <!> Freya.getLensPartial requestIdPLens
 
 (* Inspection *)
 
 let listRecords =
-    Freya.asyncM list =<< Freya.returnM ()
+    Freya.fromAsync list =<< Freya.init ()
 
 let getRecord id =
-    Freya.asyncM read =<< Freya.returnM id
+    Freya.fromAsync read =<< Freya.init id
