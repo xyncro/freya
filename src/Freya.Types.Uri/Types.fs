@@ -21,10 +21,16 @@
 module Freya.Types.Uri
 
 open System.ComponentModel
+open System.Runtime.CompilerServices
 open System.Net
 open System.Net.Sockets
 open Freya.Types.Formatting
 open FParsec
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Types.Uri.Template")>]
+do ()
 
 (* RFC 3986
 
@@ -38,22 +44,23 @@ open FParsec
    Taken from RFC 3986, Section 2 Characters
    See [http://tools.ietf.org/html/rfc3986#section-2] *)
 
-let private unreserved =
+let internal unreserved =
     Set.unionMany [
         Grammar.alpha
         Grammar.digit
         set [ '-'; '.'; '_'; '~' ] ]
 
-//let private genDelims =
-//    set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
+let internal genDelims =
+    set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
 
-let private subDelims =
-    set [ '!'; '$'; '&'; '\''; '('; ')'; '*'; '+'; ','; ';'; '=' ]
+let internal subDelims =
+    set [ '!'; '$'; '&'; '\''; '('; ')'
+          '*'; '+'; ','; ';'; '=' ]
 
-//let private reserved =
-//    Set.unionMany [
-//        genDelims
-//        subDelims ]
+let internal reserved =
+    Set.unionMany [
+        genDelims
+        subDelims ]
 
 (* Scheme
 

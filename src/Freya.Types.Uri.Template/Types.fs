@@ -20,10 +20,94 @@
 
 module Freya.Types.Uri.Template
 
+open System.Runtime.CompilerServices
+open System.Text
 open Freya.Types
 open Freya.Types.Formatting
 open Freya.Types.Parsing
+open Freya.Types.Uri
 open FParsec
+
+(* Encoding
+
+   Logic to perform percent-encoding/decoding of data within URIs
+   given appropriate whitelists of characters which should be left
+   unencoded (this supports the different encodings required for
+   various expansion modes of URI Templates). *)
+
+[<RequireQualifiedAccess>]
+module internal Encoding =
+
+    (* Grammar *)
+
+    let private pct =
+        byte 0x25
+
+    (* UTF-8
+
+       Shorthand for UTF-8 encoding and decoding of strings (given
+       the assumption that the .NET UTF-16/Unicode string is our
+       basic string type). *)
+
+    let private toBytes : string -> byte list =
+        Encoding.UTF8.GetBytes >> List.ofArray
+
+    let private toString : byte list -> string =
+        List.toArray >> Encoding.UTF8.GetString
+
+    (* Indices
+
+       Simple lookups/indices for converting between bytes and the hex
+       encoding of those bytes. *)
+
+    let private hex =
+        [ 0x00 .. 0xff ]
+        |> List.map byte
+        |> List.map (fun i -> i, toBytes (i.ToString "X2"))
+
+    let private hexI =
+        hex
+        |> Map.ofList
+
+    let private byteI =
+        hex
+        |> List.map (fun (a, b) -> (b, a))
+        |> Map.ofList
+
+    (* Encoding
+
+       Encoding functions, providing a function to create an encoder
+       given a whitelist set of allowed characters within the encoded
+       output. *)
+
+    let private encode res =
+        let rec enc r =
+            function | [] -> r
+                     | h :: t when Set.contains h res -> enc (r @ [ h ]) t
+                     | h :: t -> enc (r @ [ pct ] @ Map.find h hexI) t
+
+        enc []
+
+    let makePctEncode res =
+        let res = Set.map byte res
+
+        toBytes >> encode res >> toString
+
+    (* Decoding
+    
+       Decoding functions, providing a simple function to decode
+       a percent-encoded string to a .NET native UTF-16/Unicode string. *)
+
+    let private decode =
+        let rec dec r =
+            function | [] -> r
+                     | h :: x :: y :: t when h = pct -> dec (r @ [ Map.find [ x; y ] byteI ]) t
+                     | h :: t -> dec (r @ [ h ]) t
+
+        dec []
+
+    let pctDecode =
+        toBytes >> decode >> toString
 
 (* RFC 6570
 
@@ -76,7 +160,7 @@ type UriTemplate =
         { Parse = uriTemplateP
           Format = uriTemplateF }
 
-    static member internal Rendering =
+    static member Rendering =
 
         let uriTemplateR (data: UriTemplateData) =
             function | UriTemplate p -> join (UriTemplatePart.Rendering.Render data) id p
@@ -96,7 +180,7 @@ type UriTemplate =
         UriTemplate.Format x
 
     member x.TryRender data =
-        Uri.TryParse (Rendering.render UriTemplate.Rendering.Render data x)
+        Rendering.render UriTemplate.Rendering.Render data x
 
 and UriTemplatePart =
     | Literal of Literal
@@ -114,7 +198,7 @@ and UriTemplatePart =
         { Parse = uriTemplatePartP
           Format = uriTemplatePartF }
 
-    static member internal Rendering =
+    static member Rendering =
 
         let uriTemplatePartR data =
             function | Literal l -> Literal.Rendering.Render data l
@@ -170,9 +254,16 @@ and Expression =
 
     static member Rendering =
 
-        let expressionR _ =
-            function | Expression (Some o, v) -> append "opexp"
-                     | Expression (_, v) -> append "exp"
+        let expressionR data =
+            function | Expression (None, VariableList v) -> id
+                     | Expression (Some (Level2 Plus), VariableList v) -> id
+                     | Expression (Some (Level2 Hash), VariableList v) -> id
+                     | Expression (Some (Level3 Dot), VariableList v) -> id
+                     | Expression (Some (Level3 Slash), VariableList v) -> id
+                     | Expression (Some (Level3 SemiColon), VariableList v) -> id
+                     | Expression (Some (Level3 Question), VariableList v) -> id
+                     | Expression (Some (Level3 Ampersand), VariableList v) -> id
+                     | _ -> id
 
         { Render = expressionR }
 

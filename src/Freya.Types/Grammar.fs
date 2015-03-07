@@ -50,8 +50,9 @@ let vchar =
 let hexdig =
     Set.unionMany [
         digit
-        set [ 'A'; 'B'; 'C'; 'D'; 'E'; 'F'
-              'a'; 'b'; 'c'; 'd'; 'e'; 'f' ] ]
+        Set.unionMany [
+            charRange 0x41 0x46
+            charRange 0x61 0x66 ] ]
 
 let wsp = 
     set [ sp; htab ]

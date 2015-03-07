@@ -10,9 +10,10 @@ let ``UriTemplate Formatting/Parsing`` () =
     let data =
         UriTemplateData (
             Map.ofList [
-                "name", Atom "andrew" ])
+                "name", Atom "andrew"
+                "age",  Atom "34" ])
 
-    let x = UriTemplate.Parse "/hello/{name}"
-    let u = x.TryRender data
+    let template = UriTemplate.Parse "/hello/{name,age}"
+    let uri = template.TryRender data
 
-    u =? "/hello/andrew"
+    uri =? "/hello/andrew,34"
