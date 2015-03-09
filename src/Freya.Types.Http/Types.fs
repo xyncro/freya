@@ -257,7 +257,8 @@ type Host =
             function | Host (h, p) ->
                         let formatters =
                             [ Uri.Host.Mapping.Format h
-                              (function | Some p -> Port.Mapping.Format p | _ -> id) p ]
+                              (function | Some p -> Port.Mapping.Format p
+                                        | _ -> id) p ]
 
                         fun b -> List.fold (|>) b formatters
 

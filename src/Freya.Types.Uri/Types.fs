@@ -20,10 +20,11 @@
 
 module Freya.Types.Uri
 
+open System
 open System.ComponentModel
 open System.Net
 open System.Net.Sockets
-open Freya.Types.Formatting
+open System.Text
 open FParsec
 
 (* RFC 3986
@@ -33,27 +34,119 @@ open FParsec
 
    Taken from [http://tools.ietf.org/html/rfc3986] *)
 
-(* Characters
+[<RequireQualifiedAccess>]
+module Grammar =
 
-   Taken from RFC 3986, Section 2 Characters
-   See [http://tools.ietf.org/html/rfc3986#section-2] *)
+    (* Characters
 
-let private unreserved =
-    Set.unionMany [
-        Grammar.alpha
-        Grammar.digit
-        set [ '-'; '.'; '_'; '~' ] ]
+       Taken from RFC 3986, Section 2 Characters
+       See [http://tools.ietf.org/html/rfc3986#section-2] *)
 
-//let private genDelims =
-//    set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
+    let unreserved =
+        Set.unionMany [
+            Grammar.alpha
+            Grammar.digit
+            set [ '-'; '.'; '_'; '~' ] ]
 
-let private subDelims =
-    set [ '!'; '$'; '&'; '\''; '('; ')'; '*'; '+'; ','; ';'; '=' ]
+    let genDelims =
+        set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
 
-//let private reserved =
-//    Set.unionMany [
-//        genDelims
-//        subDelims ]
+    let subDelims =
+        set [ '!'; '$'; '&'; '\''; '('; ')'; '*'
+              '+'; ','; ';'; '=' ]
+
+    let reserved =
+        Set.unionMany [
+            genDelims
+            subDelims ]
+
+(* Percent-Encoding
+
+   Code for percent-encoding data given some simple assumptions about what
+   should be allowed through unencoded. *)
+
+[<RequireQualifiedAccess>]
+module PercentEncoding =
+
+    (* Grammar *)
+
+    let private pct =
+        byte 0x25
+
+    let private hexdig =
+        Grammar.hexdig
+        |> Set.map byte
+
+    (* UTF-8
+
+       Shorthand for UTF-8 encoding and decoding of strings (given
+       the assumption that the .NET UTF-16/Unicode string is our
+       basic string type). *)
+
+    let private toBytes : string -> byte list =
+        Encoding.UTF8.GetBytes >> List.ofArray
+
+    let private toString : byte list -> string =
+        List.toArray >> Encoding.UTF8.GetString
+
+    (* Indices
+
+       Simple lookups/indices for converting between bytes and the hex
+       encoding of those bytes. *)
+
+    let private hex =
+        [ 0x00 .. 0xff ]
+        |> List.map byte
+        |> List.map (fun i -> i, toBytes (i.ToString "X2"))
+
+    let internal byteIndex =
+        hex
+        |> Map.ofList
+
+    let internal hexIndex =
+        hex
+        |> List.map (fun (a, b) -> (b, a))
+        |> Map.ofList
+
+    (* Parsing
+
+       Parsing functions, providing a function to create a parser
+       given a whitelist of allowed characters within the input (pct-encoded
+       values are implicitly allowed, and converted to their Unicode/UTF-16
+       form). *)
+
+    let private hexdigP =
+        satisfy ((?>) Grammar.hexdig)
+
+    let private pctP =
+        skipChar '%' >>. hexdigP .>>. hexdigP
+        |>> fun (a, b) ->
+            char (Map.find [ byte a; byte b ] hexIndex)
+
+    let makeParser res =
+        many (attempt pctP <|> satisfy ((?>) res))
+        |>> fun x -> 
+            new String (List.toArray x)
+
+    (* Formatting
+
+       Formatting functions, providing a function to create an formatter
+       given a whitelist set of allowed characters within the encoded
+       output. *)
+
+    let private format res =
+        let rec format r =
+            function | [] -> r
+                     | h :: x :: y :: t when h = pct && ((?>) hexdig x) && ((?>) hexdig y) -> format (r @ [ h; x; y ]) t
+                     | h :: t when Set.contains h res -> format (r @ [ h ]) t
+                     | h :: t -> format (r @ [ pct ] @ Map.find h byteIndex) t
+
+        format []
+
+    let makeFormatter res =
+        let res = Set.map byte res
+
+        toBytes >> format res >> toString >> append
 
 (* Scheme
 
@@ -110,15 +203,15 @@ type Authority =
     static member Mapping =
 
         let authorityP =
-            opt (attempt UserInfo.Mapping.Parse) 
+                 opt (attempt (UserInfo.Mapping.Parse .>> skipChar '@')) 
             .>>. Host.Mapping.Parse 
             .>>. opt Port.Mapping.Parse
-            |>> fun ((user, host), port) -> Authority (host, port, user)
+             |>> fun ((user, host), port) -> Authority (host, port, user)
 
         let authorityF =
             function | Authority (h, p, u) ->
                         let formatters =
-                            [ (function | Some u -> UserInfo.Mapping.Format u 
+                            [ (function | Some u -> UserInfo.Mapping.Format u >> append "@"
                                         | _ -> id) u
                               Host.Mapping.Format h
                               (function | Some p -> Port.Mapping.Format p 
@@ -151,15 +244,21 @@ and UserInfo =
 
         let userInfoChars =
             Set.unionMany [
-                unreserved
-                subDelims
+                Grammar.unreserved
+                Grammar.subDelims
                 set [ ':' ] ]
 
+        let parser =
+            PercentEncoding.makeParser userInfoChars
+
+        let formatter =
+            PercentEncoding.makeFormatter userInfoChars
+
         let userInfoP =
-            manySatisfy ((?>) userInfoChars) .>> skipChar '@' |>> UserInfo
+            notEmpty parser |>> UserInfo
 
         let userInfoF =
-            function | UserInfo x -> append x >> append "@"
+            function | UserInfo x -> formatter x
 
         { Parse = userInfoP
           Format = userInfoF }
@@ -176,7 +275,7 @@ and UserInfo =
 and Host =
     | IPv4 of IPAddress
     | IPv6 of IPAddress
-    | Name of string
+    | Name of RegName
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
@@ -203,29 +302,45 @@ and Host =
                 | true, x when x.AddressFamily = AddressFamily.InterNetwork -> preturn (IPv4 x)
                 | _ -> pzero)
 
-        let regNameChars =
-            Set.unionMany [
-                unreserved
-                subDelims ]
-
-        let regNameP =
-            manySatisfy ((?>) regNameChars) |>> Name
-
         let hostP =
             choice [
                 attempt ipv6AddressP
                 attempt ipv4AddressP
-                regNameP ]
+                RegName.Mapping.Parse |>> Name ]
 
         let hostF =
             function | IPv4 x -> append (string x)
                      | IPv6 x -> append "[" >> append (string x) >> append "]"
-                     | Name x -> append x
+                     | Name x -> RegName.Mapping.Format x
 
         { Parse = hostP
           Format = hostF }
 
-(* Section 3.2.3 *)
+and RegName =
+    | RegName of string
+
+    [<EditorBrowsable (EditorBrowsableState.Never)>]
+    static member Mapping =
+
+        let regNameChars =
+            Set.unionMany [
+                Grammar.unreserved
+                Grammar.subDelims ]
+
+        let parser =
+            PercentEncoding.makeParser regNameChars
+
+        let formatter =
+            PercentEncoding.makeFormatter regNameChars
+
+        let regNameP =
+            notEmpty parser |>> RegName
+
+        let regNameF =
+            function | RegName x -> formatter x
+
+        { Parse = regNameP
+          Format = regNameF }
 
 and Port =
     | Port of int
@@ -234,7 +349,8 @@ and Port =
     static member Mapping =
 
         let portP =
-            skipChar ':' >>. puint32 |>> (int >> Port)
+                skipChar ':' >>. puint32 
+            |>> (int >> Port)
 
         let portF =
             function | Port x -> append ":" >> append (string x)
@@ -249,21 +365,21 @@ and Port =
 
 let private pchar =
     Set.unionMany [
-        unreserved
-        subDelims
+        Grammar.unreserved
+        Grammar.subDelims
         set [ ':'; '@' ] ]
 
 let private pcharNc =
     Set.remove ':' pchar
 
-let private segmentP =
-    manySatisfy ((?>) pchar)
+let private pcharParser =
+    PercentEncoding.makeParser pchar
 
-let private segmentNzP =
-    many1Satisfy ((?>) pchar)
+let private pcharNcParser =
+    PercentEncoding.makeParser pcharNc
 
-let private segmentNzNcP =
-    many1Satisfy ((?>) pcharNc)
+let private pcharFormatter =
+    PercentEncoding.makeFormatter pchar
 
 (* Absolute Or Empty *)
 
@@ -274,11 +390,12 @@ type PathAbsoluteOrEmpty =
     static member Mapping =
 
         let pathAbsoluteOrEmptyP =
-            many (skipChar '/' >>. segmentP) |>> PathAbsoluteOrEmpty
+                many (skipChar '/' >>. pcharParser) 
+            |>> PathAbsoluteOrEmpty
 
         let pathAbsoluteOrEmptyF =
             function | PathAbsoluteOrEmpty [] -> id
-                     | PathAbsoluteOrEmpty xs -> slashF >> join append slashF xs
+                     | PathAbsoluteOrEmpty xs -> slashF >> join pcharFormatter slashF xs
 
         { Parse = pathAbsoluteOrEmptyP
           Format = pathAbsoluteOrEmptyF }
@@ -304,12 +421,12 @@ type PathAbsolute =
     static member Mapping =
 
         let pathAbsoluteP =
-            skipChar '/' >>. opt (segmentNzP .>>. many (skipChar '/' >>. segmentP))
+            skipChar '/' >>. opt (notEmpty pcharParser .>>. many (skipChar '/' >>. pcharParser))
             |>> function | Some (x, xs) -> PathAbsolute (x :: xs)
                          | _ -> PathAbsolute []
 
         let pathAbsoluteF =
-            function | PathAbsolute xs -> slashF >> join append slashF xs
+            function | PathAbsolute xs -> slashF >> join pcharFormatter slashF xs
 
         { Parse = pathAbsoluteP
           Format = pathAbsoluteF }
@@ -335,11 +452,12 @@ type PathNoScheme =
     static member Mapping =
 
         let pathNoSchemeP =
-            segmentNzNcP .>>. many (slashP >>. segmentP)
-            |>> fun (x, xs) -> PathNoScheme (x :: xs)
+                 notEmpty pcharNcParser 
+            .>>. many (slashP >>. pcharParser)
+             |>> fun (x, xs) -> PathNoScheme (x :: xs)
 
         let pathNoSchemeF =
-            function | PathNoScheme xs -> join append slashF xs
+            function | PathNoScheme xs -> join pcharFormatter slashF xs
 
         { Parse = pathNoSchemeP
           Format = pathNoSchemeF }
@@ -365,11 +483,12 @@ type PathRootless =
     static member Mapping =
 
         let pathRootlessP =
-            segmentNzP .>>. many (skipChar '/' >>. segmentP)
-            |>> fun (x, xs) -> PathRootless (x :: xs)
+                 notEmpty pcharParser 
+            .>>. many (skipChar '/' >>. pcharParser)
+             |>> fun (x, xs) -> PathRootless (x :: xs)
 
         let pathRootlessF =
-            function | PathRootless xs -> join append slashF xs
+            function | PathRootless xs -> join pcharFormatter slashF xs
 
         { Parse = pathRootlessP
           Format = pathRootlessF }
@@ -385,11 +504,6 @@ type PathRootless =
 
     override x.ToString () =
         PathRootless.Format x
-
-(* Empty *)
-
-type PathEmpty =
-    | PathEmpty
 
 (* Query
 
@@ -407,11 +521,17 @@ type Query =
                 pchar
                 set [ '/'; '?' ] ]
 
+        let parser =
+            PercentEncoding.makeParser queryChars
+
+        let formatter =
+            PercentEncoding.makeFormatter queryChars
+
         let queryP =
-            skipChar '?' >>. manySatisfy ((?>) queryChars) |>> Query
+            skipChar '?' >>. parser |>> Query
 
         let queryF =
-            function | Query x -> append "?" >> append x
+            function | Query x -> append "?" >> formatter x
 
         { Parse = queryP
           Format = queryF }
@@ -444,11 +564,17 @@ type Fragment =
                 pchar
                 set [ '/'; '?' ] ]
 
+        let parser =
+            PercentEncoding.makeParser fragmentChars
+
+        let formatter =
+            PercentEncoding.makeFormatter fragmentChars
+
         let fragmentP =
-            skipChar '#' >>. manySatisfy ((?>) fragmentChars) |>> Fragment
+            skipChar '#' >>. parser |>> Fragment
 
         let fragmentF =
-            function | Fragment x -> append "#" >> append x
+            function | Fragment x -> append "#" >> formatter x
 
         { Parse = fragmentP
           Format = fragmentF }
@@ -492,11 +618,11 @@ type Uri =
     static member Mapping =
 
         let uriP =
-            Scheme.Mapping.Parse .>> skipChar ':'
+                 Scheme.Mapping.Parse .>> skipChar ':'
             .>>. HierarchyPart.Mapping.Parse 
             .>>. opt Query.Mapping.Parse
             .>>. opt Fragment.Mapping.Parse
-            |>> fun (((scheme, hierarchy), query), fragment) ->
+             |>> fun (((scheme, hierarchy), query), fragment) ->
                 Uri (scheme, hierarchy, query, fragment)
 
         let uriF =
@@ -505,8 +631,10 @@ type Uri =
                             [ Scheme.Mapping.Format s
                               append ":"
                               HierarchyPart.Mapping.Format h
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q
-                              (function | Some f -> Fragment.Mapping.Format f | _ -> id) f ]
+                              (function | Some q -> Query.Mapping.Format q 
+                                        | _ -> id) q
+                              (function | Some f -> Fragment.Mapping.Format f 
+                                        | _ -> id) f ]
 
                         fun b -> List.fold (|>) b formatters
 
@@ -535,9 +663,9 @@ and HierarchyPart =
     static member Mapping =
 
         let authorityP =
-            skipString "//" >>. Authority.Mapping.Parse 
+                 skipString "//" >>. Authority.Mapping.Parse 
             .>>. PathAbsoluteOrEmpty.Mapping.Parse 
-            |>> Authority
+             |>> Authority
 
         let hierarchyPartP =
             choice [
@@ -572,18 +700,20 @@ type RelativeReference =
     static member Mapping =
 
         let relativeReferenceP =
-            RelativePart.Mapping.Parse
+                 RelativePart.Mapping.Parse
             .>>. opt Query.Mapping.Parse
             .>>. opt Fragment.Mapping.Parse
-            |>> fun ((relative, query), fragment) ->
+             |>> fun ((relative, query), fragment) ->
                 RelativeReference (relative, query, fragment)
 
         let relativeReferenceF =
             function | RelativeReference (r, q, f) -> 
                         let formatters =
                             [ RelativePart.Mapping.Format r
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q
-                              (function | Some f -> Fragment.Mapping.Format f | _ -> id) f ]
+                              (function | Some q -> Query.Mapping.Format q
+                                        | _ -> id) q
+                              (function | Some f -> Fragment.Mapping.Format f
+                                        | _ -> id) f ]
 
                         fun b -> List.fold (|>) b formatters
 
@@ -612,9 +742,9 @@ and RelativePart =
     static member Mapping =
 
         let authorityP =
-            skipString "//" >>. Authority.Mapping.Parse
+                 skipString "//" >>. Authority.Mapping.Parse
             .>>. PathAbsoluteOrEmpty.Mapping.Parse 
-            |>> Authority
+             |>> Authority
 
         let relativePartP =
             choice [
@@ -649,10 +779,10 @@ type AbsoluteUri =
     static member Mapping =
 
         let absoluteUriP =
-            Scheme.Mapping.Parse .>> skipChar ':' 
+                 Scheme.Mapping.Parse .>> skipChar ':' 
             .>>. HierarchyPart.Mapping.Parse 
             .>>. opt Query.Mapping.Parse
-            |>> fun ((scheme, hierarchy), query) ->
+             |>> fun ((scheme, hierarchy), query) ->
                 AbsoluteUri (scheme, hierarchy, query)
 
         let absoluteUriF =
@@ -661,7 +791,8 @@ type AbsoluteUri =
                             [ Scheme.Mapping.Format s
                               append ":"
                               HierarchyPart.Mapping.Format h
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q ]
+                              (function | Some q -> Query.Mapping.Format q
+                                        | _ -> id) q ]
 
                         fun b -> List.fold (|>) b formatters
 
