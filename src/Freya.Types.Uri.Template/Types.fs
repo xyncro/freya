@@ -20,7 +20,6 @@
 
 module Freya.Types.Uri.Template
 
-open System.Runtime.CompilerServices
 open System.Text
 open Freya.Types
 open Freya.Types.Formatting
@@ -34,6 +33,9 @@ open FParsec
    given appropriate whitelists of characters which should be left
    unencoded (this supports the different encodings required for
    various expansion modes of URI Templates). *)
+
+// TODO: Find a better home this kind of encoding, probably somewhere
+// less specific within the Freya.Types.* hierarchy...
 
 [<RequireQualifiedAccess>]
 module internal Encoding =
@@ -69,16 +71,19 @@ module internal Encoding =
         hex
         |> Map.ofList
 
-    let private byteI =
-        hex
-        |> List.map (fun (a, b) -> (b, a))
-        |> Map.ofList
+//    let private byteI =
+//        hex
+//        |> List.map (fun (a, b) -> (b, a))
+//        |> Map.ofList
 
     (* Encoding
 
        Encoding functions, providing a function to create an encoder
        given a whitelist set of allowed characters within the encoded
        output. *)
+
+    // TODO: Allow for pct encoded characters to be skipped rather
+    // than re-encoded in cases where that is valid.
 
     let private encode res =
         let rec enc r =
@@ -98,16 +103,16 @@ module internal Encoding =
        Decoding functions, providing a simple function to decode
        a percent-encoded string to a .NET native UTF-16/Unicode string. *)
 
-    let private decode =
-        let rec dec r =
-            function | [] -> r
-                     | h :: x :: y :: t when h = pct -> dec (r @ [ Map.find [ x; y ] byteI ]) t
-                     | h :: t -> dec (r @ [ h ]) t
+//    let private decode =
+//        let rec dec r =
+//            function | [] -> r
+//                     | h :: x :: y :: t when h = pct -> dec (r @ [ Map.find [ x; y ] byteI ]) t
+//                     | h :: t -> dec (r @ [ h ]) t
+//
+//        dec []
 
-        dec []
-
-    let pctDecode =
-        toBytes >> decode >> toString
+//    let pctDecode =
+//        toBytes >> decode >> toString
 
 (* RFC 6570
 
@@ -179,7 +184,7 @@ type UriTemplate =
     override x.ToString () =
         UriTemplate.Format x
 
-    member x.TryRender data =
+    member x.Render data =
         Rendering.render UriTemplate.Rendering.Render data x
 
 and UriTemplatePart =
@@ -254,15 +259,27 @@ and Expression =
 
     static member Rendering =
 
+        let standardEncoding =
+            Encoding.makePctEncode unreserved
+
+        let variableSpecR encode (UriTemplateData data) =
+            function | VariableSpec (VariableName n, _) ->
+                        match Map.tryFind n data with
+                        | Some (Atom a) -> append (encode a)
+                        | _ -> id
+
+        let variableListR encode data =
+            function | VariableList v -> join (variableSpecR encode data) commaF v
+
         let expressionR data =
-            function | Expression (None, VariableList v) -> id
-                     | Expression (Some (Level2 Plus), VariableList v) -> id
-                     | Expression (Some (Level2 Hash), VariableList v) -> id
-                     | Expression (Some (Level3 Dot), VariableList v) -> id
-                     | Expression (Some (Level3 Slash), VariableList v) -> id
-                     | Expression (Some (Level3 SemiColon), VariableList v) -> id
-                     | Expression (Some (Level3 Question), VariableList v) -> id
-                     | Expression (Some (Level3 Ampersand), VariableList v) -> id
+            function | Expression (None, v) -> variableListR standardEncoding data v
+                     | Expression (Some (Level2 Plus), _) -> id
+                     | Expression (Some (Level2 Hash), _) -> id
+                     | Expression (Some (Level3 Dot), _) -> id
+                     | Expression (Some (Level3 Slash), _) -> id
+                     | Expression (Some (Level3 SemiColon), _) -> id
+                     | Expression (Some (Level3 Question), _) -> id
+                     | Expression (Some (Level3 Ampersand), _) -> id
                      | _ -> id
 
         { Render = expressionR }

@@ -1,19 +1,17 @@
 ﻿module Freya.Types.Uri.Templates.Tests
 
 open NUnit.Framework
-open Freya.Types.Tests
 open Freya.Types.Uri.Template
 open Swensen.Unquote
 
 [<Test>]
-let ``UriTemplate Formatting/Parsing`` () =
+let ``Level 1 Examples Render Correctly`` () =
+
     let data =
         UriTemplateData (
             Map.ofList [
-                "name", Atom "andrew"
-                "age",  Atom "34" ])
+                "var", Atom "value"
+                "hello", Atom "Hello World!" ])
 
-    let template = UriTemplate.Parse "/hello/{name,age}"
-    let uri = template.TryRender data
-
-    uri =? "/hello/andrew,34"
+    UriTemplate.Parse("{var}").Render(data) =? "value"
+    UriTemplate.Parse("{hello}").Render(data) =? "Hello%20World%21"
