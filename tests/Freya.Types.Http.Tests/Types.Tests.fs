@@ -44,7 +44,7 @@ let ``ContentLength Formatting/Parsing`` () =
 [<Test>]
 let ``Host Formatting/Parsing`` () =
 
-    let hostTyped = Host (Name "www.example.com", Some (Port 8080))
+    let hostTyped = Host (Name (RegName "www.example.com"), Some (Port 8080))
     let hostString = "www.example.com:8080"
 
     roundTrip (Host.Format, Host.Parse) [

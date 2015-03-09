@@ -38,10 +38,10 @@ let ``Authority Formatting/Parsing`` () =
     (* Host, Port and UserInfo *)
 
     let hostPortUserTyped =
-        Authority.Authority (Name "www.example.com", Some (Port 8080),Some (UserInfo "user:pass"))
+        Authority.Authority (Name (RegName "www.example.com"), Some (Port 8080),Some (UserInfo "user name:pass"))
 
     let hostPortUserString =
-        "user:pass@www.example.com:8080"
+        "user%20name:pass@www.example.com:8080"
 
     (* Round Trip *)
 
@@ -54,10 +54,10 @@ let ``Authority Formatting/Parsing`` () =
 let ``PathAbsoluteOrEmpty Formatting/Parsing`` () =
 
     let pathAbEmptyFullTyped = 
-        PathAbsoluteOrEmpty [ "some"; "path" ]
+        PathAbsoluteOrEmpty [ "some value?"; "path" ]
 
     let pathAbEmptyFullString =
-        "/some/path"
+        "/some%20value%3F/path"
 
     let pathAbEmptyEmptyTyped = 
         PathAbsoluteOrEmpty []
@@ -73,10 +73,10 @@ let ``PathAbsoluteOrEmpty Formatting/Parsing`` () =
 let ``PathAbsolute Formatting/Parsing`` () =
 
     let pathAbsoluteFullTyped = 
-        PathAbsolute [ "some"; "path" ]
+        PathAbsolute [ "some value?"; "path" ]
 
     let pathAbsoluteFullString =
-        "/some/path"
+        "/some%20value%3F/path"
 
     let pathAbsoluteEmptyTyped = 
         PathAbsolute []
@@ -97,13 +97,13 @@ let ``Uri Formatting/Parsing`` () =
         Uri.Uri (
             Scheme "http",
             HierarchyPart.Authority (
-                Authority.Authority (Name "www.example.com", Some (Port 8080), Some (UserInfo "user:pass")),
+                Authority.Authority (Name (RegName "www.example.com"), Some (Port 8080), Some (UserInfo "user name:pass")),
                 PathAbsoluteOrEmpty [ "seg1"; "seg2" ]),
-            Some (Query "key=val"),
+            Some (Query "key=some value"),
             Some (Fragment "frag1"))
 
     let authorityString =
-        "http://user:pass@www.example.com:8080/seg1/seg2?key=val#frag1"
+        "http://user%20name:pass@www.example.com:8080/seg1/seg2?key=some%20value#frag1"
 
     (* Rootless Hierarchy *)
 

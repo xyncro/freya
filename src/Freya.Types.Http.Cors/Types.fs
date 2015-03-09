@@ -98,6 +98,10 @@ and SerializedOrigin =
             .>>. Host.Mapping.Parse
             .>>. opt Port.Mapping.Parse
             |>> fun ((scheme, host), port) ->
+                 Scheme.Mapping.Parse .>> skipString "://" 
+            .>>. Host.Mapping.Parse
+            .>>. opt Port.Mapping.Parse
+             |>> fun ((scheme, host), port) ->
                 SerializedOrigin (scheme, host, port)
 
         let serializedOriginF =
@@ -107,8 +111,10 @@ and SerializedOrigin =
                                   append "://"
                                   Host.Mapping.Format h
                                   (function | Some p -> Port.Mapping.Format p | _ -> id) p ]
+                                  (function | Some p -> Port.Mapping.Format p
+                                            | _ -> id) p ]
 
-                            fun b -> List.fold (fun b f -> f b) b formatters
+                            fun b -> List.fold (|>) b formatters
 
         { Parse = serializedOriginP
           Format = serializedOriginF }
