@@ -70,7 +70,7 @@ type Language =
     | Language of string * string list option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let extP =
             skipChar '-' >>. alphaP 3 3
@@ -101,13 +101,13 @@ type Language =
           Format = languageF }
 
     static member Format =
-        Formatting.format Language.TypeMapping.Format
+        Formatting.format Language.Mapping.Format
 
     static member Parse =
-        Parsing.parse Language.TypeMapping.Parse
+        Parsing.parse Language.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Language.TypeMapping.Parse
+        Parsing.tryParse Language.Mapping.Parse
 
     override x.ToString () =
         Language.Format x
@@ -118,7 +118,7 @@ type Script =
     | Script of string
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let scriptP =
             skipChar '-' >>. alphaP 4 4 |>> Script
@@ -135,7 +135,7 @@ type Region =
     | Region of string
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let regionP =
             skipChar '-' >>. (alphaP 2 2 <|> digitP 3 3) |>> Region
@@ -152,7 +152,7 @@ type Variant =
     | Variant of string list
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let alphaPrefixVariantP =
             alphaNumP 5 8
@@ -181,23 +181,23 @@ type LanguageTag =
     | LanguageTag of Language * Script option * Region option * Variant
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let languageTagP =
-            tuple4 Language.TypeMapping.Parse 
-                   (opt (attempt Script.TypeMapping.Parse))
-                   (opt (attempt Region.TypeMapping.Parse))
-                   (Variant.TypeMapping.Parse)
+            tuple4 Language.Mapping.Parse 
+                   (opt (attempt Script.Mapping.Parse))
+                   (opt (attempt Region.Mapping.Parse))
+                   (Variant.Mapping.Parse)
             |>> fun (language, script, region, variant) ->
                 LanguageTag (language, script, region, variant)
 
         let languageTagF =
             function | LanguageTag (language, script, region, variant) ->
                          let formatters =
-                            [ Language.TypeMapping.Format language
-                              (function | Some x -> Script.TypeMapping.Format x | _ -> id) script
-                              (function | Some x -> Region.TypeMapping.Format x | _ -> id) region
-                              Variant.TypeMapping.Format variant ]
+                            [ Language.Mapping.Format language
+                              (function | Some x -> Script.Mapping.Format x | _ -> id) script
+                              (function | Some x -> Region.Mapping.Format x | _ -> id) region
+                              Variant.Mapping.Format variant ]
 
                          fun b -> List.fold (|>) b formatters
 
@@ -205,13 +205,13 @@ type LanguageTag =
           Format = languageTagF }
 
     static member Format =
-        Formatting.format LanguageTag.TypeMapping.Format
+        Formatting.format LanguageTag.Mapping.Format
 
     static member Parse =
-        Parsing.parse LanguageTag.TypeMapping.Parse
+        Parsing.parse LanguageTag.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse LanguageTag.TypeMapping.Parse
+        Parsing.tryParse LanguageTag.Mapping.Parse
 
     override x.ToString () =
         LanguageTag.Format x
@@ -228,7 +228,7 @@ type LanguageRange =
     | Any
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let languageRangeP =
             choice [
@@ -244,13 +244,13 @@ type LanguageRange =
           Format = languageRangeF }
 
     static member Format =
-        Formatting.format LanguageRange.TypeMapping.Format
+        Formatting.format LanguageRange.Mapping.Format
 
     static member Parse =
-        Parsing.parse LanguageRange.TypeMapping.Parse
+        Parsing.parse LanguageRange.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse LanguageRange.TypeMapping.Parse
+        Parsing.tryParse LanguageRange.Mapping.Parse
 
     override x.ToString () =
         LanguageRange.Format x

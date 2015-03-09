@@ -24,7 +24,7 @@ module Freya.Types.Types
 open System.Text
 open FParsec
 
-type TypeMapping<'a> =
+type Mapping<'a> =
     { Parse: Parse<'a>
       Format: Format<'a> }
 
