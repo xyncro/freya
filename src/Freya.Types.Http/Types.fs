@@ -53,17 +53,17 @@ type PartialUri =
     | PartialUri of RelativePart * Query option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let partialUriP =
-            RelativePart.TypeMapping.Parse .>>. opt Query.TypeMapping.Parse
+            RelativePart.Mapping.Parse .>>. opt Query.Mapping.Parse
             |>> PartialUri
 
         let partialUriF =
             function | PartialUri (r, q) ->
                         let formatters =
-                            [ RelativePart.TypeMapping.Format r
-                              (function | Some q -> Query.TypeMapping.Format q | _ -> id) q ]
+                            [ RelativePart.Mapping.Format r
+                              (function | Some q -> Query.Mapping.Format q | _ -> id) q ]
 
                         fun b -> List.fold (|>) b formatters
 
@@ -71,13 +71,13 @@ type PartialUri =
           Format = partialUriF }
 
     static member Format =
-        Formatting.format PartialUri.TypeMapping.Format
+        Formatting.format PartialUri.Mapping.Format
 
     static member Parse =
-        Parsing.parse PartialUri.TypeMapping.Parse
+        Parsing.parse PartialUri.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse PartialUri.TypeMapping.Parse
+        Parsing.tryParse PartialUri.Mapping.Parse
 
     override x.ToString () =
         PartialUri.Format x
@@ -180,7 +180,7 @@ type HttpVersion =
     | Custom of string
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let httpVersionP =
             choice [
@@ -196,13 +196,13 @@ type HttpVersion =
           Format = httpVersionF }
 
     static member Format =
-        Formatting.format HttpVersion.TypeMapping.Format
+        Formatting.format HttpVersion.Mapping.Format
 
     static member Parse =
-        Parsing.parse HttpVersion.TypeMapping.Parse
+        Parsing.parse HttpVersion.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse HttpVersion.TypeMapping.Parse
+        Parsing.tryParse HttpVersion.Mapping.Parse
 
     override x.ToString () =
         HttpVersion.Format x
@@ -216,7 +216,7 @@ type ContentLength =
     | ContentLength of int
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let contentLengthP =
             puint32 |>> (int >> ContentLength)
@@ -228,13 +228,13 @@ type ContentLength =
           Format = contentLengthF }
 
     static member Format =
-        Formatting.format ContentLength.TypeMapping.Format
+        Formatting.format ContentLength.Mapping.Format
 
     static member Parse =
-        Parsing.parse ContentLength.TypeMapping.Parse
+        Parsing.parse ContentLength.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ContentLength.TypeMapping.Parse
+        Parsing.tryParse ContentLength.Mapping.Parse
 
     override x.ToString () =
         ContentLength.Format x
@@ -248,16 +248,17 @@ type Host =
     | Host of Uri.Host * Port option
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let hostP =
-            Uri.Host.TypeMapping.Parse .>>. opt Port.TypeMapping.Parse |>> Host
+            Uri.Host.Mapping.Parse .>>. opt Port.Mapping.Parse |>> Host
 
         let hostF =
             function | Host (h, p) ->
                         let formatters =
-                            [ Uri.Host.TypeMapping.Format h
-                              (function | Some p -> Port.TypeMapping.Format p | _ -> id) p ]
+                            [ Uri.Host.Mapping.Format h
+                              (function | Some p -> Port.Mapping.Format p
+                                        | _ -> id) p ]
 
                         fun b -> List.fold (|>) b formatters
 
@@ -265,13 +266,13 @@ type Host =
           Format = hostF }
 
     static member Format =
-        Formatting.format Host.TypeMapping.Format
+        Formatting.format Host.Mapping.Format
 
     static member Parse =
-        Parsing.parse Host.TypeMapping.Parse
+        Parsing.parse Host.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Host.TypeMapping.Parse
+        Parsing.tryParse Host.Mapping.Parse
 
     override x.ToString () =
         Host.Format x
@@ -285,7 +286,7 @@ type Connection =
     | Connection of ConnectionOption list
 
     [<EditorBrowsable (EditorBrowsableState.Never)>]
-    static member TypeMapping =
+    static member Mapping =
 
         let connectionP =
             infix1P tokenP commaP |>> (List.map ConnectionOption >> Connection)
@@ -297,13 +298,13 @@ type Connection =
           Format = connectionF }
 
     static member Format =
-        Formatting.format Connection.TypeMapping.Format
+        Formatting.format Connection.Mapping.Format
 
     static member Parse =
-        Parsing.parse Connection.TypeMapping.Parse
+        Parsing.parse Connection.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Connection.TypeMapping.Parse
+        Parsing.tryParse Connection.Mapping.Parse
 
     override x.ToString () =
         Connection.Format x
@@ -329,15 +330,15 @@ and ConnectionOption =
 type MediaType =
     | MediaType of Type * SubType * Parameters
 
-    static member TypeMapping =
+    static member Mapping =
 
         let mediaTypeP =
-            tokenP .>> slashP .>>. tokenP .>>. Parameters.TypeMapping.Parse
+            tokenP .>> slashP .>>. tokenP .>>. Parameters.Mapping.Parse
             |>> (fun ((x, y), p) -> MediaType (Type x, SubType y, p))
 
         let mediaTypeF =
             function | MediaType (Type x, SubType y, p) -> 
-                        appendf2 "{0}/{1}" x y >> Parameters.TypeMapping.Format p
+                        appendf2 "{0}/{1}" x y >> Parameters.Mapping.Format p
 
         { Parse = mediaTypeP
           Format = mediaTypeF }
@@ -356,13 +357,13 @@ type MediaType =
     (* Common *)
 
     static member Format =
-        Formatting.format MediaType.TypeMapping.Format
+        Formatting.format MediaType.Mapping.Format
 
     static member Parse =
-        Parsing.parse MediaType.TypeMapping.Parse
+        Parsing.parse MediaType.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse MediaType.TypeMapping.Parse
+        Parsing.tryParse MediaType.Mapping.Parse
 
     override x.ToString () =
         MediaType.Format x
@@ -371,7 +372,7 @@ type MediaType =
 and Parameters =
     | Parameters of Map<string, string>
 
-    static member TypeMapping =
+    static member Mapping =
 
         let parameterP =
             tokenP .>> skipChar '=' .>>. (quotedStringP <|> tokenP)
@@ -430,13 +431,13 @@ type MediaType with
 type ContentType =
     | ContentType of MediaType
 
-    static member TypeMapping =
+    static member Mapping =
 
         let contentTypeP =
-            MediaType.TypeMapping.Parse |>> ContentType
+            MediaType.Mapping.Parse |>> ContentType
 
         let contentTypeF =
-            function | ContentType x -> MediaType.TypeMapping.Format x
+            function | ContentType x -> MediaType.Mapping.Format x
 
         { Parse = contentTypeP
           Format = contentTypeF }
@@ -449,13 +450,13 @@ type ContentType =
     (* Common *)
 
     static member Format =
-        Formatting.format ContentType.TypeMapping.Format
+        Formatting.format ContentType.Mapping.Format
 
     static member Parse =
-        Parsing.parse ContentType.TypeMapping.Parse
+        Parsing.parse ContentType.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ContentType.TypeMapping.Parse
+        Parsing.tryParse ContentType.Mapping.Parse
 
     override x.ToString () =
         ContentType.Format x
@@ -468,7 +469,7 @@ type ContentType =
 type ContentEncoding =
     | ContentEncoding of ContentCoding list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let contentEncodingP =
             infix1P tokenP commaP |>> (List.map ContentCoding >> ContentEncoding)
@@ -480,13 +481,13 @@ type ContentEncoding =
           Format = contentEncodingF }
 
     static member Format =
-        Formatting.format ContentEncoding.TypeMapping.Format
+        Formatting.format ContentEncoding.Mapping.Format
 
     static member Parse =
-        Parsing.parse ContentEncoding.TypeMapping.Parse
+        Parsing.parse ContentEncoding.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ContentEncoding.TypeMapping.Parse
+        Parsing.tryParse ContentEncoding.Mapping.Parse
 
     override x.ToString () =
         ContentEncoding.Format x
@@ -518,25 +519,25 @@ type ContentCoding with
 type ContentLanguage =
     | ContentLanguage of LanguageTag list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let contentLanguageP =
-            infix1P LanguageTag.TypeMapping.Parse commaP |>> ContentLanguage
+            infix1P LanguageTag.Mapping.Parse commaP |>> ContentLanguage
 
         let contentLanguageF =
-            function | ContentLanguage xs -> join LanguageTag.TypeMapping.Format commaF xs
+            function | ContentLanguage xs -> join LanguageTag.Mapping.Format commaF xs
 
         { Parse = contentLanguageP
           Format = contentLanguageF }
 
     static member Format =
-        Formatting.format ContentLanguage.TypeMapping.Format
+        Formatting.format ContentLanguage.Mapping.Format
 
     static member Parse =
-        Parsing.parse ContentLanguage.TypeMapping.Parse
+        Parsing.parse ContentLanguage.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ContentLanguage.TypeMapping.Parse
+        Parsing.tryParse ContentLanguage.Mapping.Parse
 
     override x.ToString () =
         ContentLanguage.Format x
@@ -549,28 +550,28 @@ type ContentLanguage =
 type ContentLocation =
     | ContentLocation of ContentLocationUri
 
-    static member TypeMapping =
+    static member Mapping =
 
         let contentLocationP =
             choice [
-                attempt AbsoluteUri.TypeMapping.Parse |>> (Absolute >> ContentLocation)
-                PartialUri.TypeMapping.Parse |>> (Partial >> ContentLocation) ]
+                attempt AbsoluteUri.Mapping.Parse |>> (Absolute >> ContentLocation)
+                PartialUri.Mapping.Parse |>> (Partial >> ContentLocation) ]
 
         let contentLocationF =
-            function | ContentLocation (Absolute x) -> AbsoluteUri.TypeMapping.Format x
-                     | ContentLocation (Partial x) -> PartialUri.TypeMapping.Format x
+            function | ContentLocation (Absolute x) -> AbsoluteUri.Mapping.Format x
+                     | ContentLocation (Partial x) -> PartialUri.Mapping.Format x
 
         { Parse = contentLocationP
           Format = contentLocationF }
 
     static member Format =
-        Formatting.format ContentLocation.TypeMapping.Format
+        Formatting.format ContentLocation.Mapping.Format
 
     static member Parse =
-        Parsing.parse ContentLocation.TypeMapping.Parse
+        Parsing.parse ContentLocation.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ContentLocation.TypeMapping.Parse
+        Parsing.tryParse ContentLocation.Mapping.Parse
 
     override x.ToString () =
         ContentLocation.Format x
@@ -595,7 +596,7 @@ type Method =
     | TRACE 
     | Custom of string
 
-    static member TypeMapping =
+    static member Mapping =
 
         let methodP =
             choice [
@@ -624,10 +625,10 @@ type Method =
           Format = methodF }
 
     static member Format =
-        Formatting.format Method.TypeMapping.Format
+        Formatting.format Method.Mapping.Format
 
     static member Parse =
-        Parsing.parse Method.TypeMapping.Parse
+        Parsing.parse Method.Mapping.Parse
 
     override x.ToString () =
         Method.Format x
@@ -640,7 +641,7 @@ type Method =
 type Expect =
     | Expect of Continue
 
-    static member TypeMapping =
+    static member Mapping =
 
         let expectP =
             skipStringCI "100-continue" >>% Expect Continue
@@ -652,13 +653,13 @@ type Expect =
           Format = expectF }
 
     static member Format =
-        Formatting.format Expect.TypeMapping.Format
+        Formatting.format Expect.Mapping.Format
 
     static member Parse =
-        Parsing.parse Expect.TypeMapping.Parse
+        Parsing.parse Expect.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Expect.TypeMapping.Parse
+        Parsing.tryParse Expect.Mapping.Parse
 
     override x.ToString () =
         Expect.Format x
@@ -674,7 +675,7 @@ and Continue =
 type MaxForwards =
     | MaxForwards of int
 
-    static member TypeMapping =
+    static member Mapping =
 
         let maxForwardsP =
             puint32 |>> (int >> MaxForwards)
@@ -686,13 +687,13 @@ type MaxForwards =
           Format = maxForwardsF }
 
     static member Format =
-        Formatting.format MaxForwards.TypeMapping.Format
+        Formatting.format MaxForwards.Mapping.Format
 
     static member Parse =
-        Parsing.parse MaxForwards.TypeMapping.Parse
+        Parsing.parse MaxForwards.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse MaxForwards.TypeMapping.Parse
+        Parsing.tryParse MaxForwards.Mapping.Parse
 
     override x.ToString () =
         MaxForwards.Format x
@@ -705,7 +706,7 @@ type MaxForwards =
 type Weight =
     | Weight of float
 
-    static member TypeMapping =
+    static member Mapping =
 
         let valueOrDefault =
             function | Some x -> float (sprintf "0.%s" x)
@@ -741,25 +742,25 @@ type Weight =
 type Accept =
     | Accept of AcceptableMedia list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptP =
-            infixP AcceptableMedia.TypeMapping.Parse commaP |>> Accept
+            infixP AcceptableMedia.Mapping.Parse commaP |>> Accept
 
         let acceptF =
-            function | Accept x -> join AcceptableMedia.TypeMapping.Format commaF x
+            function | Accept x -> join AcceptableMedia.Mapping.Format commaF x
 
         { Parse = acceptP
           Format = acceptF }
 
     static member Format =
-        Formatting.format Accept.TypeMapping.Format
+        Formatting.format Accept.Mapping.Format
 
     static member Parse =
-        Parsing.parse Accept.TypeMapping.Parse
+        Parsing.parse Accept.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Accept.TypeMapping.Parse
+        Parsing.tryParse Accept.Mapping.Parse
 
     override x.ToString () =
         Accept.Format x
@@ -767,16 +768,16 @@ type Accept =
 and AcceptableMedia =
     | AcceptableMedia of MediaRange * AcceptParameters option
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptableMediaP = 
-            MediaRange.TypeMapping.Parse .>>. opt AcceptParameters.TypeMapping.Parse
+            MediaRange.Mapping.Parse .>>. opt AcceptParameters.Mapping.Parse
             |>> AcceptableMedia
 
         let acceptableMediaF =
             function | AcceptableMedia (m, p) -> 
-                         MediaRange.TypeMapping.Format m 
-                         >> (function | Some p -> AcceptParameters.TypeMapping.Format p
+                         MediaRange.Mapping.Format m 
+                         >> (function | Some p -> AcceptParameters.Mapping.Format p
                                       | _ -> id) p
 
         { Parse = acceptableMediaP
@@ -787,7 +788,7 @@ and MediaRange =
     | Partial of Type * Parameters
     | Open of Parameters
 
-    static member TypeMapping =
+    static member Mapping =
 
         let mediaRangeParameterP =
             notFollowedBy (owsP >>. skipStringCI "q=") >>. tokenP .>> skipChar '=' .>>. tokenP
@@ -815,9 +816,9 @@ and MediaRange =
                 closedMediaRangeP ]
 
         let mediaRangeF =
-            function | MediaRange.Closed (Type x, SubType y, p) -> appendf2 "{0}/{1}" x y >> Parameters.TypeMapping.Format p
-                     | MediaRange.Partial (Type x, p) -> appendf1 "{0}/*" x >> Parameters.TypeMapping.Format p
-                     | MediaRange.Open p -> append "*/*" >> Parameters.TypeMapping.Format p
+            function | MediaRange.Closed (Type x, SubType y, p) -> appendf2 "{0}/{1}" x y >> Parameters.Mapping.Format p
+                     | MediaRange.Partial (Type x, p) -> appendf1 "{0}/*" x >> Parameters.Mapping.Format p
+                     | MediaRange.Open p -> append "*/*" >> Parameters.Mapping.Format p
 
         { Parse = mediaRangeP
           Format = mediaRangeF }
@@ -825,15 +826,15 @@ and MediaRange =
 and AcceptParameters =
     | AcceptParameters of Weight * AcceptExtensions
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptParamsP =
-            Weight.TypeMapping.Parse .>> owsP .>>. AcceptExtensions.TypeMapping.Parse
+            Weight.Mapping.Parse .>> owsP .>>. AcceptExtensions.Mapping.Parse
             |>> AcceptParameters
 
         let acceptParamsF =
             function | AcceptParameters (w, e) -> 
-                        Weight.TypeMapping.Format w >> AcceptExtensions.TypeMapping.Format e
+                        Weight.Mapping.Format w >> AcceptExtensions.Mapping.Format e
 
         { Parse = acceptParamsP
           Format = acceptParamsF }
@@ -841,7 +842,7 @@ and AcceptParameters =
 and AcceptExtensions =
     | Extensions of Map<string, string option>
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptExtP =
             tokenP .>>. opt (skipChar '=' >>. (quotedStringP <|> tokenP))
@@ -864,27 +865,27 @@ and AcceptExtensions =
 type AcceptCharset =
     | AcceptCharset of AcceptableCharset list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptCharsetP =
-            infix1P AcceptableCharset.TypeMapping.Parse commaP
+            infix1P AcceptableCharset.Mapping.Parse commaP
             |>> AcceptCharset
 
         let acceptCharsetF =
             function | AcceptCharset x ->
-                        join AcceptableCharset.TypeMapping.Format commaF x
+                        join AcceptableCharset.Mapping.Format commaF x
 
         { Parse = acceptCharsetP
           Format = acceptCharsetF }
 
     static member Format =
-        Formatting.format AcceptCharset.TypeMapping.Format
+        Formatting.format AcceptCharset.Mapping.Format
 
     static member Parse =
-        Parsing.parse AcceptCharset.TypeMapping.Parse
+        Parsing.parse AcceptCharset.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AcceptCharset.TypeMapping.Parse
+        Parsing.tryParse AcceptCharset.Mapping.Parse
 
     override x.ToString () =
         AcceptCharset.Format x
@@ -892,16 +893,16 @@ type AcceptCharset =
 and AcceptableCharset =
     | AcceptableCharset of CharsetRange * Weight option
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptableCharsetP =
-            CharsetRange.TypeMapping.Parse .>> owsP .>>. opt Weight.TypeMapping.Parse
+            CharsetRange.Mapping.Parse .>> owsP .>>. opt Weight.Mapping.Parse
             |>> AcceptableCharset
 
         let acceptableCharsetF =
             function | AcceptableCharset (c, w) ->
-                        CharsetRange.TypeMapping.Format c 
-                        >> (function | Some w -> Weight.TypeMapping.Format w
+                        CharsetRange.Mapping.Format c 
+                        >> (function | Some w -> Weight.Mapping.Format w
                                      | _ -> id) w
 
         { Parse = acceptableCharsetP
@@ -911,7 +912,7 @@ and CharsetRange =
     | Charset of Charset
     | Any
 
-    static member TypeMapping =
+    static member Mapping =
 
         let charsetRangeAnyP =
             skipChar '*' >>% CharsetRange.Any
@@ -958,27 +959,27 @@ type Charset with
 type AcceptEncoding =
     | AcceptEncoding of AcceptableEncoding list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptEncodingP =
-            infixP AcceptableEncoding.TypeMapping.Parse commaP
+            infixP AcceptableEncoding.Mapping.Parse commaP
             |>> AcceptEncoding
 
         let acceptEncodingF =
             function | AcceptEncoding x ->
-                        join AcceptableEncoding.TypeMapping.Format commaF x
+                        join AcceptableEncoding.Mapping.Format commaF x
 
         { Parse = acceptEncodingP
           Format = acceptEncodingF }
 
     static member Format =
-        Formatting.format AcceptEncoding.TypeMapping.Format
+        Formatting.format AcceptEncoding.Mapping.Format
 
     static member Parse =
-        Parsing.parse AcceptEncoding.TypeMapping.Parse
+        Parsing.parse AcceptEncoding.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AcceptEncoding.TypeMapping.Parse
+        Parsing.tryParse AcceptEncoding.Mapping.Parse
 
     override x.ToString () =
         AcceptEncoding.Format x
@@ -986,16 +987,16 @@ type AcceptEncoding =
 and AcceptableEncoding =
     | AcceptableEncoding of EncodingRange * Weight option
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptableEncodingP =
-            EncodingRange.TypeMapping.Parse .>> owsP .>>. opt Weight.TypeMapping.Parse
+            EncodingRange.Mapping.Parse .>> owsP .>>. opt Weight.Mapping.Parse
             |>> AcceptableEncoding
 
         let acceptableEncodingF =
             function | AcceptableEncoding (e, w) ->
-                        EncodingRange.TypeMapping.Format e
-                        >> (function | Some w -> Weight.TypeMapping.Format w
+                        EncodingRange.Mapping.Format e
+                        >> (function | Some w -> Weight.Mapping.Format w
                                      | _ -> id) w
 
         { Parse = acceptableEncodingP
@@ -1006,7 +1007,7 @@ and EncodingRange =
     | Identity
     | Any
 
-    static member TypeMapping =
+    static member Mapping =
 
         let encodingRangeAnyP =
             skipChar '*' >>% Any
@@ -1039,27 +1040,27 @@ and EncodingRange =
 type AcceptLanguage =
     | AcceptLanguage of AcceptableLanguage list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptLanguageP =
-            infixP AcceptableLanguage.TypeMapping.Parse commaP
+            infixP AcceptableLanguage.Mapping.Parse commaP
             |>> AcceptLanguage
 
         let acceptLanguageF =
             function | AcceptLanguage x ->
-                        join AcceptableLanguage.TypeMapping.Format commaF x
+                        join AcceptableLanguage.Mapping.Format commaF x
 
         { Parse = acceptLanguageP
           Format = acceptLanguageF }
 
     static member Format =
-        Formatting.format AcceptLanguage.TypeMapping.Format
+        Formatting.format AcceptLanguage.Mapping.Format
 
     static member Parse =
-        Parsing.parse AcceptLanguage.TypeMapping.Parse
+        Parsing.parse AcceptLanguage.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse AcceptLanguage.TypeMapping.Parse
+        Parsing.tryParse AcceptLanguage.Mapping.Parse
 
     override x.ToString () =
         AcceptLanguage.Format x
@@ -1067,16 +1068,16 @@ type AcceptLanguage =
 and AcceptableLanguage =
     | AcceptableLanguage of LanguageRange * Weight option
 
-    static member TypeMapping =
+    static member Mapping =
 
         let acceptableLanguageP =
-            LanguageRange.TypeMapping.Parse .>> owsP .>>. opt Weight.TypeMapping.Parse
+            LanguageRange.Mapping.Parse .>> owsP .>>. opt Weight.Mapping.Parse
             |>> AcceptableLanguage
 
         let acceptableLanguageF =
             function | AcceptableLanguage (l, w) ->
-                        LanguageRange.TypeMapping.Format l
-                        >> (function | Some w -> Weight.TypeMapping.Format w
+                        LanguageRange.Mapping.Format l
+                        >> (function | Some w -> Weight.Mapping.Format w
                                      | _ -> id) w
 
         { Parse = acceptableLanguageP
@@ -1090,28 +1091,28 @@ and AcceptableLanguage =
 type Referer =
     | Referer of RefererUri
 
-    static member TypeMapping =
+    static member Mapping =
 
         let refererP =
             choice [
-                attempt AbsoluteUri.TypeMapping.Parse |>> (Absolute >> Referer)
-                PartialUri.TypeMapping.Parse |>> (Partial >> Referer) ]
+                attempt AbsoluteUri.Mapping.Parse |>> (Absolute >> Referer)
+                PartialUri.Mapping.Parse |>> (Partial >> Referer) ]
 
         let refererF =
-            function | Referer (Absolute x) -> AbsoluteUri.TypeMapping.Format x
-                     | Referer (Partial x) -> PartialUri.TypeMapping.Format x
+            function | Referer (Absolute x) -> AbsoluteUri.Mapping.Format x
+                     | Referer (Partial x) -> PartialUri.Mapping.Format x
 
         { Parse = refererP
           Format = refererF }
 
     static member Format =
-        Formatting.format Referer.TypeMapping.Format
+        Formatting.format Referer.Mapping.Format
 
     static member Parse =
-        Parsing.parse Referer.TypeMapping.Parse
+        Parsing.parse Referer.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Referer.TypeMapping.Parse
+        Parsing.tryParse Referer.Mapping.Parse
 
     override x.ToString () =
         Referer.Format x
@@ -1144,7 +1145,7 @@ let internal httpDateP : Parser<DateTime, unit> =
 type Date =
     | Date of DateTime
 
-    static member TypeMapping =
+    static member Mapping =
 
         let dateP =
             httpDateP |>> Date.Date
@@ -1156,13 +1157,13 @@ type Date =
           Format = dateF }
 
     static member Format =
-        Formatting.format Date.TypeMapping.Format
+        Formatting.format Date.Mapping.Format
 
     static member Parse =
-        Parsing.parse Date.TypeMapping.Parse
+        Parsing.parse Date.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Date.TypeMapping.Parse
+        Parsing.tryParse Date.Mapping.Parse
 
     override x.ToString () =
         Date.Format x
@@ -1175,25 +1176,25 @@ type Date =
 type Location =
     | Location of UriReference
 
-    static member TypeMapping =
+    static member Mapping =
 
         let locationP =
-            UriReference.TypeMapping.Parse |>> Location
+            UriReference.Mapping.Parse |>> Location
 
         let locationF =
-            function | Location x -> UriReference.TypeMapping.Format x
+            function | Location x -> UriReference.Mapping.Format x
 
         { Parse = locationP
           Format = locationF }
 
     static member Format =
-        Formatting.format Location.TypeMapping.Format
+        Formatting.format Location.Mapping.Format
 
     static member Parse =
-        Parsing.parse Location.TypeMapping.Parse
+        Parsing.parse Location.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Location.TypeMapping.Parse
+        Parsing.tryParse Location.Mapping.Parse
 
     override x.ToString () =
         Location.Format x
@@ -1206,7 +1207,7 @@ type Location =
 type RetryAfter =
     | RetryAfter of RetryAfterChoice
 
-    static member TypeMapping =
+    static member Mapping =
 
         let retryAfterP =
             choice [
@@ -1221,13 +1222,13 @@ type RetryAfter =
           Format = retryAfterF }
 
     static member Format =
-        Formatting.format RetryAfter.TypeMapping.Format
+        Formatting.format RetryAfter.Mapping.Format
 
     static member Parse =
-        Parsing.parse RetryAfter.TypeMapping.Parse
+        Parsing.parse RetryAfter.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse RetryAfter.TypeMapping.Parse
+        Parsing.tryParse RetryAfter.Mapping.Parse
 
     override x.ToString () =
         RetryAfter.Format x
@@ -1244,25 +1245,25 @@ and RetryAfterChoice =
 type Allow =
     | Allow of Method list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let allowP =
-            infixP Method.TypeMapping.Parse commaP |>> Allow
+            infixP Method.Mapping.Parse commaP |>> Allow
 
         let allowF =
-            function | Allow x -> join Method.TypeMapping.Format commaF x
+            function | Allow x -> join Method.Mapping.Format commaF x
 
         { Parse = allowP
           Format = allowF }
 
     static member Format =
-        Formatting.format Allow.TypeMapping.Format
+        Formatting.format Allow.Mapping.Format
 
     static member Parse =
-        Parsing.parse Allow.TypeMapping.Parse
+        Parsing.parse Allow.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Allow.TypeMapping.Parse
+        Parsing.tryParse Allow.Mapping.Parse
 
     override x.ToString () =
         Allow.Format x
@@ -1282,7 +1283,7 @@ type Allow =
 type LastModified =
     | LastModified of DateTime
 
-    static member TypeMapping =
+    static member Mapping =
 
         let lastModifiedP =
             httpDateP |>> LastModified
@@ -1294,13 +1295,13 @@ type LastModified =
           Format = lastModifiedF }
 
     static member Format =
-        Formatting.format LastModified.TypeMapping.Format
+        Formatting.format LastModified.Mapping.Format
 
     static member Parse =
-        Parsing.parse LastModified.TypeMapping.Parse
+        Parsing.parse LastModified.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse LastModified.TypeMapping.Parse
+        Parsing.tryParse LastModified.Mapping.Parse
 
     override x.ToString () =
         LastModified.Format x
@@ -1313,25 +1314,25 @@ type LastModified =
 type ETag =
     | ETag of EntityTag
 
-    static member TypeMapping =
+    static member Mapping =
 
         let eTagP =
-            EntityTag.TypeMapping.Parse |>> ETag
+            EntityTag.Mapping.Parse |>> ETag
 
         let eTagF =
-            function | ETag x -> EntityTag.TypeMapping.Format x
+            function | ETag x -> EntityTag.Mapping.Format x
 
         { Parse = eTagP
           Format = eTagF }
 
     static member Format =
-        Formatting.format ETag.TypeMapping.Format
+        Formatting.format ETag.Mapping.Format
 
     static member Parse =
-        Parsing.parse ETag.TypeMapping.Parse
+        Parsing.parse ETag.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse ETag.TypeMapping.Parse
+        Parsing.tryParse ETag.Mapping.Parse
 
     override x.ToString () =
         ETag.Format x
@@ -1340,7 +1341,7 @@ and EntityTag =
     | Strong of string
     | Weak of string
 
-    static member TypeMapping =
+    static member Mapping =
 
         let eTagChars =
             Set.unionMany [
@@ -1371,28 +1372,28 @@ and EntityTag =
 type IfMatch =
     | IfMatch of IfMatchChoice
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ifMatchP =
             choice [
                 skipChar '*' >>% IfMatch (Any)
-                infixP EntityTag.TypeMapping.Parse commaP |>> (EntityTags >> IfMatch) ]
+                infixP EntityTag.Mapping.Parse commaP |>> (EntityTags >> IfMatch) ]
 
         let ifMatchF =
-            function | IfMatch (EntityTags x) -> join EntityTag.TypeMapping.Format commaF x
+            function | IfMatch (EntityTags x) -> join EntityTag.Mapping.Format commaF x
                      | IfMatch (Any) -> append "*"
 
         { Parse = ifMatchP
           Format = ifMatchF }
 
     static member Format =
-        Formatting.format IfMatch.TypeMapping.Format
+        Formatting.format IfMatch.Mapping.Format
 
     static member Parse =
-        Parsing.parse IfMatch.TypeMapping.Parse
+        Parsing.parse IfMatch.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse IfMatch.TypeMapping.Parse
+        Parsing.tryParse IfMatch.Mapping.Parse
 
     override x.ToString () =
         IfMatch.Format x
@@ -1409,28 +1410,28 @@ and IfMatchChoice =
 type IfNoneMatch =
     | IfNoneMatch of IfNoneMatchChoice
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ifNoneMatchP =
             choice [
                 skipChar '*' >>% IfNoneMatch (Any)
-                infixP EntityTag.TypeMapping.Parse commaP |>> (EntityTags >> IfNoneMatch) ]
+                infixP EntityTag.Mapping.Parse commaP |>> (EntityTags >> IfNoneMatch) ]
 
         let ifNoneMatchF =
-            function | IfNoneMatch (EntityTags x) -> join EntityTag.TypeMapping.Format commaF x
+            function | IfNoneMatch (EntityTags x) -> join EntityTag.Mapping.Format commaF x
                      | IfNoneMatch (Any) -> append "*"
 
         { Parse = ifNoneMatchP
           Format = ifNoneMatchF }
 
     static member Format =
-        Formatting.format IfNoneMatch.TypeMapping.Format
+        Formatting.format IfNoneMatch.Mapping.Format
 
     static member Parse =
-        Parsing.parse IfNoneMatch.TypeMapping.Parse
+        Parsing.parse IfNoneMatch.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse IfNoneMatch.TypeMapping.Parse
+        Parsing.tryParse IfNoneMatch.Mapping.Parse
 
     override x.ToString () =
         IfNoneMatch.Format x
@@ -1447,7 +1448,7 @@ and IfNoneMatchChoice =
 type IfModifiedSince =
     | IfModifiedSince of DateTime
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ifModifiedSinceP =
             httpDateP |>> IfModifiedSince
@@ -1459,13 +1460,13 @@ type IfModifiedSince =
           Format = ifModifiedSinceF }
 
     static member Format =
-        Formatting.format IfModifiedSince.TypeMapping.Format
+        Formatting.format IfModifiedSince.Mapping.Format
 
     static member Parse =
-        Parsing.parse IfModifiedSince.TypeMapping.Parse
+        Parsing.parse IfModifiedSince.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse IfModifiedSince.TypeMapping.Parse
+        Parsing.tryParse IfModifiedSince.Mapping.Parse
 
     override x.ToString () =
         IfModifiedSince.Format x
@@ -1478,7 +1479,7 @@ type IfModifiedSince =
 type IfUnmodifiedSince =
     | IfUnmodifiedSince of DateTime
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ifUnmodifiedSinceP =
             httpDateP |>> IfUnmodifiedSince
@@ -1490,13 +1491,13 @@ type IfUnmodifiedSince =
           Format = ifUnmodifiedSinceF }
 
     static member Format =
-        Formatting.format IfUnmodifiedSince.TypeMapping.Format
+        Formatting.format IfUnmodifiedSince.Mapping.Format
 
     static member Parse =
-        Parsing.parse IfUnmodifiedSince.TypeMapping.Parse
+        Parsing.parse IfUnmodifiedSince.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse IfUnmodifiedSince.TypeMapping.Parse
+        Parsing.tryParse IfUnmodifiedSince.Mapping.Parse
 
     override x.ToString () =
         IfUnmodifiedSince.Format x
@@ -1516,27 +1517,27 @@ type IfUnmodifiedSince =
 type IfRange =
     | IfRange of IfRangeChoice
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ifRangeP =
-            (EntityTag.TypeMapping.Parse |>> (EntityTag >> IfRange)) <|> 
+            (EntityTag.Mapping.Parse |>> (EntityTag >> IfRange)) <|> 
                                              (httpDateP |>> (Date >> IfRange))
 
         let ifRangeF =
             function | IfRange (Date x) -> append (x.ToString "r")
-                     | IfRange (EntityTag x) -> EntityTag.TypeMapping.Format x
+                     | IfRange (EntityTag x) -> EntityTag.Mapping.Format x
         
         { Parse = ifRangeP
           Format = ifRangeF }
 
     static member Format =
-        Formatting.format IfRange.TypeMapping.Format
+        Formatting.format IfRange.Mapping.Format
 
     static member Parse =
-        Parsing.parse IfRange.TypeMapping.Parse
+        Parsing.parse IfRange.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse IfRange.TypeMapping.Parse
+        Parsing.tryParse IfRange.Mapping.Parse
 
     override x.ToString () =
         IfRange.Format x
@@ -1560,7 +1561,7 @@ and IfRangeChoice =
 type Age =
     | Age of TimeSpan
 
-    static member TypeMapping =
+    static member Mapping =
 
         let ageP =
             puint32 |>> (float >> TimeSpan.FromSeconds >> Age)
@@ -1572,13 +1573,13 @@ type Age =
           Format = ageF }
 
     static member Format =
-        Formatting.format Age.TypeMapping.Format
+        Formatting.format Age.Mapping.Format
 
     static member Parse =
-        Parsing.parse Age.TypeMapping.Parse
+        Parsing.parse Age.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Age.TypeMapping.Parse
+        Parsing.tryParse Age.Mapping.Parse
 
     override x.ToString () =
         Age.Format x
@@ -1596,25 +1597,25 @@ type Age =
 type CacheControl =
     | CacheControl of CacheDirective list
 
-    static member TypeMapping =
+    static member Mapping =
 
         let cacheControlP =
-            infix1P CacheDirective.TypeMapping.Parse commaP |>> CacheControl
+            infix1P CacheDirective.Mapping.Parse commaP |>> CacheControl
 
         let cacheControlF =
-            function | CacheControl x -> join CacheDirective.TypeMapping.Format commaF x
+            function | CacheControl x -> join CacheDirective.Mapping.Format commaF x
 
         { Parse = cacheControlP
           Format = cacheControlF }
 
     static member Format =
-        Formatting.format CacheControl.TypeMapping.Format
+        Formatting.format CacheControl.Mapping.Format
 
     static member Parse =
-        Parsing.parse CacheControl.TypeMapping.Parse
+        Parsing.parse CacheControl.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse CacheControl.TypeMapping.Parse
+        Parsing.tryParse CacheControl.Mapping.Parse
 
     override x.ToString () =
         CacheControl.Format x
@@ -1634,7 +1635,7 @@ and CacheDirective =
     | SMaxAge of TimeSpan
     | Custom of string * string option
 
-    static member TypeMapping =
+    static member Mapping =
 
         // TODO: Custom Directive Parsing
 
@@ -1680,7 +1681,7 @@ and CacheDirective =
 type Expires =
     | Expires of DateTime
 
-    static member TypeMapping =
+    static member Mapping =
 
         let expiresP =
             httpDateP |>> Expires
@@ -1692,13 +1693,13 @@ type Expires =
           Format = expiresF }
 
     static member Format =
-        Formatting.format Expires.TypeMapping.Format
+        Formatting.format Expires.Mapping.Format
 
     static member Parse =
-        Parsing.parse Expires.TypeMapping.Parse
+        Parsing.parse Expires.Mapping.Parse
 
     static member TryParse =
-        Parsing.tryParse Expires.TypeMapping.Parse
+        Parsing.tryParse Expires.Mapping.Parse
 
     override x.ToString () =
         Expires.Format x
