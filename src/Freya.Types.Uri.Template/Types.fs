@@ -259,6 +259,20 @@ and Expression =
 
     static member Rendering =
 
+        (* Encoding
+
+           The two forms of encoding (unreserved only, i.e.
+           simple expansion) and unreserved/reserved for
+           reserved string expansion. *)
+
+        let reserved =
+            Set.unionMany [
+                unreserved
+                reserved ]
+
+        let reservedEncoding =
+            Encoding.makePctEncode reserved
+
         let standardEncoding =
             Encoding.makePctEncode unreserved
 
@@ -268,12 +282,15 @@ and Expression =
                         | Some (Atom a) -> append (encode a)
                         | _ -> id
 
-        let variableListR encode data =
-            function | VariableList v -> join (variableSpecR encode data) commaF v
+        let simpleStringExpansion (VariableList v) data =
+            join (variableSpecR standardEncoding data) commaF v
+
+        let reservedStringExpansion (VariableList v) data =
+            join (variableSpecR reservedEncoding data) commaF v
 
         let expressionR data =
-            function | Expression (None, v) -> variableListR standardEncoding data v
-                     | Expression (Some (Level2 Plus), _) -> id
+            function | Expression (None, v) -> simpleStringExpansion v data
+                     | Expression (Some (Level2 Plus), v) -> reservedStringExpansion v data
                      | Expression (Some (Level2 Hash), _) -> id
                      | Expression (Some (Level3 Dot), _) -> id
                      | Expression (Some (Level3 Slash), _) -> id
