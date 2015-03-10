@@ -39,24 +39,27 @@ open FParsec
    must fix) or international characters (supporting IRIs - this may
    be supported in future). *)
 
-let private literal =
-    Set.unionMany [
-        set [ char 0x21 ]
-        charRange 0x23 0x24
-        set [ char 0x26 ]
-        charRange 0x28 0x3b
-        set [ char 0x3d ]
-        charRange 0x3f 0x5b
-        set [ char 0x5d ]
-        set [ char 0x5f ]
-        charRange 0x61 0x7a
-        set [ char 0x7e ] ]
+[<RequireQualifiedAccess>]
+module Grammar =
 
-let private varchar =
-    Set.unionMany [
-        Grammar.alpha
-        Grammar.digit
-        set [ '_' ] ]
+    let literal =
+        Set.unionMany [
+            set [ char 0x21 ]
+            charRange 0x23 0x24
+            set [ char 0x26 ]
+            charRange 0x28 0x3b
+            set [ char 0x3d ]
+            charRange 0x3f 0x5b
+            set [ char 0x5d ]
+            set [ char 0x5f ]
+            charRange 0x61 0x7a
+            set [ char 0x7e ] ]
+
+    let varchar =
+        Set.unionMany [
+            Grammar.alpha
+            Grammar.digit
+            set [ '_' ] ]
 
 (* Template
 
@@ -128,11 +131,17 @@ and Literal =
 
     static member Mapping =
 
+        let parser =
+            PercentEncoding.makeParser Grammar.literal
+
+        let formatter =
+            PercentEncoding.makeFormatter Grammar.literal
+
         let literalP =
-            many1Satisfy ((?>) literal) |>> Literal.Literal
+            notEmpty parser |>> Literal.Literal
 
         let literalF =
-            function | Literal l -> append l
+            function | Literal l -> formatter l
 
         { Parse = literalP
           Format = literalF }
@@ -179,7 +188,7 @@ and Expression =
                         | Some (Atom a) -> format a
                         | _ -> id
 
-        (* Simple Expansion *)
+        (* Simple String Expansion *)
 
         let simpleFormatter =
             PercentEncoding.makeFormatter Grammar.unreserved
@@ -187,7 +196,7 @@ and Expression =
         let simpleStringExpansion (VariableList v) data =
             join (variableSpecR simpleFormatter data) commaF v
 
-        (* Reserved Expansion *)
+        (* Reserved String Expansion *)
 
         let reserved =
             Set.unionMany [
@@ -200,12 +209,17 @@ and Expression =
         let reservedStringExpansion (VariableList v) data =
             join (variableSpecR reservedFormatter data) commaF v
 
+        (* Fragment Expansion *)
+
+        let fragmentExpansion (VariableList v) data =
+            append "#" >> join (variableSpecR reservedFormatter data) commaF v
+
         (* Expression *)
 
         let expressionR data =
             function | Expression (None, v) -> simpleStringExpansion v data
                      | Expression (Some (Level2 Plus), v) -> reservedStringExpansion v data
-                     | Expression (Some (Level2 Hash), _) -> id
+                     | Expression (Some (Level2 Hash), v) -> fragmentExpansion v data
                      | Expression (Some (Level3 Dot), _) -> id
                      | Expression (Some (Level3 Slash), _) -> id
                      | Expression (Some (Level3 SemiColon), _) -> id
@@ -353,25 +367,21 @@ and VariableSpec =
           Format = variableSpecF }
 
 and VariableName =
-    | VariableName of string
+    | VariableName of string list
 
     static member Mapping =
 
-        let varcharsP =
-            many1Satisfy ((?>) varchar)
+        let parser =
+            PercentEncoding.makeParser Grammar.varchar
 
-        let variableNamePartP =
-            opt (pstring ".") .>>. varcharsP
-            |>> function | (Some s1, s2) -> s1 + s2
-                         | (_, s2) -> s2
+        let formatter =
+            PercentEncoding.makeFormatter Grammar.varchar
 
         let variableNameP =
-            varcharsP .>>. many variableNamePartP
-            |>> (fun (c, s) ->
-                (String.concat "" >> VariableName) (c :: s))
+            sepBy1 (notEmpty parser) (skipChar '.') |>> VariableName
 
         let variableNameF =
-            function | VariableName n -> append n
+            function | VariableName n ->join formatter (append ".") n
 
         { Parse = variableNameP
           Format = variableNameF }
@@ -419,9 +429,9 @@ and ModifierLevel4 =
    using UriTemplates. *)
 
 and UriTemplateData =
-    | UriTemplateData of Map<string, UriTemplateDataItem>
+    | UriTemplateData of Map<string list, UriTemplateDataItem>
 
 and UriTemplateDataItem =
     | Atom of string
     | List of string list
-    | Map of Map<string, string>
+    | Keys of (string * string) list
