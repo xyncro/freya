@@ -227,10 +227,6 @@ type Authority =
     static member Mapping =
 
         let authorityP =
-            opt (attempt UserInfo.Mapping.Parse) 
-            .>>. Host.Mapping.Parse 
-            .>>. opt Port.Mapping.Parse
-            |>> fun ((user, host), port) -> Authority (host, port, user)
                  opt (attempt (UserInfo.Mapping.Parse .>> skipChar '@')) 
             .>>. Host.Mapping.Parse 
             .>>. opt Port.Mapping.Parse
@@ -239,7 +235,6 @@ type Authority =
         let authorityF =
             function | Authority (h, p, u) ->
                         let formatters =
-                            [ (function | Some u -> UserInfo.Mapping.Format u 
                             [ (function | Some u -> UserInfo.Mapping.Format u >> append "@"
                                         | _ -> id) u
                               Host.Mapping.Format h
@@ -647,11 +642,6 @@ type Uri =
     static member Mapping =
 
         let uriP =
-            Scheme.Mapping.Parse .>> skipChar ':'
-            .>>. HierarchyPart.Mapping.Parse 
-            .>>. opt Query.Mapping.Parse
-            .>>. opt Fragment.Mapping.Parse
-            |>> fun (((scheme, hierarchy), query), fragment) ->
                  Scheme.Mapping.Parse .>> skipChar ':'
             .>>. HierarchyPart.Mapping.Parse 
             .>>. opt Query.Mapping.Parse
@@ -665,8 +655,6 @@ type Uri =
                             [ Scheme.Mapping.Format s
                               append ":"
                               HierarchyPart.Mapping.Format h
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q
-                              (function | Some f -> Fragment.Mapping.Format f | _ -> id) f ]
                               (function | Some q -> Query.Mapping.Format q 
                                         | _ -> id) q
                               (function | Some f -> Fragment.Mapping.Format f 
@@ -699,9 +687,6 @@ and HierarchyPart =
     static member Mapping =
 
         let authorityP =
-            skipString "//" >>. Authority.Mapping.Parse 
-            .>>. PathAbsoluteOrEmpty.Mapping.Parse 
-            |>> Authority
                  skipString "//" >>. Authority.Mapping.Parse 
             .>>. PathAbsoluteOrEmpty.Mapping.Parse 
              |>> Authority
@@ -739,10 +724,6 @@ type RelativeReference =
     static member Mapping =
 
         let relativeReferenceP =
-            RelativePart.Mapping.Parse
-            .>>. opt Query.Mapping.Parse
-            .>>. opt Fragment.Mapping.Parse
-            |>> fun ((relative, query), fragment) ->
                  RelativePart.Mapping.Parse
             .>>. opt Query.Mapping.Parse
             .>>. opt Fragment.Mapping.Parse
@@ -753,8 +734,6 @@ type RelativeReference =
             function | RelativeReference (r, q, f) -> 
                         let formatters =
                             [ RelativePart.Mapping.Format r
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q
-                              (function | Some f -> Fragment.Mapping.Format f | _ -> id) f ]
                               (function | Some q -> Query.Mapping.Format q
                                         | _ -> id) q
                               (function | Some f -> Fragment.Mapping.Format f
@@ -787,9 +766,6 @@ and RelativePart =
     static member Mapping =
 
         let authorityP =
-            skipString "//" >>. Authority.Mapping.Parse
-            .>>. PathAbsoluteOrEmpty.Mapping.Parse 
-            |>> Authority
                  skipString "//" >>. Authority.Mapping.Parse
             .>>. PathAbsoluteOrEmpty.Mapping.Parse 
              |>> Authority
@@ -827,10 +803,6 @@ type AbsoluteUri =
     static member Mapping =
 
         let absoluteUriP =
-            Scheme.Mapping.Parse .>> skipChar ':' 
-            .>>. HierarchyPart.Mapping.Parse 
-            .>>. opt Query.Mapping.Parse
-            |>> fun ((scheme, hierarchy), query) ->
                  Scheme.Mapping.Parse .>> skipChar ':' 
             .>>. HierarchyPart.Mapping.Parse 
             .>>. opt Query.Mapping.Parse
@@ -843,7 +815,6 @@ type AbsoluteUri =
                             [ Scheme.Mapping.Format s
                               append ":"
                               HierarchyPart.Mapping.Format h
-                              (function | Some q -> Query.Mapping.Format q | _ -> id) q ]
                               (function | Some q -> Query.Mapping.Format q
                                         | _ -> id) q ]
 

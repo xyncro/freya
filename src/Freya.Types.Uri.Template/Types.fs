@@ -20,99 +20,11 @@
 
 module Freya.Types.Uri.Template
 
-open System.Text
 open Freya.Types
 open Freya.Types.Formatting
 open Freya.Types.Parsing
 open Freya.Types.Uri
 open FParsec
-
-(* Encoding
-
-   Logic to perform percent-encoding/decoding of data within URIs
-   given appropriate whitelists of characters which should be left
-   unencoded (this supports the different encodings required for
-   various expansion modes of URI Templates). *)
-
-// TODO: Find a better home this kind of encoding, probably somewhere
-// less specific within the Freya.Types.* hierarchy...
-
-[<RequireQualifiedAccess>]
-module internal Encoding =
-
-    (* Grammar *)
-
-    let private pct =
-        byte 0x25
-
-    (* UTF-8
-
-       Shorthand for UTF-8 encoding and decoding of strings (given
-       the assumption that the .NET UTF-16/Unicode string is our
-       basic string type). *)
-
-    let private toBytes : string -> byte list =
-        Encoding.UTF8.GetBytes >> List.ofArray
-
-    let private toString : byte list -> string =
-        List.toArray >> Encoding.UTF8.GetString
-
-    (* Indices
-
-       Simple lookups/indices for converting between bytes and the hex
-       encoding of those bytes. *)
-
-    let private hex =
-        [ 0x00 .. 0xff ]
-        |> List.map byte
-        |> List.map (fun i -> i, toBytes (i.ToString "X2"))
-
-    let private hexI =
-        hex
-        |> Map.ofList
-
-//    let private byteI =
-//        hex
-//        |> List.map (fun (a, b) -> (b, a))
-//        |> Map.ofList
-
-    (* Encoding
-
-       Encoding functions, providing a function to create an encoder
-       given a whitelist set of allowed characters within the encoded
-       output. *)
-
-    // TODO: Allow for pct encoded characters to be skipped rather
-    // than re-encoded in cases where that is valid.
-
-    let private encode res =
-        let rec enc r =
-            function | [] -> r
-                     | h :: t when Set.contains h res -> enc (r @ [ h ]) t
-                     | h :: t -> enc (r @ [ pct ] @ Map.find h hexI) t
-
-        enc []
-
-    let makePctEncode res =
-        let res = Set.map byte res
-
-        toBytes >> encode res >> toString
-
-    (* Decoding
-    
-       Decoding functions, providing a simple function to decode
-       a percent-encoded string to a .NET native UTF-16/Unicode string. *)
-
-//    let private decode =
-//        let rec dec r =
-//            function | [] -> r
-//                     | h :: x :: y :: t when h = pct -> dec (r @ [ Map.find [ x; y ] byteI ]) t
-//                     | h :: t -> dec (r @ [ h ]) t
-//
-//        dec []
-
-//    let pctDecode =
-//        toBytes >> decode >> toString
 
 (* RFC 6570
 
@@ -259,34 +171,36 @@ and Expression =
 
     static member Rendering =
 
-        (* Encoding
+        (* Expansion *)
 
-           The two forms of encoding (unreserved only, i.e.
-           simple expansion) and unreserved/reserved for
-           reserved string expansion. *)
+        let variableSpecR format (UriTemplateData data) =
+            function | VariableSpec (VariableName n, _) ->
+                        match Map.tryFind n data with
+                        | Some (Atom a) -> format a
+                        | _ -> id
+
+        (* Simple Expansion *)
+
+        let simpleFormatter =
+            PercentEncoding.makeFormatter Grammar.unreserved
+
+        let simpleStringExpansion (VariableList v) data =
+            join (variableSpecR simpleFormatter data) commaF v
+
+        (* Reserved Expansion *)
 
         let reserved =
             Set.unionMany [
-                unreserved
-                reserved ]
+                Grammar.unreserved
+                Grammar.reserved ]
 
-        let reservedEncoding =
-            Encoding.makePctEncode reserved
-
-        let standardEncoding =
-            Encoding.makePctEncode unreserved
-
-        let variableSpecR encode (UriTemplateData data) =
-            function | VariableSpec (VariableName n, _) ->
-                        match Map.tryFind n data with
-                        | Some (Atom a) -> append (encode a)
-                        | _ -> id
-
-        let simpleStringExpansion (VariableList v) data =
-            join (variableSpecR standardEncoding data) commaF v
+        let reservedFormatter =
+            PercentEncoding.makeFormatter reserved
 
         let reservedStringExpansion (VariableList v) data =
-            join (variableSpecR reservedEncoding data) commaF v
+            join (variableSpecR reservedFormatter data) commaF v
+
+        (* Expression *)
 
         let expressionR data =
             function | Expression (None, v) -> simpleStringExpansion v data
