@@ -19,40 +19,38 @@
 
 module Freya.Types.Grammar
 
-open Parsing
-
 (* RFC 5234
 
-   Core ABNF grammar rules as defined in RFC 5234.
+   Core ABNF grammar rules as defined in RFC 5234, expressed
+   as predicates over integer character codes.
+
    Taken from RFC 5234, Appendix B.1 Core Rules
    See [http://tools.ietf.org/html/rfc5234#appendix-B.1] *)
 
-let alpha = 
-    Set.unionMany [ 
-        charRange 0x41 0x5a
-        charRange 0x61 0x7a ]
+let alpha i =
+        (i >= 0x41 && i <= 0x5a)
+     || (i >= 0x61 && i <= 0x7a)
 
-let digit = 
-    charRange 0x30 0x39
+let digit i =
+        (i >= 0x30 && i <= 0x39)
 
-let dquote = 
-    char 0x22
+let dquote i =
+        (i = 0x22)
 
-let htab = 
-    char 0x09
+let hexdig i =
+        (digit i)
+     || (i >= 0x41 && i <= 0x46)
+     || (i >= 0x61 && i <= 0x66)
 
-let sp = 
-    char 0x20
+let htab i =
+        (i = 0x09)
 
-let vchar =
-    charRange 0x21 0x7e
+let sp i =
+        (i = 0x20)
 
-let hexdig =
-    Set.unionMany [
-        digit
-        Set.unionMany [
-            charRange 0x41 0x46
-            charRange 0x61 0x66 ] ]
+let vchar i =
+        (i >= 0x21 && i <= 0x7e)
 
-let wsp = 
-    set [ sp; htab ]
+let wsp i =
+        (htab i)
+     || (sp i)

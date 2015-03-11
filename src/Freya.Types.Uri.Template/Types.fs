@@ -42,24 +42,22 @@ open FParsec
 [<RequireQualifiedAccess>]
 module Grammar =
 
-    let literal =
-        Set.unionMany [
-            set [ char 0x21 ]
-            charRange 0x23 0x24
-            set [ char 0x26 ]
-            charRange 0x28 0x3b
-            set [ char 0x3d ]
-            charRange 0x3f 0x5b
-            set [ char 0x5d ]
-            set [ char 0x5f ]
-            charRange 0x61 0x7a
-            set [ char 0x7e ] ]
+    let literal i =
+            (i = 0x21)
+         || (i >= 0x23 && i <= 0x24)
+         || (i = 0x26)
+         || (i >= 0x28 && i <= 0x3b)
+         || (i = 0x3d)
+         || (i >= 0x3f && i <= 0x5b)
+         || (i = 0x5d)
+         || (i = 0x5f)
+         || (i >= 0x61 && i <= 0x7a)
+         || ( i = 0x7e)
 
-    let varchar =
-        Set.unionMany [
-            Grammar.alpha
-            Grammar.digit
-            set [ '_' ] ]
+    let varchar i =
+            (Grammar.alpha i)
+         || (Grammar.digit i)
+         || (i = 0x5f) // _
 
 (* Template
 
@@ -198,10 +196,9 @@ and Expression =
 
         (* Reserved String Expansion *)
 
-        let reserved =
-            Set.unionMany [
-                Grammar.unreserved
-                Grammar.reserved ]
+        let reserved i =
+                (Grammar.reserved i)
+             || (Grammar.unreserved i)
 
         let reservedFormatter =
             PercentEncoding.makeFormatter reserved
