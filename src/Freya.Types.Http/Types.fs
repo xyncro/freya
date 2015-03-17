@@ -26,9 +26,7 @@ open System.ComponentModel
 open System.Globalization
 open System.Runtime.CompilerServices
 open Freya.Types
-//open Freya.Types.Formatting
 open Freya.Types.Language
-//open Freya.Types.Parsing
 open Freya.Types.Uri
 open FParsec
 
@@ -90,12 +88,6 @@ type PartialUri =
 let internal owsP = 
     skipManySatisfy (int >> Grammar.wsp)
 
-//    let rwsP =
-//        skipMany1Satisfy (fun c -> Set.contains c wsp)
-
-let internal bwsP =
-    owsP
-
 (* Field Value Components
 
    Taken from RFC 7230, Section 3.2.6. Field Value Components
@@ -136,14 +128,6 @@ let internal quotedPairChar i =
 
 let internal tokenP = 
     many1Satisfy (int >> tchar)
-
-//let ctext =
-//    Set.unionMany [
-//        set [ htab; sp ]
-//        charRange 0x21 0x27
-//        charRange 0x2a 0x5b
-//        charRange 0x5d 0x7e
-//        obsText ]
 
 let internal quotedPairP : Parser<char, unit> =
         skipChar '\\' 
