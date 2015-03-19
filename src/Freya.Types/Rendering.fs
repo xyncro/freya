@@ -15,31 +15,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Types
+module Freya.Types.Rendering
 
 open System.Text
-open FParsec
 
-(* Mapping *)
+(* Formatting *)
 
-type Mapping<'a> =
-    { Parse: Parse<'a>
-      Format: Format<'a> }
-
-and Parse<'a> =
-    Parser<'a,unit>
-
-and Format<'a> =
-    'a -> StringBuilder -> StringBuilder
-
-(* Rendering *)
-
-type Rendering<'a,'d> =
-    { Render: Render<'a,'d> }
-
-and Render<'a,'d> =
-    'd -> 'a -> StringBuilder -> StringBuilder
+let render (render: Render<'a,'d>) =
+    fun d a -> string (render d a (StringBuilder ()))

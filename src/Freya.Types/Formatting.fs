@@ -58,6 +58,12 @@ let ampersandF : Separator =
 let commaF : Separator =
     append ","
 
+let dotF : Separator =
+    append "."
+
+let equalsF : Separator =
+    append "="
+
 let semicolonF : Separator =
     append ";"
 

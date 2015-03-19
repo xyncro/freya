@@ -71,6 +71,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "types", "types", "{BB3531B7
 		tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references = tests\Freya.Types.Http.Tests\Freya.Types.Http.Tests.fsproj.paket.references
 		tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references = tests\Freya.Types.Language.Tests\Freya.Types.Language.Tests.fsproj.paket.references
 		tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references = tests\Freya.Types.Tests\Freya.Types.Tests.fsproj.paket.references
+		tests\Freya.Types.Uri.Template.Tests\Freya.Types.Uri.Template.Tests.fsproj.paket.references = tests\Freya.Types.Uri.Template.Tests\Freya.Types.Uri.Template.Tests.fsproj.paket.references
 		tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references = tests\Freya.Types.Uri.Tests\Freya.Types.Uri.Tests.fsproj.paket.references
 	EndProjectSection
 EndProject
@@ -114,6 +115,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "types", "types", "{064B6AC7
 		src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references = src\Freya.Types.Http\Freya.Types.Http.fsproj.paket.references
 		src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references = src\Freya.Types.Language\Freya.Types.Language.fsproj.paket.references
 		src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references = src\Freya.Types.Uri\Freya.Types.Uri.fsproj.paket.references
+		src\Freya.Types.Uri.Template\Freya.Types.Uri.Template.fsproj.paket.references = src\Freya.Types.Uri.Template\Freya.Types.Uri.Template.fsproj.paket.references
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140-D2FF-4C67-BD08-8C0081221263}"
@@ -183,6 +185,10 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Integration.Tests", "tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj", "{D7B4915E-910C-476D-A2AA-B48991F11E17}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Integration", "src\Freya.Integration\Freya.Integration.fsproj", "{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Uri.Template", "src\Freya.Types.Uri.Template\Freya.Types.Uri.Template.fsproj", "{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Uri.Template.Tests", "tests\Freya.Types.Uri.Template.Tests\Freya.Types.Uri.Template.Tests.fsproj", "{069C35A0-A4C7-423C-87F6-0A4EF964F95A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -302,6 +308,14 @@ Global
 		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -361,5 +375,7 @@ Global
 		{FAEE6BC0-D651-4CE8-AA47-F47CAC0FE932} = {32CC81FC-D42C-4D92-A7A6-2304B96EF95E}
 		{D7B4915E-910C-476D-A2AA-B48991F11E17} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{FDF2C01F-7420-4E1D-8BA1-382C3D801C0C} = {435075A8-2EA8-4D8F-9665-00E845BB5CA8}
+		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721} = {88C54E9A-5D3E-427D-97F8-E7E172E98513}
+		{069C35A0-A4C7-423C-87F6-0A4EF964F95A} = {EB3B4A54-7B25-4AAE-ABEA-4AF38F5E12EF}
 	EndGlobalSection
 EndGlobal

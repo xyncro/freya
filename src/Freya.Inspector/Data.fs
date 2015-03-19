@@ -99,21 +99,21 @@ let private records =
     freyaMachine {
         including defaults
         handleOk recordsGet
-        mediaTypesSupported Prelude.json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
         handleOk recordGet
-        mediaTypesSupported Prelude.json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
         handleOk (inspectionGet inspectors)
-        mediaTypesSupported Prelude.json } |> Machine.toPipeline
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
 (* Routes
 
@@ -130,4 +130,4 @@ let data config =
     freyaRouter {
         resource "/freya/inspector/api/records" records
         resource "/freya/inspector/api/records/:id" record
-        resource "/freya/inspector/api/records/:id/extensions/:ext" inspectors } |> Router.toPipeline
+        resource "/freya/inspector/api/records/:id/extensions/:ext" inspectors } |> FreyaRouter.toPipeline

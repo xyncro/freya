@@ -26,9 +26,7 @@ open System.ComponentModel
 open System.Globalization
 open System.Runtime.CompilerServices
 open Freya.Types
-open Freya.Types.Formatting
 open Freya.Types.Language
-open Freya.Types.Parsing
 open Freya.Types.Uri
 open FParsec
 
@@ -88,61 +86,57 @@ type PartialUri =
    See [http://tools.ietf.org/html/rfc7230#section-3.2.3] *)
 
 let internal owsP = 
-    skipManySatisfy ((?>) Grammar.wsp)
-
-//    let rwsP =
-//        skipMany1Satisfy (fun c -> Set.contains c wsp)
-
-let internal bwsP =
-    owsP
+    skipManySatisfy (int >> Grammar.wsp)
 
 (* Field Value Components
 
    Taken from RFC 7230, Section 3.2.6. Field Value Components
    See [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
 
-let internal tchar = 
-    Set.unionMany [ 
-        set [ '!'; '#'; '$'; '%'; '&'; '\''; '*'
-              '+'; '-'; '.'; '^'; '_'; '`'; '|'; '~' ]
-        Grammar.alpha
-        Grammar.digit ]
+let internal tchar i =
+        (Grammar.alpha i)
+     || (Grammar.digit i)
+     || (i = 0x21) // !
+     || (i >= 0x23 && i <= 0x26) // # $ % &
+     || (i = 0x5c) // \
+     || (i = 0x2a) // *
+     || (i = 0x2b) // +
+     || (i = 0x2d) // -
+     || (i = 0x2e) // .
+     || (i = 0x5e) // ^
+     || (i = 0x5f) // _
+     || (i = 0x60) // `
+     || (i = 0x7c) // |
+     || (i = 0x7e) // ~
+
+let internal obstext i =
+        (i >= 0x80 && i <= 0xff)
+
+let internal qdtext i =
+        (Grammar.htab i)
+     || (Grammar.sp i)
+     || (i = 0x21)
+     || (i >= 0x23 && i <= 0x5b)
+     || (i >= 0x5d && i <= 0x7e)
+     || (obstext i)
+
+let internal quotedPairChar i =
+        (Grammar.htab i)
+     || (Grammar.sp i)
+     || (Grammar.vchar i)
+     || (obstext i)
 
 let internal tokenP = 
-    many1Satisfy ((?>) tchar)
-
-let internal obsText =
-    charRange 0x80 0xff
-
-let internal qdtext =
-    Set.unionMany [
-        set [ Grammar.htab; Grammar.sp; char 0x21 ]
-        charRange 0x23 0x5b
-        charRange 0x5d 0x7e
-        obsText ]
-
-//let ctext =
-//    Set.unionMany [
-//        set [ htab; sp ]
-//        charRange 0x21 0x27
-//        charRange 0x2a 0x5b
-//        charRange 0x5d 0x7e
-//        obsText ]
-
-let internal quotedPairChars =
-    Set.unionMany [
-        set [ Grammar.htab; Grammar.sp ]
-        Grammar.vchar
-        obsText ]
+    many1Satisfy (int >> tchar)
 
 let internal quotedPairP : Parser<char, unit> =
         skipChar '\\' 
-    >>. satisfy ((?>) quotedPairChars)
+    >>. satisfy (int >> quotedPairChar)
 
 let internal quotedStringP : Parser<string, unit> =
-        skipChar Grammar.dquote 
-    >>. many (quotedPairP <|> satisfy ((?>) qdtext)) |>> (fun x -> string (System.String (List.toArray x)))
-    .>> skipChar Grammar.dquote
+        skipSatisfy (int >> Grammar.dquote)
+    >>. many (quotedPairP <|> satisfy (int >> qdtext)) |>> (fun x -> string (System.String (List.toArray x)))
+    .>> skipSatisfy (int >> Grammar.dquote)
 
 (* ABNF List Extension: #rule
 
@@ -713,12 +707,12 @@ type Weight =
                      | _ -> 0.
 
         let d3P =
-                manyMinMaxSatisfy 0 3 (fun c -> Set.contains c Grammar.digit) 
-            .>> notFollowedBy (skipSatisfy ((?>) Grammar.digit))
+                manyMinMaxSatisfy 0 3 (int >> Grammar.digit) 
+            .>> notFollowedBy (skipSatisfy (int >> Grammar.digit))
 
         let d03P =
                 skipManyMinMaxSatisfy 0 3 ((=) '0') 
-            .>> notFollowedBy (skipSatisfy ((?>) Grammar.digit))
+            .>> notFollowedBy (skipSatisfy (int >> Grammar.digit))
 
         let qvalueP =
             choice [ 
@@ -1343,14 +1337,15 @@ and EntityTag =
 
     static member Mapping =
 
-        let eTagChars =
-            Set.unionMany [
-                set [ char 0x21 ]
-                charRange 0x23 0x7e
-                obsText ]
+        let eTagChar i =
+                (i = 0x21)
+             || (i >= 0x23 && i <= 0x7e)
+             || (obstext i)
 
         let opaqueTagP =
-            skipChar Grammar.dquote >>. manySatisfy ((?>) eTagChars) .>> skipChar Grammar.dquote
+                skipSatisfy (int >> Grammar.dquote) 
+            >>. manySatisfy (int >> eTagChar) 
+            .>> skipSatisfy (int >> Grammar.dquote)
 
         let entityTagP =
             choice [

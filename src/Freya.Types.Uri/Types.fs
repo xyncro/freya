@@ -22,10 +22,17 @@ module Freya.Types.Uri
 
 open System
 open System.ComponentModel
+open System.Runtime.CompilerServices
 open System.Net
 open System.Net.Sockets
+open Freya.Types.Formatting
 open System.Text
 open FParsec
+
+(* Internals *)
+
+[<assembly:InternalsVisibleTo ("Freya.Types.Uri.Template")>]
+do ()
 
 (* RFC 3986
 
@@ -37,28 +44,35 @@ open FParsec
 [<RequireQualifiedAccess>]
 module Grammar =
 
-    (* Characters
+    let unreserved i =
+            (Grammar.alpha i)
+         || (Grammar.digit i)
+         || (i = 0x2d) // -
+         || (i = 0x2e) // .
+         || (i = 0x5f) // _
+         || (i = 0x7e) // ~
 
-       Taken from RFC 3986, Section 2 Characters
-       See [http://tools.ietf.org/html/rfc3986#section-2] *)
+    let genDelim i =
+            (i = 0x3a) // :
+         || (i = 0x2f) // /
+         || (i = 0x3f) // ?
+         || (i = 0x23) // #
+         || (i = 0x5b) // [
+         || (i = 0x5d) // ]
+         || (i = 0x40) // @
 
-    let unreserved =
-        Set.unionMany [
-            Grammar.alpha
-            Grammar.digit
-            set [ '-'; '.'; '_'; '~' ] ]
+    let subDelim i =
+            (i = 0x21) // !
+         || (i = 0x24) // $
+         || (i = 0x26) // &
+         || (i = 0x5c) // \
+         || (i >= 0x28 && i <= 0x2c) // ( ) * + ,
+         || (i = 0x3b) // ;
+         || (i = 0x3d) // =
 
-    let genDelims =
-        set [ ':'; '/'; '?'; '#'; '['; ']'; '@' ]
-
-    let subDelims =
-        set [ '!'; '$'; '&'; '\''; '('; ')'; '*'
-              '+'; ','; ';'; '=' ]
-
-    let reserved =
-        Set.unionMany [
-            genDelims
-            subDelims ]
+    let reserved i=
+            (genDelim i)
+         || (subDelim i)
 
 (* Percent-Encoding
 
@@ -72,10 +86,6 @@ module PercentEncoding =
 
     let private pct =
         byte 0x25
-
-    let private hexdig =
-        Grammar.hexdig
-        |> Set.map byte
 
     (* UTF-8
 
@@ -116,16 +126,16 @@ module PercentEncoding =
        form). *)
 
     let private hexdigP =
-        satisfy ((?>) Grammar.hexdig)
+        satisfy (int >> Grammar.hexdig)
 
     let private pctP =
         skipChar '%' >>. hexdigP .>>. hexdigP
         |>> fun (a, b) ->
             char (Map.find [ byte a; byte b ] hexIndex)
 
-    let makeParser res =
-        many (attempt pctP <|> satisfy ((?>) res))
-        |>> fun x -> 
+    let makeParser p =
+        many (attempt pctP <|> satisfy (int >> p))
+        |>> fun x ->
             new String (List.toArray x)
 
     (* Formatting
@@ -134,18 +144,19 @@ module PercentEncoding =
        given a whitelist set of allowed characters within the encoded
        output. *)
 
-    let private format res =
+    let hexdig =
+        int >> Grammar.hexdig
+
+    let private format p =
         let rec format r =
             function | [] -> r
-                     | h :: x :: y :: t when h = pct && ((?>) hexdig x) && ((?>) hexdig y) -> format (r @ [ h; x; y ]) t
-                     | h :: t when Set.contains h res -> format (r @ [ h ]) t
+                     | h :: x :: y :: t when h = pct && hexdig x && hexdig y -> format (r @ [ h; x; y ]) t
+                     | h :: t when p (int h) -> format (r @ [ h ]) t
                      | h :: t -> format (r @ [ pct ] @ Map.find h byteIndex) t
 
         format []
 
     let makeFormatter res =
-        let res = Set.map byte res
-
         toBytes >> format res >> toString >> append
 
 (* Scheme
@@ -161,14 +172,15 @@ type Scheme =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
 
-        let schemeChars =
-            Set.unionMany [
-                Grammar.alpha
-                Grammar.digit
-                set [ '+'; '-'; '.' ] ]
+        let schemeChar i =
+                (Grammar.alpha i)
+             || (Grammar.digit i)
+             || (i = 0x2b) // +
+             || (i = 0x2d) // -
+             || (i = 0x2e) // .
 
         let schemeP =
-            satisfy ((?>) Grammar.alpha) .>>. manySatisfy ((?>) schemeChars)
+            satisfy (int >> Grammar.alpha) .>>. manySatisfy (int >> schemeChar)
             |>> ((fun (x, xs) -> sprintf "%c%s" x xs) >> Scheme)
 
         let schemeF =
@@ -242,17 +254,16 @@ and UserInfo =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
 
-        let userInfoChars =
-            Set.unionMany [
-                Grammar.unreserved
-                Grammar.subDelims
-                set [ ':' ] ]
+        let userInfoChar i =
+                (Grammar.unreserved i)
+             || (Grammar.subDelim i)
+             || (i = 0x3a) // :
 
         let parser =
-            PercentEncoding.makeParser userInfoChars
+            PercentEncoding.makeParser userInfoChar
 
         let formatter =
-            PercentEncoding.makeFormatter userInfoChars
+            PercentEncoding.makeFormatter userInfoChar
 
         let userInfoP =
             notEmpty parser |>> UserInfo
@@ -280,24 +291,22 @@ and Host =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
 
-        let ipv6Chars =
-            Set.unionMany [
-                Grammar.hexdig
-                set [ ':' ] ]
+        let ipv6Char i =
+                (Grammar.hexdig i)
+             || (i = 0x3a) // :
 
         let ipv6AddressP =
-            skipChar '[' >>. (many1Satisfy ((?>) ipv6Chars) >>= (fun x ->
+            skipChar '[' >>. (many1Satisfy (int >> ipv6Char) >>= (fun x ->
                 match IPAddress.TryParse x with
                 | true, x when x.AddressFamily = AddressFamily.InterNetworkV6 -> preturn (IPv6 x)
                 | _ -> pzero)) .>> skipChar ']'
 
-        let ipv4Chars =
-            Set.unionMany [
-                Grammar.digit
-                set [ '.' ] ]
+        let ipv4Char i =
+                (Grammar.digit i)
+             || (i = 0x2e) // .
 
         let ipv4AddressP =
-            many1Satisfy ((?>) ipv4Chars) >>= (fun x ->
+            many1Satisfy (int >> ipv4Char) >>= (fun x ->
                 match IPAddress.TryParse x with
                 | true, x when x.AddressFamily = AddressFamily.InterNetwork -> preturn (IPv4 x)
                 | _ -> pzero)
@@ -322,16 +331,15 @@ and RegName =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
 
-        let regNameChars =
-            Set.unionMany [
-                Grammar.unreserved
-                Grammar.subDelims ]
+        let regNameChar i =
+                (Grammar.unreserved i)
+             || (Grammar.subDelim i)
 
         let parser =
-            PercentEncoding.makeParser regNameChars
+            PercentEncoding.makeParser regNameChar
 
         let formatter =
-            PercentEncoding.makeFormatter regNameChars
+            PercentEncoding.makeFormatter regNameChar
 
         let regNameP =
             notEmpty parser |>> RegName
@@ -363,14 +371,14 @@ and Port =
    Taken from RFC 3986, Section 3.3 Path
    See [http://tools.ietf.org/html/rfc3986#section-3.3] *)
 
-let private pchar =
-    Set.unionMany [
-        Grammar.unreserved
-        Grammar.subDelims
-        set [ ':'; '@' ] ]
+let private pcharNc i =
+        (Grammar.unreserved i)
+     || (Grammar.subDelim i)
+     || (i = 0x40) // @
 
-let private pcharNc =
-    Set.remove ':' pchar
+let private pchar i =
+        (pcharNc i)
+     || (i = 0x3a) // :
 
 let private pcharParser =
     PercentEncoding.makeParser pchar
@@ -516,16 +524,16 @@ type Query =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
 
-        let queryChars =
-            Set.unionMany [
-                pchar
-                set [ '/'; '?' ] ]
+        let queryChar i =
+                (pchar i)
+             || (i = 0x2f) // /
+             || (i = 0x3f) // ?
 
         let parser =
-            PercentEncoding.makeParser queryChars
+            PercentEncoding.makeParser queryChar
 
         let formatter =
-            PercentEncoding.makeFormatter queryChars
+            PercentEncoding.makeFormatter queryChar
 
         let queryP =
             skipChar '?' >>. parser |>> Query
@@ -559,16 +567,16 @@ type Fragment =
     [<EditorBrowsable (EditorBrowsableState.Never)>]
     static member Mapping =
     
-        let fragmentChars =
-            Set.unionMany [
-                pchar
-                set [ '/'; '?' ] ]
+        let fragmentChar i =
+                (pchar i)
+             || (i = 0x2f) // /
+             || (i = 0x3f) // ?
 
         let parser =
-            PercentEncoding.makeParser fragmentChars
+            PercentEncoding.makeParser fragmentChar
 
         let formatter =
-            PercentEncoding.makeFormatter fragmentChars
+            PercentEncoding.makeFormatter fragmentChar
 
         let fragmentP =
             skipChar '#' >>. parser |>> Fragment

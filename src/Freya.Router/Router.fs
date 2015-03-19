@@ -19,7 +19,7 @@
 //----------------------------------------------------------------------------
 
 [<RequireQualifiedAccess>]
-module Freya.Router.Router
+module Freya.Router.FreyaRouter
 
 open Freya.Pipeline
 

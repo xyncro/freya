@@ -21,8 +21,6 @@ module Freya.Types.Language
 
 open System.ComponentModel
 open Freya.Types
-open Freya.Types.Formatting
-open Freya.Types.Parsing
 open FParsec
 
 (* RFC 5646
@@ -46,23 +44,21 @@ open FParsec
 
 (* Helpers *)
 
-let private isAlpha =
-    ((?>) Grammar.alpha)
-
-let private isDigit =
-    ((?>) Grammar.digit)
-
-let private isAlphaNum x =
-    (Grammar.alpha ?> x || Grammar.digit ?> x)
+let private alphaDigit i =
+        (Grammar.alpha i)
+     || (Grammar.digit i)
 
 let private alphaP min max =
-    manyMinMaxSatisfy min max isAlpha .>>? notFollowedBy (skipSatisfy isAlpha)
+         manyMinMaxSatisfy min max (int >> Grammar.alpha) 
+    .>>? notFollowedBy (skipSatisfy (int >> Grammar.alpha))
 
 let private digitP min max =
-    manyMinMaxSatisfy min max isDigit .>>? notFollowedBy (skipSatisfy isDigit)
+         manyMinMaxSatisfy min max (int >> Grammar.digit) 
+    .>>? notFollowedBy (skipSatisfy (int >> Grammar.digit))
 
 let private alphaNumP min max =
-    manyMinMaxSatisfy min max isAlphaNum .>>? notFollowedBy (skipSatisfy isAlphaNum)
+         manyMinMaxSatisfy min max (int >> alphaDigit) 
+    .>>? notFollowedBy (skipSatisfy (int >> alphaDigit))
 
 (* Language *)
 
