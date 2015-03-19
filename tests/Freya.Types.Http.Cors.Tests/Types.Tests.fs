@@ -14,7 +14,7 @@ let ``Origin Formatting/Parsing`` () =
             OriginListOrNull.Origins [
                 SerializedOrigin (
                     Scheme "http",
-                    Name "www.example.com",
+                    Name (RegName "www.example.com"),
                     Some (Port 8080)) ])
 
     let originString =
@@ -31,7 +31,7 @@ let ``AccessControlAllowOrigin Formatting/Parsing`` () =
                 OriginListOrNull.Origins [
                     SerializedOrigin (
                         Scheme "http",
-                        Name "www.example.com",
+                        Name (RegName "www.example.com"),
                         Some (Port 8080)) ]))
 
     let accessControlAllowOriginString =

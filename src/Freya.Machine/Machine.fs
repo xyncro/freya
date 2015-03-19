@@ -19,7 +19,7 @@
 //----------------------------------------------------------------------------
 
 [<RequireQualifiedAccess>]
-module Freya.Machine.Machine
+module Freya.Machine.FreyaMachine
 
 open Freya.Pipeline
 

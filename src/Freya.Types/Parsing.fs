@@ -34,15 +34,7 @@ let tryParse (p: Parse<'a>) s =
     | Success (x, _, _) -> Some x
     | Failure (_, _, _) -> None
 
-(* Helpers *)
-
-let charRange x y =
-    set (List.map char [ x .. y ])
-
-let (?>) xs x =
-    Set.contains x xs
-
-(* Common *)
+(* Common Parsers *)
 
 let ampersandP : Parser<unit, unit> =
     skipChar '&'
