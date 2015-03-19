@@ -49,7 +49,7 @@ module Grammar =
          || (i = 0x5d)
          || (i = 0x5f)
          || (i >= 0x61 && i <= 0x7a)
-         || ( i = 0x7e)
+         || (i = 0x7e)
 
     let varchar i =
             (Grammar.alpha i)
@@ -90,6 +90,9 @@ type UriTemplate =
 
     static member TryParse =
         Parsing.tryParse UriTemplate.Mapping.Parse
+
+    static member (+) (UriTemplate a, UriTemplate b) =
+        UriTemplate (a @ b)
 
     override x.ToString () =
         UriTemplate.Format x

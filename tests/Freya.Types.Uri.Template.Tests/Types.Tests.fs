@@ -12,7 +12,7 @@ open Swensen.Unquote
 let data =
     UriTemplateData (
         Map.ofList [
-            [ "count "],      List [ "one"; "two"; "three" ]
+            [ "count" ],      List [ "one"; "two"; "three" ]
             [ "dom" ],        List [ "example"; "com" ]
             [ "dub" ],        Atom "me/too"
             [ "hello" ],      Atom "Hello World!"
