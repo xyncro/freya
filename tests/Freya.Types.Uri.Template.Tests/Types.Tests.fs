@@ -18,7 +18,7 @@ let data =
             [ "hello" ],      Atom "Hello World!"
             [ "half" ],       Atom "50%"
             [ "var" ],        Atom "value"
-            [ "who" ],        Atom "Fred"
+            [ "who" ],        Atom "fred"
             [ "base" ],       Atom "http://example.com/home/"
             [ "path" ],       Atom "/foo/bar"
             [ "list" ],       List [ "red"; "green"; "blue" ]
@@ -69,10 +69,7 @@ let ``Level 2 Examples Render Correctly`` () =
    behaviours given as part of the specification. *)
 
 [<Test>]
-let ``Simple String Expansion Renders Correctly`` () =
-
-    (* Simple String Expansion *)
-
+let ``Simple Expansion Renders Correctly`` () =
     "{var}" =? "value"
     "{hello}" =? "Hello%20World%21"
     "{half}" =? "50%25"
@@ -81,4 +78,63 @@ let ``Simple String Expansion Renders Correctly`` () =
     "{x,y}" =? "1024,768"
     "{x,hello,y}" =? "1024,Hello%20World%21,768"
     "?{x,empty}" =? "?1024,"
-    //"?{x,undef}" =? "?1204"
+    "?{x,undef}" =? "?1024"
+    "?{undef,y}" =? "?768"
+    "{var:3}" =? "val"
+    "{var:30}" =? "value"
+    "{list}" =? "red,green,blue"
+    "{list*}" =? "red,green,blue"
+    "{keys}" =? "semi,%3B,dot,.,comma,%2C"
+    "{keys*}" =? "semi=%3B,dot=.,comma=%2C"
+
+[<Test>]
+let ``Reserved Expansion Renders Correctly`` () =
+    "{+var}" =? "value"
+    "{+hello}" =? "Hello%20World!"
+    "{+half}" =? "50%25"
+    "{base}index" =? "http%3A%2F%2Fexample.com%2Fhome%2Findex"
+    "{+base}index" =? "http://example.com/home/index"
+    "O{+empty}X" =? "OX"
+    "O{+undef}X" =? "OX"
+    "{+path}/here" =? "/foo/bar/here"
+    "here?ref={+path}" =? "here?ref=/foo/bar"
+    "up{+path}{var}/here" =? "up/foo/barvalue/here"
+    "{+x,hello,y}" =? "1024,Hello%20World!,768"
+    "{+path,x}/here" =? "/foo/bar,1024/here"
+    "{+path:6}/here" =? "/foo/b/here"
+    "{+list}" =? "red,green,blue"
+    "{+list*}" =? "red,green,blue"
+    "{+keys}" =? "semi,;,dot,.,comma,,"
+    "{+keys*}" =? "semi=;,dot=.,comma=,"
+
+[<Test>]
+let ``Fragment Expansion Renders Correctly`` () =
+    "{#var}" =? "#value"
+    "{#hello}" =? "#Hello%20World!"
+    "{#half}" =? "#50%25"
+    "foo{#empty}" =? "foo#"
+    "foo{#undef}" =? "foo"
+    "{#x,hello,y}" =? "#1024,Hello%20World!,768"
+    "{#path,x}/here" =? "#/foo/bar,1024/here"
+    "{#path:6}/here" =? "#/foo/b/here"
+    "{#list}" =? "#red,green,blue"
+    "{#list*}" =? "#red,green,blue"
+    "{#keys}" =? "#semi,;,dot,.,comma,,"
+    "{#keys*}" =? "#semi=;,dot=.,comma=,"
+
+[<Test>]
+let ``Label Expansion with Dot-Prefix Renders Correctly`` () =
+    "{.who}" =? ".fred"
+    "{.who,who}" =? ".fred.fred"
+    "{.half,who}" =? ".50%25.fred"
+    "www{.dom*}" =? "www.example.com"
+    "X{.var}" =? "X.value"
+    "X{.empty}" =? "X."
+    "X{.undef}" =? "X"
+    "X{.var:3}" =? "X.val"
+    "X{.list}" =? "X.red,green,blue"
+    "X{.list*}" =? "X.red.green.blue"
+    "X{.keys}" =? "X.semi,%3B,dot,.,comma,%2C"
+    "X{.keys*}" =? "X.semi=%3B.dot=..comma=%2C"
+    "X{.empty_keys}" =? "X"
+    "X{.empty_keys*}" =? "X"

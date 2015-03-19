@@ -21,8 +21,6 @@
 module Freya.Types.Uri.Template
 
 open Freya.Types
-open Freya.Types.Formatting
-open Freya.Types.Parsing
 open Freya.Types.Uri
 open FParsec
 
@@ -35,9 +33,8 @@ open FParsec
 
 (* Grammar
 
-   NOTE: We do not currently support either PCT encoded characters (a
-   must fix) or international characters (supporting IRIs - this may
-   be supported in future). *)
+   NOTE: We do not currently support IRIs - this may
+   be supported in future. *)
 
 [<RequireQualifiedAccess>]
 module Grammar =
@@ -180,44 +177,66 @@ and Expression =
 
         (* Expansion *)
 
-        let variableSpecR format (UriTemplateData data) =
-            function | VariableSpec (VariableName n, _) ->
-                        match Map.tryFind n data with
-                        | Some (Atom a) -> format a
-                        | _ -> id
+        let choose (VariableList variableList) (UriTemplateData data) =
+            variableList
+            |> List.map (fun (VariableSpec (VariableName n, m)) ->
+                match Map.tryFind n data with
+                | None -> None
+                | Some (List []) -> None
+                | Some (Keys []) -> None
+                | Some x -> Some (x, m))
+            |> List.choose id
 
-        (* Simple String Expansion *)
+        let expand f s =
+            function | (Atom a, Some (Level4 (Prefix i))) -> f (a.Substring (0, min i a.Length))
+                     | (Atom a, _) -> f a
+                     | (List l, Some (Level4 (Explode))) -> join f s l
+                     | (List l, _) -> join f commaF l
+                     | (Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
 
-        let simpleFormatter =
+        let render f variableList data =
+            match choose variableList data with
+            | [] -> id
+            |  data -> f data
+
+        (* Simple Expansion *)
+
+        let simpleF =
             PercentEncoding.makeFormatter Grammar.unreserved
 
-        let simpleStringExpansion (VariableList v) data =
-            join (variableSpecR simpleFormatter data) commaF v
+        let simpleExpansion =
+            render (join (expand simpleF commaF) commaF)
 
-        (* Reserved String Expansion *)
+        (* Reserved Expansion *)
 
         let reserved i =
                 (Grammar.reserved i)
              || (Grammar.unreserved i)
 
-        let reservedFormatter =
+        let reservedF =
             PercentEncoding.makeFormatter reserved
 
-        let reservedStringExpansion (VariableList v) data =
-            join (variableSpecR reservedFormatter data) commaF v
+        let reservedExpansion =
+            render (join (expand reservedF commaF) commaF)
 
         (* Fragment Expansion *)
 
-        let fragmentExpansion (VariableList v) data =
-            append "#" >> join (variableSpecR reservedFormatter data) commaF v
+        let fragmentExpansion =
+            render (fun d -> append "#" >> join (expand reservedF commaF) commaF d)
+
+        (* Label Expansion with Dot-Prefix *)
+
+        let labelExpansion =
+            render (fun d -> dotF >> join (expand simpleF dotF) dotF d)
 
         (* Expression *)
 
         let expressionR data =
-            function | Expression (None, v) -> simpleStringExpansion v data
-                     | Expression (Some (Level2 Plus), v) -> reservedStringExpansion v data
+            function | Expression (None, v) -> simpleExpansion v data
+                     | Expression (Some (Level2 Plus), v) -> reservedExpansion v data
                      | Expression (Some (Level2 Hash), v) -> fragmentExpansion v data
-                     | Expression (Some (Level3 Dot), _) -> id
+                     | Expression (Some (Level3 Dot), v) -> labelExpansion v data
                      | Expression (Some (Level3 Slash), _) -> id
                      | Expression (Some (Level3 SemiColon), _) -> id
                      | Expression (Some (Level3 Question), _) -> id
