@@ -493,7 +493,7 @@ and ContentCoding =
 
 type ContentCoding with
 
-    /// Convenience definition for "deflate"
+    /// Convenience definition for "compress"
     static member Compress =
         ContentCoding "compress"
 
