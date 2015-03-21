@@ -187,7 +187,7 @@ let todos =
         doDelete clearAction
         doPost addAction
         handleCreated addedHandler
-        handleOk listHandler } |> Machine.toPipeline
+        handleOk listHandler } |> FreyaMachine.toPipeline
 
 let todoMethods =
     freya {
@@ -204,7 +204,7 @@ let todo =
         methodsSupported todoMethods
         doDelete deleteAction
         doPatch updateAction
-        handleOk getHandler } |> Machine.toPipeline
+        handleOk getHandler } |> FreyaMachine.toPipeline
 
 (* Router
 
@@ -216,7 +216,7 @@ let todo =
 let todoRoutes =
     freyaRouter {
         resource "/" todos
-        resource "/:id" todo } |> Router.toPipeline
+        resource "/:id" todo } |> FreyaRouter.toPipeline
 
 (* Inspectors *)
 

@@ -24,8 +24,8 @@ open System.Text
 
 (* Formatting *)
 
-let format (formatter: 'a -> StringBuilder -> StringBuilder) =
-    fun a -> string (formatter a (StringBuilder ()))
+let format (format: Format<'a>) =
+    fun a -> string (format a (StringBuilder ()))
 
 (* Helpers *)
 
@@ -57,6 +57,12 @@ let ampersandF : Separator =
 
 let commaF : Separator =
     append ","
+
+let dotF : Separator =
+    append "."
+
+let equalsF : Separator =
+    append "="
 
 let semicolonF : Separator =
     append ";"
