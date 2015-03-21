@@ -98,11 +98,7 @@ let freya =
                           Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Pipeline"
-                          Local "Freya.Recorder"
-                          Local "Freya.Types.Cors"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Language"
-                          Local "Freya.Types.Uri" ] }
+                          Local "Freya.Recorder" ] }
                   { Name = "Freya.Machine.Extensions.Http"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -195,8 +191,8 @@ let freya =
                   { Name = "Freya.Pipeline.Tests" }
                   { Name = "Freya.Router.Tests" }
                   { Name = "Freya.Types.Tests" }
-                  { Name = "Freya.Types.Http.Cors.Tests" }
                   { Name = "Freya.Types.Http.Tests" }
+                  { Name = "Freya.Types.Http.Cors.Tests" }
                   { Name = "Freya.Types.Language.Tests" }
                   { Name = "Freya.Types.Uri.Tests" }
                   { Name = "Freya.Types.Uri.Template.Tests" } ] } }
