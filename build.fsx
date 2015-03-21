@@ -180,7 +180,13 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "FParsec"
-                          Local "Freya.Types" ] } ]
+                          Local "Freya.Types" ] }
+                  { Name = "Freya.Types.Uri.Template"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "FParsec"
+                          Local "Freya.Types"
+                          Local "Freya.Types.Uri" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
                   { Name = "Freya.Integration.Tests" }
@@ -192,7 +198,8 @@ let freya =
                   { Name = "Freya.Types.Http.Cors.Tests" }
                   { Name = "Freya.Types.Http.Tests" }
                   { Name = "Freya.Types.Language.Tests" }
-                  { Name = "Freya.Types.Uri.Tests" } ] } }
+                  { Name = "Freya.Types.Uri.Tests" }
+                  { Name = "Freya.Types.Uri.Template.Tests" } ] } }
       VersionControl =
         { Source = "https://github.com/freya-fs/freya"
           Raw = "https://raw.github.com/freya-fs" } }
