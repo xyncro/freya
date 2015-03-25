@@ -91,8 +91,13 @@ type UriTemplate =
     static member TryParse =
         Parsing.tryParse UriTemplate.Mapping.Parse
 
-    static member (+) (UriTemplate a, UriTemplate b) =
-        UriTemplate (a @ b)
+    static member (+) (UriTemplate x, UriTemplate y) =
+        match List.rev x, y with
+        | (UriTemplatePart.Literal (Literal x) :: xs),
+          (UriTemplatePart.Literal (Literal y) :: ys) ->
+            UriTemplate (List.rev xs @ [ UriTemplatePart.Literal (Literal (x + y)) ] @ ys)
+        | _ ->
+            UriTemplate (x @ y)
 
     override x.ToString () =
         UriTemplate.Format x
@@ -123,6 +128,12 @@ and UriTemplatePart =
                      | Expression e-> Expression.Rendering.Render data e
 
         { Render = uriTemplatePartR }
+
+    static member Format =
+        Formatting.format UriTemplatePart.Mapping.Format
+
+    override x.ToString () =
+        UriTemplatePart.Format x
 
 and Literal =
     | Literal of string
