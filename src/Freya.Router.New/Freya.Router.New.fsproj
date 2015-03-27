@@ -49,7 +49,8 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="New.fs" />
+    <Compile Include="Compilation.fs" />
+    <Compile Include="Execution.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">

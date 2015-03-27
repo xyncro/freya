@@ -1,4 +1,4 @@
-﻿open Freya.Router.New
+﻿open Freya.Router
 open Freya.Types.Uri.Template
 
 [<EntryPoint>]
@@ -14,9 +14,9 @@ let main _ =
           location, 2 ]
 
     let graph =
-        create data
+        compile data
 
     let res =
-        route graph "/hello/brighton"
+        executeCompilation graph "/hello/brighton"
 
     0
