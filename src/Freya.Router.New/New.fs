@@ -30,16 +30,20 @@ and RoutingEdge =
 
 (* Defaults *)
 
+let private defaultRoutingGraphKey =
+    RoutingKey ""
+
+let private defaultRoutingGraphRoot =
+    defaultRoutingGraphKey, RoutingNode None
+
 let private defaultRoutingGraph : RoutingGraph =
-    Graph.create
-        [ (RoutingKey "", RoutingNode None) ]
-        []
+    Graph.create [ defaultRoutingGraphRoot ] []
 
 (* Construction *)
 
 let rec private add current (graph: RoutingGraph) remaining =
     match remaining with
-    | UriTemplate ([]), i ->
+    | UriTemplate ([]), _ ->
         graph
     | UriTemplate (p :: ps), i ->
         let index =
@@ -67,5 +71,61 @@ let create =
 
 (* Traversal *)
 
+type TraversalState =
+    | TraversalState of TraversalPoint list
+
+and TraversalPoint =
+    | TraversalPoint of RoutingKey * int * string
+
+// Shifts
+
+let up =
+    function | _ :: TraversalPoint (k, i, p) :: ps -> TraversalState (TraversalPoint (k, i + 1, p) :: ps)
+             | _ -> TraversalState []
+
+let down k p =
+    function | ps -> TraversalState (TraversalPoint (k, 0, p) :: ps)
+
+let right =
+    function | TraversalPoint (k, i, p) :: ps -> TraversalState (TraversalPoint (k, i + 1, p) :: ps)
+             | _ -> TraversalState []
+
 let route (graph: RoutingGraph) (path: string) =
-    None
+
+    let rec trav (TraversalState points) =
+        match points with
+        | [] ->
+            printfn "top"
+            false
+        | TraversalPoint (_, _, p) :: _ when p = "" ->
+            true
+        |  TraversalPoint (k, i, p) :: _ ->
+            let next =
+                graph
+                |> Graph.successors k
+                |> Option.bind (
+                    List.tryFind (
+                        function | (_, RoutingEdge (i', _)) when i' = i -> true
+                                 | _ -> false))
+
+            match next with
+            | Some (k', RoutingEdge (_, part)) ->
+                match part.Match p with
+                | _, Some p' ->
+                    printfn "matched %A with %s giving %s" part p p'
+                    trav (down k' p' points)
+                | _ ->
+                    printfn "failed to match %A with %s" part p
+                    trav (right points)
+            | _ ->
+                printfn "next not found"
+                trav (up points)
+
+
+
+
+
+    let state =
+        TraversalState [ TraversalPoint (defaultRoutingGraphKey, 0, path) ]
+
+    trav state

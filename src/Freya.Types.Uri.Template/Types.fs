@@ -20,9 +20,49 @@
 
 module Freya.Types.Uri.Template
 
+open System.Text
 open Freya.Types
 open Freya.Types.Uri
 open FParsec
+
+(* Data
+
+   Types representing data which may be rendered or extracted
+   using UriTemplates. *)
+
+type UriTemplateData =
+    | UriTemplateData of Map<string list, UriTemplateDataItem>
+
+and UriTemplateDataItem =
+    | Atom of string
+    | List of string list
+    | Keys of (string * string) list
+
+(* Matching *)
+
+type Matching<'a> =
+    { Match: Match<'a> }
+
+and Match<'a> =
+    string -> 'a -> UriTemplateDataItem option * string option
+
+let private match' (m: Match<'a>) =
+    fun s a -> m s a
+
+(* Rendering
+
+   Types and functions to support a general concept of a type rendering
+   itself given some state data d', producing a rendering concept much
+   like the Format concept, but with readable state. *)
+
+type Rendering<'a,'d> =
+    { Render: Render<'a,'d> }
+
+and Render<'a,'d> =
+    'd -> 'a -> StringBuilder -> StringBuilder
+
+let private render (render: Render<'a,'d>) =
+    fun d a -> string (render d a (StringBuilder ()))
 
 (* RFC 6570
 
@@ -103,7 +143,7 @@ type UriTemplate =
         UriTemplate.Format x
 
     member x.Render data =
-        Rendering.render UriTemplate.Rendering.Render data x
+        render UriTemplate.Rendering.Render data x
 
 and UriTemplatePart =
     | Literal of Literal
@@ -121,6 +161,14 @@ and UriTemplatePart =
         { Parse = uriTemplatePartP
           Format = uriTemplatePartF }
 
+    static member Matching =
+
+        let uriTemplatePartM s =
+            function | Literal l -> Literal.Matching.Match s l
+                     | Expression _ -> None, None
+
+        { Match = uriTemplatePartM }
+
     static member Rendering =
 
         let uriTemplatePartR data =
@@ -134,6 +182,9 @@ and UriTemplatePart =
 
     override x.ToString () =
         UriTemplatePart.Format x
+
+    member x.Match path =
+        match' UriTemplatePart.Matching.Match path x
 
 and Literal =
     | Literal of string
@@ -154,6 +205,16 @@ and Literal =
 
         { Parse = literalP
           Format = literalF }
+
+    static member Matching =
+        
+        let literalM s =
+            function | Literal l ->
+                        match run (pstring l) s with
+                        | Success (_, _, p) -> None, Some (s.Substring (int p.Index))
+                        | _ -> None, None
+
+        { Match = literalM }
 
     static member Rendering =
 
@@ -452,16 +513,3 @@ and ModifierLevel4 =
 
         { Parse = modifierLevel4P
           Format = modifierLevel4F }
-
-(* Data
-
-   Types representing data which may be rendered or extracted
-   using UriTemplates. *)
-
-and UriTemplateData =
-    | UriTemplateData of Map<string list, UriTemplateDataItem>
-
-and UriTemplateDataItem =
-    | Atom of string
-    | List of string list
-    | Keys of (string * string) list

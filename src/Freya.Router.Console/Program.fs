@@ -1,6 +1,5 @@
 ﻿open Freya.Router.New
 open Freya.Types.Uri.Template
-open Hekate
 
 [<EntryPoint>]
 let main _ =
@@ -17,6 +16,7 @@ let main _ =
     let graph =
         create data
 
-    let x = Graph.successors (RoutingKey "") graph
+    let res =
+        route graph "/hello/brighton"
 
     0
