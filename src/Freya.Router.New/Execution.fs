@@ -32,7 +32,7 @@ open Hekate
    graph, effectively a depth first search with reliable "capturing" of
    state through traversal, with appropriate reversion on failure of
    a traversal stage.
-   
+
    Lenses are used to more succinctly allow modification of the nested
    data structure representing a traversal. *)
 
@@ -117,7 +117,8 @@ let private (|Failed|_|) =
              | _ -> None
 
 let private (|Exhausted|_|) =
-    function | { State = { Data = { Path = "" } } :: _ } -> Some ()
+    function | { State = { Position = { Key = key }
+                           Data = { Path = ""; Data = data } } :: _ } -> Some (key, data)
              | _ -> None
 
 let private (|Active|_|) =
@@ -125,7 +126,16 @@ let private (|Active|_|) =
                            Data = { Path = path } } :: _ } -> Some (key, order, path)
              | _ -> None
 
-(* Position *)
+(* Position
+
+   Functions for shifting the position of the implied "cursor" in
+   our traversal over the routing graph. While Hekate could support a much
+   more functional/inductive approach to DFS, we have significant state and
+   back-tracking requirements which are more clearly implemented by making
+   them explicit.
+
+   In addition to the shift in cursor, we also capture and discard data
+   according to the semantics of the shift involved. *)
 
 let private capture key path =
     Lens.map
@@ -160,39 +170,40 @@ let private abandon =
 
 (* Traversal *)
 
-let rec private traverse graph traversal =
-    match traversal with
-    | Failed _ ->
-        // Failed to match complete path
-        false
-    | Exhausted _ ->
-        // Potential match of complete path, if node is a terminal
-        true
-    | Active (key, order, path) ->
-        let edge =
-            graph
-            |> Graph.successors key
-            |> Option.bind (
-                List.tryFind (
-                    function | (_, { CompilationEdge.Order = o }) when o = order -> true
-                             | _ -> false))
+let private findNode graph key =
+    graph
+    |> Graph.tryFindNode key
 
-        match edge with
-        | Some (key', { Part = part }) ->
-            match part.Match path with
-            | _, Some path' ->
-                printfn "matched %A with %s giving %s" part path path'
-                traverse graph (capture key' path' traversal)
-            | _ ->
-                printfn "failed to match %A with %s" part path
-                traverse graph (reject traversal)
+let private findEdge graph key order =
+    graph
+    |> Graph.successors key
+    |> Option.bind (
+        List.tryFind (
+            function | _, { CompilationEdge.Order = o } when o = order -> true
+                     | _ -> false))
+
+let private findMatch graph path =
+    let rec traverse traversal =
+        match traversal with
+        | Failed _ ->
+            None
+        | Exhausted (key, data) ->
+            match findNode graph key with
+            | Some (_, { Value = Some i }) -> Some (i, data)
+            | _ -> traverse (reject traversal)
+        | Active (key, order, path) ->
+            match findEdge graph key order with
+            | Some (key', { Part = part }) ->
+                match part.Match path with
+                | _, Some path' -> traverse (capture key' path' traversal)
+                | _ -> traverse (reject traversal)
+            | _ -> traverse (abandon traversal)
         | _ ->
-            printfn "edge not found"
-            traverse graph (abandon traversal)
-    | _ ->
-        failwith ""
+            failwith ""
+
+    traverse (traversal path)
 
 (* Execution *)
 
-let executeCompilation graph path =
-    traverse graph (traversal path)
+let executeCompilation =
+    findMatch

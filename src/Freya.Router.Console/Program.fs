@@ -13,6 +13,9 @@ let main _ =
           hello, 1
           location, 2 ]
 
+    let data2 =
+        [ UriTemplate.Parse "{greeting,name}", 0 ]
+
     let graph =
         compile data
 

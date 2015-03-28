@@ -31,9 +31,12 @@ open FParsec
    using UriTemplates. *)
 
 type UriTemplateData =
-    | UriTemplateData of Map<string list, UriTemplateDataItem>
+    | UriTemplateData of Map<UriTemplateKey, UriTemplateValue>
 
-and UriTemplateDataItem =
+and UriTemplateKey =
+    | Key of string list
+
+and UriTemplateValue =
     | Atom of string
     | List of string list
     | Keys of (string * string) list
@@ -44,7 +47,7 @@ type Matching<'a> =
     { Match: Match<'a> }
 
 and Match<'a> =
-    string -> 'a -> UriTemplateDataItem option * string option
+    string -> 'a -> UriTemplateData option * string option
 
 let private match' (m: Match<'a>) =
     fun s a -> m s a
@@ -55,13 +58,13 @@ let private match' (m: Match<'a>) =
    itself given some state data d', producing a rendering concept much
    like the Format concept, but with readable state. *)
 
-type Rendering<'a,'d> =
-    { Render: Render<'a,'d> }
+type Rendering<'a> =
+    { Render: Render<'a> }
 
-and Render<'a,'d> =
-    'd -> 'a -> StringBuilder -> StringBuilder
+and Render<'a> =
+    UriTemplateData -> 'a -> StringBuilder -> StringBuilder
 
-let private render (render: Render<'a,'d>) =
+let private render (render: Render<'a>) =
     fun d a -> string (render d a (StringBuilder ()))
 
 (* RFC 6570
@@ -165,7 +168,7 @@ and UriTemplatePart =
 
         let uriTemplatePartM s =
             function | Literal l -> Literal.Matching.Match s l
-                     | Expression _ -> None, None
+                     | Expression e -> Expression.Matching.Match s e
 
         { Match = uriTemplatePartM }
 
@@ -248,6 +251,23 @@ and Expression =
         { Parse = expressionP
           Format = expressionF }
 
+    static member Matching =
+
+        let simpleM (VariableList _) s =
+            let strP = many1Satisfy (int >> Grammar.alpha)
+
+            match run (sepBy strP (pchar ',')) s with
+            | Success (l, _, p) ->
+                printfn "simple capture of %A" l
+                None, Some (s.Substring (int p.Index))
+            | _ -> None, None
+
+        let expressionM s =
+            function | Expression (None, v) -> simpleM v s
+                     | _ -> None, None
+
+        { Match = expressionM }
+
     static member Rendering =
 
         (* Expansion *)
@@ -255,12 +275,17 @@ and Expression =
         let choose (VariableList variableList) (UriTemplateData data) =
             variableList
             |> List.map (fun (VariableSpec (VariableName n, m)) ->
-                match Map.tryFind n data with
+                match Map.tryFind (Key n) data with
                 | None -> None
                 | Some (List []) -> None
                 | Some (Keys []) -> None
                 | Some x -> Some (x, m))
             |> List.choose id
+
+        let render f variableList data =
+            match choose variableList data with
+            | [] -> id
+            |  data -> f data
 
         let expand f s =
             function | (Atom a, Some (Level4 (Prefix i))) -> f (a.Substring (0, min i a.Length))
@@ -269,11 +294,6 @@ and Expression =
                      | (List l, _) -> join f commaF l
                      | (Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
                      | (Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
-
-        let render f variableList data =
-            match choose variableList data with
-            | [] -> id
-            |  data -> f data
 
         (* Simple Expansion *)
 
