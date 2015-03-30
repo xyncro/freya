@@ -23,6 +23,7 @@ module Freya.Router.Traversal
 
 open Aether
 open Aether.Operators
+open Freya.Core
 open Freya.Types.Uri.Template
 open Hekate
 
@@ -189,7 +190,7 @@ let private findMatch graph path =
             None
         | Exhausted (key, data) ->
             match findNode graph key with
-            | Some (_, { Value = Some i }) -> Some (i, data)
+            | Some (_, { Value = Some p }) -> Some (p, data)
             | _ -> traverse (reject traversal)
         | Active (key, order, path) ->
             match findEdge graph key order with
@@ -205,5 +206,6 @@ let private findMatch graph path =
 
 (* Execution *)
 
-let executeCompilation =
-    findMatch
+let execute compilation =
+    freya {
+        return findMatch compilation "" }

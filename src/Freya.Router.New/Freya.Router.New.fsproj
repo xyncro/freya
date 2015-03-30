@@ -49,10 +49,24 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Types.fs" />
+    <Compile Include="Builder.fs" />
     <Compile Include="Compilation.fs" />
     <Compile Include="Execution.fs" />
+    <Compile Include="Reification.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
+      <Name>Freya.Pipeline</Name>
+      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
+      <Name>Freya.Types.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types\Freya.Types.fsproj">
       <Name>Freya.Types</Name>
       <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>

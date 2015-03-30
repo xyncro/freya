@@ -20,6 +20,7 @@
 [<AutoOpen>]
 module Freya.Router.Compilation
 
+open Freya.Pipeline
 open Freya.Types.Uri.Template
 open Hekate
 
@@ -29,10 +30,10 @@ type CompilationGraph =
     Graph<string, CompilationNode, CompilationEdge>
 
 and CompilationNode =
-    { Value: int option }
+    { Value: FreyaPipeline option }
 
     override x.ToString () =
-        (function | { Value = Some i } -> sprintf "Node %i" i
+        (function | { Value = Some _ } -> sprintf "Node (Pipeline)"
                   | _ -> sprintf "Node _") x
 
 and CompilationEdge =
@@ -70,14 +71,21 @@ let private insert current next node edge =
 let compile =
     let rec add current graph template =
         match template with
-        | UriTemplate [], _ ->
+        | { Template = UriTemplate [] } ->
             graph
-        | UriTemplate (p :: ps), i ->
-            let node = node ps i
+        | { Method = method'
+            Match = match'
+            Template = UriTemplate (p :: ps)
+            Pipeline = pipeline } ->
+            let node = node ps pipeline
             let edge = edge current p graph
             let next = current + UriTemplatePart.Format p
             let graph = insert current next node edge graph
 
-            add next graph (UriTemplate ps, i)
+            add next graph {
+                Method = method'
+                Match = match'
+                Template = UriTemplate ps
+                Pipeline = pipeline }
 
     List.fold (add "") defaultCompilationGraph
