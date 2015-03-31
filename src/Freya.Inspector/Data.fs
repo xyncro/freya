@@ -133,6 +133,6 @@ let data config =
         |> inspection
 
     freyaRouter {
-        resourcePath (root) records
-        resourcePath (root + UriTemplate.Parse "/{id}") record
-        resourcePath (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline
+        pathResource (root) records
+        pathResource (root + UriTemplate.Parse "/{id}") record
+        pathResource (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline

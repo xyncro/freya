@@ -86,6 +86,6 @@ let private root =
 
 let content =
     freyaRouter {
-        resourcePath (root) html
-        resourcePath (root + UriTemplate.Parse "/css/app.css") css
-        resourcePath (root + UriTemplate.Parse "/js/app.js") js } |> FreyaRouter.toPipeline
+        pathResource (root) html
+        pathResource (root + UriTemplate.Parse "/css/app.css") css
+        pathResource (root + UriTemplate.Parse "/js/app.js") js } |> FreyaRouter.toPipeline

@@ -12,22 +12,22 @@ open Swensen.Unquote
 let data =
     UriTemplateData (
         Map.ofList [
-            [ "count" ],      List [ "one"; "two"; "three" ]
-            [ "dom" ],        List [ "example"; "com" ]
-            [ "dub" ],        Atom "me/too"
-            [ "hello" ],      Atom "Hello World!"
-            [ "half" ],       Atom "50%"
-            [ "var" ],        Atom "value"
-            [ "who" ],        Atom "fred"
-            [ "base" ],       Atom "http://example.com/home/"
-            [ "path" ],       Atom "/foo/bar"
-            [ "list" ],       List [ "red"; "green"; "blue" ]
-            [ "keys" ],       Keys [ ("semi", ";"); ("dot", "."); ("comma", ",") ]
-            [ "v" ],          Atom "6"
-            [ "x" ],          Atom "1024"
-            [ "y" ],          Atom "768"
-            [ "empty" ],      Atom ""
-            [ "empty_keys" ], Keys [] ])
+            Key [ "count" ],      List [ "one"; "two"; "three" ]
+            Key [ "dom" ],        List [ "example"; "com" ]
+            Key [ "dub" ],        Atom "me/too"
+            Key [ "hello" ],      Atom "Hello World!"
+            Key [ "half" ],       Atom "50%"
+            Key [ "var" ],        Atom "value"
+            Key [ "who" ],        Atom "fred"
+            Key [ "base" ],       Atom "http://example.com/home/"
+            Key [ "path" ],       Atom "/foo/bar"
+            Key [ "list" ],       List [ "red"; "green"; "blue" ]
+            Key [ "keys" ],       Keys [ ("semi", ";"); ("dot", "."); ("comma", ",") ]
+            Key [ "v" ],          Atom "6"
+            Key [ "x" ],          Atom "1024"
+            Key [ "y" ],          Atom "768"
+            Key [ "empty" ],      Atom ""
+            Key [ "empty_keys" ], Keys [] ])
 
 let (=?) str1 str2 =
     UriTemplate.Parse(str1).Render(data) =? str2

@@ -58,6 +58,16 @@
       <Name>Freya.Types.Http</Name>
       <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types.Uri.Template\Freya.Types.Uri.Template.fsproj">
+      <Name>Freya.Types.Uri.Template</Name>
+      <Project>{cd9e9bc2-b760-4414-9f78-f0cd1a6bd721}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Types\Freya.Types.fsproj">
+      <Name>Freya.Types</Name>
+      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
