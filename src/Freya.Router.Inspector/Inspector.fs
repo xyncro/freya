@@ -15,18 +15,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 module Freya.Router.Inspector
 
 open Aether
 open Chiron
+open Freya.Core
 open Freya.Inspector
 
 (* Runtime *)
 
 let private initialize =
-    initializeFreyaRouterRecord
+    Freya.init ()
+    //initializeFreyaRouterRecord
 
 let private runtime =
     { Initialize = initialize }
@@ -34,7 +37,8 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    Lens.getPartial freyaRouterRecordPLens >> Option.map Json.serialize
+    fun _ -> None
+    //Lens.getPartial freyaRouterRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }
@@ -42,6 +46,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Key = freyaRouterRecordKey
+    { Key = "temporarilyRemoved" // freyaRouterRecordKey
       Runtime = runtime
       Inspection = inspection }

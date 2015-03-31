@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -29,14 +30,15 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
+open Freya.Types.Uri.Template
 
 (* Route *)
 
-let routeId =
-    Freya.memo ((Option.get >> Guid.Parse ) <!> Freya.getLensPartial (Route.valuesKey "id"))
+let private id =
+    Freya.memo ((Option.get >> Guid.Parse) <!> Freya.getLensPartial (Route.atom "id"))
 
-let routeExtension =
-    Freya.memo ((Option.get) <!> Freya.getLensPartial (Route.valuesKey "ext"))
+let private ext =
+    Freya.memo ((Option.get) <!> Freya.getLensPartial (Route.atom "ext"))
 
 (* Data *)
 
@@ -54,7 +56,7 @@ let private recordHeaders =
 
 let private recordDetail =
     freya {
-        let! id = routeId
+        let! id = id
         let! record = getRecord id
 
         let recordDetail =
@@ -68,8 +70,8 @@ let private recordDetail =
 
 let private inspectionData inspectors =
     freya {
-        let! id = routeId
-        let! extension = routeExtension
+        let! id = id
+        let! extension = ext
         let! record = getRecord id
 
         match Map.tryFind extension inspectors with
@@ -120,14 +122,17 @@ let private inspection inspectors =
    Note: More thought should be given to a more expandable API
    path namespacing approach in the near future. *)
 
-let private map =
-    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
+let private root =
+    UriTemplate.Parse "/freya/inspector/api/records"
 
 let data config =
     let inspectors =
-        inspection (map config.Inspectors)
+        config.Inspectors
+        |> List.map (fun x -> x.Key, x)
+        |> Map.ofList
+        |> inspection
 
     freyaRouter {
-        resource "/freya/inspector/api/records" records
-        resource "/freya/inspector/api/records/:id" record
-        resource "/freya/inspector/api/records/:id/extensions/:ext" inspectors } |> FreyaRouter.toPipeline
+        resourcePath (root) records
+        resourcePath (root + UriTemplate.Parse "/{id}") record
+        resourcePath (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline

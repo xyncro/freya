@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -26,6 +27,7 @@ open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Router
+open Freya.Types.Uri.Template
 
 (* Content *)
 
@@ -79,8 +81,11 @@ let private js =
    this will require some tweaks to the directory structure of the
    freya.ui.* projects involved. *)
 
+let private root =
+    UriTemplate.Parse "/freya/inspector"
+
 let content =
     freyaRouter {
-        resource "/freya/inspector" html
-        resource "/freya/css/app.css" css
-        resource "/freya/js/app.js" js } |> FreyaRouter.toPipeline
+        resourcePath (root) html
+        resourcePath (root + UriTemplate.Parse "/css/app.css") css
+        resourcePath (root + UriTemplate.Parse "/js/app.js") js } |> FreyaRouter.toPipeline

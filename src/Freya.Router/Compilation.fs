@@ -18,78 +18,74 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module internal Freya.Router.Compilation
+module Freya.Router.Compilation
 
-open Aether
-open Aether.Operators
 open Freya.Pipeline
+open Freya.Types.Uri.Template
+open Hekate
 
-(* Trie *)
+(* Types *)
 
-type internal CompilationTrie =
-    { Children: CompilationTrie list
-      Key: string
-      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
-      Recognizer: Recognizer }
+type CompilationGraph =
+    Graph<string, CompilationNode, CompilationEdge>
 
-    static member ChildrenLens =
-        (fun x -> x.Children), 
-        (fun c x -> { x with Children = c })
+and CompilationNode =
+    { Value: FreyaPipeline option }
 
-    static member PipelinesLens =
-        (fun x -> x.Pipelines), 
-        (fun p x -> { x with Pipelines = p })
+    override x.ToString () =
+        (function | { Value = Some _ } -> sprintf "Node (Pipeline)"
+                  | _ -> sprintf "Node _") x
 
-and internal Recognizer =
-    | Ignore of string
-    | Capture of string
+and CompilationEdge =
+    { Order: int
+      Part: UriTemplatePart }
 
-(* Constructors *)
+    override x.ToString () =
+        (function | { Order = i
+                      Part = p } -> 
+                            sprintf "%i: Edge \"%s\"" i (p.ToString ())) x
 
-let private recognizer (key: string) =
-    match key.StartsWith ":" with
-    | true -> Capture (key.Substring (1))
-    | _ -> Ignore (key)
+(* Defaults *)
 
-let private node key =
-    { Children = List.empty
-      Key = key
-      Pipelines = List.empty
-      Recognizer = recognizer key }
+let internal defaultCompilationGraph : CompilationGraph =
+    Graph.create [ "", { Value = None } ] []
 
-let segmentize (path: string) =
-    path.Split '/'
-    |> List.ofArray
-    |> List.filter ((<>) "")
+(* Compilation *)
 
-(* Lenses *)
+let private node (parts: _ list) value =
+    { Value =
+        (function | 0 -> Some value
+                  | _ -> None) parts.Length }
 
-let private childPLens i =
-    CompilationTrie.ChildrenLens >-?> listPLens i
+let private edge current part graph =
+    { Order =
+        graph
+        |> Graph.outwardDegree current
+        |> Option.get
+      Part = part }
 
-(* Constructors *)
+let private insert current next node edge =
+        Graph.addNode (next, node)
+     >> Graph.addEdge (current, next, edge)
 
-let rec private add node =
-    function | (segment :: path, pipeline, meth) -> 
-                (find segment node |> update segment path pipeline meth) node
-             | (_, pipeline, meth) -> 
-                Lens.map CompilationTrie.PipelinesLens (fun ps -> ps @ [ (meth, pipeline) ]) node
+let compile =
+    let rec add current graph template =
+        match template with
+        | { Template = UriTemplate [] } ->
+            graph
+        | { Method = method'
+            Match = match'
+            Template = UriTemplate (p :: ps)
+            Pipeline = pipeline } ->
+            let node = node ps pipeline
+            let edge = edge current p graph
+            let next = current + UriTemplatePart.Format p
+            let graph = insert current next node edge graph
 
-and private find segment =
-    function | { Children = x } -> List.tryFindIndex (fun x -> x.Key = segment) x
+            add next graph {
+                Method = method'
+                Match = match'
+                Template = UriTemplate ps
+                Pipeline = pipeline }
 
-and private update segment path pipeline meth =
-    function | Some i -> extend i path pipeline meth
-             | _ -> append segment path pipeline meth
-
-and private extend i path pipeline meth =
-    Lens.mapPartial (childPLens i) (flip add (path, pipeline, meth))
-
-and private append segment path pipeline meth =
-    Lens.map CompilationTrie.ChildrenLens (flip (@) [ add (node segment) (path, pipeline, meth) ])
-
-let private addRoute route =
-    (flip add) (segmentize route.Path, route.Pipeline, route.Method)
-
-let compileRoutes =
-    List.fold (flip addRoute) (node "")
+    List.fold (add "") defaultCompilationGraph

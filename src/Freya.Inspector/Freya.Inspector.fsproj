@@ -116,6 +116,11 @@
       <Name>Freya.Types.Language</Name>
       <Project>{105A0361-EEC8-4C47-841E-E333C47572EE}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Freya.Types.Uri.Template\Freya.Types.Uri.Template.fsproj">
+      <Name>Freya.Types.Uri.Template</Name>
+      <Project>{cd9e9bc2-b760-4414-9f78-f0cd1a6bd721}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Types.Uri\Freya.Types.Uri.fsproj">
       <Name>Freya.Types.Uri</Name>
       <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>

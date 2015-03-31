@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -22,23 +23,25 @@ module Freya.Router.Types
 
 open Freya.Pipeline
 open Freya.Types.Http
+open Freya.Types.Uri.Template
 
 (* Routes *)
 
 type FreyaRoute =
     { Method: FreyaRouteMethod
-      Path: string
+      Match: FreyaRouteMatch
+      Template: UriTemplate
       Pipeline: FreyaPipeline }
+
+and FreyaRouteMatch =
+    | Path
+    | PathAndQuery
 
 and FreyaRouteMethod =
     | All
     | Methods of Method list
 
-type FreyaRouteData =
-    Map<string, string>
-
 (* Computation Expression *)
 
 type FreyaRouter = 
     FreyaRoute list -> unit * FreyaRoute list
-

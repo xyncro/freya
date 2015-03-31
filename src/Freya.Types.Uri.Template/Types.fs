@@ -33,6 +33,9 @@ open FParsec
 type UriTemplateData =
     | UriTemplateData of Map<UriTemplateKey, UriTemplateValue>
 
+    static member UriTemplateDataIso =
+        (fun (UriTemplateData x) -> x), (fun x -> UriTemplateData x)
+
 and UriTemplateKey =
     | Key of string list
 
@@ -40,6 +43,16 @@ and UriTemplateValue =
     | Atom of string
     | List of string list
     | Keys of (string * string) list
+
+    static member AtomPIso =
+        (function | Atom x -> Some x | _ -> None), (fun x -> Atom x)
+
+    static member ListPIso =
+        (function | List x -> Some x | _ -> None), (fun x -> List x)
+
+    static member KeysPIso =
+        (function | Keys x -> Some x | _ -> None), (fun x -> Keys x)
+
 
 (* Matching *)
 
