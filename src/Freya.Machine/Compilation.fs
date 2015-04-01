@@ -49,9 +49,9 @@ and MetadataGraph =
    an execution graph and a metadata graph. *)
 
 let private build config graph =
-    let g1 = Graph.mapNodes (Option.map (fun (Compile n) -> n config)) graph
-    let g2 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
-    let g3 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
+    let g1 = Graph.mapNodes (fun _ n -> Option.map (fun (Compile n) -> n config) n) graph
+    let g2 = Graph.mapNodes (fun _ n -> Option.map (fun (FreyaMachineCompilation.Compiled (o, _)) -> o) n) g1
+    let g3 = Graph.mapNodes (fun _ n -> Option.map (fun (FreyaMachineCompilation.Compiled (_, m)) -> m) n) g1
 
     g2, g3
 
