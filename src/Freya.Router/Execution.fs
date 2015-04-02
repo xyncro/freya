@@ -24,6 +24,7 @@ module internal Freya.Router.Execution
 open Aether
 open Aether.Operators
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Types.Http
 open Freya.Types.Uri.Template
@@ -211,34 +212,33 @@ let private findEdge graph key order =
             function | _, { CompilationEdge.Order = o } when o = order -> true
                      | _ -> false))
 
-let private findMatch (graph: CompilationGraph) meth path =
-    let rec traverse traversal =
+let rec private traverse graph traversal =
+    freya {
         match traversal with
-        | Failed -> None
-        | Completed graph (pipeline, data) -> Some (pipeline, data)
+        | Failed -> return None
+        | Completed graph (pipeline, data) -> return Some (pipeline, data)
         | Active (key, order, path) ->
             match findEdge graph key order with
             | Some (key', { Part = part }) ->
                 match part.Match path with
-                | _, Some path' -> traverse (capture key' path' traversal)
-                | _ -> traverse (reject traversal)
+                | _, Some path' -> return! traverse graph (capture key' path' traversal)
+                | _ -> return! traverse graph (reject traversal)
             | _ ->
-                traverse (abandon traversal)
+                return! traverse graph (abandon traversal)
         | _ ->
-            failwith ""
+            return failwith "" }
 
-    traverse (traversal meth path)
+
+
+(* Search *)
+
+let private search graph =
+        traversal <!> (!. Request.meth) <*> (!. Request.path) 
+    >>= traverse graph
 
 (* Execution *)
 
-let execute compilation =
-    freya {
-        let! meth = Freya.getLens Request.meth
-        let! path = Freya.getLens Request.path
-
-        match findMatch compilation meth path with
-        | Some (pipeline, data) ->
-            do! Freya.setLensPartial Route.data data
-            return! pipeline
-        | _ ->
-            return! next }
+let execute graph =
+        search graph 
+    >>= function | Some (pipe, data) -> (Route.data .?= data) *> pipe
+                 | _ -> next
