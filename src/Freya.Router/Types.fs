@@ -21,6 +21,7 @@
 [<AutoOpen>]
 module Freya.Router.Types
 
+open Aether
 open Freya.Pipeline
 open Freya.Types.Http
 open Freya.Types.Uri.Template
@@ -29,11 +30,14 @@ open Freya.Types.Uri.Template
 
 type FreyaRoute =
     { Method: FreyaRouteMethod
-      Match: FreyaRouteMatch
+      Specification: FreyaRouteSpecification
       Template: UriTemplate
       Pipeline: FreyaPipeline }
 
-and FreyaRouteMatch =
+    static member TemplateLens : Lens<FreyaRoute, UriTemplate> =
+        (fun x -> x.Template), (fun t x -> { x with Template = t })
+
+and FreyaRouteSpecification =
     | Path
     | PathAndQuery
 

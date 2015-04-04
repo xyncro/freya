@@ -36,7 +36,7 @@ type FreyaRouterBuilder with
     member x.PathRoute (r, meth, template, pipeline) =
         x.Update (r, (fun x ->
             { Method = meth
-              Match = Path
+              Specification = Path
               Template = template
               Pipeline = pipeline } :: x))
 
@@ -44,7 +44,7 @@ type FreyaRouterBuilder with
     member x.PathAndQueryRoute (r, meth, template, pipeline) =
         x.Update (r, (fun x ->
             { Method = meth
-              Match = PathAndQuery
+              Specification = PathAndQuery
               Template = template
               Pipeline = pipeline } :: x))
 

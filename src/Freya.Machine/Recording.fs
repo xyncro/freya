@@ -159,8 +159,6 @@ let private defaultFreyaMachineRecord =
 let freyaMachineRecordPLens =
     freyaRecordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
-(* Recording *)
-
 let private recordPLens =
          freyaMachineRecordPLens 
     >?-> FreyaMachineRecord.GraphLens
@@ -169,6 +167,8 @@ let private executionPLens =
          freyaMachineRecordPLens 
     >?-> FreyaMachineRecord.ExecutionLens 
     >?-> FreyaMachineExecutionRecord.NodesLens
+
+(* Recording *)
 
 let initializeFreyaMachineRecord =
     updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)

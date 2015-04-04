@@ -21,15 +21,16 @@
 module Freya.Router.Inspector
 
 open Aether
+open Aether.Operators
 open Chiron
 open Freya.Core
 open Freya.Inspector
+open Freya.Router
 
 (* Runtime *)
 
 let private initialize =
-    Freya.init ()
-    //initializeFreyaRouterRecord
+    initializeFreyaRouterRecord
 
 let private runtime =
     { Initialize = initialize }
@@ -37,8 +38,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    fun _ -> None
-    //Lens.getPartial freyaRouterRecordPLens >> Option.map Json.serialize
+    flip (^?.) freyaRouterRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }
@@ -46,6 +46,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Key = "temporarilyRemoved" // freyaRouterRecordKey
+    { Key = freyaRouterRecordKey
       Runtime = runtime
       Inspection = inspection }
