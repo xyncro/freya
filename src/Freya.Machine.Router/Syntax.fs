@@ -33,6 +33,6 @@ type FreyaRouterBuilder with
 
     (* Routes *)
 
-    [<CustomOperation ("pathResource", MaintainsVariableSpaceUsingBind = true)>]
-    member x.PathResource (r, template, pipeline) =
-        x.PathRoute (r, All, template, pipeline)
+    [<CustomOperation ("resource", MaintainsVariableSpaceUsingBind = true)>]
+    member x.Resource (r, template, pipeline) =
+        x.Route (r, All, template, pipeline)

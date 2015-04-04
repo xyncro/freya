@@ -32,16 +32,16 @@ type FreyaRouterBuilder with
 
     (* Paths *)
 
-    [<CustomOperation ("pathRoute", MaintainsVariableSpaceUsingBind = true)>]
-    member x.PathRoute (r, meth, template, pipeline) =
+    [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
+    member x.Route (r, meth, template, pipeline) =
         x.Update (r, (fun x ->
             { Method = meth
               Specification = Path
               Template = template
               Pipeline = pipeline } :: x))
 
-    [<CustomOperation ("pathAndQueryRoute", MaintainsVariableSpaceUsingBind = true)>]
-    member x.PathAndQueryRoute (r, meth, template, pipeline) =
+    [<CustomOperation ("routeWithQuery", MaintainsVariableSpaceUsingBind = true)>]
+    member x.RouteWithQuery (r, meth, template, pipeline) =
         x.Update (r, (fun x ->
             { Method = meth
               Specification = PathAndQuery

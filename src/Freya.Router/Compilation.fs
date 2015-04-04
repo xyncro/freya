@@ -19,7 +19,7 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Compilation
+module internal Freya.Router.Compilation
 
 open Aether
 open Aether.Operators
@@ -30,12 +30,7 @@ open Hekate
 (* Types
 
    Types representing the elements of a compiled Freya routing graph,
-   modelling each aspect of the graph as a restrictive sum type.
-
-   Lenses and isomorphisms are provided against the type definitions to
-   make the resultant structure more tractable, and most code for both
-   compilation and execution will require use of both Graph and Lens
-   based functionality (provided by Hekate and Aether respectively). *)
+   modelling each aspect of the graph as a restrictive sum type. *)
 
 type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
@@ -48,76 +43,15 @@ and CompilationKey =
     | Root
     | Key of string
 
-    static member (+) (k1, k2) =
-        match k1, k2 with
-        | Key s1, Key s2 -> Key (s1 + s2)
-        | _, Key s2 -> Key s2
-        | Key s1, _ -> Key s1
-        | _ -> Root
-
-    override x.ToString () =
-        (function | Root -> "root"
-                  | Key s -> s) x
-
 and CompilationNode =
     | Empty
-    | Node of CompilationPart
-
-    static member EmptyPIso : PIso<CompilationNode, unit> =
-        (function | Empty -> Some () 
-                  | _ -> None),
-        (fun () -> Empty)
-
-    static member NodePIso : PIso<CompilationNode, CompilationPart> =
-        (function | Node n -> Some n 
-                  | _ -> None),
-        (fun n -> Node n)
-
-    override x.ToString () =
-        (function | Empty -> "empty"
-                  | Node n -> sprintf "node %s" (n.ToString ())) x
-
-and CompilationPart =
-    | Part of UriTemplatePart * CompilationEndpoints
-
-    static member PartLens : Lens<CompilationPart, UriTemplatePart> =
-        (fun (Part (p, _)) -> p),
-        (fun p (Part (_, es)) -> Part (p, es))
-
-    static member EndpointsLens : Lens<CompilationPart, CompilationEndpoints> =
-        (fun (Part (_, es)) -> es),
-        (fun es (Part (p, _)) -> Part (p, es))
-
-    override x.ToString () =
-        (function | Part (p, _) -> sprintf "%s" (p.ToString ())) x
-
-and CompilationEndpoints =
     | Endpoints of CompilationEndpoint list
-
-    static member EndpointsIso : Iso<CompilationEndpoints, CompilationEndpoint list> =
-        (fun (Endpoints es) -> es),
-        (fun es -> Endpoints es)
 
 and CompilationEndpoint =
     | Endpoint of FreyaRouteMethod * FreyaPipeline
 
-    static member MethodLens : Lens<CompilationEndpoint, FreyaRouteMethod> =
-        (fun (Endpoint (m, _)) -> m),
-        (fun m (Endpoint (_, p)) -> Endpoint (m, p))
-
-    static member PipelineLens : Lens<CompilationEndpoint, FreyaPipeline> =
-        (fun (Endpoint (_, p)) -> p),
-        (fun p (Endpoint (m, _)) -> Endpoint (m, p))
-
 and CompilationEdge =
-    | Edge of int
-
-    static member EdgeIso : Iso<CompilationEdge, int> =
-        (fun (Edge i) -> i),
-        (fun i -> Edge i)
-
-    override x.ToString () =
-        (function | Edge i -> sprintf "edge %i" i) x
+    | Edge of UriTemplatePart * int
 
 (* Defaults
 
@@ -132,15 +66,9 @@ let private defaultCompilationGraph =
    Lenses used within compilation to provide access in to the complex
    data structure(s) used as a routing graph. *)
 
-let private graphLens =
+let graphLens =
          idLens
     <--> CompilationGraph.GraphIso
-
-let private endpointsPLens =
-         idLens
-    <-?> CompilationNode.NodePIso
-    >?-> CompilationPart.EndpointsLens
-    <?-> CompilationEndpoints.EndpointsIso
 
 (* Patterns
 
@@ -176,45 +104,51 @@ let private (|Last|_|) =
    A fairly simple recurse over the route, taking the head of
    the URI Template giving the route each time until exhausted. *)
 
-let private addIntermediateNode key part =
-    Graph.addNode (key,
-        Node (Part (part, Endpoints [])))
+let private composeKeys k1 k2 =
+    match k1, k2 with
+    | Key s1, Key s2 -> Key (s1 + s2)
+    | _, Key s2 -> Key s2
+    | Key s1, _ -> Key s1
+    | _ -> Root
 
-let private addEndpointNode key meth pipe part =
-    Graph.addNode (key,
-        Node (Part (part, Endpoints [ Endpoint (meth, pipe) ])))
+let private addNode key =
+    Graph.addNode (key, Empty)
 
-let private updateEndpointNode key meth pipe =
-    Graph.mapNodes (fun k n ->
-        match key = k with
-        | true -> ((fun e -> e @ [ Endpoint (meth, pipe) ]) ^?%= endpointsPLens) n
-        | _ -> n)
+let private updateNode key meth pipe =
+    Graph.mapNodes (fun key' node ->
+        match key = key' with
+        | true ->
+            match node with
+            | Empty -> Endpoints [ Endpoint (meth, pipe) ]
+            | Endpoints (endpoints) -> Endpoints (endpoints @ [ Endpoint (meth, pipe) ])
+        | _ ->
+            node)
 
-let private addEdge key1 key2 graph =
+let private addEdge key1 key2 part graph =
     Graph.addEdge (key1, key2,
-        Edge (Option.get (Graph.outwardDegree key1 graph))) graph
+        Edge (part, Option.get (Graph.outwardDegree key1 graph))) graph
 
 let rec private addRoute current graph route =
     match route with
     | Last (meth, _, part, pipe) ->
         let last =
-            current + Key (part.ToString ())
-                
+            composeKeys current (Key (part.ToString ()))
+
         let graph =
             ((fun graph ->
                 (match Graph.containsNode last graph with
-                 | false -> addEndpointNode last meth pipe part >> addEdge current last
-                 | _ -> updateEndpointNode last meth pipe) graph) ^%= graphLens) graph
+                 | false -> addNode last >> updateNode last meth pipe >> addEdge current last part
+                 | _ -> updateNode last meth pipe) graph) ^%= graphLens) graph
 
         graph
     | Next (part, route) ->
         let next =
-            current + Key (part.ToString ())
+            composeKeys current (Key (part.ToString ()))
 
         let graph =
             ((fun graph ->
                 (match Graph.containsNode next graph with
-                 | false -> addIntermediateNode next part >> addEdge current next
+                 | false -> addNode next >> addEdge current next part
                  | _ -> id) graph) ^%= graphLens) graph
 
         addRoute next graph route

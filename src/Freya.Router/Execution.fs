@@ -19,21 +19,24 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Execution
+module internal Freya.Router.Execution
 
 open Aether
 open Aether.Operators
+open Freya.Core
+open Freya.Pipeline
 open Freya.Types.Http
 open Freya.Types.Uri.Template
+open Hekate
 
 (* Types *)
 
+type ExecutionResult =
+    | Matched of FreyaPipeline * UriTemplateData
+    | Unmatched
+
 type Traversal =
     | Traversal of TraversalInvariant * TraversalState list
-
-    static member InvariantLens : Lens<Traversal, TraversalInvariant> =
-        (fun (Traversal (i, _)) -> i),
-        (fun i (Traversal (_, s)) -> Traversal (i, s))
 
     static member StateLens : Lens<Traversal, TraversalState list> =
         (fun (Traversal (_, s)) -> s),
@@ -41,10 +44,6 @@ type Traversal =
 
 and TraversalInvariant =
     | Invariant of Method
-
-    static member MethodLens : Lens<TraversalInvariant, Method> =
-        (fun (Invariant (m)) -> m),
-        (fun m (Invariant (_)) -> Invariant (m))
 
 and TraversalState =
     | State of TraversalData * TraversalPosition
@@ -75,15 +74,130 @@ and TraversalPosition =
         (fun (Position (k, _)) -> k),
         (fun k (Position (_, i)) -> Position (k, i))
 
-    static member DataLens : Lens<TraversalPosition, int> =
+    static member OrderLens : Lens<TraversalPosition, int> =
         (fun (Position (_, i)) -> i),
         (fun i (Position (k, _)) -> Position (k, i))
 
-(* Defaults *)
+(* Constructors *)
 
-let defaultTraversal meth path =
+let private createTraversal meth path =
     Traversal (
         Invariant (meth), 
         State (
             Data (path, UriTemplateData Map.empty),
             Position (Root, 0)) :: [])
+
+(* Lenses *)
+
+let private pathLens =
+         TraversalState.DataLens
+    >--> TraversalData.PathLens
+
+let private keyLens =
+         TraversalState.PositionLens
+    >--> TraversalPosition.KeyLens
+
+let private orderLens =
+         TraversalState.PositionLens
+    >--> TraversalPosition.OrderLens
+
+(* Position *)
+
+let private capture key path =
+    (function | state :: states ->
+                    (state
+                     |> key ^= keyLens
+                     |> 0 ^= orderLens
+                     |> path ^= pathLens) :: state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private reject =
+    (function | state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private abandon =
+    (function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+(* Patterns *)
+
+let private (|Candidate|_|) =
+    function | Traversal (Invariant meth,
+                          State (
+                              Data ("", data),
+                              Position (key, _)) :: _) -> Some (meth, data, key)
+             | _ -> None
+
+let private (|Progression|_|) =
+    function | Traversal (Invariant _,
+                          State (
+                              Data (path, _),
+                              Position (key, order)) :: _) -> Some (path, key, order)
+             | _ -> None
+
+(* Traversal *)
+
+let rec private traverse graph traversal =
+    match traversal with
+    | Candidate (meth, data, key) ->
+        graph
+        |> Lens.get graphLens
+        |> fun graph ->
+            match Graph.findNode key graph with
+            | _, Endpoints endpoints ->
+                List.tryPick (fun node ->
+                    match node with
+                    | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                    | Endpoint (All, pipe) -> Some pipe
+                    | _ -> None) endpoints
+            | _ ->
+                None
+        |> fun pipe ->
+            match pipe with
+            | Some pipe -> Matched (pipe, data)
+            | _ -> traverse graph (abandon traversal)
+    | Progression (path, key, order) ->
+        graph
+        |> Lens.get graphLens
+        |> fun graph ->
+            match Graph.successors key graph with
+            | Some edges ->
+                List.tryPick (fun edge ->
+                    match edge with
+                    | key', Edge (part, order') when order = order' -> Some (key', Edge (part, order))
+                    | _ -> None) edges
+            | _ ->
+                None
+        |> fun edge ->
+            match edge with
+            | Some (key', Edge (part, _)) ->
+                match part.Match path with
+                | Some data, Some path' -> traverse graph (capture key' path' traversal)
+                | _, Some path' -> traverse graph (capture key' path' traversal)
+                | _ -> traverse graph (reject traversal)
+            | _ ->
+                traverse graph (abandon traversal)
+    | _ ->
+        Unmatched
+
+(* Search *)
+
+let private search graph =
+    freya {
+        let! meth = Freya.getLens Request.meth
+        let! path = Freya.getLens Request.path
+
+        return traverse graph (createTraversal meth path) }
+
+(* Execution *)
+
+let execute graph =
+    freya {
+        let! result = search graph
+
+        match result with
+        | Matched (pipe, data) ->
+            do! Freya.setLensPartial Route.data data
+            return! pipe
+        | Unmatched ->
+            return! next }

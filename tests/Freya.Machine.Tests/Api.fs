@@ -216,8 +216,8 @@ let todo =
 
 let todoRoutes =
     freyaRouter {
-        pathResource (UriTemplate.Parse "/") todos
-        pathResource (UriTemplate.Parse "/{id}") todo } |> FreyaRouter.toPipeline
+        resource (UriTemplate.Parse "/") todos
+        resource (UriTemplate.Parse "/{id}") todo } |> FreyaRouter.toPipeline
 
 (* Inspectors *)
 
