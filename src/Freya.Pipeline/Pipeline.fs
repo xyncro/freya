@@ -42,8 +42,8 @@ let halt : FreyaPipeline =
 (* Composition *)
 
 let compose (pipeline1: FreyaPipeline) (pipeline2: FreyaPipeline) : FreyaPipeline =
-        (function | Next -> pipeline2
-                  | _ -> halt)
+        function | Next -> pipeline2
+                 | _ -> halt
     =<< pipeline1
 
 (* Operators *)

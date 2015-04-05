@@ -61,7 +61,7 @@ let private binary v operation =
      *> operation
     >>= fun x -> Freya.init (Some (Edge x))
 
-(* Execution
+(* Traversal
 
    Functions for executing against an execution graph, traversing the
    graph until either a Finish node is reached, or a node is
@@ -89,18 +89,19 @@ let private (|Binary|_|) =
     function | Some (Operation v, Some (Binary m)) -> Some (flip (next (Operation v)), v, m)
              | _ -> None
 
-let execute exec =
-    let rec eval node =
-        freya {
-            match node with
-            | Some node ->
-                match Graph.tryFindNode node exec with
-                | Start (f) -> return! f exec <!> start >>= eval
-                | Finish -> return! finish
-                | Unary (f, v, m) -> return! f exec <!> unary v m >>= eval
-                | Binary (f, v, m) -> return! f exec <!> binary v m >>= eval
-                | _ -> fail (sprintf "Next Node %A Not Found" node)
-            | _ ->
-                fail (sprintf "Next Node %A Not Determined" node) }
+let rec private traverse graph node =
+    match node with
+    | Some node ->
+        match Graph.tryFindNode node graph with
+        | Start (f) -> f graph <!> start >>= traverse graph
+        | Finish -> finish
+        | Unary (f, v, m) -> f graph <!> unary v m >>= traverse graph
+        | Binary (f, v, m) -> f graph <!> binary v m >>= traverse graph
+        | _ -> failwith ""
+    | _ ->
+        failwith ""
 
-    eval (Some Start)
+(* Execution *)
+
+let execute graph =
+    traverse graph (Some Start)

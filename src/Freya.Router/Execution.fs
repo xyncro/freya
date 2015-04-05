@@ -24,6 +24,7 @@ module internal Freya.Router.Execution
 open Aether
 open Aether.Operators
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Types.Http
 open Freya.Types.Uri.Template
@@ -32,7 +33,7 @@ open Hekate
 (* Types *)
 
 type ExecutionResult =
-    | Matched of FreyaPipeline * UriTemplateData
+    | Matched of UriTemplateData * FreyaPipeline
     | Unmatched
 
 type Traversal =
@@ -101,24 +102,6 @@ let private orderLens =
          TraversalState.PositionLens
     >--> TraversalPosition.OrderLens
 
-(* Position *)
-
-let private capture key path =
-    (function | state :: states ->
-                    (state
-                     |> key ^= keyLens
-                     |> 0 ^= orderLens
-                     |> path ^= pathLens) :: state :: states
-              | _ -> []) ^%= Traversal.StateLens
-
-let private reject =
-    (function | state :: states -> (((+) 1) ^%= orderLens) state :: states
-              | _ -> []) ^%= Traversal.StateLens
-
-let private abandon =
-    (function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
-              | _ -> []) ^%= Traversal.StateLens
-
 (* Patterns *)
 
 let private (|Candidate|_|) =
@@ -137,6 +120,22 @@ let private (|Progression|_|) =
 
 (* Traversal *)
 
+let private capture key path =
+    (function | state :: states ->
+                    (state
+                     |> key ^= keyLens
+                     |> 0 ^= orderLens
+                     |> path ^= pathLens) :: state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private reject =
+    (function | state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private abandon =
+    (function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
 let rec private traverse graph traversal =
     freya {
         match traversal with
@@ -154,7 +153,7 @@ let rec private traverse graph traversal =
                         None) (graph ^. graphLens)
 
             match pipe with
-            | Some pipe -> return Matched (pipe, data)
+            | Some pipe -> return Matched (data, pipe)
             | _ -> return! traverse graph (abandon traversal)
         | Progression (path, key, order) ->
             let edge =
@@ -182,21 +181,12 @@ let rec private traverse graph traversal =
 (* Search *)
 
 let private search graph =
-    freya {
-        let! meth = Freya.getLens Request.meth
-        let! path = Freya.getLens Request.path
-
-        return! traverse graph (createTraversal meth path) }
+        createTraversal <!> (!. Request.meth) <*> (!. Request.path)
+    >>= traverse graph
 
 (* Execution *)
 
 let execute graph =
-    freya {
-        let! result = search graph
-
-        match result with
-        | Matched (pipe, data) ->
-            do! Freya.setLensPartial Route.data data
-            return! pipe
-        | Unmatched ->
-            return! next }
+        search graph
+    >>= function | Matched (data, pipe) -> (Route.data .?= data) *> pipe
+                 | Unmatched -> next

@@ -35,47 +35,46 @@ open Freya.Types.Uri.Template
 (* Route *)
 
 let private id =
-    Freya.memo ((Option.get >> Guid.Parse) <!> Freya.getLensPartial (Route.atom "id"))
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.atom "id"))
 
 let private extension =
-    Freya.memo ((Option.get) <!> Freya.getLensPartial (Route.atom "ext"))
+    Freya.memo (Option.get <!> (!?.) (Route.atom "ext"))
 
 (* Data *)
 
 let private recordHeaders =
-        List.map (fun r ->
-            { FreyaRecorderRecordHeader.Id = r.Id
-              Timestamp = r.Timestamp }) >> Json.serialize
+        List.map (fun (record: FreyaRecorderRecord) ->
+            { FreyaRecorderRecordHeader.Id = record.Id
+              Timestamp = record.Timestamp }) >> Json.serialize
     <!> listRecords
 
 let private recordDetail =
-        Option.map (fun r ->
-            { FreyaRecorderRecordDetail.Id = r.Id
-              Timestamp = r.Timestamp
-              Extensions = (Map.toList >> List.map fst) r.Data } |> Json.serialize)
+        Option.map (fun (record: FreyaRecorderRecord) ->
+            { Id = record.Id
+              Timestamp = record.Timestamp
+              Extensions = (Map.toList >> List.map fst) record.Data } |> Json.serialize)
     <!> (getRecord =<< id)
 
 let private inspectionData inspectors =
-        fun record extension ->
-            match Map.tryFind extension inspectors with
-            | Some inspector -> Option.bind inspector.Inspection.Data record
-            | _ -> None
+        fun record ext ->
+            Map.tryFind ext inspectors
+            |> Option.bind (fun i -> Option.bind i.Inspection.Data record)
     <!> (getRecord =<< id)
     <*> extension
 
 (* Functions *)
 
 let private recordsGet _ =
-    representJSON <!> recordHeaders
+    representJson <!> recordHeaders
 
 let private recordGet _ =
-    (Option.get >> representJSON) <!> recordDetail
+    (Option.get >> representJson) <!> recordDetail
 
 let private recordExists =
     Option.isSome <!> recordDetail
 
 let private inspectionGet inspectors _=
-    (Option.get >> representJSON) <!> (inspectionData inspectors)
+    (Option.get >> representJson) <!> (inspectionData inspectors)
 
 let private inspectionExists inspectors =
     Option.isSome <!> (inspectionData inspectors)

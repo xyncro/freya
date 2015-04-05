@@ -22,6 +22,7 @@
 module Freya.Inspector.Inspector
 
 open Aether
+open Aether.Operators
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
@@ -29,12 +30,12 @@ open Freya.Types.Http
 
 (* Runtime *)
 
-let private initialize =
-    freya {
-        let! meth = (!. Request.meth)
-        let! path = (!. Request.path)
+let private tuple a b =
+    a, b
 
-        do! initializeFreyaRequestRecord meth path }
+let private initialize =
+        tuple <!> (!. Request.meth) <*> (!. Request.path)
+    >>= initializeRecord
 
 let private runtime =
     { Initialize = initialize }
@@ -42,8 +43,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-       Lens.getPartial freyaRequestRecordPLens 
-    >> Option.map Json.serialize
+     flip (^?.) recordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }
@@ -51,6 +51,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRequestInspector =
-    { Key = freyaRequestRecordKey
+    { Key = recordKey
       Runtime = runtime
       Inspection = inspection }

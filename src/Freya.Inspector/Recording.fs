@@ -22,6 +22,7 @@
 module Freya.Inspector.Recording
 
 open Aether
+open Aether.Operators
 open Chiron
 open Chiron.Operators
 open Freya.Recorder
@@ -29,7 +30,7 @@ open Freya.Types.Http
 
 (* Keys *)
 
-let [<Literal>] internal freyaRequestRecordKey =
+let [<Literal>] internal recordKey =
     "request"
 
 (* Types *)
@@ -39,7 +40,7 @@ type FreyaRequestRecord =
       Path: string }
 
     static member ToJson (x: FreyaRequestRecord) =
-            Json.write "method" (Method.Format (x.Method))
+            Json.write "method" (x.Method.ToString ())
          *> Json.write "path" x.Path
 
 (* Constructors *)
@@ -50,10 +51,10 @@ let private freyaRequestRecord meth path =
 
 (* Lenses *)
 
-let internal freyaRequestRecordPLens =
-    freyaRecordDataPLens<FreyaRequestRecord> freyaRequestRecordKey
+let internal recordPLens =
+    freyaRecordDataPLens<FreyaRequestRecord> recordKey
 
-(* Functions *)
+(* Initialization *)
 
-let internal initializeFreyaRequestRecord meth path =
-    updateRecord (Lens.setPartial freyaRequestRecordPLens (freyaRequestRecord meth path))
+let internal initializeRecord (meth, path) =
+    updateRecord ((freyaRequestRecord meth path) ^?= recordPLens)

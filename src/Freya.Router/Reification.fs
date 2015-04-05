@@ -24,10 +24,13 @@ module internal Freya.Router.Reification
 open Freya.Core
 
 let reify router =
-    let routes = snd (router List.empty)
+    let _, routes = router List.empty
     let compiled = compile routes
     //let trieRecord = routerTrieRecord compiled
 
-    freya {
-        //do! setFreyaRouterTrieRecord trieRecord
-        return! execute compiled }
+    execute compiled
+
+
+//    freya {
+//        //do! setFreyaRouterTrieRecord trieRecord
+//        return! execute compiled }
