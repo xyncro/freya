@@ -51,7 +51,6 @@ module Configuration =
     let [<Literal>] MethodsSupported = "methodsSupported"
     let [<Literal>] MethodsKnown = "methodsKnown"
 
-
 [<RequireQualifiedAccess>]
 module Decisions =
 
@@ -164,7 +163,6 @@ module Handlers =
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] UnknownMethod = prefix + "UnknownMethod"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
-
 
 [<RequireQualifiedAccess>]
 module Operations =

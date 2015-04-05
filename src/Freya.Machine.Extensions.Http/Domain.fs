@@ -156,9 +156,9 @@ module ContentNegotiation =
                           | _ -> None) y)
 
         let private run requested =
-               map requested 
-            >> sort
-            >> choose
+                map requested 
+             >> sort
+             >> choose
 
         let negotiate supported =
             function | Some (AcceptCharset x) -> Negotiated (run x supported)
@@ -210,9 +210,9 @@ module ContentNegotiation =
                           | _ -> None) y)
 
         let private run requested =
-               map requested 
-            >> sort
-            >> choose
+                map requested 
+             >> sort
+             >> choose
 
         let negotiate supported =
             function | Some (AcceptEncoding x) -> Negotiated (run x supported)
@@ -284,12 +284,12 @@ module ContentNegotiation =
                                | AcceptableLanguage (Any, _) -> supported)
     
         let private run supported =
-               sort
-            >> filter
-            >> map supported
-            >> Seq.concat
-            >> Seq.distinct
-            >> Seq.toList
+                sort
+             >> filter
+             >> map supported
+             >> Seq.concat
+             >> Seq.distinct
+             >> Seq.toList
 
         let negotiate supported =
             function | Some (AcceptLanguage x) -> Negotiated (run supported x)
@@ -340,9 +340,9 @@ module ContentNegotiation =
                           | _ -> None) y)
 
         let private run requested =
-               map requested 
-            >> sort
-            >> choose
+                map requested 
+             >> sort
+             >> choose
 
         let negotiate supported =
             function | Some (Accept x) -> Negotiated (run x supported)
