@@ -49,7 +49,7 @@ let private fail e =
    concerns about generation efficiency. *)
 
 let private run exec record =
-        setFreyaMachineGraphRecord record
+        recordGraph record
      *> execute exec
      *> halt
 
@@ -67,10 +67,8 @@ let reify machine =
         match compile spec source with
         | Compiled (exec, meta) ->
             match verify exec with
-            | Verified exec ->
-                run exec (record meta)
-            | Verification.Error e ->
-                fail e
+            | Verified exec -> run exec (createGraphRecord meta)
+            | Verification.Error e -> fail e
         | Compilation.Error e ->
             fail e
     | Precompilation.Error e ->

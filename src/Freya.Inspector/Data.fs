@@ -37,46 +37,31 @@ open Freya.Types.Uri.Template
 let private id =
     Freya.memo ((Option.get >> Guid.Parse) <!> Freya.getLensPartial (Route.atom "id"))
 
-let private ext =
+let private extension =
     Freya.memo ((Option.get) <!> Freya.getLensPartial (Route.atom "ext"))
 
 (* Data *)
 
 let private recordHeaders =
-    freya {
-        let! records = listRecords
-
-        let recordHeaders =
-            records
-            |> List.map (fun r ->
-                { FreyaRecorderRecordHeader.Id = r.Id
-                  Timestamp = r.Timestamp })
-
-        return Json.serialize recordHeaders }
+        List.map (fun r ->
+            { FreyaRecorderRecordHeader.Id = r.Id
+              Timestamp = r.Timestamp }) >> Json.serialize
+    <!> listRecords
 
 let private recordDetail =
-    freya {
-        let! id = id
-        let! record = getRecord id
-
-        let recordDetail =
-            record
-            |> Option.map (fun r ->
-                { FreyaRecorderRecordDetail.Id = r.Id
-                  Timestamp = r.Timestamp
-                  Extensions = r.Data |> Map.toList |> List.map fst })
-
-        return Option.map Json.serialize recordDetail }
+        Option.map (fun r ->
+            { FreyaRecorderRecordDetail.Id = r.Id
+              Timestamp = r.Timestamp
+              Extensions = (Map.toList >> List.map fst) r.Data } |> Json.serialize)
+    <!> (getRecord =<< id)
 
 let private inspectionData inspectors =
-    freya {
-        let! id = id
-        let! extension = ext
-        let! record = getRecord id
-
-        match Map.tryFind extension inspectors with
-        | Some inspector -> return Option.bind inspector.Inspection.Data record
-        | _ -> return None }
+        fun record extension ->
+            match Map.tryFind extension inspectors with
+            | Some inspector -> Option.bind inspector.Inspection.Data record
+            | _ -> None
+    <!> (getRecord =<< id)
+    <*> extension
 
 (* Functions *)
 

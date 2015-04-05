@@ -128,9 +128,7 @@ let precompile spec =
     match order spec.Extensions with
     | Ordered extensions ->
         match extend extensions defaultSourceGraph with
-        | Extended source ->
-            Precompiled source
-        | Extension.Error e ->
-            Precompilation.Error e
+        | Extended source -> Precompiled source
+        | Extension.Error e -> Precompilation.Error e
     | Ordering.Error e ->
         Precompilation.Error e

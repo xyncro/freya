@@ -43,24 +43,21 @@ let private fail e =
    Machine operations, return the result of the operation when
    applicable (as in Binary operations). *)
 
-let private record =
-    addFreyaMachineExecutionRecord
-
 let private start =
-        record "start"
+        recordNode "start"
      *> Freya.init None
 
 let private finish =
-        record "finish"
+        recordNode "finish"
      *> Freya.init ()
 
 let private unary v operation =
-        record v
+        recordNode v
      *> operation
      *> Freya.init None
 
 let private binary v operation =
-        record v
+        recordNode v
      *> operation
     >>= fun x -> Freya.init (Some (Edge x))
 

@@ -31,8 +31,8 @@ open Freya.Types.Http
 
 let private initialize =
     freya {
-        let! meth = Freya.getLens Request.meth
-        let! path = Freya.getLens Request.path
+        let! meth = (!. Request.meth)
+        let! path = (!. Request.path)
 
         do! initializeFreyaRequestRecord meth path }
 

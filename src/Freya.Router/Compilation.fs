@@ -36,8 +36,7 @@ type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
 
     static member GraphIso : Iso<CompilationGraph, Graph<CompilationKey, CompilationNode, CompilationEdge>> =
-        (fun (Graph g) -> g),
-        (fun g -> Graph g)
+        (fun (Graph g) -> g), (fun g -> Graph g)
 
 and CompilationKey =
     | Root

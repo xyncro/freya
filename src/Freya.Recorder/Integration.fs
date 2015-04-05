@@ -32,10 +32,10 @@ let private requestIdPLens =
 (* Execution *)
 
 let initializeRecord =
-    Freya.setLensPartial requestIdPLens =<< (Freya.fromAsync initialize =<< Freya.init ())
+    (.?=) requestIdPLens =<< (Freya.fromAsync initialize =<< Freya.init ())
 
 let updateRecord f =
-    Option.iter (fun id -> update id f) <!> Freya.getLensPartial requestIdPLens
+    Option.iter (fun id -> update id f) <!> (!?.) requestIdPLens
 
 (* Inspection *)
 

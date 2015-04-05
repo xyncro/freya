@@ -34,32 +34,54 @@ let [<Literal>] freyaRouterRecordKey =
 (* Types *)
 
 type FreyaRouterRecord =
-    { Lines: string list }
+    { Execution: FreyaRouterExecutionRecord }
 
-    static member LinesLens =
-        (fun x -> x.Lines), (fun l x -> { x with Lines = l })
+    static member ExecutionLens =
+        (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
     static member ToJson (x: FreyaRouterRecord) =
-        Json.write "lines" x.Lines
+        Json.write "execution" x.Execution
+
+and FreyaRouterExecutionRecord =
+    { Nodes: FreyaRouterExecutionNodeRecord list }
+
+    static member NodesLens =
+        (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
+
+    static member ToJson (x: FreyaRouterExecutionRecord) =
+        Json.write "nodes" x.Nodes
+
+and FreyaRouterExecutionNodeRecord =
+    { Id: string }
+
+    static member IdLens : Lens<FreyaRouterExecutionNodeRecord, string> =
+        (fun x -> x.Id), (fun i x -> { x with Id = i })
+
+    static member ToJson (x: FreyaRouterExecutionNodeRecord) =
+        Json.write "id" x.Id
 
 (* Defaults *)
 
 let private defaultFreyaRouterRecord =
-    { Lines = List.empty }
+    { Execution =
+        { Nodes = List.empty } }
 
 (* Lenses *)
 
 let freyaRouterRecordPLens =
     freyaRecordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
 
-let private linesPLens =
+let private nodesPLens =
          freyaRouterRecordPLens
-    >?-> FreyaRouterRecord.LinesLens
+    >?-> FreyaRouterRecord.ExecutionLens
+    >?-> FreyaRouterExecutionRecord.NodesLens
 
 (* Recording *)
 
-let initializeFreyaRouterRecord =
-    updateRecord (Lens.setPartial freyaRouterRecordPLens defaultFreyaRouterRecord)
+let internal recordNode id =
+    updateRecord ((fun nodes -> { Id = id } :: nodes) ^?%= nodesPLens)
 
-let internal addFreyaRouterLineRecord line =
-    updateRecord (Lens.mapPartial linesPLens (fun lines -> line :: lines))
+(* Initialization *)
+
+let initializeFreyaRouterRecord =
+    updateRecord (defaultFreyaRouterRecord ^?= freyaRouterRecordPLens)

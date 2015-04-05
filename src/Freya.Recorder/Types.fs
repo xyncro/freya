@@ -45,4 +45,6 @@ type FreyaRecorderRecord =
 (* Lenses *)    
 
 let freyaRecordDataPLens<'a> key =
-    FreyaRecorderRecord.DataLens >-?> mapPLens key <?-> boxIso<'a>
+         FreyaRecorderRecord.DataLens
+    >-?> mapPLens key
+    <?-> boxIso<'a>

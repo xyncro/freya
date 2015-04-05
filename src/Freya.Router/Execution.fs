@@ -138,47 +138,46 @@ let private (|Progression|_|) =
 (* Traversal *)
 
 let rec private traverse graph traversal =
-    match traversal with
-    | Candidate (meth, data, key) ->
-        graph
-        |> Lens.get graphLens
-        |> fun graph ->
-            match Graph.findNode key graph with
-            | _, Endpoints endpoints ->
-                List.tryPick (fun node ->
-                    match node with
-                    | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
-                    | Endpoint (All, pipe) -> Some pipe
-                    | _ -> None) endpoints
-            | _ ->
-                None
-        |> fun pipe ->
+    freya {
+        match traversal with
+        | Candidate (meth, data, key) ->
+            let pipe =
+                (fun graph ->
+                    match Graph.findNode key graph with
+                    | _, Endpoints endpoints ->
+                        List.tryPick (fun node ->
+                            match node with
+                            | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                            | Endpoint (All, pipe) -> Some pipe
+                            | _ -> None) endpoints
+                    | _ ->
+                        None) (graph ^. graphLens)
+
             match pipe with
-            | Some pipe -> Matched (pipe, data)
-            | _ -> traverse graph (abandon traversal)
-    | Progression (path, key, order) ->
-        graph
-        |> Lens.get graphLens
-        |> fun graph ->
-            match Graph.successors key graph with
-            | Some edges ->
-                List.tryPick (fun edge ->
-                    match edge with
-                    | key', Edge (part, order') when order = order' -> Some (key', Edge (part, order))
-                    | _ -> None) edges
-            | _ ->
-                None
-        |> fun edge ->
+            | Some pipe -> return Matched (pipe, data)
+            | _ -> return! traverse graph (abandon traversal)
+        | Progression (path, key, order) ->
+            let edge =
+                (fun graph ->
+                    match Graph.successors key graph with
+                    | Some edges ->
+                        List.tryPick (fun edge ->
+                            match edge with
+                            | key', Edge (part, order') when order = order' -> Some (key', Edge (part, order))
+                            | _ -> None) edges
+                    | _ ->
+                        None) (graph ^. graphLens)
+
             match edge with
             | Some (key', Edge (part, _)) ->
                 match part.Match path with
-                | Some data, Some path' -> traverse graph (capture key' path' traversal)
-                | _, Some path' -> traverse graph (capture key' path' traversal)
-                | _ -> traverse graph (reject traversal)
+                | Some data, Some path' -> return! traverse graph (capture key' path' traversal)
+                | _, Some path' -> return! traverse graph (capture key' path' traversal)
+                | _ -> return! traverse graph (reject traversal)
             | _ ->
-                traverse graph (abandon traversal)
-    | _ ->
-        Unmatched
+                return! traverse graph (abandon traversal)
+        | _ ->
+            return Unmatched }
 
 (* Search *)
 
@@ -187,7 +186,7 @@ let private search graph =
         let! meth = Freya.getLens Request.meth
         let! path = Freya.getLens Request.path
 
-        return traverse graph (createTraversal meth path) }
+        return! traverse graph (createTraversal meth path) }
 
 (* Execution *)
 

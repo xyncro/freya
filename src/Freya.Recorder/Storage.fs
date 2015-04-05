@@ -22,6 +22,7 @@ module internal Freya.Recorder.Storage
 
 open System
 open Aether
+open Aether.Operators
 open Freya.Core
 
 (* Keys *)
@@ -59,18 +60,18 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = Lens.map StorageState.RecordsLens (Seq.append [ record id ] >> Seq.truncate 10) state
+        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^%= StorageState.RecordsLens) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = Lens.map StorageState.RecordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
+        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^%= StorageState.RecordsLens) state
         state
     | Read (id, chan) ->
-        let x = (Lens.get StorageState.RecordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
+        let x = (flip (^.) StorageState.RecordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
         chan.Reply (x)
         state
     | List (chan) ->
-        let x = Lens.get StorageState.RecordsLens state
+        let x = state ^. StorageState.RecordsLens
         chan.Reply (List.ofSeq x)
         state
 

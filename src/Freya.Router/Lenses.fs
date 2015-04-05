@@ -28,8 +28,8 @@ open Freya.Types.Uri.Template
 
 (* Keys *)
 
-let [<Literal>] private valuesKey =
-    "freya.RouterValues"
+let [<Literal>] private dataKey =
+    "freya.RouterData"
 
 (* Lenses
 
@@ -41,7 +41,7 @@ let [<Literal>] private valuesKey =
 module Route =
 
     let data =
-             environmentKeyPLens valuesKey 
+             environmentKeyPLens dataKey 
         <?-> boxIso<UriTemplateData>
 
     // TODO: Fix this when we come up with a better key representation?
