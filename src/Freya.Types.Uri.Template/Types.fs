@@ -45,14 +45,16 @@ and UriTemplateValue =
     | Keys of (string * string) list
 
     static member AtomPIso =
-        (function | Atom x -> Some x | _ -> None), (fun x -> Atom x)
+        (function | Atom x -> Some x
+                  | _ -> None), (fun x -> Atom x)
 
     static member ListPIso =
-        (function | List x -> Some x | _ -> None), (fun x -> List x)
+        (function | List x -> Some x
+                  | _ -> None), (fun x -> List x)
 
     static member KeysPIso =
-        (function | Keys x -> Some x | _ -> None), (fun x -> Keys x)
-
+        (function | Keys x -> Some x
+                  | _ -> None), (fun x -> Keys x)
 
 (* Matching *)
 

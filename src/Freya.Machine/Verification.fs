@@ -174,7 +174,7 @@ let private checkGroups graph =
 
 let private start =
     Constraints [
-        Constraint (startNodes, size 2, "Start Node Must Exist")
+        Constraint (startNodes, size 1, "Start Node Must Exist")
         Constraint (startNodes, haveUnarySuccessors, "Start Node Must Have One Successor") ]
 
 let private finish =
