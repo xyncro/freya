@@ -21,6 +21,7 @@
 [<AutoOpen>]
 module internal Freya.Machine.Execution
 
+open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
 open Hekate
@@ -61,16 +62,14 @@ let private binary v operation =
      *> operation
     >>= fun x -> Freya.init (Some (Edge x))
 
-(* Traversal
+(* Patterns
 
-   Functions for executing against an execution graph, traversing the
-   graph until either a Finish node is reached, or a node is
-   unreachable, whether because the current node has no matching successors,
-   or because the next node can't be found. *)
+   Patterns for matching the currently active node during traversal
+   and extracting the relevant data to execute the next operation. *)
 
-let private next v l : ExecutionGraph -> FreyaMachineNode option =
-        Graph.successors v
-     >> Option.bind (List.tryFind (fun (_, l') -> l = l'))
+let private next node op =
+        Graph.successors node
+     >> Option.bind (List.tryFind (fun (_, op') -> op = op'))
      >> Option.map fst
 
 let private (|Start|_|) =
@@ -82,26 +81,37 @@ let private (|Finish|_|) =
              | _ -> None
 
 let private (|Unary|_|) =
-    function | Some (Operation v, Some (Unary m)) -> Some (flip (next (Operation v)), v, m)
+    function | Some (Operation key, Some (Unary op)) -> Some (flip (next (Operation key)), key, op)
              | _ -> None
 
 let private (|Binary|_|) =
-    function | Some (Operation v, Some (Binary m)) -> Some (flip (next (Operation v)), v, m)
+    function | Some (Operation key, Some (Binary op)) -> Some (flip (next (Operation key)), key, op)
              | _ -> None
+
+(* Traversal
+
+   Functions for executing against an execution graph, traversing the
+   graph until either a Finish node is reached, or a node is
+   unreachable, whether because the current node has no matching successors,
+   or because the next node can't be found. *)
 
 let rec private traverse graph node =
     match node with
     | Some node ->
         match Graph.tryFindNode node graph with
+        | Unary (f, key, op) -> f graph <!> unary key op >>= traverse graph
+        | Binary (f, key, op) -> f graph <!> binary key op >>= traverse graph
         | Start (f) -> f graph <!> start >>= traverse graph
         | Finish -> finish
-        | Unary (f, v, m) -> f graph <!> unary v m >>= traverse graph
-        | Binary (f, v, m) -> f graph <!> binary v m >>= traverse graph
-        | _ -> failwith ""
+        | _ -> fail "Node Not Matched"
     | _ ->
-        failwith ""
+        fail "Node Not Found"
 
-(* Execution *)
+(* Execution
+
+   Function for executing a compiled graph, throwing on failure which
+   may need reconsideration or a more generalised handling approach
+   for genuinely runtime errors. *)
 
 let execute graph =
-    traverse graph (Some Start)
+    traverse (graph ^. compilationGraphLens) (Some Start)

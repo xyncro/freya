@@ -123,7 +123,7 @@ let private (|Binary|_|) =
     function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let internal createGraphRecord meta =
+let internal createGraphRecord (Metadata meta) =
     { Nodes =
         Graph.nodes meta
         |> List.map (fun (v, l) ->

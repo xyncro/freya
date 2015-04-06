@@ -32,7 +32,6 @@ module Actions =
     let [<Literal>] Post = prefix + "Post"
     let [<Literal>] Put = prefix + "Put"
 
-
 [<RequireQualifiedAccess>]
 module Configuration =
 
@@ -119,7 +118,6 @@ module Decisions =
 
     let [<Literal>] ETagMatchesIf = "resourceETagMatchesIf"
     let [<Literal>] ETagMatchesIfNone = "resourceETagMatchesIfNone"
-
 
 [<RequireQualifiedAccess>]
 module Handlers =

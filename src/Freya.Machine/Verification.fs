@@ -30,6 +30,8 @@ module internal Freya.Machine.Verification
    designed, which would possibly have relevance to being ported
    back in to the core Hekate library. *)
 
+open Aether.Operators
+open Freya.Core
 open Hekate
 
 (* Types
@@ -38,102 +40,165 @@ open Hekate
    graph postconditions, ensuring some level of runtime safety when
    executing a verified graph. *)
 
-type Verification =
-    | Verified of ExecutionGraph
+type VerificationResult =
+    | Verification of CompilationGraph
     | Error of string
 
-(* Operators
+(* Projections
 
-   Simple operator based functions for expressing the combinations and
-   multiple applications of property constraints to projections of an
-   execution graph. *)
+   Functions and a type signature to represent various projections
+   over a compilation graph, returning a specific set of nodes,
+   which may then be checked for properties using specific assertions. *)
 
-let private (.&) v1 v2 =
-    fun g ->
-        match v1 g with
-        | Verified g -> v2 g
-        | Error e -> Error e
+type private Projection =
+    | Projection of (CompilationGraph -> FreyaMachineNode list)
 
-let private (.*) xs f =
-    fun (g: ExecutionGraph) ->
-        List.fold (fun s x -> ((fun _ -> s) .& f x) g) (Verified g) (xs g)
+let private startNodes =
+    Projection (
+            flip (^.) compilationGraphLens
+         >> Graph.nodes
+         >> List.choose (function | (Start, _) -> Some Start
+                                  | _ -> None))
 
-(* Projections *)
+let private finishNodes =
+    Projection (
+            flip (^.) compilationGraphLens
+         >> Graph.nodes
+         >> List.choose (function | (Finish, _) -> Some Finish
+                                  | _ -> None))
 
 let private unaryNodes =
-        Graph.nodes
-     >> List.choose (function | (v, Some (Unary _)) -> Some v
-                              | _ -> None)
+    Projection (
+            flip (^.) compilationGraphLens
+         >> Graph.nodes
+         >> List.choose (function | (v, Some (Unary _)) -> Some v
+                                  | _ -> None))
 
 let private binaryNodes =
-        Graph.nodes
-     >> List.choose (function | (v, Some (Binary _)) -> Some v
-                              | _ -> None)
+    Projection (
+            flip (^.) compilationGraphLens
+         >> Graph.nodes
+         >> List.choose (function | (v, Some (Binary _)) -> Some v
+                                  | _ -> None))
 
-(* Properties
+(* Assertions
 
-   Property based verifications of singlular "facts" which should be true
-   about an entity, in this case properties of nodes, though this may well be
-   extended. *)
+   Assertion types and functions, where an assertion is an
+   individual assertion, and should be applied to each node within
+   a list of nodes, or a group assertion, and applies to the
+   list of nodes as a whole (for instance, checking the size
+   of a group of nodes). *)
 
-let private exists v g =
-    Graph.tryFindNode v g
-    |> function | Some _ -> Verified g
-                | _ -> Error (sprintf "Node Exists: %A - Unverified" v)
+type private Assertion =
+    | Individual of (CompilationGraph -> FreyaMachineNode -> bool)
+    | Group of (CompilationGraph -> FreyaMachineNode list -> bool)
 
-let private hasNoSuccessors v g =
-    Graph.successors v g
-    |> function | Some [] -> Verified g
-                | _ -> Error (sprintf "Node Has No Successor: %A - Unverified" v)
+let private size i =
+    Group (fun _ nodes -> List.length nodes = i)
 
-let private hasUnarySuccessor v g =
-    Graph.successors v g
-    |> function | Some ((_, None) :: []) -> Verified g
-                | _ -> Error (sprintf "Node Has Unary Successor: %A - Unverified" v)
+let private haveNoSuccessors =
+    Individual (fun (CompilationGraph.Graph graph) node ->
+        match Graph.successors node graph with
+        | Some [] -> true
+        | _ -> false)
 
-let private hasBinarySuccessors v g =
-    Graph.successors v g
-    |> function | Some s when List.length s = 2 -> Verified g
-                | _ -> Error (sprintf "Node Has Binary Successors: %A - Unverified" v)
+let private haveUnarySuccessors =
+    Individual (fun (CompilationGraph.Graph graph) node ->
+        match Graph.successors node graph with
+        | Some s when List.length s = 1 -> true
+        | _ -> false)
+
+let private haveBinarySuccessors =
+    Individual (fun (CompilationGraph.Graph graph) node ->
+        match Graph.successors node graph with
+        | Some s when List.length s = 2 -> true
+        | _ -> false)
 
 (* Constraints
 
-   Constraints defined as composites of property constraints, based
-   on individual node types within execution graphs. This set of
-   constraints should potentially be extended, especially to check
-   for aberrant cases of the graph overall (cyclic paths, etc.) when
-   Hekate supports more general algorithms over graphs. *)
+   Conceptual constraints and functions to check constraints,
+   where a constraint is a combination of a projection and an
+   assertion to be applied to the results of the projection, along
+   with a string to return as an error in case of constraint
+   failure.
+
+   Constraint groups are provided as a logical grouping of constraints
+   which may relate to specific aspects of the compilation graph. *)
+
+type private ConstraintGroup =
+    | Constraints of Constraint list
+
+and private Constraint =
+    | Constraint of Projection * Assertion * string
+
+let private check graph (Constraint (Projection projection, assertion, error)) =
+    let nodes = projection graph
+
+    match assertion with
+    | Individual assertion ->
+        List.fold (fun state node ->
+            match state with
+            | Some error ->
+                Some error
+            | _ ->
+                match assertion graph node with
+                | true -> None
+                | _ -> Some error) None nodes
+    | Group assertion ->
+        match assertion graph nodes with
+        | true -> None
+        | _ -> Some error
+
+let private checkGroup graph (Constraints constraints) =
+    List.fold (fun state con ->
+        match state with
+        | Some error -> Some error
+        | _ -> check graph con) None constraints
+
+let private checkGroups graph =
+    List.fold (fun state group ->
+        match state with
+        | Some error -> Some error
+        | _ -> checkGroup graph group) None
+
+(* Invariants
+
+   Constraint groups forming invariants which should hold for a
+   valid compilation graph, relating to specific properties of that
+   graph.
+   
+   The invariants are currently fairly basic, and could be extended
+   at some point when needed. Effectively the constraints form a kind of
+   runtime type checking for valid structure in the absence of a stronger
+   type level mechanism for doing so (i.e. dependent types or similar). *)
 
 let private start =
-        exists Start
-     .& hasUnarySuccessor Start
+    Constraints [
+        Constraint (startNodes, size 2, "Start Node Must Exist")
+        Constraint (startNodes, haveUnarySuccessors, "Start Node Must Have One Successor") ]
 
 let private finish =
-        exists Finish
-     .& hasNoSuccessors Finish
+    Constraints [
+        Constraint (finishNodes, size 1, "Finish Node Must Exist")
+        Constraint (finishNodes, haveNoSuccessors, "Finish Node Must Have No Successors") ]
 
 let private unary =
-    unaryNodes .* hasUnarySuccessor
-
+    Constraints [
+        Constraint (unaryNodes, haveUnarySuccessors, "Unary Nodes Must Have One Successor") ]
+        
 let private binary =
-    binaryNodes .* hasBinarySuccessors
+    Constraints [
+        Constraint (binaryNodes, haveBinarySuccessors, "Binary Nodes Must Have Two Successors") ]
 
-(* Verification
-
-   Verification of execution graphs, given some reasonable set of
-   constraints. Implicitly this forms a postcondition for graph construction.
-   It would be nice to find ways of making safety more available at
-   compile time, but given the limitations of the type system at
-   the moment, this is a reasonable compromise. *)
-
-let private verifications =
+let private invariants =
     [ start
       finish
       unary
       binary ]
 
-let private apply g s v =
-    ((fun _ -> s) .& v) g
+(* Verification *)
 
-let verify exec =
-    List.fold (apply exec) (Verified exec) verifications
+let verify graph =
+        checkGroups graph invariants
+     |> function | Some error -> Error error
+                 | _ -> Verification graph
