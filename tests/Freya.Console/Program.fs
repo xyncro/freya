@@ -44,6 +44,8 @@ type App () =
 
 [<EntryPoint>]
 let main _ =
+
     let _ = WebApp.Start<App> "http://localhost:8080"
     let _ = System.Console.ReadLine ()
+
     0

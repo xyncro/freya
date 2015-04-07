@@ -12,22 +12,22 @@ open Swensen.Unquote
 let data =
     UriTemplateData (
         Map.ofList [
-            Key [ "count" ],      List [ "one"; "two"; "three" ]
-            Key [ "dom" ],        List [ "example"; "com" ]
-            Key [ "dub" ],        Atom "me/too"
-            Key [ "hello" ],      Atom "Hello World!"
-            Key [ "half" ],       Atom "50%"
-            Key [ "var" ],        Atom "value"
-            Key [ "who" ],        Atom "fred"
-            Key [ "base" ],       Atom "http://example.com/home/"
-            Key [ "path" ],       Atom "/foo/bar"
-            Key [ "list" ],       List [ "red"; "green"; "blue" ]
-            Key [ "keys" ],       Keys [ ("semi", ";"); ("dot", "."); ("comma", ",") ]
-            Key [ "v" ],          Atom "6"
-            Key [ "x" ],          Atom "1024"
-            Key [ "y" ],          Atom "768"
-            Key [ "empty" ],      Atom ""
-            Key [ "empty_keys" ], Keys [] ])
+            Key "count",      List [ "one"; "two"; "three" ]
+            Key "dom",        List [ "example"; "com" ]
+            Key "dub",        Atom "me/too"
+            Key "he.llo",     Atom "Hello World!"
+            Key "half",       Atom "50%"
+            Key "var",        Atom "value"
+            Key "who",        Atom "fred"
+            Key "base",       Atom "http://example.com/home/"
+            Key "path",       Atom "/foo/bar"
+            Key "list",       List [ "red"; "green"; "blue" ]
+            Key "keys",       Keys [ ("semi", ";"); ("dot", "."); ("comma", ",") ]
+            Key "v",          Atom "6"
+            Key "x",          Atom "1024"
+            Key "y",          Atom "768"
+            Key "empty",      Atom ""
+            Key "empty_keys", Keys [] ])
 
 let (=?) str1 str2 =
     UriTemplate.Parse(str1).Render(data) =? str2
@@ -44,7 +44,7 @@ let ``Level 1 Examples Render Correctly`` () =
     (* Simple String Expansion *)
 
     "{var}" =? "value"
-    "{hello}" =? "Hello%20World%21"
+    "{he.llo}" =? "Hello%20World%21"
 
 [<Test>]
 let ``Level 2 Examples Render Correctly`` () =
@@ -52,14 +52,14 @@ let ``Level 2 Examples Render Correctly`` () =
     (* Reserved String Expansion *)
 
     "{+var}" =? "value"
-    "{+hello}" =? "Hello%20World!"
+    "{+he.llo}" =? "Hello%20World!"
     "{+path}/here" =? "/foo/bar/here"
     "here?ref={+path}" =? "here?ref=/foo/bar"
 
     (* Fragment Expansion *)
 
     "X{#var}" =? "X#value"
-    "X{#hello}" =? "X#Hello%20World!"
+    "X{#he.llo}" =? "X#Hello%20World!"
 
 (* Specifcation Examples
 
@@ -71,12 +71,12 @@ let ``Level 2 Examples Render Correctly`` () =
 [<Test>]
 let ``Simple Expansion Renders Correctly`` () =
     "{var}" =? "value"
-    "{hello}" =? "Hello%20World%21"
+    "{he.llo}" =? "Hello%20World%21"
     "{half}" =? "50%25"
     "O{empty}X" =? "OX"
     "O{undef}X" =? "OX"
     "{x,y}" =? "1024,768"
-    "{x,hello,y}" =? "1024,Hello%20World%21,768"
+    "{x,he.llo,y}" =? "1024,Hello%20World%21,768"
     "?{x,empty}" =? "?1024,"
     "?{x,undef}" =? "?1024"
     "?{undef,y}" =? "?768"
@@ -90,7 +90,7 @@ let ``Simple Expansion Renders Correctly`` () =
 [<Test>]
 let ``Reserved Expansion Renders Correctly`` () =
     "{+var}" =? "value"
-    "{+hello}" =? "Hello%20World!"
+    "{+he.llo}" =? "Hello%20World!"
     "{+half}" =? "50%25"
     "{base}index" =? "http%3A%2F%2Fexample.com%2Fhome%2Findex"
     "{+base}index" =? "http://example.com/home/index"
@@ -99,7 +99,7 @@ let ``Reserved Expansion Renders Correctly`` () =
     "{+path}/here" =? "/foo/bar/here"
     "here?ref={+path}" =? "here?ref=/foo/bar"
     "up{+path}{var}/here" =? "up/foo/barvalue/here"
-    "{+x,hello,y}" =? "1024,Hello%20World!,768"
+    "{+x,he.llo,y}" =? "1024,Hello%20World!,768"
     "{+path,x}/here" =? "/foo/bar,1024/here"
     "{+path:6}/here" =? "/foo/b/here"
     "{+list}" =? "red,green,blue"
@@ -110,11 +110,11 @@ let ``Reserved Expansion Renders Correctly`` () =
 [<Test>]
 let ``Fragment Expansion Renders Correctly`` () =
     "{#var}" =? "#value"
-    "{#hello}" =? "#Hello%20World!"
+    "{#he.llo}" =? "#Hello%20World!"
     "{#half}" =? "#50%25"
     "foo{#empty}" =? "foo#"
     "foo{#undef}" =? "foo"
-    "{#x,hello,y}" =? "#1024,Hello%20World!,768"
+    "{#x,he.llo,y}" =? "#1024,Hello%20World!,768"
     "{#path,x}/here" =? "#/foo/bar,1024/here"
     "{#path:6}/here" =? "#/foo/b/here"
     "{#list}" =? "#red,green,blue"

@@ -23,6 +23,7 @@ module internal Freya.Router.Execution
 
 open Aether
 open Aether.Operators
+open FParsec
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
@@ -90,17 +91,21 @@ let private createTraversal meth path =
 
 (* Lenses *)
 
+let private dataLens =
+        TraversalState.DataLens
+   >--> TraversalData.DataLens
+
 let private pathLens =
-         TraversalState.DataLens
-    >--> TraversalData.PathLens
+        TraversalState.DataLens
+   >--> TraversalData.PathLens
 
 let private keyLens =
-         TraversalState.PositionLens
-    >--> TraversalPosition.KeyLens
+        TraversalState.PositionLens
+   >--> TraversalPosition.KeyLens
 
 let private orderLens =
-         TraversalState.PositionLens
-    >--> TraversalPosition.OrderLens
+        TraversalState.PositionLens
+   >--> TraversalPosition.OrderLens
 
 (* Patterns *)
 
@@ -120,11 +125,17 @@ let private (|Progression|_|) =
 
 (* Traversal *)
 
-let private capture key path =
+let private combine data1 data2 =
+    match data1, data2 with
+    | UriTemplateData data1, UriTemplateData data2 ->
+        UriTemplateData (Map.ofList (Map.toList data1 @ Map.toList data2))
+
+let private capture key data path =
     (function | state :: states ->
                     (state
                      |> key ^= keyLens
                      |> 0 ^= orderLens
+                     |> combine data ^%= dataLens
                      |> path ^= pathLens) :: state :: states
               | _ -> []) ^%= Traversal.StateLens
 
@@ -162,17 +173,20 @@ let rec private traverse graph traversal =
                     | Some edges ->
                         List.tryPick (fun edge ->
                             match edge with
-                            | key', Edge (part, order') when order = order' -> Some (key', Edge (part, order))
-                            | _ -> None) edges
+                            | key', Edge (parser, order') when order = order' ->
+                                Some (key', Edge (parser, order))
+                            | _ ->
+                                None) edges
                     | _ ->
                         None) (graph ^. graphLens)
 
             match edge with
-            | Some (key', Edge (part, _)) ->
-                match part.Match path with
-                | Some data, Some path' -> return! traverse graph (capture key' path' traversal)
-                | _, Some path' -> return! traverse graph (capture key' path' traversal)
-                | _ -> return! traverse graph (reject traversal)
+            | Some (key', Edge (parser, _)) ->
+                match run parser path with
+                | Success (data, _, p) ->
+                    return! traverse graph (capture key' data (path.Substring (int p.Index)) traversal)
+                | _ ->
+                    return! traverse graph (reject traversal)
             | _ ->
                 return! traverse graph (abandon traversal)
         | _ ->

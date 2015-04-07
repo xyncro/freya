@@ -23,6 +23,7 @@ module internal Freya.Router.Compilation
 
 open Aether
 open Aether.Operators
+open FParsec
 open Freya.Pipeline
 open Freya.Types.Uri.Template
 open Hekate
@@ -50,7 +51,7 @@ and CompilationEndpoint =
     | Endpoint of FreyaRouteMethod * FreyaPipeline
 
 and CompilationEdge =
-    | Edge of UriTemplatePart * int
+    | Edge of Parser<UriTemplateData, unit> * int
 
 (* Defaults
 
@@ -125,7 +126,8 @@ let private updateNode key meth pipe =
 
 let private addEdge key1 key2 part graph =
     Graph.addEdge (key1, key2,
-        Edge (part, Option.get (Graph.outwardDegree key1 graph))) graph
+        Edge (UriTemplatePart.Matching.Match part,
+              Option.get (Graph.outwardDegree key1 graph))) graph
 
 let rec private addRoute current graph route =
     match route with

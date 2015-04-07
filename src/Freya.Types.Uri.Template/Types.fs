@@ -21,9 +21,9 @@
 module Freya.Types.Uri.Template
 
 open System.Text
+open FParsec
 open Freya.Types
 open Freya.Types.Uri
-open FParsec
 
 (* Data
 
@@ -36,8 +36,11 @@ type UriTemplateData =
     static member UriTemplateDataIso =
         (fun (UriTemplateData x) -> x), (fun x -> UriTemplateData x)
 
+    static member (+) (UriTemplateData a, UriTemplateData b) =
+        UriTemplateData (Map.ofList (Map.toList a @ Map.toList b))
+
 and UriTemplateKey =
-    | Key of string list
+    | Key of string
 
 and UriTemplateValue =
     | Atom of string
@@ -58,14 +61,16 @@ and UriTemplateValue =
 
 (* Matching *)
 
-type Matching<'a> =
-    { Match: Match<'a> }
+type Matching<'a,'b> =
+    { Match: Match<'a,'b> }
 
-and Match<'a> =
-    string -> 'a -> UriTemplateData option * string option
+and Match<'a,'b> =
+    'a -> Parser<'b, unit>
 
-let private match' (m: Match<'a>) =
-    fun s a -> m s a
+let private match' (m: Match<'a,'b>) s a =
+    match run (m a) s with
+    | Success (x, _, _) -> x
+    | Failure (e, _, _) -> failwith e
 
 (* Rendering
 
@@ -88,6 +93,46 @@ let private render (render: Render<'a>) =
    URI Template semantics as defined in RFC 6570.
 
    Taken from [http://tools.ietf.org/html/rfc6570] *)
+
+
+(* Parsers
+
+   Some extra functions for parsing, in particular for dynamically
+   parsing using a list of dynamically constructed parsers which should
+   succeed or fail as a single parser. *)
+
+[<AutoOpen>]
+module internal Parsers =
+
+    let multi parsers =
+        fun stream ->
+            let rec eval state =
+                match state with
+                | vs, [] ->
+                    Reply (vs)
+                | vs, p :: ps ->
+                    match p stream with
+                    | (x: Reply<'a>) when x.Status = Ok -> eval (x.Result :: vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+
+            eval ([], parsers)
+
+    let multiSepBy parsers sep =
+        fun stream ->
+            let rec eval state =
+                match state with
+                | _, vs, [] ->
+                    Reply (vs)
+                | true, vs, ps ->
+                    match sep stream with
+                    | (x: Reply<unit>) when x.Status = Ok -> eval (false, vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+                | false, vs, p :: ps ->
+                    match p stream with
+                    | (x: Reply<'a>) when x.Status = Ok -> eval (true, x.Result :: vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+
+            eval (false, [], parsers)
 
 (* Grammar
 
@@ -133,6 +178,15 @@ type UriTemplate =
         { Parse = uriTemplateP
           Format = uriTemplateF }
 
+    static member Matching =
+
+        let uriTemplateM =
+            function | UriTemplate parts ->
+                        multi (List.map UriTemplatePart.Matching.Match parts)
+                        |>> List.fold (+) (UriTemplateData Map.empty)
+
+        { Match = uriTemplateM }
+
     static member Rendering =
 
         let uriTemplateR (data: UriTemplateData) =
@@ -160,6 +214,9 @@ type UriTemplate =
     override x.ToString () =
         UriTemplate.Format x
 
+    member x.Match uri =
+        match' UriTemplate.Matching.Match uri x
+
     member x.Render data =
         render UriTemplate.Rendering.Render data x
 
@@ -181,9 +238,9 @@ and UriTemplatePart =
 
     static member Matching =
 
-        let uriTemplatePartM s =
-            function | Literal l -> Literal.Matching.Match s l
-                     | Expression e -> Expression.Matching.Match s e
+        let uriTemplatePartM =
+            function | Literal l -> Literal.Matching.Match l
+                     | Expression e -> Expression.Matching.Match e
 
         { Match = uriTemplatePartM }
 
@@ -201,8 +258,8 @@ and UriTemplatePart =
     override x.ToString () =
         UriTemplatePart.Format x
 
-    member x.Match path =
-        match' UriTemplatePart.Matching.Match path x
+    member x.Match part =
+        match' UriTemplatePart.Matching.Match part x
 
 and Literal =
     | Literal of string
@@ -226,11 +283,8 @@ and Literal =
 
     static member Matching =
         
-        let literalM s =
-            function | Literal l ->
-                        match run (pstring l) s with
-                        | Success (_, _, p) -> None, Some (s.Substring (int p.Index))
-                        | _ -> None, None
+        let literalM =
+            function | Literal l -> pstring l >>% UriTemplateData Map.empty
 
         { Match = literalM }
 
@@ -268,18 +322,27 @@ and Expression =
 
     static member Matching =
 
-        let simpleM (VariableList _) s =
-            let strP = many1Satisfy (int >> Grammar.alpha)
+        // TODO: Full range of matchers for expressions,
+        // correct parser for content, shift matchers down to
+        // individual expressions?
 
-            match run (sepBy strP (pchar ',')) s with
-            | Success (l, _, p) ->
-                printfn "simple capture of %A" l
-                None, Some (s.Substring (int p.Index))
-            | _ -> None, None
+        let atomP key =
+            manySatisfy isAsciiLetter |>> fun s -> key, Atom s
 
-        let expressionM s =
-            function | Expression (None, v) -> simpleM v s
-                     | _ -> None, None
+        let mapVariable key =
+            function | None, None -> atomP key
+                     | _ -> failwith ""
+
+        let mapVariables o (VariableList vs) =
+            List.map (fun (VariableSpec (VariableName n, m)) ->
+                mapVariable (Key n) (o, m)) vs
+
+        let mapExpression =
+            (function | Expression (None, vs) -> mapVariables None vs, commaP
+                      | _ -> failwith "") >> (fun (p, s) -> multiSepBy p s)
+
+        let expressionM e =
+            mapExpression e |>> fun vs -> UriTemplateData (Map.ofList vs)
 
         { Match = expressionM }
 
@@ -493,9 +556,16 @@ and VariableSpec =
           Format = variableSpecF }
 
 and VariableName =
-    | VariableName of string list
+    | VariableName of string
 
     static member Mapping =
+
+        // TODO: Assess the potential non-compliance
+        // with percent encoding in variable names, especially
+        // in cases which could involve percent encoded "." characters,
+        // which would not play well with our over-naive formatting here
+        // (which should potentially be reworked, although we are trying
+        // to avoid keys having list values...)
 
         let parser =
             PercentEncoding.makeParser Grammar.varchar
@@ -504,10 +574,12 @@ and VariableName =
             PercentEncoding.makeFormatter Grammar.varchar
 
         let variableNameP =
-            sepBy1 (notEmpty parser) (skipChar '.') |>> VariableName
+            sepBy1 (notEmpty parser) (skipChar '.')
+            |>> ((String.concat ".") >> VariableName)
 
         let variableNameF =
-            function | VariableName n ->join formatter (append ".") n
+            function | VariableName n ->
+                        join formatter (append ".") (List.ofArray (n.Split ([| '.' |])))
 
         { Parse = variableNameP
           Format = variableNameF }

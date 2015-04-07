@@ -44,21 +44,19 @@ module Route =
              environmentKeyPLens dataKey 
         <?-> boxIso<UriTemplateData>
 
-    // TODO: Fix this when we come up with a better key representation?
-
-    let item key =
+    let value key =
              data 
         <?-> UriTemplateData.UriTemplateDataIso
-        >??> mapPLens (Key [ key ])
+        >??> mapPLens (Key key)
 
     let atom key =
-             item key
+             value key
         <??> UriTemplateValue.AtomPIso
 
     let list key =
-             item key
+             value key
         <??> UriTemplateValue.ListPIso
 
     let keys key =
-             item key
+             value key
         <??> UriTemplateValue.KeysPIso
