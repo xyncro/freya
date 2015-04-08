@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -32,15 +33,15 @@ let private requestIdPLens =
 (* Execution *)
 
 let initializeRecord =
-    Freya.setLensPartial requestIdPLens =<< (Freya.fromAsync initialize =<< Freya.init ())
+    Freya.fromAsync initialize () >>= (.?=) requestIdPLens
 
 let updateRecord f =
-    Option.iter (fun id -> update id f) <!> Freya.getLensPartial requestIdPLens
+    Option.iter (flip update f) <!> (!?.) requestIdPLens
 
 (* Inspection *)
 
-let listRecords =
-    Freya.fromAsync list =<< Freya.init ()
+let listRecords : Freya<FreyaRecorderRecord list> =
+    Freya.fromAsync list ()
 
-let getRecord id =
-    Freya.fromAsync read =<< Freya.init id
+let getRecord id : Freya<FreyaRecorderRecord option> =
+    Freya.fromAsync read id

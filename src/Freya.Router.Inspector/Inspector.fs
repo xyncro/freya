@@ -15,13 +15,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 module Freya.Router.Inspector
 
 open Aether
+open Aether.Operators
 open Chiron
+open Freya.Core
 open Freya.Inspector
+open Freya.Router
 
 (* Runtime *)
 
@@ -34,7 +38,7 @@ let private runtime =
 (* Inspection *)
 
 let private data =
-    Lens.getPartial freyaRouterRecordPLens >> Option.map Json.serialize
+    flip (^?.) freyaRouterRecordPLens >> Option.map Json.serialize
 
 let private inspection =
     { Data = data }

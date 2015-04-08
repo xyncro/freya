@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -30,8 +31,7 @@ open Freya.Types.Http
 (* Functions *)
 
 let private initialize =
-    freya {
-        return! initializeRecord *> next }
+    initializeRecord *> next
 
 let private record config =
     freya {

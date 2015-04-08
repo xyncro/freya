@@ -123,7 +123,7 @@ let private (|Binary|_|) =
     function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let internal record meta =
+let internal createGraphRecord (Metadata meta) =
     { Nodes =
         Graph.nodes meta
         |> List.map (fun (v, l) ->
@@ -159,8 +159,6 @@ let private defaultFreyaMachineRecord =
 let freyaMachineRecordPLens =
     freyaRecordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
-(* Recording *)
-
 let private recordPLens =
          freyaMachineRecordPLens 
     >?-> FreyaMachineRecord.GraphLens
@@ -170,11 +168,15 @@ let private executionPLens =
     >?-> FreyaMachineRecord.ExecutionLens 
     >?-> FreyaMachineExecutionRecord.NodesLens
 
+(* Recording *)
+
+let internal recordGraph graph =
+    updateRecord (graph ^?= recordPLens)
+
+let internal recordNode id =
+    updateRecord ((fun es -> es @ [ { Id = id } ]) ^?%= executionPLens)
+
+(* Initialization *)
+
 let initializeFreyaMachineRecord =
-    updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)
-
-let internal setFreyaMachineGraphRecord graph =
-    updateRecord (Lens.setPartial recordPLens graph)
-
-let internal addFreyaMachineExecutionRecord id =
-    updateRecord (Lens.mapPartial executionPLens (fun es -> es @ [ { Id = id } ]))
+    updateRecord (defaultFreyaMachineRecord ^?= freyaMachineRecordPLens)

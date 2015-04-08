@@ -21,76 +21,186 @@
 [<AutoOpen>]
 module internal Freya.Router.Execution
 
+open Aether
+open Aether.Operators
+open FParsec
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Pipeline
 open Freya.Types.Http
+open Freya.Types.Uri.Template
+open Hekate
 
-(* Find *)
+(* Types *)
 
-let rec private findTrie path data (trie: CompilationTrie)  =
+type ExecutionResult =
+    | Matched of UriTemplateData * FreyaPipeline
+    | Unmatched
+
+type Traversal =
+    | Traversal of TraversalInvariant * TraversalState list
+
+    static member StateLens : Lens<Traversal, TraversalState list> =
+        (fun (Traversal (_, s)) -> s),
+        (fun s (Traversal (i, _)) -> Traversal (i, s))
+
+and TraversalInvariant =
+    | Invariant of Method
+
+and TraversalState =
+    | State of TraversalData * TraversalPosition
+
+    static member DataLens : Lens<TraversalState, TraversalData> =
+        (fun (State (d, _)) -> d),
+        (fun d (State (_, p)) -> State (d, p))
+
+    static member PositionLens : Lens<TraversalState, TraversalPosition> =
+        (fun (State (_, p)) -> p),
+        (fun p (State (d, _)) -> State (d, p))
+
+and TraversalData =
+    | Data of string * UriTemplateData
+
+    static member PathLens : Lens<TraversalData, string> =
+        (fun (Data (p, _)) -> p),
+        (fun p (Data (_, d)) -> Data (p, d))
+
+    static member DataLens : Lens<TraversalData, UriTemplateData> =
+        (fun (Data (_, d)) -> d),
+        (fun d (Data (p, _)) -> Data (p, d))
+
+and TraversalPosition =
+    | Position of CompilationKey * int
+
+    static member KeyLens : Lens<TraversalPosition, CompilationKey> =
+        (fun (Position (k, _)) -> k),
+        (fun k (Position (_, i)) -> Position (k, i))
+
+    static member OrderLens : Lens<TraversalPosition, int> =
+        (fun (Position (_, i)) -> i),
+        (fun i (Position (k, _)) -> Position (k, i))
+
+(* Constructors *)
+
+let private createTraversal meth path =
+    Traversal (
+        Invariant (meth), 
+        State (
+            Data (path, UriTemplateData Map.empty),
+            Position (Root, 0)) :: [])
+
+(* Lenses *)
+
+let private dataLens =
+        TraversalState.DataLens
+   >--> TraversalData.DataLens
+
+let private pathLens =
+        TraversalState.DataLens
+   >--> TraversalData.PathLens
+
+let private keyLens =
+        TraversalState.PositionLens
+   >--> TraversalPosition.KeyLens
+
+let private orderLens =
+        TraversalState.PositionLens
+   >--> TraversalPosition.OrderLens
+
+(* Patterns *)
+
+let private (|Candidate|_|) =
+    function | Traversal (Invariant meth,
+                          State (
+                              Data ("", data),
+                              Position (key, _)) :: _) -> Some (meth, data, key)
+             | _ -> None
+
+let private (|Progression|_|) =
+    function | Traversal (Invariant _,
+                          State (
+                              Data (path, _),
+                              Position (key, order)) :: _) -> Some (path, key, order)
+             | _ -> None
+
+(* Traversal *)
+
+let private combine data1 data2 =
+    match data1, data2 with
+    | UriTemplateData data1, UriTemplateData data2 ->
+        UriTemplateData (Map.ofList (Map.toList data1 @ Map.toList data2))
+
+let private capture key data path =
+    (function | state :: states ->
+                    (state
+                     |> key ^= keyLens
+                     |> 0 ^= orderLens
+                     |> combine data ^%= dataLens
+                     |> path ^= pathLens) :: state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private reject =
+    (function | state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let private abandon =
+    (function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
+              | _ -> []) ^%= Traversal.StateLens
+
+let rec private traverse graph traversal =
     freya {
-        match path with
-        | segment :: path -> return! (pick segment data >=> ret path) trie.Children
-        | _ -> return Some (trie.Pipelines, data) }
+        match traversal with
+        | Candidate (meth, data, key) ->
+            let pipe =
+                (fun graph ->
+                    match Graph.findNode key graph with
+                    | _, Endpoints endpoints ->
+                        List.tryPick (fun node ->
+                            match node with
+                            | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                            | Endpoint (All, pipe) -> Some pipe
+                            | _ -> None) endpoints
+                    | _ ->
+                        None) (graph ^. graphLens)
 
-and private ret path x =
-    freya {
-        match x with
-        | Some (trie, data) -> return! findTrie path data trie
-        | _ -> return None }
+            match pipe with
+            | Some pipe -> return Matched (data, pipe)
+            | _ -> return! traverse graph (abandon traversal)
+        | Progression (path, key, order) ->
+            let edge =
+                (fun graph ->
+                    match Graph.successors key graph with
+                    | Some edges ->
+                        List.tryPick (fun edge ->
+                            match edge with
+                            | key', Edge (parser, order') when order = order' ->
+                                Some (key', Edge (parser, order))
+                            | _ ->
+                                None) edges
+                    | _ ->
+                        None) (graph ^. graphLens)
 
-and private pick segment data tries =
-    freya {
-        match tries with
-        | [] -> return None
-        | tries ->
-            let! state = Freya.getState
+            match edge with
+            | Some (key', Edge (parser, _)) ->
+                match run parser path with
+                | Success (data, _, p) ->
+                    return! traverse graph (capture key' data (path.Substring (int p.Index)) traversal)
+                | _ ->
+                    return! traverse graph (reject traversal)
+            | _ ->
+                return! traverse graph (abandon traversal)
+        | _ ->
+            return Unmatched }
 
-            let x, state =
-                List.fold (fun (x, state) trie ->
-                    match x with
-                    | Some (trie, data) -> (Some (trie, data), state)
-                    | None -> Async.RunSynchronously (recognize segment data trie state)) (None, state) tries
+(* Search *)
 
-            do! Freya.setState state
-
-            return x }
-
-and private recognize segment data trie =
-    freya {
-        let result = addFreyaRouterExecutionRecord trie.Key segment
-
-        match trie.Recognizer with
-        | Capture x -> return! result Captured *> Freya.init (Some (trie, Map.add x segment data))
-        | Ignore x when x = segment -> return! result Matched *> Freya.init (Some (trie, data))
-        | _ -> return! result Failed *> Freya.init None }
-
-(* Match *)
-
-let private find meth x =
-    freya {
-        return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m
-                                      | _ -> true) x }
-
-let private pair data x =
-    freya {
-        return Option.map (fun (_, pipeline) -> pipeline, data) x }
-
-let private matchMethod meth x =
-    freya {
-        match x with
-        | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
-        | _ -> return None }
+let private search graph =
+        createTraversal <!> (!. Request.meth) <*> (!. Request.path)
+    >>= traverse graph
 
 (* Execution *)
 
-let executeCompilation trie =
-    freya {
-        let! meth = Freya.getLens Request.meth
-        let! path = segmentize <!> Freya.getLens Request.path
-        let! res = (findTrie path Map.empty >=> matchMethod meth) trie
-        
-        match res with
-        | Some (pipeline, data) -> return! Freya.setLensPartial Route.values data *> pipeline
-        | _ -> return Next }
+let execute graph =
+        search graph
+    >>= function | Matched (data, pipe) -> (Route.data .?= data) *> pipe
+                 | Unmatched -> next

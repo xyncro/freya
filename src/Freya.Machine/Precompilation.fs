@@ -21,6 +21,8 @@
 [<AutoOpen>]
 module internal Freya.Machine.Precompilation
 
+open Aether
+open Aether.Operators
 open Freya.Core
 open Hekate
 
@@ -35,28 +37,30 @@ open Hekate
    stages, specifically dependency ordering of extensions, and the application
    of extensions to the source graph. *)
 
-type Precompilation =
-    | Precompiled of SourceGraph
-    | Error of string
+type PrecompilationGraph =
+    | Graph of Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
-and SourceGraph =
-    Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
+    static member GraphIso =
+        (fun (Graph x) -> x), (fun x -> Graph (x))
 
-type private Ordering =
-    | Ordered of FreyaMachineExtension list
-    | Error of string
-
-type private Extension =
-    | Extended of SourceGraph
+type PrecompilationResult =
+    | Precompilation of PrecompilationGraph
     | Error of string
 
 (* Defaults *)
 
-let private defaultSourceGraph : SourceGraph =
-    Graph.create
-        [ Start, None
-          Finish, None ]
-        [ Start, Finish, None ]
+let private defaultPrecompilationGraph : PrecompilationGraph =
+    PrecompilationGraph.Graph (
+        Graph.create
+            [ Start, None
+              Finish, None ]
+            [ Start, Finish, None ])
+
+(* Lenses *)
+
+let precompilationGraphLens =
+        idLens
+   <--> PrecompilationGraph.GraphIso
 
 (* Ordering
 
@@ -67,6 +71,10 @@ let private defaultSourceGraph : SourceGraph =
 
    See [https://en.wikipedia.org/wiki/Topological_sorting] for details
    of topological sorting in general, and Kahn's algorithm in particular. *)
+
+type private OrderingResult =
+    | Ordering of FreyaMachineExtension list
+    | Error of string
 
 let private nodes =
     List.map (fun e -> e.Name, e)
@@ -87,8 +95,8 @@ let private independent graph =
 let rec private sort extensions graph =
     match independent graph with
     | Some (e, g) -> sort (extensions @ [ e ]) g
-    | _ when Graph.isEmpty graph -> Ordered extensions
-    | _ -> Ordering.Error "Extension Dependencies Cyclic"
+    | _ when Graph.isEmpty graph -> Ordering extensions
+    | _ -> Error "Extension Dependencies Cyclic"
 
 let private order =
         Set.toList 
@@ -103,6 +111,10 @@ let private order =
    graph preconditions, but as we have the verification postcondition system
    it's not a high priority. *)
 
+type private Extension =
+    | Extension of PrecompilationGraph
+    | Error of string
+
 let private applyOperation =
     function | AddNode (v, l) -> Graph.addNode (v, l)
              | RemoveNode (v) -> Graph.removeNode (v)
@@ -115,8 +127,8 @@ let private applyExtension extension =
 let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
-let private extend extensions g =
-    Extended (applyExtensions extensions g)
+let private extend extensions graph =
+    Extension ((applyExtensions extensions ^%= precompilationGraphLens) graph)
 
 (* Precompilation
 
@@ -124,13 +136,11 @@ let private extend extensions g =
    in to a complete source graph (or not, in the case of intermediate stage
    errors). *)
 
-let precompile spec =
-    match order spec.Extensions with
-    | Ordered extensions ->
-        match extend extensions defaultSourceGraph with
-        | Extended source ->
-            Precompiled source
-        | Extension.Error e ->
-            Precompilation.Error e
-    | Ordering.Error e ->
-        Precompilation.Error e
+let precompile extensions =
+    match order extensions with
+    | Ordering extensions ->
+        match extend extensions defaultPrecompilationGraph with
+        | Extension graph -> Precompilation graph
+        | Error e -> PrecompilationResult.Error e
+    | OrderingResult.Error e ->
+        PrecompilationResult.Error e

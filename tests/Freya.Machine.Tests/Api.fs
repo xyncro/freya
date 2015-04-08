@@ -33,6 +33,7 @@ open Freya.Router
 open Freya.Router.Inspector
 open Freya.Types.Http
 open Freya.Types.Http.Cors
+open Freya.Types.Uri.Template
 open Freya.TodoBackend.Domain
 
 (* Route Properties
@@ -49,7 +50,7 @@ open Freya.TodoBackend.Domain
 
 let id =
     freya {
-        let! id = Freya.getLensPartial (Route.valuesKey "id")
+        let! id = Freya.getLensPartial (Route.atom "id")
         return (Option.get >> Guid.Parse) id } |> Freya.memo
 
 (* Body Properties
@@ -215,8 +216,8 @@ let todo =
 
 let todoRoutes =
     freyaRouter {
-        resource "/" todos
-        resource "/:id" todo } |> FreyaRouter.toPipeline
+        resource (UriTemplate.Parse "/") todos
+        resource (UriTemplate.Parse "/{id}") todo } |> FreyaRouter.toPipeline
 
 (* Inspectors *)
 

@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -23,7 +24,6 @@ module Freya.Router.Recording
 open Aether
 open Aether.Operators
 open Chiron
-open Chiron.Operators
 open Freya.Recorder
 
 (* Keys *)
@@ -34,94 +34,54 @@ let [<Literal>] freyaRouterRecordKey =
 (* Types *)
 
 type FreyaRouterRecord =
-    { Execution: FreyaRouterExecutionRecord
-      Trie: FreyaRouterTrieRecord }
+    { Execution: FreyaRouterExecutionRecord }
 
     static member ExecutionLens =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
-    static member TrieLens =
-        (fun x -> x.Trie), (fun t x -> { x with Trie = t })
-
     static member ToJson (x: FreyaRouterRecord) =
-            Json.write "execution" x.Execution
-         *> Json.write "trie" x.Trie
-
-(* Trie *)
-
-and FreyaRouterTrieRecord =
-    { Key: string
-      Children: FreyaRouterTrieRecord list }
-
-    static member ToJson (x: FreyaRouterTrieRecord) =
-            Json.write "key" x.Key
-         *> Json.write "children" x.Children
-
-(* Execution *)
+        Json.write "execution" x.Execution
 
 and FreyaRouterExecutionRecord =
-    { Tries: FreyaRouterExecutionTrieRecord list }
+    { Nodes: FreyaRouterExecutionNodeRecord list }
 
-    static member TriesLens =
-        (fun x -> x.Tries), (fun t x -> { x with Tries = t })
+    static member NodesLens =
+        (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
 
     static member ToJson (x: FreyaRouterExecutionRecord) =
-        Json.write "tries" x.Tries
+        Json.write "nodes" x.Nodes
 
-and FreyaRouterExecutionTrieRecord =
-    { Key: string
-      Value: string
-      Result: FreyaRouterExecutionResult }
+and FreyaRouterExecutionNodeRecord =
+    { Id: string }
 
-    static member ToJson (x: FreyaRouterExecutionTrieRecord) =
-            Json.write "key" x.Key
-         *> Json.write "value" x.Value
-         *> Json.write "result" ((function | Captured -> "captured"
-                                           | Failed -> "failed"
-                                           | Matched -> "matched") x.Result)
+    static member IdLens : Lens<FreyaRouterExecutionNodeRecord, string> =
+        (fun x -> x.Id), (fun i x -> { x with Id = i })
 
-and FreyaRouterExecutionResult =
-    | Captured
-    | Failed
-    | Matched
+    static member ToJson (x: FreyaRouterExecutionNodeRecord) =
+        Json.write "id" x.Id
 
-(* Constructors *)
+(* Defaults *)
 
-let private freyaRouterRecord =
-    { Trie =
-        { Key = ""
-          Children = List.empty }
-      Execution =
-        { Tries = List.empty } }
-
-let rec internal routerTrieRecord (trie: CompilationTrie) : FreyaRouterTrieRecord =
-    { Key = trie.Key
-      Children = trie.Children |> List.map routerTrieRecord }
+let private defaultFreyaRouterRecord =
+    { Execution =
+        { Nodes = List.empty } }
 
 (* Lenses *)
 
 let freyaRouterRecordPLens =
     freyaRecordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
 
-(* Recording *)
-
-let private triePLens =
-         freyaRouterRecordPLens
-    >?-> FreyaRouterRecord.TrieLens
-
-let private executionPLens =
+let private nodesPLens =
          freyaRouterRecordPLens
     >?-> FreyaRouterRecord.ExecutionLens
-    >?-> FreyaRouterExecutionRecord.TriesLens
+    >?-> FreyaRouterExecutionRecord.NodesLens
+
+(* Recording *)
+
+let internal recordNode id =
+    updateRecord ((fun nodes -> { Id = id } :: nodes) ^?%= nodesPLens)
+
+(* Initialization *)
 
 let initializeFreyaRouterRecord =
-    updateRecord (Lens.setPartial freyaRouterRecordPLens freyaRouterRecord)
-
-let internal setFreyaRouterTrieRecord trie =
-    updateRecord (Lens.setPartial triePLens trie)
-
-let internal addFreyaRouterExecutionRecord key value result =
-    updateRecord (Lens.mapPartial executionPLens
-                        (fun x -> x @ [ { Key = key
-                                          Value = value
-                                          Result = result } ]))
+    updateRecord (defaultFreyaRouterRecord ^?= freyaRouterRecordPLens)
