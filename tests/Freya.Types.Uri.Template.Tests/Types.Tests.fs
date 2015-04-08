@@ -29,8 +29,12 @@ let data =
             Key "empty",      Atom ""
             Key "empty_keys", Keys [] ])
 
+let testMatch uri path data =
+    UriTemplate.Parse(uri).Match(path) =? UriTemplateData (Map.ofList data)
+
 let (=?) str1 str2 =
     UriTemplate.Parse(str1).Render(data) =? str2
+
 
 (* Illustrative Examples
 
@@ -88,6 +92,12 @@ let ``Simple Expansion Renders Correctly`` () =
     "{keys*}" =? "semi=%3B,dot=.,comma=%2C"
 
 [<Test>]
+let ``Simple Matching Matches Correctly`` () =
+    testMatch "/test/{atom}" "/test/one" [ Key "atom", Atom "one" ]
+    testMatch "/test/{list*}" "/test/one,two,three" [ Key "list", List [ "one"; "two"; "three" ] ]
+    testMatch "/test/{keys*}" "/test/one=a,two=b" [ Key "keys", Keys [ ("one", "a"); ("two", "b") ] ]
+
+[<Test>]
 let ``Reserved Expansion Renders Correctly`` () =
     "{+var}" =? "value"
     "{+he.llo}" =? "Hello%20World!"
@@ -107,6 +117,15 @@ let ``Reserved Expansion Renders Correctly`` () =
     "{+keys}" =? "semi,;,dot,.,comma,,"
     "{+keys*}" =? "semi=;,dot=.,comma=,"
 
+// Note - this may seem incorrect, but is actually expected behaviour.
+// These are not ideal operators to use for matching complex data!
+
+[<Test>]
+let ``Reserved Matching Matches Correctly`` () =
+    testMatch "/test/{+atom}" "/test/one!" [ Key "atom", Atom "one!" ]
+    testMatch "/test/{+list*}" "/test/one,two,three" [ Key "list", List [ "one,two,three" ] ]
+    testMatch "/test/{+keys*}" "/test/one=a,two=b" [ Key "keys", List [ "one=a,two=b" ] ]
+
 [<Test>]
 let ``Fragment Expansion Renders Correctly`` () =
     "{#var}" =? "#value"
@@ -121,6 +140,16 @@ let ``Fragment Expansion Renders Correctly`` () =
     "{#list*}" =? "#red,green,blue"
     "{#keys}" =? "#semi,;,dot,.,comma,,"
     "{#keys*}" =? "#semi=;,dot=.,comma=,"
+
+// Note - this may seem incorrect, but is actually expected behaviour.
+// These are not ideal operators to use for matching complex data!
+
+[<Test>]
+let ``Fragment Matching Matches Correctly`` () =
+    testMatch "/test{#atom}" "/test#one!" [ Key "atom", Atom "one!" ]
+    testMatch "/test{#list*}" "/test#one,two,three" [ Key "list", List [ "one,two,three" ] ]
+    testMatch "/test{#keys*}" "/test#one=a,two=b" [ Key "keys", List [ "one=a,two=b" ] ]
+
 
 //[<Test>]
 //let ``Label Expansion with Dot-Prefix Renders Correctly`` () =
