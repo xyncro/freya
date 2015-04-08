@@ -1,7 +1,6 @@
 ﻿open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Pipeline
 open Freya.Router
 open Freya.Types.Http
 open Freya.Types.Language
@@ -29,7 +28,7 @@ let resource =
 
 let routes =
     freyaRouter {
-        route All (UriTemplate.Parse "/") resource } |> FreyaRouter.toPipeline
+        route All (UriTemplate.Parse "/{id}") resource } |> FreyaRouter.toPipeline
 
 // App
 

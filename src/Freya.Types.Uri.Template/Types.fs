@@ -322,15 +322,42 @@ and Expression =
 
     static member Matching =
 
-        // TODO: Full range of matchers for expressions,
-        // correct parser for content, shift matchers down to
-        // individual expressions?
+        (* Primitives *)
 
-        let atomP key =
-            manySatisfy isAsciiLetter |>> fun s -> key, Atom s
+        let idP =
+            preturn ()
+
+        let simpleP =
+            PercentEncoding.makeParser Grammar.unreserved
+
+        let reserved i =
+                (Grammar.reserved i)
+             || (Grammar.unreserved i)
+
+        let reservedP =
+            PercentEncoding.makeParser reserved
+
+        (* Values *)
+
+        let atomP p key =
+            p |>> fun s -> key, Atom s
+
+        let listP p sep =
+            sepBy p sep |>> List
+
+        let keysP p sep =
+            sepBy (p .>> equalsP .>>. p) sep |>> Keys
+
+        let listOrKeysP p sep key =
+            attempt (keysP p sep) <|> listP p sep |>> fun v -> key, v
+
+        (* Mapping *)
 
         let mapVariable key =
-            function | None, None -> atomP key
+            function | None, Some (Level4 (Explode)) -> listOrKeysP simpleP commaP key
+                     | None, _ -> atomP simpleP key
+                     | Some (Level2 _), Some (Level4 (Explode)) -> listOrKeysP reservedP commaP key
+                     | Some (Level2 _), _ -> atomP reservedP key
                      | _ -> failwith ""
 
         let mapVariables o (VariableList vs) =
@@ -338,8 +365,11 @@ and Expression =
                 mapVariable (Key n) (o, m)) vs
 
         let mapExpression =
-            (function | Expression (None, vs) -> mapVariables None vs, commaP
-                      | _ -> failwith "") >> (fun (p, s) -> multiSepBy p s)
+                function | Expression (None, vs) -> idP, mapVariables None vs, commaP
+                         | Expression (Some (Level2 Plus), vs) -> idP, mapVariables (Some (Level2 Plus)) vs, commaP
+                         | Expression (Some (Level2 Hash), vs) -> skipChar '#', mapVariables (Some (Level2 Hash)) vs, commaP
+                         | _ -> failwith ""
+             >> fun (pre, parsers, sep) -> pre >>. multiSepBy parsers sep
 
         let expressionM e =
             mapExpression e |>> fun vs -> UriTemplateData (Map.ofList vs)
@@ -398,10 +428,10 @@ and Expression =
         let fragmentExpansion =
             render (fun d -> append "#" >> join (expand reservedF commaF) commaF d)
 
-        (* Label Expansion with Dot-Prefix *)
-
-        let labelExpansion =
-            render (fun d -> dotF >> join (expand simpleF dotF) dotF d)
+//        (* Label Expansion with Dot-Prefix *)
+//
+//        let labelExpansion =
+//            render (fun d -> dotF >> join (expand simpleF dotF) dotF d)
 
         (* Expression *)
 
@@ -409,7 +439,7 @@ and Expression =
             function | Expression (None, v) -> simpleExpansion v data
                      | Expression (Some (Level2 Plus), v) -> reservedExpansion v data
                      | Expression (Some (Level2 Hash), v) -> fragmentExpansion v data
-                     | Expression (Some (Level3 Dot), v) -> labelExpansion v data
+                     | Expression (Some (Level3 Dot), _) -> id
                      | Expression (Some (Level3 Slash), _) -> id
                      | Expression (Some (Level3 SemiColon), _) -> id
                      | Expression (Some (Level3 Question), _) -> id
