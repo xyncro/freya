@@ -110,22 +110,22 @@ let private keyValue =
     function | Root -> "root"
              | Key k -> k
 
-let internal completionSuccess key =
+let internal recordCompletionSuccess key =
     updateRecord ((fun nodes ->
         { Key = keyValue key
           Action = Completion FreyaRouterExecutionCompletionAction.Success } :: nodes) ^?%= nodesPLens)
 
-let internal completionFailure key =
+let internal recordCompletionFailure key =
     updateRecord ((fun nodes ->
         { Key = keyValue key
           Action = Completion FreyaRouterExecutionCompletionAction.Failure } :: nodes) ^?%= nodesPLens)
 
-let internal matchSuccess key =
+let internal recordMatchSuccess key =
     updateRecord ((fun nodes ->
         { Key = keyValue key
           Action = Match Success } :: nodes) ^?%= nodesPLens)
 
-let internal matchFailure key =
+let internal recordMatchFailure key =
     updateRecord ((fun nodes ->
         { Key = keyValue key
           Action = Match Failure } :: nodes) ^?%= nodesPLens)

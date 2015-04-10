@@ -45,20 +45,20 @@ let private fail e =
    applicable (as in Binary operations). *)
 
 let private start =
-        execution "start"
+        recordExecution "start"
      *> Freya.init None
 
 let private finish =
-        execution "finish"
+        recordExecution "finish"
      *> Freya.init ()
 
 let private unary v operation =
-        execution v
+        recordExecution v
      *> operation
      *> Freya.init None
 
 let private binary v operation =
-        execution v
+        recordExecution v
      *> operation
     >>= fun x -> Freya.init (Some (Edge x))
 

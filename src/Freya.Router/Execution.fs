@@ -109,97 +109,101 @@ let private orderLens =
 
 (* Patterns *)
 
-let private (|Candidate|_|) traversal =
-    match traversal with
-    | Traversal (Invariant meth,
-                 State (
-                     Data ("", data),
-                     Position (key, _)) :: _) -> Some (meth, data, key)
-    | _ -> None
+let private (|Candidate|_|) =
+    function | Traversal (Invariant meth,
+                          State (
+                              Data ("", data),
+                              Position (key, _)) :: _) -> Some (meth, data, key)
+             | _ -> None
 
-let private (|Progression|_|) traversal =
-    match traversal with
-    | Traversal (Invariant _,
-                 State (
-                     Data (path, _),
-                     Position (key, order)) :: _) -> Some (path, key, order)
-    | _ -> None
+let private (|Progression|_|) =
+    function | Traversal (Invariant _,
+                          State (
+                              Data (path, _),
+                              Position (key, order)) :: _) -> Some (path, key, order)
+             | _ -> None
 
 let private (|Parsed|_|) parser path =
     match run parser path with
     | Success (data, _, p) -> Some (data, path.Substring (int p.Index))
     | _ -> None
 
-(* Traversal *)
+(* Position *)
 
 let private capture key data path =
-    (fun states ->
-        match states with
-        | state :: states ->
-            (state
-             |> key ^= keyLens
-             |> 0 ^= orderLens
-             |> (+) data ^%= dataLens
-             |> path ^= pathLens) :: state :: states
-        | _ -> []) ^%= Traversal.StateLens
+    function | state :: states ->
+                (state
+                 |> key ^= keyLens
+                 |> 0 ^= orderLens
+                 |> (+) data ^%= dataLens
+                 |> path ^= pathLens) :: state :: states
+             | _ -> []
 
 let private reject =
-    (fun states ->
-        match states with
-        | state :: states -> (((+) 1) ^%= orderLens) state :: states
-        | _ -> []) ^%= Traversal.StateLens
+    function | state :: states -> (((+) 1) ^%= orderLens) state :: states
+             | _ -> []
 
 let private abandon =
-    (fun states ->
-        match states with
-        | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
-        | _ -> []) ^%= Traversal.StateLens
+    function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
+             | _ -> []
+
+(* Projection *)
 
 let private tryFindPipe key meth =
         Graph.findNode key
-     >> fun node ->
-            match node with
-            | _, Endpoints endpoints ->
-                List.tryPick (fun node ->
-                    match node with
-                    | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
-                    | Endpoint (All, pipe) -> Some pipe
-                    | _ -> None) endpoints
-            | _ ->
-                None
+     >> function | _, Endpoints endpoints ->
+                    List.tryPick (fun node ->
+                        match node with
+                        | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                        | Endpoint (All, pipe) -> Some pipe
+                        | _ -> None) endpoints
+                 | _ ->
+                    None
 
 let private tryFindEdge key order =
         Graph.successors key
-     >> fun edges ->
-            match edges with
-            | Some edges ->
-                List.tryPick (fun edge ->
-                    match edge with
-                    | key', Edge (parser, order') when order = order' -> Some (key', Edge (parser, order))
-                    | _ -> None) edges
-            | _ ->
-                None
+     >> function | Some edges ->
+                    List.tryPick (fun edge ->
+                        match edge with
+                        | key', Edge (parser, order') when order = order' -> Some (key', Edge (parser, order))
+                        | _ -> None) edges
+                 | _ ->
+                    None
+
+(* Traversal *)
 
 let rec private traverse graph traversal =
     match traversal with
     | Candidate (meth, data, key) ->
         match tryFindPipe key meth (graph ^. graphLens) with
-        | Some pipe ->
-            completionSuccess key *> Freya.init (Matched (data, pipe))
-        | _ ->
-            completionFailure key *> traverse graph (abandon traversal)
+        | Some pipe -> completionSuccess key data pipe
+        | _ -> completionFailure key graph traversal
     | Progression (path, key, order) ->
         match tryFindEdge key order (graph ^. graphLens) with
         | Some (key', Edge (parser, _)) ->
             match path with
-            | Parsed parser (data, path') ->
-                matchSuccess key' *> traverse graph (capture key' data path' traversal)
-            | _ ->
-                matchFailure key' *> traverse graph (reject traversal)
+            | Parsed parser (data, path') -> matchSuccess key' data path' graph traversal
+            | _ -> matchFailure key' graph traversal
         | _ ->
-            traverse graph (abandon traversal)
+            traverse graph ((abandon ^%= Traversal.StateLens) traversal)
     | _ ->
         Freya.init Unmatched
+
+and private completionSuccess key data pipe =
+        recordCompletionSuccess key
+     *> Freya.init (Matched (data, pipe))
+
+and private completionFailure key graph traversal =
+        recordCompletionFailure key
+     *> traverse graph ((abandon ^%= Traversal.StateLens) traversal)
+
+and private matchSuccess key data path graph traversal =
+        recordMatchSuccess key
+     *> traverse graph ((capture key data path ^%= Traversal.StateLens) traversal)
+
+and private matchFailure key graph traversal =
+        recordMatchFailure key
+     *> traverse graph ((reject ^%= Traversal.StateLens) traversal)
 
 (* Search *)
 

@@ -49,7 +49,7 @@ let private fail e =
    concerns about generation efficiency. *)
 
 let private run exec graph =
-        definition graph
+        recordDefinition graph
      *> execute exec
      *> halt
 
