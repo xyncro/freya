@@ -24,6 +24,7 @@ module Freya.Router.Recording
 open Aether
 open Aether.Operators
 open Chiron
+open Chiron.Operators
 open Freya.Recorder
 
 (* Keys *)
@@ -52,13 +53,40 @@ and FreyaRouterExecutionRecord =
         Json.write "nodes" x.Nodes
 
 and FreyaRouterExecutionNodeRecord =
-    { Id: string }
-
-    static member IdLens : Lens<FreyaRouterExecutionNodeRecord, string> =
-        (fun x -> x.Id), (fun i x -> { x with Id = i })
+    { Key: string
+      Action: FreyaRouterExecutionAction }
 
     static member ToJson (x: FreyaRouterExecutionNodeRecord) =
-        Json.write "id" x.Id
+            Json.write "key" x.Key
+         *> Json.write "action" x.Action
+
+and FreyaRouterExecutionAction =
+    | Completion of FreyaRouterExecutionCompletionAction
+    | Match of FreyaRouterExecutionMatchAction
+
+    static member ToJson (x: FreyaRouterExecutionAction) =
+        match x with
+        | Completion x -> Json.write "completion" x
+        | Match x -> Json.write "match" x
+
+and FreyaRouterExecutionCompletionAction =
+    | Success
+    | Failure
+
+    static member ToJson (x: FreyaRouterExecutionCompletionAction) =
+        match x with
+        | Success -> Json.write "result" "success"
+        | Failure -> Json.write "result" "failure"
+
+and FreyaRouterExecutionMatchAction =
+    | Success
+    | Failure
+
+    static member ToJson (x: FreyaRouterExecutionMatchAction) =
+        match x with
+        | Success -> Json.write "result" "success"
+        | Failure -> Json.write "result" "failure"
+
 
 (* Defaults *)
 
@@ -78,8 +106,29 @@ let private nodesPLens =
 
 (* Recording *)
 
-let internal recordNode id =
-    updateRecord ((fun nodes -> { Id = id } :: nodes) ^?%= nodesPLens)
+let private keyValue =
+    function | Root -> "root"
+             | Key k -> k
+
+let internal completionSuccess key =
+    updateRecord ((fun nodes ->
+        { Key = keyValue key
+          Action = Completion FreyaRouterExecutionCompletionAction.Success } :: nodes) ^?%= nodesPLens)
+
+let internal completionFailure key =
+    updateRecord ((fun nodes ->
+        { Key = keyValue key
+          Action = Completion FreyaRouterExecutionCompletionAction.Failure } :: nodes) ^?%= nodesPLens)
+
+let internal matchSuccess key =
+    updateRecord ((fun nodes ->
+        { Key = keyValue key
+          Action = Match Success } :: nodes) ^?%= nodesPLens)
+
+let internal matchFailure key =
+    updateRecord ((fun nodes ->
+        { Key = keyValue key
+          Action = Match Failure } :: nodes) ^?%= nodesPLens)
 
 (* Initialization *)
 

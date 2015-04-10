@@ -48,8 +48,8 @@ let private fail e =
    The graphs are effectively captured as a closure here, eliminating
    concerns about generation efficiency. *)
 
-let private run exec record =
-        recordGraph record
+let private run exec graph =
+        definition graph
      *> execute exec
      *> halt
 

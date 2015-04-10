@@ -170,10 +170,10 @@ let private executionPLens =
 
 (* Recording *)
 
-let internal recordGraph graph =
+let internal definition graph =
     updateRecord (graph ^?= recordPLens)
 
-let internal recordNode id =
+let internal execution id =
     updateRecord ((fun es -> es @ [ { Id = id } ]) ^?%= executionPLens)
 
 (* Initialization *)
