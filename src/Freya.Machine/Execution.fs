@@ -38,30 +38,6 @@ exception ExecutionError of string
 let private fail e =
     raise (ExecutionError e)
 
-(* Operations
-
-   Functions representing the execution and recording of monadic
-   Machine operations, return the result of the operation when
-   applicable (as in Binary operations). *)
-
-let private start =
-        recordExecution "start"
-     *> Freya.init None
-
-let private finish =
-        recordExecution "finish"
-     *> Freya.init ()
-
-let private unary v operation =
-        recordExecution v
-     *> operation
-     *> Freya.init None
-
-let private binary v operation =
-        recordExecution v
-     *> operation
-    >>= fun x -> Freya.init (Some (Edge x))
-
 (* Patterns
 
    Patterns for matching the currently active node during traversal
@@ -106,6 +82,24 @@ let rec private traverse graph node =
         | _ -> fail "Node Not Matched"
     | _ ->
         fail "Node Not Found"
+
+and private start =
+        recordExecution "start"
+     *> Freya.init None
+
+and private finish =
+        recordExecution "finish"
+     *> Freya.init ()
+
+and private unary v operation =
+        recordExecution v
+     *> operation
+     *> Freya.init None
+
+and private binary v operation =
+        recordExecution v
+     *> operation
+    >>= fun x -> Freya.init (Some (Edge x))
 
 (* Execution
 
