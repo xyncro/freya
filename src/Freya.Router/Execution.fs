@@ -123,19 +123,19 @@ let private (|Progression|_|) =
                               Position (key, order)) :: _) -> Some (path, key, order)
              | _ -> None
 
-(* Traversal *)
+let private (|Parsed|_|) parser path =
+    match run parser path with
+    | Success (data, _, p) -> Some (data, path.Substring (int p.Index))
+    | _ -> None
 
-let private combine data1 data2 =
-    match data1, data2 with
-    | UriTemplateData data1, UriTemplateData data2 ->
-        UriTemplateData (Map.ofList (Map.toList data1 @ Map.toList data2))
+(* Traversal *)
 
 let private capture key data path =
     (function | state :: states ->
                     (state
                      |> key ^= keyLens
                      |> 0 ^= orderLens
-                     |> combine data ^%= dataLens
+                     |> (+) data ^%= dataLens
                      |> path ^= pathLens) :: state :: states
               | _ -> []) ^%= Traversal.StateLens
 
@@ -147,46 +147,40 @@ let private abandon =
     (function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
               | _ -> []) ^%= Traversal.StateLens
 
+let private tryFindPipe key meth =
+        Graph.findNode key
+     >> function | _, Endpoints endpoints ->
+                    List.tryPick (fun node ->
+                        match node with
+                        | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                        | Endpoint (All, pipe) -> Some pipe
+                        | _ -> None) endpoints
+                 | _ ->
+                    None
+
+let private tryFindEdge key order =
+        Graph.successors key
+     >> function | Some edges ->
+                    List.tryPick (fun edge ->
+                        match edge with
+                        | key', Edge (parser, order') when order = order' -> Some (key', Edge (parser, order))
+                        | _ -> None) edges
+                 | _ ->
+                    None
+
 let rec private traverse graph traversal =
     freya {
         match traversal with
         | Candidate (meth, data, key) ->
-            let pipe =
-                (fun graph ->
-                    match Graph.findNode key graph with
-                    | _, Endpoints endpoints ->
-                        List.tryPick (fun node ->
-                            match node with
-                            | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
-                            | Endpoint (All, pipe) -> Some pipe
-                            | _ -> None) endpoints
-                    | _ ->
-                        None) (graph ^. graphLens)
-
-            match pipe with
+            match tryFindPipe key meth (graph ^. graphLens) with
             | Some pipe -> return Matched (data, pipe)
             | _ -> return! traverse graph (abandon traversal)
         | Progression (path, key, order) ->
-            let edge =
-                (fun graph ->
-                    match Graph.successors key graph with
-                    | Some edges ->
-                        List.tryPick (fun edge ->
-                            match edge with
-                            | key', Edge (parser, order') when order = order' ->
-                                Some (key', Edge (parser, order))
-                            | _ ->
-                                None) edges
-                    | _ ->
-                        None) (graph ^. graphLens)
-
-            match edge with
+            match tryFindEdge key order (graph ^. graphLens) with
             | Some (key', Edge (parser, _)) ->
-                match run parser path with
-                | Success (data, _, p) ->
-                    return! traverse graph (capture key' data (path.Substring (int p.Index)) traversal)
-                | _ ->
-                    return! traverse graph (reject traversal)
+                match path with
+                | Parsed parser (data, path') -> return! traverse graph (capture key' data path' traversal)
+                | _ -> return! traverse graph (reject traversal)
             | _ ->
                 return! traverse graph (abandon traversal)
         | _ ->
