@@ -21,12 +21,11 @@
 [<AutoOpen>]
 module Freya.Machine.Recording
 
-open Aether
 open Aether.Operators
 open Chiron
 open Chiron.Operators
-open Hekate
 open Freya.Recorder
+open Hekate
 
 (* Errors *)
 
@@ -96,13 +95,16 @@ and FreyaMachineExecutionRecord =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
     static member ToJson (x: FreyaMachineExecutionRecord) =
-        Json.write "nodes" x.Nodes
+            Json.write "nodes" x.Nodes
 
 and FreyaMachineExecutionNodeRecord =
-    { Id: string }
+    { Id: FreyaMachineNode }
 
     static member ToJson (x: FreyaMachineExecutionNodeRecord) =
-        Json.write "id" x.Id
+        match x.Id with
+        | Start -> Json.write "id" "start"
+        | Finish -> Json.write "id" "finish"
+        | Operation x -> Json.write "id" x
 
 (* Construction *)
 
