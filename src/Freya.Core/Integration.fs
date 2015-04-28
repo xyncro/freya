@@ -18,12 +18,13 @@
 //
 //----------------------------------------------------------------------------
 
-module Freya.Integration
+[<AutoOpen>]
+module Freya.Core.Integration
 
 open System
 open System.Threading.Tasks
 open Freya.Core
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 (* OWIN Types *)
 

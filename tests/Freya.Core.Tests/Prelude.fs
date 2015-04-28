@@ -3,7 +3,7 @@ module internal Freya.Core.Tests.Prelude
 
 open System.Collections.Generic
 open Freya.Core
-open Freya.Integration
+open Freya.Core.Integration
 
 let env () =
     let e = Dictionary<string, obj> () :> IDictionary<string, obj>

@@ -17,7 +17,8 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-module Freya.Pipeline
+[<AutoOpen>]
+module Freya.Core.Pipeline
 
 open Freya.Core
 open Freya.Core.Operators

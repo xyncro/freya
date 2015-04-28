@@ -4,7 +4,10 @@ open System.Threading.Tasks
 open NUnit.Framework
 open Swensen.Unquote
 open Freya.Core
-open Freya.Integration
+open Freya.Core.Operators
+open Freya.Core.Pipeline
+open Freya.Core.Pipeline.Operators
+open Freya.Core.Integration
 
 (* AppFunc *)
 
@@ -54,10 +57,6 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
     fst result =? "42"
 
 (** MidFunc **)
-
-open Freya.Core.Operators
-open Freya.Pipeline
-open Freya.Pipeline.Operators
 
 let o1 =
     freya {

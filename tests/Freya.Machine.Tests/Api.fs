@@ -28,7 +28,7 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
 open Freya.Machine.Inspector
 open Freya.Machine.Router
-open Freya.Pipeline.Operators
+open Freya.Core.Pipeline.Operators
 open Freya.Router
 open Freya.Router.Inspector
 open Freya.Types.Http

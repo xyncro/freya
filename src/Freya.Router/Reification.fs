@@ -22,7 +22,7 @@
 module internal Freya.Router.Reification
 
 open Freya.Core
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 let reifyRouter (router: FreyaRouter) : FreyaPipeline =
     let routes = snd (router List.empty)

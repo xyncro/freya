@@ -22,8 +22,8 @@ module Freya.Inspector.Pipeline
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
-open Freya.Pipeline.Operators
+open Freya.Core.Pipeline
+open Freya.Core.Pipeline.Operators
 open Freya.Recorder
 open Freya.Types.Http
 

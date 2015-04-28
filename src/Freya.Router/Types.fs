@@ -20,7 +20,7 @@
 [<AutoOpen>]
 module Freya.Router.Types
 
-open Freya.Pipeline
+open Freya.Core.Pipeline
 open Freya.Types.Http
 
 (* Routes *)

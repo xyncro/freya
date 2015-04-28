@@ -2,7 +2,7 @@
 
 open NUnit.Framework
 open Swensen.Unquote
-open Freya.Pipeline
+open Freya.Core.Pipeline
 open Freya.Router
 open Freya.Types.Http
 
