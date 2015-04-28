@@ -73,3 +73,12 @@ and FreyaMetaState =
 /// </remarks>
 type Freya<'T> =
     FreyaState -> Async<'T * FreyaState>
+
+(* Pipeline *)
+
+type FreyaPipeline =
+    Freya<FreyaPipelineChoice>
+
+and FreyaPipelineChoice =
+    | Next
+    | Halt

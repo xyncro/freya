@@ -22,13 +22,13 @@ module Freya.TodoBackend.Api
 
 open System
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
 open Freya.Machine.Inspector
 open Freya.Machine.Router
-open Freya.Pipeline.Operators
 open Freya.Router
 open Freya.Router.Inspector
 open Freya.Types.Http

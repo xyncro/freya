@@ -82,7 +82,12 @@ let inline body () =
     freya {
         let! body = readBody
 
-        return (Json.tryParse body |> Option.bind Json.tryDeserialize) }
+        match Json.tryParse body with
+        | Choice1Of2 json ->
+            match Json.tryDeserialize json with
+            | Choice1Of2 a -> return Some a
+            |  _ -> return None
+        | _ -> return None }
 
 (* Content Negotiation/Representation Helper
 

@@ -24,7 +24,7 @@ module internal Freya.Router.Compilation
 open Aether
 open Aether.Operators
 open FParsec
-open Freya.Pipeline
+open Freya.Core
 open Freya.Types.Uri.Template
 open Hekate
 

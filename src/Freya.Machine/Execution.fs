@@ -25,7 +25,6 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 open Hekate
 
 (* Errors
@@ -188,5 +187,5 @@ let private run graph =
 
 let execute graph =
         run graph
-    >>= function | Success -> halt
+    >>= function | Success -> Freya.halt
                  | Failure e -> fail e

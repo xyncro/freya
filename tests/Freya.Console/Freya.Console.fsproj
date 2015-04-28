@@ -63,11 +63,6 @@
       <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6e725eba-1a60-4f24-894c-1836631380df}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Router\Freya.Router.fsproj">
       <Name>Freya.Router</Name>
       <Project>{23f496ca-50f7-4905-a89d-568d29331d1d}</Project>

@@ -26,7 +26,6 @@ open Aether.Operators
 open FParsec
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 open Freya.Types.Http
 open Freya.Types.Uri.Template
 open Hekate
@@ -273,4 +272,4 @@ let private search graph =
 let execute graph =
         search graph
     >>= function | Matched (data, pipe) -> (Route.data .?= data) *> pipe
-                 | Unmatched -> next
+                 | Unmatched -> Freya.next

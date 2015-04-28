@@ -23,7 +23,6 @@ module internal Freya.Machine.Reification
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 
 (* Errors
 
@@ -51,7 +50,7 @@ let private fail e =
 let private run exec graph =
         recordDefinition graph
      *> execute exec
-     *> halt
+     *> Freya.halt
 
 (* Reification
 

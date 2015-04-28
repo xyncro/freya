@@ -85,11 +85,6 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
-                  { Name = "Freya.Integration"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Local "Freya.Core"
-                          Local "Freya.Pipeline" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -97,7 +92,6 @@ let freya =
                           Package "Chiron"
                           Package "Hekate"
                           Local "Freya.Core"
-                          Local "Freya.Pipeline"
                           Local "Freya.Recorder" ] }
                   { Name = "Freya.Machine.Extensions.Http"
                     Dependencies =
@@ -124,13 +118,8 @@ let freya =
                         [ Package "FSharp.Core"
                           Local "Freya.Core"
                           Local "Freya.Machine"
-                          Local "Freya.Pipeline"
                           Local "Freya.Router"
                           Local "Freya.Types.Http" ] }
-                  { Name = "Freya.Pipeline"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Local "Freya.Core" ] }
                   { Name = "Freya.Recorder"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -143,7 +132,6 @@ let freya =
                           Package "Aether"
                           Package "Chiron"
                           Local "Freya.Core"
-                          Local "Freya.Pipeline"
                           Local "Freya.Recorder"
                           Local "Freya.Types.Http" ] }
                   { Name = "Freya.Types"
@@ -185,10 +173,8 @@ let freya =
                           Local "Freya.Types.Uri" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
-                  { Name = "Freya.Integration.Tests" }
                   { Name = "Freya.Machine.Tests" }
                   { Name = "Freya.Machine.Extensions.Http.Tests" }
-                  { Name = "Freya.Pipeline.Tests" }
                   { Name = "Freya.Router.Tests" }
                   { Name = "Freya.Types.Tests" }
                   { Name = "Freya.Types.Http.Tests" }

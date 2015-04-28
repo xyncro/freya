@@ -23,22 +23,20 @@ module Freya.Inspector.Pipeline
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
-open Freya.Pipeline.Operators
 open Freya.Recorder
 open Freya.Types.Http
 
 (* Functions *)
 
 let private initialize =
-    initializeRecord *> next
+    initializeRecord *> Freya.next
 
 let private record config =
     freya {
         for inspector in config.Inspectors do
             do! inspector.Runtime.Initialize
 
-        return! next }
+        return Next }
 
 (* Pipelines *)
 

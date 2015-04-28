@@ -61,10 +61,6 @@
     <Compile Include="Syntax.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>
       <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>

@@ -6,7 +6,6 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
 open Freya.Router
 open Freya.Types.Http
 
@@ -34,7 +33,7 @@ let private get =
     Lens.getPartial testLens
 
 let private set i =
-    Freya.setLensPartial testLens i *> next
+    Freya.setLensPartial testLens i *> Freya.next
 
 let private run meth path m =
     let router = FreyaRouter.toPipeline m
