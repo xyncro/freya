@@ -183,8 +183,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Uri.Template", 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Types.Uri.Template.Tests", "tests\Freya.Types.Uri.Template.Tests\Freya.Types.Uri.Template.Tests.fsproj", "{069C35A0-A4C7-423C-87F6-0A4EF964F95A}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Console", "tests\Freya.Console\Freya.Console.fsproj", "{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -295,10 +293,6 @@ Global
 		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{069C35A0-A4C7-423C-87F6-0A4EF964F95A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -356,6 +350,5 @@ Global
 		{FAEE6BC0-D651-4CE8-AA47-F47CAC0FE932} = {32CC81FC-D42C-4D92-A7A6-2304B96EF95E}
 		{CD9E9BC2-B760-4414-9F78-F0CD1A6BD721} = {88C54E9A-5D3E-427D-97F8-E7E172E98513}
 		{069C35A0-A4C7-423C-87F6-0A4EF964F95A} = {EB3B4A54-7B25-4AAE-ABEA-4AF38F5E12EF}
-		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 	EndGlobalSection
 EndGlobal
