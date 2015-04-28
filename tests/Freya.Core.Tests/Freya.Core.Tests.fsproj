@@ -58,6 +58,8 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="Core.Tests.fs" />
+    <Compile Include="Pipeline.Tests.fs" />
+    <Compile Include="Integration.Tests.fs" />
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>

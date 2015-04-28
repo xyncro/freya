@@ -66,10 +66,6 @@
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Name>Freya.Pipeline</Name>
-      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Router\Freya.Router.fsproj">
       <Name>Freya.Router</Name>
       <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
