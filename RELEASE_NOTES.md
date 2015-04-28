@@ -1,5 +1,5 @@
 ### New in 0.11.0-alpha - (Released TBD)
-* Breaking changs:
+* Breaking changes:
   * Namespace Freya.Integration now merged across similar types in Freya.Core and Freya.Pipeline
   * Freya.Integration is no longer a separate package. Its types and modules have been merged into Freya.Pipeline.
 
