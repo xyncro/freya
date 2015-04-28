@@ -146,3 +146,14 @@ let memo<'a> (m: Freya<'a>) : Freya<'a> =
                 let! _, state = setLensPartial memoPLens memo state
 
                 return memo, state }
+
+(* Pipeline *)
+
+let next : FreyaPipeline =
+    init Next
+
+let halt : FreyaPipeline =
+    init Halt
+
+let pipe (p1: FreyaPipeline) (p2: FreyaPipeline) : FreyaPipeline =
+    bind (function | Next -> p2 | _ -> halt) p1
