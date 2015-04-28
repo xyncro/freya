@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Pipeline.fs" />
+    <Compile Include="Integration.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">

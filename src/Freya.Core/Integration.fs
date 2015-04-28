@@ -18,8 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Core.Integration
+namespace Freya.Integration
 
 open System
 open System.Threading.Tasks

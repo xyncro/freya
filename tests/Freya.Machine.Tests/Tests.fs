@@ -27,6 +27,7 @@ open Microsoft.Owin.Testing
 open NUnit.Framework
 open Swensen.Unquote
 open Freya.Core
+open Freya.Integration
 
 (* Katana
 

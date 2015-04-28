@@ -85,11 +85,6 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
-                  { Name = "Freya.Integration"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Local "Freya.Core"
-                          Local "Freya.Pipeline" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"

@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-module Freya.Integration
+namespace Freya.Integration
 
 open System
 open System.Threading.Tasks
