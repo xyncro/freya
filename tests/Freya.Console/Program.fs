@@ -1,7 +1,11 @@
 ﻿open Freya.Core
+open Freya.Core.Operators
+open Freya.Inspector
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Freya.Machine.Inspector
 open Freya.Router
+open Freya.Router.Inspector
 open Freya.Types.Http
 open Freya.Types.Language
 open Freya.Types.Uri.Template
@@ -30,10 +34,22 @@ let routes =
     freyaRouter {
         route All (UriTemplate.Parse "/{id}") resource } |> FreyaRouter.toPipeline
 
+// Pipeline
+
+let config =
+    { Inspectors =
+        [ freyaRequestInspector
+          freyaMachineInspector
+          freyaRouterInspector ] }
+
+let pipeline =
+        freyaInspector config
+    >?= routes
+
 // App
 
 let app =
-    OwinAppFunc.ofFreya routes
+    OwinAppFunc.ofFreya pipeline
 
 type App () =
     member __.Configuration () =

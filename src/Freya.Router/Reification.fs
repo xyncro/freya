@@ -22,15 +22,14 @@
 module internal Freya.Router.Reification
 
 open Freya.Core
+open Freya.Core.Operators
+
+let private run exec graph =
+        recordGraph graph
+     *> execute exec
 
 let reify router =
     let _, routes = router List.empty
     let compiled = compile routes
-    //let trieRecord = routerTrieRecord compiled
 
-    execute compiled
-
-
-//    freya {
-//        //do! setFreyaRouterTrieRecord trieRecord
-//        return! execute compiled }
+    run compiled (createGraphRecord compiled)

@@ -33,7 +33,7 @@ let private requestIdPLens =
 (* Execution *)
 
 let initializeRecord =
-    Freya.fromAsync initialize () >>= (.?=) requestIdPLens
+    Freya.fromAsync initialize =<< Freya.init () >>= (.?=) requestIdPLens
 
 let updateRecord f =
     Option.iter (flip update f) <!> (!?.) requestIdPLens
@@ -41,7 +41,7 @@ let updateRecord f =
 (* Inspection *)
 
 let listRecords : Freya<FreyaRecorderRecord list> =
-    Freya.fromAsync list ()
+    Freya.fromAsync list =<< Freya.init ()
 
 let getRecord id : Freya<FreyaRecorderRecord option> =
     Freya.fromAsync read id
