@@ -143,21 +143,21 @@ module internal Parsers =
 module Grammar =
 
     let literal i =
-            (i = 0x21)
-         || (i >= 0x23 && i <= 0x24)
-         || (i = 0x26)
-         || (i >= 0x28 && i <= 0x3b)
-         || (i = 0x3d)
-         || (i >= 0x3f && i <= 0x5b)
-         || (i = 0x5d)
-         || (i = 0x5f)
-         || (i >= 0x61 && i <= 0x7a)
-         || (i = 0x7e)
+            i = 0x21
+         || i >= 0x23 && i <= 0x24
+         || i = 0x26
+         || i >= 0x28 && i <= 0x3b
+         || i = 0x3d
+         || i >= 0x3f && i <= 0x5b
+         || i = 0x5d
+         || i = 0x5f
+         || i >= 0x61 && i <= 0x7a
+         || i = 0x7e
 
     let varchar i =
-            (Grammar.alpha i)
-         || (Grammar.digit i)
-         || (i = 0x5f) // _
+            Grammar.alpha i
+         || Grammar.digit i
+         || i = 0x5f // _
 
 (* Template
 
@@ -331,8 +331,8 @@ and Expression =
             PercentEncoding.makeParser Grammar.unreserved
 
         let reserved i =
-                (Grammar.reserved i)
-             || (Grammar.unreserved i)
+                Grammar.reserved i
+             || Grammar.unreserved i
 
         let reservedP =
             PercentEncoding.makeParser reserved
@@ -366,8 +366,8 @@ and Expression =
 
         let mapExpression =
                 function | Expression (None, vs) -> idP, mapVariables None vs, commaP
-                         | Expression (Some (Level2 Plus), vs) -> idP, mapVariables (Some (Level2 Plus)) vs, commaP
-                         | Expression (Some (Level2 Hash), vs) -> skipChar '#', mapVariables (Some (Level2 Hash)) vs, commaP
+                         | Expression (Some (Level2 Reserved), vs) -> idP, mapVariables (Some (Level2 Reserved)) vs, commaP
+                         | Expression (Some (Level2 Fragment), vs) -> skipChar '#', mapVariables (Some (Level2 Fragment)) vs, commaP
                          | _ -> failwith ""
              >> fun (pre, parsers, sep) -> pre >>. multiSepBy parsers sep
 
@@ -380,28 +380,55 @@ and Expression =
 
         (* Expansion *)
 
+        let crop (s: string) length =
+            s.Substring (0, min length s.Length)
+
+        let expandUnary f s =
+            function | (_, Atom "", _)
+                     | (_, List [], _)
+                     | (_, Keys [], _) -> id
+                     | (_, Atom a, Some (Level4 (Prefix i))) -> f (crop a i)
+                     | (_, Atom a, _) -> f a
+                     | (_, List l, Some (Level4 (Explode))) -> join f s l
+                     | (_, List l, _) -> join f commaF l
+                     | (_, Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (_, Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+
+        let expandBinary f s omit =
+            function | (n, Atom x, _) when omit x -> f n
+                     | (n, List [], _)
+                     | (n, Keys [], _) -> f n
+                     | (n, Atom a, Some (Level4 (Prefix i))) -> f n >> equalsF >> f (crop a i)
+                     | (n, Atom a, _) -> f n >> equalsF >> f a
+                     | (n, List l, Some (Level4 (Explode))) -> join (fun v -> f n >> equalsF >> f v) s l
+                     | (n, List l, _) -> f n >> equalsF >> join f commaF l
+                     | (_, Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (n, Keys k, _) -> f n >> equalsF >> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+
+        (* Filtering *)
+
         let choose (VariableList variableList) (UriTemplateData data) =
             variableList
             |> List.map (fun (VariableSpec (VariableName n, m)) ->
                 match Map.tryFind (Key n) data with
-                | None -> None
-                | Some (List []) -> None
+                | None
+                | Some (List [])
                 | Some (Keys []) -> None
-                | Some x -> Some (x, m))
+                | Some v -> Some (n, v, m))
             |> List.choose id
+
+        (* Rendering *)
 
         let render f variableList data =
             match choose variableList data with
             | [] -> id
-            |  data -> f data
+            | data -> f data
 
-        let expand f s =
-            function | (Atom a, Some (Level4 (Prefix i))) -> f (a.Substring (0, min i a.Length))
-                     | (Atom a, _) -> f a
-                     | (List l, Some (Level4 (Explode))) -> join f s l
-                     | (List l, _) -> join f commaF l
-                     | (Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
-                     | (Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+        let renderUnary prefix item sep =
+            render (fun x -> prefix >> join (expandUnary item sep) sep x)
+
+        let renderBinary prefix item sep omit =
+            render (fun x -> prefix >> join (expandBinary item sep omit) sep x)
 
         (* Simple Expansion *)
 
@@ -409,7 +436,7 @@ and Expression =
             PercentEncoding.makeFormatter Grammar.unreserved
 
         let simpleExpansion =
-            render (join (expand simpleF commaF) commaF)
+            renderUnary id simpleF commaF
 
         (* Reserved Expansion *)
 
@@ -421,29 +448,49 @@ and Expression =
             PercentEncoding.makeFormatter reserved
 
         let reservedExpansion =
-            render (join (expand reservedF commaF) commaF)
+            renderUnary id reservedF commaF
 
         (* Fragment Expansion *)
 
         let fragmentExpansion =
-            render (fun d -> append "#" >> join (expand reservedF commaF) commaF d)
+            renderUnary (append "#") reservedF commaF
 
-//        (* Label Expansion with Dot-Prefix *)
-//
-//        let labelExpansion =
-//            render (fun d -> dotF >> join (expand simpleF dotF) dotF d)
+        (* Label Expansion with Label-Prefix *)
+
+        let labelExpansion =
+            renderUnary dotF simpleF dotF
+
+        (* Path Segment Expansion *)
+
+        let segmentExpansion =
+            renderUnary slashF simpleF slashF
+
+        (* Parameter Expansion *)
+
+        let parameterExpansion =
+            renderBinary semicolonF simpleF semicolonF ((=) "")
+
+        (* Query Expansion *)
+
+        let queryExpansion =
+            renderBinary (append "?") simpleF ampersandF (fun _ -> false)
+
+        (* Query Continuation Expansion *)
+
+        let queryContinuationExpansion =
+            renderBinary ampersandF simpleF ampersandF (fun _ -> false)
 
         (* Expression *)
 
         let expressionR data =
             function | Expression (None, v) -> simpleExpansion v data
-                     | Expression (Some (Level2 Plus), v) -> reservedExpansion v data
-                     | Expression (Some (Level2 Hash), v) -> fragmentExpansion v data
-                     | Expression (Some (Level3 Dot), _) -> id
-                     | Expression (Some (Level3 Slash), _) -> id
-                     | Expression (Some (Level3 SemiColon), _) -> id
-                     | Expression (Some (Level3 Question), _) -> id
-                     | Expression (Some (Level3 Ampersand), _) -> id
+                     | Expression (Some (Level2 Reserved), v) -> reservedExpansion v data
+                     | Expression (Some (Level2 Fragment), v) -> fragmentExpansion v data
+                     | Expression (Some (Level3 Label), v) -> labelExpansion v data
+                     | Expression (Some (Level3 Segment), v) -> segmentExpansion v data
+                     | Expression (Some (Level3 Parameter), v) -> parameterExpansion v data
+                     | Expression (Some (Level3 Query), v) -> queryExpansion v data
+                     | Expression (Some (Level3 QueryContinuation), v) -> queryContinuationExpansion v data
                      | _ -> id
 
         { Render = expressionR }
@@ -475,46 +522,46 @@ and Operator =
           Format = operatorF }
 
 and OperatorLevel2 =
-    | Plus
-    | Hash
+    | Reserved
+    | Fragment
 
     static member Mapping =
 
         let operatorLevel2P =
             choice [
-                skipChar '+' >>% Plus
-                skipChar '#' >>% Hash ]
+                skipChar '+' >>% Reserved
+                skipChar '#' >>% Fragment ]
 
         let operatorLevel2F =
-            function | Plus -> append "+"
-                     | Hash -> append "#"
+            function | Reserved -> append "+"
+                     | Fragment -> append "#"
 
         { Parse = operatorLevel2P
           Format = operatorLevel2F }
 
 and OperatorLevel3 =
-    | Dot
-    | Slash
-    | SemiColon
-    | Question
-    | Ampersand
+    | Label
+    | Segment
+    | Parameter
+    | Query
+    | QueryContinuation
 
     static member Mapping =
 
         let operatorLevel3P =
             choice [
-                skipChar '.' >>% Dot
-                skipChar '/' >>% Slash
-                skipChar ';' >>% SemiColon
-                skipChar '?' >>% Question
-                skipChar '&' >>% Ampersand ]
+                skipChar '.' >>% Label
+                skipChar '/' >>% Segment
+                skipChar ';' >>% Parameter
+                skipChar '?' >>% Query
+                skipChar '&' >>% QueryContinuation ]
 
         let operatorLevel3F =
-            function | Dot -> append "."
-                     | Slash -> append "/"
-                     | SemiColon -> append ";"
-                     | Question -> append "?"
-                     | Ampersand -> append "&"
+            function | Label -> append "."
+                     | Segment -> append "/"
+                     | Parameter -> append ";"
+                     | Query -> append "?"
+                     | QueryContinuation -> append "&"
 
         { Parse = operatorLevel3P
           Format = operatorLevel3F }
