@@ -354,10 +354,14 @@ and Expression =
         (* Mapping *)
 
         let mapVariable key =
-            function | None, Some (Level4 (Explode)) -> listOrKeysP simpleP commaP key
+            function | None, Some (Level4 Explode) -> listOrKeysP simpleP commaP key
                      | None, _ -> atomP simpleP key
-                     | Some (Level2 _), Some (Level4 (Explode)) -> listOrKeysP reservedP commaP key
+                     | Some (Level2 _), Some (Level4 Explode) -> listOrKeysP reservedP commaP key
                      | Some (Level2 _), _ -> atomP reservedP key
+                     | Some (Level3 Label), Some (Level4 Explode) -> listOrKeysP simpleP dotP key
+                     | Some (Level3 Label), _ -> atomP simpleP key
+                     | Some (Level3 Segment), Some (Level4 Explode) -> listOrKeysP simpleP slashP key
+                     | Some (Level3 Segment), _ -> atomP simpleP key
                      | _ -> failwith ""
 
         let mapVariables o (VariableList vs) =
@@ -368,8 +372,10 @@ and Expression =
                 function | Expression (None, vs) -> idP, mapVariables None vs, commaP
                          | Expression (Some (Level2 Reserved), vs) -> idP, mapVariables (Some (Level2 Reserved)) vs, commaP
                          | Expression (Some (Level2 Fragment), vs) -> skipChar '#', mapVariables (Some (Level2 Fragment)) vs, commaP
+                         | Expression (Some (Level3 Label), vs) -> dotP, mapVariables (Some (Level3 Label)) vs, dotP
+                         | Expression (Some (Level3 Segment), vs) -> slashP, mapVariables (Some (Level3 Segment)) vs, slashP
                          | _ -> failwith ""
-             >> fun (pre, parsers, sep) -> pre >>. multiSepBy parsers sep
+             >> fun (prefix, keyValuePair, sep) -> prefix >>. multiSepBy keyValuePair sep
 
         let expressionM e =
             mapExpression e |>> fun vs -> UriTemplateData (Map.ofList vs)
@@ -389,9 +395,9 @@ and Expression =
                      | (_, Keys [], _) -> id
                      | (_, Atom a, Some (Level4 (Prefix i))) -> f (crop a i)
                      | (_, Atom a, _) -> f a
-                     | (_, List l, Some (Level4 (Explode))) -> join f s l
+                     | (_, List l, Some (Level4 Explode)) -> join f s l
                      | (_, List l, _) -> join f commaF l
-                     | (_, Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (_, Keys k, Some (Level4 Explode)) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
                      | (_, Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
 
         let expandBinary f s omit =
@@ -400,9 +406,9 @@ and Expression =
                      | (n, Keys [], _) -> f n
                      | (n, Atom a, Some (Level4 (Prefix i))) -> f n >> equalsF >> f (crop a i)
                      | (n, Atom a, _) -> f n >> equalsF >> f a
-                     | (n, List l, Some (Level4 (Explode))) -> join (fun v -> f n >> equalsF >> f v) s l
+                     | (n, List l, Some (Level4 Explode)) -> join (fun v -> f n >> equalsF >> f v) s l
                      | (n, List l, _) -> f n >> equalsF >> join f commaF l
-                     | (_, Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (_, Keys k, Some (Level4 Explode)) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
                      | (n, Keys k, _) -> f n >> equalsF >> join (fun (k, v) -> f k >> commaF >> f v) commaF k
 
         (* Filtering *)

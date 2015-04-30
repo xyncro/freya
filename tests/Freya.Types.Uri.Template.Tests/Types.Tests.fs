@@ -167,6 +167,15 @@ let ``Label Expansion with Dot-Prefix Renders Correctly`` () =
     "X{.empty_keys}" =? "X"
     "X{.empty_keys*}" =? "X"
 
+// Note - this may seem incorrect, but is actually expected behaviour.
+// These are not ideal operators to use for matching complex data!
+
+[<Test>]
+let ``Label Matching Matches Correctly`` () =
+    testMatch "/test{.atom}" "/test.one%21" [ Key "atom", Atom "one!" ]
+    testMatch "/test{.list*}" "/test.one.two.three" [ Key "list", List [ "one.two.three" ] ]
+    testMatch "/test{.keys*}" "/test.one=a.two=b" [ Key "keys", Keys [ "one", "a.two" ] ]
+
 [<Test>]
 let ``Path Segment Expansion Renders Correctly`` () =
     "{/who}" =? "/fred"
@@ -183,6 +192,12 @@ let ``Path Segment Expansion Renders Correctly`` () =
     "{/list*,path:4}" =? "/red/green/blue/%2Ffoo"
     "{/keys}" =? "/semi,%3B,dot,.,comma,%2C"
     "{/keys*}" =? "/semi=%3B/dot=./comma=%2C"
+
+[<Test>]
+let ``Path Segment Matching Matches Correctly`` () =
+    testMatch "/test{/atom}" "/test/one%21" [ Key "atom", Atom "one!" ]
+    testMatch "/test{/list*}" "/test/one/two/three" [ Key "list", List [ "one"; "two"; "three" ] ]
+    testMatch "/test{/keys*}" "/test/one=a/two=b" [ Key "keys", Keys [ "one", "a"; "two", "b" ] ]
 
 [<Test>]
 let ``Parameter Expansion Renders Correctly`` () =

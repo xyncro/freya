@@ -42,6 +42,9 @@ let ampersandP : Parser<unit, unit> =
 let commaP : Parser<unit, unit> =
     skipChar ','
 
+let dotP : Parser<unit, unit> =
+    skipChar '.'
+
 let equalsP : Parser<unit, unit> =
     skipChar '='
 

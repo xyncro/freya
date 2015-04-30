@@ -94,37 +94,37 @@ let internal owsP =
    See [http://tools.ietf.org/html/rfc7230#section-3.2.6] *)
 
 let internal tchar i =
-        (Grammar.alpha i)
-     || (Grammar.digit i)
-     || (i = 0x21) // !
-     || (i >= 0x23 && i <= 0x26) // # $ % &
-     || (i = 0x5c) // \
-     || (i = 0x2a) // *
-     || (i = 0x2b) // +
-     || (i = 0x2d) // -
-     || (i = 0x2e) // .
-     || (i = 0x5e) // ^
-     || (i = 0x5f) // _
-     || (i = 0x60) // `
-     || (i = 0x7c) // |
-     || (i = 0x7e) // ~
+        Grammar.alpha i
+     || Grammar.digit i
+     || i = 0x21 // !
+     || i >= 0x23 && i <= 0x26 // # $ % &
+     || i = 0x5c // \
+     || i = 0x2a // *
+     || i = 0x2b // +
+     || i = 0x2d // -
+     || i = 0x2e // .
+     || i = 0x5e // ^
+     || i = 0x5f // _
+     || i = 0x60 // `
+     || i = 0x7c // |
+     || i = 0x7e // ~
 
 let internal obstext i =
-        (i >= 0x80 && i <= 0xff)
+        i >= 0x80 && i <= 0xff
 
 let internal qdtext i =
-        (Grammar.htab i)
-     || (Grammar.sp i)
-     || (i = 0x21)
-     || (i >= 0x23 && i <= 0x5b)
-     || (i >= 0x5d && i <= 0x7e)
-     || (obstext i)
+        Grammar.htab i
+     || Grammar.sp i
+     || i = 0x21
+     || i >= 0x23 && i <= 0x5b
+     || i >= 0x5d && i <= 0x7e
+     || obstext i
 
 let internal quotedPairChar i =
-        (Grammar.htab i)
-     || (Grammar.sp i)
-     || (Grammar.vchar i)
-     || (obstext i)
+        Grammar.htab i
+     || Grammar.sp i
+     || Grammar.vchar i
+     || obstext i
 
 let internal tokenP = 
     many1Satisfy (int >> tchar)
