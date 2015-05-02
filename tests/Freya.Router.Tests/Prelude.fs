@@ -6,7 +6,7 @@ open Aether
 open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
+open Freya.Core.Pipeline
 open Freya.Router
 open Freya.Types.Http
 

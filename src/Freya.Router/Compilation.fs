@@ -22,7 +22,7 @@ module internal Freya.Router.Compilation
 
 open Aether
 open Aether.Operators
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 (* Trie *)
 

@@ -23,7 +23,7 @@ module internal Freya.Machine.Reification
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 (* Errors
 

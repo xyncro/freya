@@ -23,7 +23,7 @@ module internal Freya.Router.Execution
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
+open Freya.Core.Pipeline
 open Freya.Types.Http
 
 (* Find *)

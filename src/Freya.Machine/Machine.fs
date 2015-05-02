@@ -21,7 +21,7 @@
 [<RequireQualifiedAccess>]
 module Freya.Machine.FreyaMachine
 
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 let toPipeline : FreyaMachine -> FreyaPipeline =
     reify

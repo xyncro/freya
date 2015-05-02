@@ -77,10 +77,6 @@
       <Project>{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}</Project>
       <Name>Freya.Machine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Pipeline\Freya.Pipeline.fsproj">
-      <Project>{6E725EBA-1A60-4F24-894C-1836631380DF}</Project>
-      <Name>Freya.Pipeline</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Router.Inspector\Freya.Router.Inspector.fsproj">
       <Project>{FAEE6BC0-D651-4CE8-AA47-F47CAC0FE932}</Project>
       <Name>Freya.Router.Inspector</Name>

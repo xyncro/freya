@@ -21,7 +21,7 @@
 [<RequireQualifiedAccess>]
 module Freya.Router.FreyaRouter
 
-open Freya.Pipeline
+open Freya.Core.Pipeline
 
 let toPipeline router : FreyaPipeline =
     reifyRouter router
