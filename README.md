@@ -18,6 +18,7 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 
 | Name | NuGet |
 | :------ | :------: |
+| Freya (meta) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.svg?style=flat)](https://www.nuget.org/packages/Freya/) |
 | Freya.Core | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Core.svg?style=flat)](https://www.nuget.org/packages/Freya.Core/) |
 | Freya.Pipeline | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Pipeline.svg?style=flat)](https://www.nuget.org/packages/Freya.Pipeline/) |
 | Freya.Types | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.svg?style=flat)](https://www.nuget.org/packages/Freya.Types/) |

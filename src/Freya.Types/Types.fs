@@ -35,11 +35,3 @@ and Parse<'a> =
 
 and Format<'a> =
     'a -> StringBuilder -> StringBuilder
-
-(* Rendering *)
-
-type Rendering<'a,'d> =
-    { Render: Render<'a,'d> }
-
-and Render<'a,'d> =
-    'd -> 'a -> StringBuilder -> StringBuilder

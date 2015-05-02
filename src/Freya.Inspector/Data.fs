@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -29,66 +30,51 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
+open Freya.Types.Uri.Template
 
 (* Route *)
 
-let routeId =
-    Freya.memo ((Option.get >> Guid.Parse ) <!> Freya.getLensPartial (Route.valuesKey "id"))
+let private id =
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.atom "id"))
 
-let routeExtension =
-    Freya.memo ((Option.get) <!> Freya.getLensPartial (Route.valuesKey "ext"))
+let private extension =
+    Freya.memo (Option.get <!> (!?.) (Route.atom "ext"))
 
 (* Data *)
 
 let private recordHeaders =
-    freya {
-        let! records = listRecords
-
-        let recordHeaders =
-            records
-            |> List.map (fun r ->
-                { FreyaRecorderRecordHeader.Id = r.Id
-                  Timestamp = r.Timestamp })
-
-        return Json.serialize recordHeaders }
+        List.map (fun (record: FreyaRecorderRecord) ->
+            { FreyaRecorderRecordHeader.Id = record.Id
+              Timestamp = record.Timestamp }) >> Json.serialize
+    <!> listRecords
 
 let private recordDetail =
-    freya {
-        let! id = routeId
-        let! record = getRecord id
-
-        let recordDetail =
-            record
-            |> Option.map (fun r ->
-                { FreyaRecorderRecordDetail.Id = r.Id
-                  Timestamp = r.Timestamp
-                  Extensions = r.Data |> Map.toList |> List.map fst })
-
-        return Option.map Json.serialize recordDetail }
+        Option.map (fun (record: FreyaRecorderRecord) ->
+            { Id = record.Id
+              Timestamp = record.Timestamp
+              Extensions = (Map.toList >> List.map fst) record.Data } |> Json.serialize)
+    <!> (getRecord =<< id)
 
 let private inspectionData inspectors =
-    freya {
-        let! id = routeId
-        let! extension = routeExtension
-        let! record = getRecord id
-
-        match Map.tryFind extension inspectors with
-        | Some inspector -> return Option.bind inspector.Inspection.Data record
-        | _ -> return None }
+        fun record ext ->
+            Map.tryFind ext inspectors
+            |> Option.bind (fun i -> Option.bind i.Inspection.Data record)
+    <!> (getRecord =<< id)
+    <*> extension
 
 (* Functions *)
 
 let private recordsGet _ =
-    representJSON <!> recordHeaders
+    representJson <!> recordHeaders
 
 let private recordGet _ =
-    (Option.get >> representJSON) <!> recordDetail
+    (Option.get >> representJson) <!> recordDetail
 
 let private recordExists =
     Option.isSome <!> recordDetail
 
 let private inspectionGet inspectors _=
-    (Option.get >> representJSON) <!> (inspectionData inspectors)
+    (Option.get >> representJson) <!> (inspectionData inspectors)
 
 let private inspectionExists inspectors =
     Option.isSome <!> (inspectionData inspectors)
@@ -120,14 +106,17 @@ let private inspection inspectors =
    Note: More thought should be given to a more expandable API
    path namespacing approach in the near future. *)
 
-let private map =
-    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
+let private root =
+    UriTemplate.Parse "/freya/inspector/api/records"
 
 let data config =
     let inspectors =
-        inspection (map config.Inspectors)
+        config.Inspectors
+        |> List.map (fun x -> x.Key, x)
+        |> Map.ofList
+        |> inspection
 
     freyaRouter {
-        resource "/freya/inspector/api/records" records
-        resource "/freya/inspector/api/records/:id" record
-        resource "/freya/inspector/api/records/:id/extensions/:ext" inspectors } |> FreyaRouter.toPipeline
+        resource (root) records
+        resource (root + UriTemplate.Parse "/{id}") record
+        resource (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline

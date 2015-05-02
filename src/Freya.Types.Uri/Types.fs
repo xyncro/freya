@@ -45,34 +45,34 @@ do ()
 module Grammar =
 
     let unreserved i =
-            (Grammar.alpha i)
-         || (Grammar.digit i)
-         || (i = 0x2d) // -
-         || (i = 0x2e) // .
-         || (i = 0x5f) // _
-         || (i = 0x7e) // ~
+            Grammar.alpha i
+         || Grammar.digit i
+         || i = 0x2d // -
+         || i = 0x2e // .
+         || i = 0x5f // _
+         || i = 0x7e // ~
 
     let genDelim i =
-            (i = 0x3a) // :
-         || (i = 0x2f) // /
-         || (i = 0x3f) // ?
-         || (i = 0x23) // #
-         || (i = 0x5b) // [
-         || (i = 0x5d) // ]
-         || (i = 0x40) // @
+            i = 0x3a // :
+         || i = 0x2f // /
+         || i = 0x3f // ?
+         || i = 0x23 // #
+         || i = 0x5b // [
+         || i = 0x5d // ]
+         || i = 0x40 // @
 
     let subDelim i =
-            (i = 0x21) // !
-         || (i = 0x24) // $
-         || (i = 0x26) // &
-         || (i = 0x5c) // \
-         || (i >= 0x28 && i <= 0x2c) // ( ) * + ,
-         || (i = 0x3b) // ;
-         || (i = 0x3d) // =
+            i = 0x21 // !
+         || i = 0x24 // $
+         || i = 0x26 // &
+         || i = 0x5c // \
+         || i >= 0x28 && i <= 0x2c //   * + ,
+         || i = 0x3b // ;
+         || i = 0x3d // =
 
     let reserved i=
-            (genDelim i)
-         || (subDelim i)
+            genDelim i
+         || subDelim i
 
 (* Percent-Encoding
 
@@ -173,11 +173,11 @@ type Scheme =
     static member Mapping =
 
         let schemeChar i =
-                (Grammar.alpha i)
-             || (Grammar.digit i)
-             || (i = 0x2b) // +
-             || (i = 0x2d) // -
-             || (i = 0x2e) // .
+                Grammar.alpha i
+             || Grammar.digit i
+             || i = 0x2b // +
+             || i = 0x2d // -
+             || i = 0x2e // .
 
         let schemeP =
             satisfy (int >> Grammar.alpha) .>>. manySatisfy (int >> schemeChar)
@@ -255,9 +255,9 @@ and UserInfo =
     static member Mapping =
 
         let userInfoChar i =
-                (Grammar.unreserved i)
-             || (Grammar.subDelim i)
-             || (i = 0x3a) // :
+                Grammar.unreserved i
+             || Grammar.subDelim i
+             || i = 0x3a // :
 
         let parser =
             PercentEncoding.makeParser userInfoChar
@@ -292,8 +292,8 @@ and Host =
     static member Mapping =
 
         let ipv6Char i =
-                (Grammar.hexdig i)
-             || (i = 0x3a) // :
+                Grammar.hexdig i
+             || i = 0x3a // :
 
         let ipv6AddressP =
             skipChar '[' >>. (many1Satisfy (int >> ipv6Char) >>= (fun x ->
@@ -332,8 +332,8 @@ and RegName =
     static member Mapping =
 
         let regNameChar i =
-                (Grammar.unreserved i)
-             || (Grammar.subDelim i)
+                Grammar.unreserved i
+             || Grammar.subDelim i
 
         let parser =
             PercentEncoding.makeParser regNameChar
@@ -372,13 +372,13 @@ and Port =
    See [http://tools.ietf.org/html/rfc3986#section-3.3] *)
 
 let private pcharNc i =
-        (Grammar.unreserved i)
-     || (Grammar.subDelim i)
-     || (i = 0x40) // @
+        Grammar.unreserved i
+     || Grammar.subDelim i
+     || i = 0x40 // @
 
 let private pchar i =
-        (pcharNc i)
-     || (i = 0x3a) // :
+        pcharNc i
+     || i = 0x3a // :
 
 let private pcharParser =
     PercentEncoding.makeParser pchar
@@ -525,9 +525,9 @@ type Query =
     static member Mapping =
 
         let queryChar i =
-                (pchar i)
-             || (i = 0x2f) // /
-             || (i = 0x3f) // ?
+                pchar i
+             || i = 0x2f // /
+             || i = 0x3f // ?
 
         let parser =
             PercentEncoding.makeParser queryChar
@@ -568,9 +568,9 @@ type Fragment =
     static member Mapping =
     
         let fragmentChar i =
-                (pchar i)
-             || (i = 0x2f) // /
-             || (i = 0x3f) // ?
+                pchar i
+             || i = 0x2f // /
+             || i = 0x3f // ?
 
         let parser =
             PercentEncoding.makeParser fragmentChar

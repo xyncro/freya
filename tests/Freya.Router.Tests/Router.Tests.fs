@@ -2,9 +2,10 @@
 
 open NUnit.Framework
 open Swensen.Unquote
-open Freya.Pipeline
+open Freya.Core
 open Freya.Router
 open Freya.Types.Http
+open Freya.Types.Uri.Template
 
 [<Test>]
 let ``Router With No Routes Returns Next`` () =
@@ -18,7 +19,7 @@ let ``Router With No Routes Returns Next`` () =
 let ``Router With Base Route Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All "/" route1 }
+            route All (UriTemplate.Parse "/") route1 }
 
     value GET "/" routes =? Some 1
 
@@ -26,9 +27,9 @@ let ``Router With Base Route Executes Correctly`` () =
 let ``Router With Multiple Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All "/" route1
-            route All "/some/path" route2
-            route All "/other/path" route3 }
+            route All (UriTemplate.Parse "/") route1
+            route All (UriTemplate.Parse "/some/path") route2
+            route All (UriTemplate.Parse "/other/path") route3 }
 
     value GET "/" routes =? Some 1
     value GET "/some/path" routes =? Some 2
@@ -39,9 +40,9 @@ let ``Router With Multiple Routes Executes Correctly`` () =
 let ``Router With Method Specific Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route Get "/" route1
-            route Get "/some/path" route2
-            route Post "/some/path" route3 }
+            route Get (UriTemplate.Parse "/") route1
+            route Get (UriTemplate.Parse "/some/path") route2
+            route Post (UriTemplate.Parse "/some/path") route3 }
 
     value GET "/" routes =? Some 1
     value POST "/" routes =? None
@@ -52,7 +53,7 @@ let ``Router With Method Specific Routes Executes Correctly`` () =
 let ``Router Executes Pipeline Registered First`` () =
     let routes =
         freyaRouter {
-            route Get "/" route1
-            route All "/" route2 }
+            route Get (UriTemplate.Parse "/") route1
+            route All (UriTemplate.Parse "/") route2 }
 
     value GET "/" routes =? Some 1

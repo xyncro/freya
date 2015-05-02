@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -23,15 +24,29 @@ module Freya.Router.Syntax
 (* Custom Operations
 
    Custom syntax operators used in the FreyaRouter computation
-   expression. Custom syntax operators are used to register routes. *)
+   expression. Custom syntax operators are used to register pipelines based
+   on matching either the path, or the path and query with the given URI
+   Template. *)
 
 type FreyaRouterBuilder with
 
-    (* Routes *)
+    (* Paths *)
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
-    member x.Route (r, meth, path, pipeline) =
-        x.Update (r, (fun x -> { Method = meth; Path = path; Pipeline = pipeline } :: x))
+    member x.Route (r, meth, template, pipeline) =
+        x.Update (r, (fun x ->
+            { Method = meth
+              Specification = Path
+              Template = template
+              Pipeline = pipeline } :: x))
+
+    [<CustomOperation ("routeWithQuery", MaintainsVariableSpaceUsingBind = true)>]
+    member x.RouteWithQuery (r, meth, template, pipeline) =
+        x.Update (r, (fun x ->
+            { Method = meth
+              Specification = PathAndQuery
+              Template = template
+              Pipeline = pipeline } :: x))
 
     (* Utility *)
 

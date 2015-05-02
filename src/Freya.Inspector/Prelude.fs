@@ -110,7 +110,7 @@ let represent n x =
           Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
       Data = x }
 
-let representJSON x =
+let representJson x =
     { Description =
         { Charset = Some Charset.Utf8
           Encodings = None
