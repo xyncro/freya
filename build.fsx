@@ -131,9 +131,11 @@ let freya =
                         [ Package "FSharp.Core"
                           Package "Aether"
                           Package "Chiron"
+                          Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Recorder"
-                          Local "Freya.Types.Http" ] }
+                          Local "Freya.Types.Http"
+                          Local "Freya.Types.Uri.Template" ] }
                   { Name = "Freya.Types"
                     Dependencies =
                         [ Package "FSharp.Core"
