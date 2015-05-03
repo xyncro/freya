@@ -21,12 +21,11 @@
 [<AutoOpen>]
 module Freya.Machine.Recording
 
-open Aether
 open Aether.Operators
 open Chiron
 open Chiron.Operators
-open Hekate
 open Freya.Recorder
+open Hekate
 
 (* Errors *)
 
@@ -96,13 +95,16 @@ and FreyaMachineExecutionRecord =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
     static member ToJson (x: FreyaMachineExecutionRecord) =
-        Json.write "nodes" x.Nodes
+            Json.write "nodes" x.Nodes
 
 and FreyaMachineExecutionNodeRecord =
-    { Id: string }
+    { Id: FreyaMachineNode }
 
     static member ToJson (x: FreyaMachineExecutionNodeRecord) =
-        Json.write "id" x.Id
+        match x.Id with
+        | Start -> Json.write "id" "start"
+        | Finish -> Json.write "id" "finish"
+        | Operation x -> Json.write "id" x
 
 (* Construction *)
 
@@ -123,7 +125,7 @@ let private (|Binary|_|) =
     function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let internal record meta =
+let internal createGraphRecord (Metadata meta) =
     { Nodes =
         Graph.nodes meta
         |> List.map (fun (v, l) ->
@@ -159,8 +161,6 @@ let private defaultFreyaMachineRecord =
 let freyaMachineRecordPLens =
     freyaRecordDataPLens<FreyaMachineRecord> freyaMachineRecordKey
 
-(* Recording *)
-
 let private recordPLens =
          freyaMachineRecordPLens 
     >?-> FreyaMachineRecord.GraphLens
@@ -170,11 +170,15 @@ let private executionPLens =
     >?-> FreyaMachineRecord.ExecutionLens 
     >?-> FreyaMachineExecutionRecord.NodesLens
 
+(* Recording *)
+
+let internal recordDefinition graph =
+    updateRecord (graph ^?= recordPLens)
+
+let internal recordExecution id =
+    updateRecord ((fun es -> es @ [ { Id = id } ]) ^?%= executionPLens)
+
+(* Initialization *)
+
 let initializeFreyaMachineRecord =
-    updateRecord (Lens.setPartial freyaMachineRecordPLens defaultFreyaMachineRecord)
-
-let internal setFreyaMachineGraphRecord graph =
-    updateRecord (Lens.setPartial recordPLens graph)
-
-let internal addFreyaMachineExecutionRecord id =
-    updateRecord (Lens.mapPartial executionPLens (fun es -> es @ [ { Id = id } ]))
+    updateRecord (defaultFreyaMachineRecord ^?= freyaMachineRecordPLens)

@@ -23,8 +23,6 @@ module Freya.Core.Integration
 
 open System
 open System.Threading.Tasks
-open Freya.Core
-open Freya.Core.Pipeline
 
 (* OWIN Types *)
 
@@ -75,7 +73,7 @@ module OwinMidFunc =
 
     /// Converts a Freya.Pipeline to an OWIN MidFunc run before executing the next OwinAppFunc.
     [<CompiledName("FromFreya")>]
-    let ofFreya (pipeline: Freya<FreyaPipelineChoice>) =
+    let ofFreya (pipeline: FreyaPipeline) =
         OwinMidFunc(fun next ->
             let app e =
                 // Convert to FreyaState
@@ -95,7 +93,7 @@ module OwinMidFunc =
     
     /// Converts a Freya.Pipeline to an OWIN MidFunc run after executing the next OwinAppFunc.
     [<CompiledName("FromFreyaAfter")>]
-    let ofFreyaAfter (pipeline: Freya<FreyaPipelineChoice>) =
+    let ofFreyaAfter (pipeline: FreyaPipeline) =
         OwinMidFunc(fun next ->
             let app e =
                 async {
@@ -114,7 +112,7 @@ module OwinMidFunc =
 
     /// Converts a Freya.Pipeline to an OWIN MidFunc.
     [<CompiledName("FromFreyaWrapped")>]
-    let ofFreyaWrapped (before: Freya<FreyaPipelineChoice>) (after: Freya<FreyaPipelineChoice>) =
+    let ofFreyaWrapped (before: FreyaPipeline) (after: FreyaPipeline) =
         OwinMidFunc(fun next ->
             let app e =
                 // Convert to FreyaState
@@ -140,7 +138,7 @@ module OwinMidFunc =
 
     /// Splits a MidFunc into a before and after Freya.Pipeline.
     [<CompiledName("SplitIntoFreya")>]
-    let splitIntoFreya (midFunc: OwinMidFunc) : Freya<FreyaPipelineChoice> * Freya<FreyaPipelineChoice> =
+    let splitIntoFreya (midFunc: OwinMidFunc) : FreyaPipeline * FreyaPipeline =
         // TODO: find a better way than using TaskCompletionSource instances
         let signalCh = TaskCompletionSource<bool>()
         let continueCh = TaskCompletionSource<unit>()

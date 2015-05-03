@@ -32,7 +32,6 @@ module Actions =
     let [<Literal>] Post = prefix + "Post"
     let [<Literal>] Put = prefix + "Put"
 
-
 [<RequireQualifiedAccess>]
 module Configuration =
 
@@ -50,7 +49,6 @@ module Configuration =
     let [<Literal>] MediaTypesSupported = "mediaTypesSupported"
     let [<Literal>] MethodsSupported = "methodsSupported"
     let [<Literal>] MethodsKnown = "methodsKnown"
-
 
 [<RequireQualifiedAccess>]
 module Decisions =
@@ -121,7 +119,6 @@ module Decisions =
     let [<Literal>] ETagMatchesIf = "resourceETagMatchesIf"
     let [<Literal>] ETagMatchesIfNone = "resourceETagMatchesIfNone"
 
-
 [<RequireQualifiedAccess>]
 module Handlers =
 
@@ -164,7 +161,6 @@ module Handlers =
     let [<Literal>] NotImplemented = prefix + "NotImplemented"
     let [<Literal>] UnknownMethod = prefix + "UnknownMethod"
     let [<Literal>] ServiceUnavailable = prefix + "ServiceUnavailable"
-
 
 [<RequireQualifiedAccess>]
 module Operations =

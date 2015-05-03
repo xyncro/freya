@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -27,8 +28,12 @@ open Aether.Operators
 
 /// An Aether lens providing access to a required <see cref="FreyaEnvironment" />, or OWIN environment, value.
 let environmentKeyLens<'a> key =
-    FreyaState.EnvironmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
+         FreyaState.EnvironmentLens
+    >--> mutDictLens<string, obj> key 
+    <--> boxIso<'a>
 
 /// An Aether lens providing access to an optional <see cref="FreyaEnvironment" />, or OWIN environment, value.
 let environmentKeyPLens<'a> key =
-    FreyaState.EnvironmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>
+         FreyaState.EnvironmentLens
+    >-?> mutDictPLens<string, obj> key
+    <?-> boxIso<'a>

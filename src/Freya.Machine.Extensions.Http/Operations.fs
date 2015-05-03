@@ -30,189 +30,189 @@ open Freya.Types.Http
 
 (* Helpers *)
 
-let allow =
+let private allow =
        tryGetConfig Configuration.MethodsSupported
-    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.allow =<< (Allow <!> x))
-    >> Option.orElse (Freya.setLensPartial Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
+    >> Option.map (fun x -> (.?=) Response.Headers.allow =<< (Allow <!> x))
+    >> Option.orElse ((.?=) Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
 
-let date =
-    Freya.setLensPartial Response.Headers.date (Date.Date DateTime.UtcNow)
+let private date =
+    (.?=) Response.Headers.date (Date.Date DateTime.UtcNow)
 
-let eTag =
+let private eTag =
        tryGetConfig Configuration.ETag
-    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
-let expires =
+let private expires =
        tryGetConfig Configuration.Expires 
-    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
-let lastModified =
+let private lastModified =
        tryGetConfig Configuration.LastModified 
-    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.lastModified =<< (LastModified <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.lastModified =<< (LastModified <!> x))
     >> Option.orElse (Freya.init ())
 
-let location =
+let private location =
        tryGetConfig Configuration.Location
-    >> Option.map (fun x -> Freya.setLensPartial Response.Headers.location =<< (Location <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.location =<< (Location <!> x))
     >> Option.orElse (Freya.init ())
 
-let phrase =
-    Freya.setLensPartial Response.reasonPhrase
+let private phrase =
+    (.?=) Response.reasonPhrase
 
-let status =
-    Freya.setLensPartial Response.statusCode
+let private status =
+    (.?=) Response.statusCode
 
 (* Operations *)
 
-let systemOperation f =
+let private systemOperation f =
     Some (Compile (fun config ->
         Compiled (Unary (f config), unconfigurable)))
 
-let accepted _ =
-       status 202
-    *> phrase "Accepted"
-    *> date
+let private accepted _ =
+        status 202
+     *> phrase "Accepted"
+     *> date
 
-let badRequest _ =
-       status 400
-    *> phrase "Bad Request"
-    *> date
+let private badRequest _ =
+        status 400
+     *> phrase "Bad Request"
+     *> date
 
-let conflict _ =
-       status 409
-    *> phrase "Conflict"
-    *> date
+let private conflict _ =
+        status 409
+     *> phrase "Conflict"
+     *> date
 
-let created config =
-       status 201
-    *> phrase "Created"
-    *> date
-    *> location config
+let private created config =
+        status 201
+     *> phrase "Created"
+     *> date
+     *> location config
 
-let forbidden _ =
-       status 403
-    *> phrase "Forbidden"
-    *> date
+let private forbidden _ =
+        status 403
+     *> phrase "Forbidden"
+     *> date
 
-let gone _ =
-       status 410 
-    *> phrase "Gone"
-    *> date
+let private gone _ =
+        status 410 
+     *> phrase "Gone"
+     *> date
 
-let methodNotAllowed config =
-       status 405
-    *> phrase "Method Not Allowed"
-    *> allow config
-    *> date
+let private methodNotAllowed config =
+        status 405
+     *> phrase "Method Not Allowed"
+     *> allow config
+     *> date
 
-let movedPermanently config =
-       status 301
-    *> phrase "Moved Permanently"
-    *> date
-    *> location config
+let private movedPermanently config =
+        status 301
+     *> phrase "Moved Permanently"
+     *> date
+     *> location config
 
-let movedTemporarily config =
-       status 307
-    *> phrase "Moved Temporarily"
-    *> date
-    *> location config
+let private movedTemporarily config =
+        status 307
+     *> phrase "Moved Temporarily"
+     *> date
+     *> location config
 
-let multipleRepresentations _ =
-       status 310
-    *> phrase "Multiple Representations"
-    *> date
+let private multipleRepresentations _ =
+        status 310
+     *> phrase "Multiple Representations"
+     *> date
 
-let noContent _ =
-       status 204
-    *> phrase "No Content"
-    *> date
+let private noContent _ =
+        status 204
+     *> phrase "No Content"
+     *> date
 
-let notAcceptable _ =
-       status 406
-    *> phrase "Not Acceptable"
-    *> date
+let private notAcceptable _ =
+        status 406
+     *> phrase "Not Acceptable"
+     *> date
 
-let notFound _ =
-       status 404
-    *> phrase "Not Found"
-    *> date
+let private notFound _ =
+        status 404
+     *> phrase "Not Found"
+     *> date
 
-let notImplemented _ =
-       status 501
-    *> phrase "Not Implemented"
-    *> date
+let private notImplemented _ =
+        status 501
+     *> phrase "Not Implemented"
+     *> date
 
-let notModified config =
-       status 304
-    *> phrase "Not Modified"
-    *> lastModified config
-    *> date
-    *> eTag config
-    *> expires config
+let private notModified config =
+        status 304
+     *> phrase "Not Modified"
+     *> lastModified config
+     *> date
+     *> eTag config
+     *> expires config
 
-let ok config =
-       status 200
-    *> phrase "OK"
-    *> lastModified config
-    *> date
-    *> eTag config
-    *> expires config
+let private ok config =
+        status 200
+     *> phrase "OK"
+     *> lastModified config
+     *> date
+     *> eTag config
+     *> expires config
 
-let options config =
-       status 200
-    *> phrase "Options"
-    *> lastModified config
-    *> date
-    *> eTag config
-    *> expires config
+let private options config =
+        status 200
+     *> phrase "Options"
+     *> lastModified config
+     *> date
+     *> eTag config
+     *> expires config
 
-let preconditionFailed _ =
-       status 412
-    *> phrase "Precondition Failed"
-    *> date
+let private preconditionFailed _ =
+        status 412
+     *> phrase "Precondition Failed"
+     *> date
 
-let requestEntityTooLarge _ =
-       status 413
-    *> phrase "Request Entity Too Large"
-    *> date
+let private requestEntityTooLarge _ =
+        status 413
+     *> phrase "Request Entity Too Large"
+     *> date
 
-let seeOther config =
-       status 303
-    *> phrase "See Other"
-    *> date
-    *> location config
+let private seeOther config =
+        status 303
+     *> phrase "See Other"
+     *> date
+     *> location config
 
-let serviceUnavailable _ =
-       status 503
-    *> phrase "Service Unavailable"
-    *> date
+let private serviceUnavailable _ =
+        status 503
+     *> phrase "Service Unavailable"
+     *> date
 
-let unauthorized _ =
-       status 401
-    *> phrase "Unauthorized"
-    *> date
+let private unauthorized _ =
+        status 401
+     *> phrase "Unauthorized"
+     *> date
 
-let unknownMethod _ =
-       status 501
-    *> phrase "Unknown Method"
-    *> date
+let private unknownMethod _ =
+        status 501
+     *> phrase "Unknown Method"
+     *> date
 
-let unprocessableEntity _ =
-       status 422
-    *> phrase "Unprocessable Entity"
-    *> date
+let private unprocessableEntity _ =
+        status 422
+     *> phrase "Unprocessable Entity"
+     *> date
 
-let unsupportedMediaType _ =
-       status 415
-    *> phrase "UnsupportedMediaType"
-    *> date
+let private unsupportedMediaType _ =
+        status 415
+     *> phrase "UnsupportedMediaType"
+     *> date
 
-let uriTooLong _ =
-       status 414
-    *> phrase "URI Too Long"
-    *> date
+let private uriTooLong _ =
+        status 414
+     *> phrase "URI Too Long"
+     *> date
 
 (* Graph *)
 

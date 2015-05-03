@@ -20,9 +20,72 @@
 
 module Freya.Types.Uri.Template
 
+open System.Text
+open FParsec
 open Freya.Types
 open Freya.Types.Uri
-open FParsec
+
+(* Data
+
+   Types representing data which may be rendered or extracted
+   using UriTemplates. *)
+
+type UriTemplateData =
+    | UriTemplateData of Map<UriTemplateKey, UriTemplateValue>
+
+    static member UriTemplateDataIso =
+        (fun (UriTemplateData x) -> x), (fun x -> UriTemplateData x)
+
+    static member (+) (UriTemplateData a, UriTemplateData b) =
+        UriTemplateData (Map.ofList (Map.toList a @ Map.toList b))
+
+and UriTemplateKey =
+    | Key of string
+
+and UriTemplateValue =
+    | Atom of string
+    | List of string list
+    | Keys of (string * string) list
+
+    static member AtomPIso =
+        (function | Atom x -> Some x
+                  | _ -> None), (fun x -> Atom x)
+
+    static member ListPIso =
+        (function | List x -> Some x
+                  | _ -> None), (fun x -> List x)
+
+    static member KeysPIso =
+        (function | Keys x -> Some x
+                  | _ -> None), (fun x -> Keys x)
+
+(* Matching *)
+
+type Matching<'a,'b> =
+    { Match: Match<'a,'b> }
+
+and Match<'a,'b> =
+    'a -> Parser<'b, unit>
+
+let private match' (m: Match<'a,'b>) s a =
+    match run (m a) s with
+    | Success (x, _, _) -> x
+    | Failure (e, _, _) -> failwith e
+
+(* Rendering
+
+   Types and functions to support a general concept of a type rendering
+   itself given some state data d', producing a rendering concept much
+   like the Format concept, but with readable state. *)
+
+type Rendering<'a> =
+    { Render: Render<'a> }
+
+and Render<'a> =
+    UriTemplateData -> 'a -> StringBuilder -> StringBuilder
+
+let private render (render: Render<'a>) =
+    fun d a -> string (render d a (StringBuilder ()))
 
 (* RFC 6570
 
@@ -30,6 +93,46 @@ open FParsec
    URI Template semantics as defined in RFC 6570.
 
    Taken from [http://tools.ietf.org/html/rfc6570] *)
+
+
+(* Parsers
+
+   Some extra functions for parsing, in particular for dynamically
+   parsing using a list of dynamically constructed parsers which should
+   succeed or fail as a single parser. *)
+
+[<AutoOpen>]
+module internal Parsers =
+
+    let multi parsers =
+        fun stream ->
+            let rec eval state =
+                match state with
+                | vs, [] ->
+                    Reply (vs)
+                | vs, p :: ps ->
+                    match p stream with
+                    | (x: Reply<'a>) when x.Status = Ok -> eval (x.Result :: vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+
+            eval ([], parsers)
+
+    let multiSepBy parsers sep =
+        fun stream ->
+            let rec eval state =
+                match state with
+                | _, vs, [] ->
+                    Reply (vs)
+                | true, vs, ps ->
+                    match sep stream with
+                    | (x: Reply<unit>) when x.Status = Ok -> eval (false, vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+                | false, vs, p :: ps ->
+                    match p stream with
+                    | (x: Reply<'a>) when x.Status = Ok -> eval (true, x.Result :: vs, ps)
+                    | (x) -> Reply<'a list> (Status = x.Status, Error = x.Error)
+
+            eval (false, [], parsers)
 
 (* Grammar
 
@@ -40,21 +143,21 @@ open FParsec
 module Grammar =
 
     let literal i =
-            (i = 0x21)
-         || (i >= 0x23 && i <= 0x24)
-         || (i = 0x26)
-         || (i >= 0x28 && i <= 0x3b)
-         || (i = 0x3d)
-         || (i >= 0x3f && i <= 0x5b)
-         || (i = 0x5d)
-         || (i = 0x5f)
-         || (i >= 0x61 && i <= 0x7a)
-         || (i = 0x7e)
+            i = 0x21
+         || i >= 0x23 && i <= 0x24
+         || i = 0x26
+         || i >= 0x28 && i <= 0x3b
+         || i = 0x3d
+         || i >= 0x3f && i <= 0x5b
+         || i = 0x5d
+         || i = 0x5f
+         || i >= 0x61 && i <= 0x7a
+         || i = 0x7e
 
     let varchar i =
-            (Grammar.alpha i)
-         || (Grammar.digit i)
-         || (i = 0x5f) // _
+            Grammar.alpha i
+         || Grammar.digit i
+         || i = 0x5f // _
 
 (* Template
 
@@ -75,6 +178,15 @@ type UriTemplate =
         { Parse = uriTemplateP
           Format = uriTemplateF }
 
+    static member Matching =
+
+        let uriTemplateM =
+            function | UriTemplate parts ->
+                        multi (List.map UriTemplatePart.Matching.Match parts)
+                        |>> List.fold (+) (UriTemplateData Map.empty)
+
+        { Match = uriTemplateM }
+
     static member Rendering =
 
         let uriTemplateR (data: UriTemplateData) =
@@ -91,14 +203,22 @@ type UriTemplate =
     static member TryParse =
         Parsing.tryParse UriTemplate.Mapping.Parse
 
-    static member (+) (UriTemplate a, UriTemplate b) =
-        UriTemplate (a @ b)
+    static member (+) (UriTemplate x, UriTemplate y) =
+        match List.rev x, y with
+        | (UriTemplatePart.Literal (Literal x) :: xs),
+          (UriTemplatePart.Literal (Literal y) :: ys) ->
+            UriTemplate (List.rev xs @ [ UriTemplatePart.Literal (Literal (x + y)) ] @ ys)
+        | _ ->
+            UriTemplate (x @ y)
 
     override x.ToString () =
         UriTemplate.Format x
 
+    member x.Match uri =
+        match' UriTemplate.Matching.Match uri x
+
     member x.Render data =
-        Rendering.render UriTemplate.Rendering.Render data x
+        render UriTemplate.Rendering.Render data x
 
 and UriTemplatePart =
     | Literal of Literal
@@ -116,6 +236,14 @@ and UriTemplatePart =
         { Parse = uriTemplatePartP
           Format = uriTemplatePartF }
 
+    static member Matching =
+
+        let uriTemplatePartM =
+            function | Literal l -> Literal.Matching.Match l
+                     | Expression e -> Expression.Matching.Match e
+
+        { Match = uriTemplatePartM }
+
     static member Rendering =
 
         let uriTemplatePartR data =
@@ -123,6 +251,15 @@ and UriTemplatePart =
                      | Expression e-> Expression.Rendering.Render data e
 
         { Render = uriTemplatePartR }
+
+    static member Format =
+        Formatting.format UriTemplatePart.Mapping.Format
+
+    override x.ToString () =
+        UriTemplatePart.Format x
+
+    member x.Match part =
+        match' UriTemplatePart.Matching.Match part x
 
 and Literal =
     | Literal of string
@@ -143,6 +280,13 @@ and Literal =
 
         { Parse = literalP
           Format = literalF }
+
+    static member Matching =
+        
+        let literalM =
+            function | Literal l -> pstring l >>% UriTemplateData Map.empty
+
+        { Match = literalM }
 
     static member Rendering =
 
@@ -176,32 +320,121 @@ and Expression =
         { Parse = expressionP
           Format = expressionF }
 
+    static member Matching =
+
+        (* Primitives *)
+
+        let idP =
+            preturn ()
+
+        let simpleP =
+            PercentEncoding.makeParser Grammar.unreserved
+
+        let reserved i =
+                Grammar.reserved i
+             || Grammar.unreserved i
+
+        let reservedP =
+            PercentEncoding.makeParser reserved
+
+        (* Values *)
+
+        let atomP p key =
+            p |>> fun s -> key, Atom s
+
+        let listP p sep =
+            sepBy p sep |>> List
+
+        let keysP p sep =
+            sepBy (p .>> equalsP .>>. p) sep |>> Keys
+
+        let listOrKeysP p sep key =
+            attempt (keysP p sep) <|> listP p sep |>> fun v -> key, v
+
+        (* Mapping *)
+
+        let mapVariable key =
+            function | None, Some (Level4 Explode) -> listOrKeysP simpleP commaP key
+                     | None, _ -> atomP simpleP key
+                     | Some (Level2 _), Some (Level4 Explode) -> listOrKeysP reservedP commaP key
+                     | Some (Level2 _), _ -> atomP reservedP key
+                     | Some (Level3 Label), Some (Level4 Explode) -> listOrKeysP simpleP dotP key
+                     | Some (Level3 Label), _ -> atomP simpleP key
+                     | Some (Level3 Segment), Some (Level4 Explode) -> listOrKeysP simpleP slashP key
+                     | Some (Level3 Segment), _ -> atomP simpleP key
+                     | _ -> failwith ""
+
+        let mapVariables o (VariableList vs) =
+            List.map (fun (VariableSpec (VariableName n, m)) ->
+                mapVariable (Key n) (o, m)) vs
+
+        let mapExpression =
+                function | Expression (None, vs) -> idP, mapVariables None vs, commaP
+                         | Expression (Some (Level2 Reserved), vs) -> idP, mapVariables (Some (Level2 Reserved)) vs, commaP
+                         | Expression (Some (Level2 Fragment), vs) -> skipChar '#', mapVariables (Some (Level2 Fragment)) vs, commaP
+                         | Expression (Some (Level3 Label), vs) -> dotP, mapVariables (Some (Level3 Label)) vs, dotP
+                         | Expression (Some (Level3 Segment), vs) -> slashP, mapVariables (Some (Level3 Segment)) vs, slashP
+                         | _ -> failwith ""
+             >> fun (prefix, keyValuePair, sep) -> prefix >>. multiSepBy keyValuePair sep
+
+        let expressionM e =
+            mapExpression e |>> fun vs -> UriTemplateData (Map.ofList vs)
+
+        { Match = expressionM }
+
     static member Rendering =
 
         (* Expansion *)
 
+        let crop (s: string) length =
+            s.Substring (0, min length s.Length)
+
+        let expandUnary f s =
+            function | (_, Atom "", _)
+                     | (_, List [], _)
+                     | (_, Keys [], _) -> id
+                     | (_, Atom a, Some (Level4 (Prefix i))) -> f (crop a i)
+                     | (_, Atom a, _) -> f a
+                     | (_, List l, Some (Level4 Explode)) -> join f s l
+                     | (_, List l, _) -> join f commaF l
+                     | (_, Keys k, Some (Level4 Explode)) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (_, Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+
+        let expandBinary f s omit =
+            function | (n, Atom x, _) when omit x -> f n
+                     | (n, List [], _)
+                     | (n, Keys [], _) -> f n
+                     | (n, Atom a, Some (Level4 (Prefix i))) -> f n >> equalsF >> f (crop a i)
+                     | (n, Atom a, _) -> f n >> equalsF >> f a
+                     | (n, List l, Some (Level4 Explode)) -> join (fun v -> f n >> equalsF >> f v) s l
+                     | (n, List l, _) -> f n >> equalsF >> join f commaF l
+                     | (_, Keys k, Some (Level4 Explode)) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
+                     | (n, Keys k, _) -> f n >> equalsF >> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+
+        (* Filtering *)
+
         let choose (VariableList variableList) (UriTemplateData data) =
             variableList
             |> List.map (fun (VariableSpec (VariableName n, m)) ->
-                match Map.tryFind n data with
-                | None -> None
-                | Some (List []) -> None
+                match Map.tryFind (Key n) data with
+                | None
+                | Some (List [])
                 | Some (Keys []) -> None
-                | Some x -> Some (x, m))
+                | Some v -> Some (n, v, m))
             |> List.choose id
 
-        let expand f s =
-            function | (Atom a, Some (Level4 (Prefix i))) -> f (a.Substring (0, min i a.Length))
-                     | (Atom a, _) -> f a
-                     | (List l, Some (Level4 (Explode))) -> join f s l
-                     | (List l, _) -> join f commaF l
-                     | (Keys k, Some (Level4 (Explode))) -> join (fun (k, v) -> f k >> equalsF >> f v) s k
-                     | (Keys k, _) -> join (fun (k, v) -> f k >> commaF >> f v) commaF k
+        (* Rendering *)
 
         let render f variableList data =
             match choose variableList data with
             | [] -> id
-            |  data -> f data
+            | data -> f data
+
+        let renderUnary prefix item sep =
+            render (fun x -> prefix >> join (expandUnary item sep) sep x)
+
+        let renderBinary prefix item sep omit =
+            render (fun x -> prefix >> join (expandBinary item sep omit) sep x)
 
         (* Simple Expansion *)
 
@@ -209,7 +442,7 @@ and Expression =
             PercentEncoding.makeFormatter Grammar.unreserved
 
         let simpleExpansion =
-            render (join (expand simpleF commaF) commaF)
+            renderUnary id simpleF commaF
 
         (* Reserved Expansion *)
 
@@ -221,29 +454,49 @@ and Expression =
             PercentEncoding.makeFormatter reserved
 
         let reservedExpansion =
-            render (join (expand reservedF commaF) commaF)
+            renderUnary id reservedF commaF
 
         (* Fragment Expansion *)
 
         let fragmentExpansion =
-            render (fun d -> append "#" >> join (expand reservedF commaF) commaF d)
+            renderUnary (append "#") reservedF commaF
 
-        (* Label Expansion with Dot-Prefix *)
+        (* Label Expansion with Label-Prefix *)
 
         let labelExpansion =
-            render (fun d -> dotF >> join (expand simpleF dotF) dotF d)
+            renderUnary dotF simpleF dotF
+
+        (* Path Segment Expansion *)
+
+        let segmentExpansion =
+            renderUnary slashF simpleF slashF
+
+        (* Parameter Expansion *)
+
+        let parameterExpansion =
+            renderBinary semicolonF simpleF semicolonF ((=) "")
+
+        (* Query Expansion *)
+
+        let queryExpansion =
+            renderBinary (append "?") simpleF ampersandF (fun _ -> false)
+
+        (* Query Continuation Expansion *)
+
+        let queryContinuationExpansion =
+            renderBinary ampersandF simpleF ampersandF (fun _ -> false)
 
         (* Expression *)
 
         let expressionR data =
             function | Expression (None, v) -> simpleExpansion v data
-                     | Expression (Some (Level2 Plus), v) -> reservedExpansion v data
-                     | Expression (Some (Level2 Hash), v) -> fragmentExpansion v data
-                     | Expression (Some (Level3 Dot), v) -> labelExpansion v data
-                     | Expression (Some (Level3 Slash), _) -> id
-                     | Expression (Some (Level3 SemiColon), _) -> id
-                     | Expression (Some (Level3 Question), _) -> id
-                     | Expression (Some (Level3 Ampersand), _) -> id
+                     | Expression (Some (Level2 Reserved), v) -> reservedExpansion v data
+                     | Expression (Some (Level2 Fragment), v) -> fragmentExpansion v data
+                     | Expression (Some (Level3 Label), v) -> labelExpansion v data
+                     | Expression (Some (Level3 Segment), v) -> segmentExpansion v data
+                     | Expression (Some (Level3 Parameter), v) -> parameterExpansion v data
+                     | Expression (Some (Level3 Query), v) -> queryExpansion v data
+                     | Expression (Some (Level3 QueryContinuation), v) -> queryContinuationExpansion v data
                      | _ -> id
 
         { Render = expressionR }
@@ -275,46 +528,46 @@ and Operator =
           Format = operatorF }
 
 and OperatorLevel2 =
-    | Plus
-    | Hash
+    | Reserved
+    | Fragment
 
     static member Mapping =
 
         let operatorLevel2P =
             choice [
-                skipChar '+' >>% Plus
-                skipChar '#' >>% Hash ]
+                skipChar '+' >>% Reserved
+                skipChar '#' >>% Fragment ]
 
         let operatorLevel2F =
-            function | Plus -> append "+"
-                     | Hash -> append "#"
+            function | Reserved -> append "+"
+                     | Fragment -> append "#"
 
         { Parse = operatorLevel2P
           Format = operatorLevel2F }
 
 and OperatorLevel3 =
-    | Dot
-    | Slash
-    | SemiColon
-    | Question
-    | Ampersand
+    | Label
+    | Segment
+    | Parameter
+    | Query
+    | QueryContinuation
 
     static member Mapping =
 
         let operatorLevel3P =
             choice [
-                skipChar '.' >>% Dot
-                skipChar '/' >>% Slash
-                skipChar ';' >>% SemiColon
-                skipChar '?' >>% Question
-                skipChar '&' >>% Ampersand ]
+                skipChar '.' >>% Label
+                skipChar '/' >>% Segment
+                skipChar ';' >>% Parameter
+                skipChar '?' >>% Query
+                skipChar '&' >>% QueryContinuation ]
 
         let operatorLevel3F =
-            function | Dot -> append "."
-                     | Slash -> append "/"
-                     | SemiColon -> append ";"
-                     | Question -> append "?"
-                     | Ampersand -> append "&"
+            function | Label -> append "."
+                     | Segment -> append "/"
+                     | Parameter -> append ";"
+                     | Query -> append "?"
+                     | QueryContinuation -> append "&"
 
         { Parse = operatorLevel3P
           Format = operatorLevel3F }
@@ -386,9 +639,16 @@ and VariableSpec =
           Format = variableSpecF }
 
 and VariableName =
-    | VariableName of string list
+    | VariableName of string
 
     static member Mapping =
+
+        // TODO: Assess the potential non-compliance
+        // with percent encoding in variable names, especially
+        // in cases which could involve percent encoded "." characters,
+        // which would not play well with our over-naive formatting here
+        // (which should potentially be reworked, although we are trying
+        // to avoid keys having list values...)
 
         let parser =
             PercentEncoding.makeParser Grammar.varchar
@@ -397,10 +657,12 @@ and VariableName =
             PercentEncoding.makeFormatter Grammar.varchar
 
         let variableNameP =
-            sepBy1 (notEmpty parser) (skipChar '.') |>> VariableName
+            sepBy1 (notEmpty parser) (skipChar '.')
+            |>> ((String.concat ".") >> VariableName)
 
         let variableNameF =
-            function | VariableName n ->join formatter (append ".") n
+            function | VariableName n ->
+                        join formatter (append ".") (List.ofArray (n.Split ([| '.' |])))
 
         { Parse = variableNameP
           Format = variableNameF }
@@ -441,16 +703,3 @@ and ModifierLevel4 =
 
         { Parse = modifierLevel4P
           Format = modifierLevel4F }
-
-(* Data
-
-   Types representing data which may be rendered or extracted
-   using UriTemplates. *)
-
-and UriTemplateData =
-    | UriTemplateData of Map<string list, UriTemplateDataItem>
-
-and UriTemplateDataItem =
-    | Atom of string
-    | List of string list
-    | Keys of (string * string) list

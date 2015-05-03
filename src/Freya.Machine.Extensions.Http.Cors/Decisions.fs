@@ -22,6 +22,7 @@
 module internal Freya.Machine.Extensions.Http.Cors.Decisions
 
 open Freya.Core
+open Freya.Core.Operators
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Operators
@@ -40,16 +41,16 @@ let private corsEnabled config =
 
 let private corsOriginAllowed config =
     Cors.originAllowed
-        (Freya.getLensPartial Request.Headers.origin)
+        (!?. Request.Headers.origin)
         (tryGetConfigOrElse Configuration.CorsOriginsSupported Defaults.corsOriginsSupported config)
 
 let private corsOptions _ =
     Cors.options
-        (Freya.getLens Request.meth)
+        (!. Request.meth)
 
 let private corsPreflight _ =
     Cors.isPreflight
-        (Freya.getLensPartial Request.Headers.accessControlRequestMethod)
+        (!?. Request.Headers.accessControlRequestMethod)
 
 (* Graph *)
 

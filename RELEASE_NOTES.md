@@ -5,6 +5,8 @@
   * `Freya.Pipeline` and `Freya.Integration` are no longer separate packages
   * `Freya.Pipeline` is now `Freya.Core.Pipeline` and automatically opened when `Freya.Core` is opened
   * `Freya.Integration` is its own module named `Freya.Core.Integration`, automatically opened when `Freya.Core` is opened, and no longer split into `Freya.Core.Integration` and `Freya.Pipeline.Integration`
+  * `Freya.Types.Uri.Template` introduced
+  * `Freya.Router` now uses URI Templates as route specifications, along with a new internal graph model
 
 ### New in 0.10.0-alpha - (Released 2015-03-21)
 * Updated Freya.Types.* family

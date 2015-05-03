@@ -5,9 +5,6 @@ open NUnit.Framework
 open Swensen.Unquote
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Core.Pipeline
-open Freya.Core.Pipeline.Operators
-open Freya.Core.Integration
 
 (* AppFunc *)
 
@@ -85,8 +82,8 @@ let ``test app works`` () =
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let o1 = o1 *> next |> OwinMidFunc.ofFreya
-    let o2 = o2 *> next |> OwinMidFunc.ofFreya
+    let o1 = o1 *> Freya.next |> OwinMidFunc.ofFreya
+    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -97,8 +94,8 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns halt`` () =
-    let o1 = o1 *> halt |> OwinMidFunc.ofFreya
-    let o2 = o2 *> next |> OwinMidFunc.ofFreya
+    let o1 = o1 *> Freya.halt |> OwinMidFunc.ofFreya
+    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -109,8 +106,8 @@ let ``pipeline executes only the first monad if first returns halt`` () =
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app`` () =
-    let o1 = o1 *> next |> OwinMidFunc.ofFreyaAfter
-    let o2 = o2 *> next |> OwinMidFunc.ofFreyaAfter
+    let o1 = o1 *> Freya.next |> OwinMidFunc.ofFreyaAfter
+    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreyaAfter
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -121,8 +118,8 @@ let ``pipeline executes app and both monads if first returns next after running 
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns halt after running the app`` () =
-    let o1 = o1 *> halt |> OwinMidFunc.ofFreyaAfter
-    let o2 = o2 *> next |> OwinMidFunc.ofFreyaAfter
+    let o1 = o1 *> Freya.halt |> OwinMidFunc.ofFreyaAfter
+    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreyaAfter
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -133,8 +130,8 @@ let ``pipeline executes app and both monads if first returns halt after running 
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with composed pipeline`` () =
-    let o1 = o1 *> next
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.next
+    let o2 = o2 *> Freya.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -146,8 +143,8 @@ let ``pipeline executes both monads if first returns next with composed pipeline
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
-    let o1 = o1 *> halt
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.halt
+    let o2 = o2 *> Freya.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -159,8 +156,8 @@ let ``pipeline executes only the first monad if first returns terminate with com
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app with composed pipeline`` () =
-    let o1 = o1 *> next
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.next
+    let o2 = o2 *> Freya.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreyaAfter
     let composed = pipe.Invoke app
 
@@ -172,8 +169,8 @@ let ``pipeline executes app and both monads if first returns next after running 
 
 [<Test>]
 let ``pipeline executes app and only the first monad if first returns halt after running the app with composed pipeline`` () =
-    let o1 = o1 *> halt
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.halt
+    let o2 = o2 *> Freya.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreyaAfter
     let composed = pipe.Invoke app
 
@@ -185,8 +182,8 @@ let ``pipeline executes app and only the first monad if first returns halt after
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with wrapped pipeline OwinMidFunc`` () =
-    let o1 = o1 *> next
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.next
+    let o2 = o2 *> Freya.next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -198,8 +195,8 @@ let ``pipeline executes both monads if first returns next with wrapped pipeline 
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with wrapped pipeline OwinMidFunc`` () =
-    let o1 = o1 *> halt
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.halt
+    let o2 = o2 *> Freya.next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -278,8 +275,8 @@ let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines`` () =
-    let o1 = o1 *> next
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.next
+    let o2 = o2 *> Freya.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -306,8 +303,8 @@ let ``MidFunc can work with other Freya Pipelines`` () =
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when first halts`` () =
-    let o1 = o1 *> halt
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.halt
+    let o2 = o2 *> Freya.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -333,8 +330,8 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when first 
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when midFunc returns early`` () =
-    let o1 = o1 *> halt
-    let o2 = o2 *> next
+    let o1 = o1 *> Freya.halt
+    let o2 = o2 *> Freya.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -357,8 +354,8 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when midFun
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when second halts`` () =
-    let o1 = o1 *> next
-    let o2 = o2 *> halt
+    let o1 = o1 *> Freya.next
+    let o2 = o2 *> Freya.halt
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->

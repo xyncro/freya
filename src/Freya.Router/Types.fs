@@ -15,30 +15,37 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module Freya.Router.Types
 
-open Freya.Core.Pipeline
+open Aether
+open Freya.Core
 open Freya.Types.Http
+open Freya.Types.Uri.Template
 
 (* Routes *)
 
 type FreyaRoute =
     { Method: FreyaRouteMethod
-      Path: string
+      Specification: FreyaRouteSpecification
+      Template: UriTemplate
       Pipeline: FreyaPipeline }
+
+    static member TemplateLens : Lens<FreyaRoute, UriTemplate> =
+        (fun x -> x.Template), (fun t x -> { x with Template = t })
+
+and FreyaRouteSpecification =
+    | Path
+    | PathAndQuery
 
 and FreyaRouteMethod =
     | All
     | Methods of Method list
 
-type FreyaRouteData =
-    Map<string, string>
-
 (* Computation Expression *)
 
 type FreyaRouter = 
     FreyaRoute list -> unit * FreyaRoute list
-

@@ -21,6 +21,8 @@
 [<AutoOpen>]
 module internal Freya.Machine.Compilation
 
+open Aether
+open Aether.Operators
 open Hekate
 
 (* Types
@@ -33,27 +35,40 @@ open Hekate
    at least potentially supports this, as currently the type system is not
    designed to find any failure cases (or allow their possibility). *)
 
-type Compilation =
-    | Compiled of ExecutionGraph * MetadataGraph
-    | Error of string
+type CompilationGraph =
+    | Graph of Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
 
-and ExecutionGraph =
-    Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
+    static member GraphIso =
+        (fun (Graph x) -> x), (fun x -> Graph x)
 
 and MetadataGraph =
-    Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
+    | Metadata of Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
+
+type CompilationResult =
+    | Compilation of CompilationGraph * MetadataGraph
+    | Error of string
+
+(* Lenses *)
+
+let compilationGraphLens =
+        idLens
+   <--> CompilationGraph.GraphIso
 
 (* Compilation
 
    Functions to compile a source graph to a compilation result of
    an execution graph and a metadata graph. *)
 
+let private app f =
+    fun _ n -> Option.map f n
+
 let private build config graph =
-    let g1 = Graph.mapNodes (Option.map (fun (Compile n) -> n config)) graph
-    let g2 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
-    let g3 = Graph.mapNodes (Option.map (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
+    (fun graph ->
+        let g1 = Graph.mapNodes (app (fun (Compile n) -> n config)) graph
+        let g2 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
+        let g3 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
 
-    g2, g3
+        Graph g2, Metadata g3) (graph ^. precompilationGraphLens)
 
-let compile spec source =
-    Compiled (build spec.Configuration source)
+let compile config graph =
+    Compilation (build config graph)

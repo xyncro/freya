@@ -23,7 +23,6 @@ module internal Freya.Machine.Reification
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Core.Pipeline
 
 (* Errors
 
@@ -48,10 +47,10 @@ let private fail e =
    The graphs are effectively captured as a closure here, eliminating
    concerns about generation efficiency. *)
 
-let private run exec record =
-        setFreyaMachineGraphRecord record
+let private run exec graph =
+        recordDefinition graph
      *> execute exec
-     *> halt
+     *> Freya.halt
 
 (* Reification
 
@@ -60,17 +59,15 @@ let private run exec record =
    and metadata graphs. *)
 
 let reify machine =
-    let spec = snd (machine defaultFreyaMachineSpecification)
+    let _, spec = machine defaultFreyaMachineSpecification
 
-    match precompile spec with
-    | Precompiled source ->
-        match compile spec source with
-        | Compiled (exec, meta) ->
-            match verify exec with
-            | Verified exec ->
-                run exec (record meta)
-            | Verification.Error e ->
-                fail e
+    match precompile spec.Extensions with
+    | Precompilation precompilation ->
+        match compile spec.Configuration precompilation with
+        | Compilation (compilation, metadata) ->
+            match verify compilation with
+            | Verification compilation -> run compilation (createGraphRecord metadata)
+            | Verification.Error e -> fail e
         | Compilation.Error e ->
             fail e
     | Precompilation.Error e ->

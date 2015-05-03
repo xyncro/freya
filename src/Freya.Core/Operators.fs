@@ -74,3 +74,8 @@ let inline (%=) l f =
 
 let inline (%?=) l f =
     Freya.mapLensPartial l f
+
+(* Pipeline *)
+
+let inline (>?=) p1 p2 = 
+    Freya.pipe p1 p2
