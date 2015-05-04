@@ -25,7 +25,7 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 | Freya.Types.Uri.Template | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Uri.Template.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Uri.Template/) |
 | Freya.Types.Language | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Language.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Language/) |
 | Freya.Types.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Http/) |
-| Freya.Machine.Extensions.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Http.Cors/) |
+| Freya.Types.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Http.Cors/) |
 | Freya.Recorder | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
 | Freya.Machine | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
 | Freya.Machine.Extensions.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
