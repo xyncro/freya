@@ -2,7 +2,7 @@
 
 Functional web development in F# based on the [HTTP finite state machine](https://github.com/basho/webmachine/wiki/Diagram) used in [web machine](https://github.com/basho/webmachine). Compatible with OWIN [Open Web Interface for .NET (OWIN)](http://owin.org/).
 
-* [Read the docs](https://github.com/freya-fs/freya.documentation)
+* [Read the docs](http://docs.freya.io/en/latest/)
 * [Review the examples](https://github.com/freya-fs/freya.examples)
 
 ## Build status
