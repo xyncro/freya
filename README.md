@@ -20,14 +20,16 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 | :------ | :------: |
 | Freya (meta) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.svg?style=flat)](https://www.nuget.org/packages/Freya/) |
 | Freya.Core | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Core.svg?style=flat)](https://www.nuget.org/packages/Freya.Core/) |
-| Freya.Pipeline | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Pipeline.svg?style=flat)](https://www.nuget.org/packages/Freya.Pipeline/) |
 | Freya.Types | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.svg?style=flat)](https://www.nuget.org/packages/Freya.Types/) |
 | Freya.Types.Uri | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Uri.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Uri/) |
+| Freya.Types.Uri.Template | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Uri.Template.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Uri.Template/) |
 | Freya.Types.Language | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Language.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Language/) |
 | Freya.Types.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Http/) |
-| Freya.Types.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Cors/) |
+| Freya.Machine.Extensions.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Types.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Types.Http.Cors/) |
 | Freya.Recorder | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
 | Freya.Machine | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
+| Freya.Machine.Extensions.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
+| Freya.Machine.Extensions.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http.Cors/) |
 | Freya.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Router/) |
 | Freya.Machine.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Router/) |
 
