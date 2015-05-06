@@ -5,8 +5,8 @@
     <version>@build.number@</version>
     <authors>@authors@</authors>
     <owners>@authors@</owners>
-    <licenseUrl>http://freya-fs.github.io/freya/LICENSE.txt</licenseUrl>
-    <projectUrl>http://freya-fs.github.com/freya</projectUrl>
+    <licenseUrl>https://github.com/freya-fs/freya/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/freya-fs/freya</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/freya-fs/freya/master/docs/files/img/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>@summary@</summary>
