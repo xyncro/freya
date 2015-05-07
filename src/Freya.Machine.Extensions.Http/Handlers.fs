@@ -104,11 +104,23 @@ let private handle config m =
     let specification = specification config
 
     freya {
+        let! meth = Freya.getLens Request.meth
         let! specification = specification
         let! representation = m specification
 
         do! description representation.Description
-        do! data representation.Data }
+
+        (* NOTE:
+
+           This is a temporary solution to the issue of returning body
+           data in HEAD requests. This should be fixed longer term with an
+           elaboration of the HTTP graph, but for now, this is a fairly safe
+           and harmless fix before later work on Freya optimised HTTP
+           graphs. *)
+
+        match meth with
+        | HEAD -> return ()
+        | _ -> do! data representation.Data }
 
 let private userHandler key =
     Some (Compile (fun config ->
