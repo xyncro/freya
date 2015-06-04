@@ -26,7 +26,7 @@ open Aether.Operators
 open Chiron
 open Chiron.Operators
 open Freya.Recorder
-open Freya.Types.Http
+open Arachne.Http
 
 (* Keys *)
 

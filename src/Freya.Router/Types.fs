@@ -23,8 +23,8 @@ module Freya.Router.Types
 
 open Aether
 open Freya.Core
-open Freya.Types.Http
-open Freya.Types.Uri.Template
+open Arachne.Http
+open Arachne.Uri.Template
 
 (* Routes *)
 

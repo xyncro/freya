@@ -22,8 +22,8 @@
 module internal Freya.Machine.Extensions.Http.Cors.Defaults
 
 open Freya.Core
-open Freya.Types.Http
-open Freya.Types.Http.Cors
+open Arachne.Http
+open Arachne.Http.Cors
 
 let corsHeadersExposed =
     Freya.init List.empty<string>

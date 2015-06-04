@@ -21,6 +21,8 @@
 module Freya.Types.Http.Cors.Lenses
 
 open Aether.Operators
+open Arachne.Http
+open Arachne.Http.Cors
 open Freya.Types.Http
 
 (* Aliases *)

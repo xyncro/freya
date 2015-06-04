@@ -23,6 +23,7 @@ module Freya.Types.Http.Lenses
 open System.Collections.Generic
 open System.IO
 open Aether.Operators
+open Arachne.Http
 open Freya.Core
 
 (* Request Lenses *)

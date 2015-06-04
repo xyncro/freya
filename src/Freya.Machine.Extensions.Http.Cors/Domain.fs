@@ -21,9 +21,10 @@
 [<AutoOpen>]
 module internal Freya.Machine.Extensions.Http.Cors.Domain
 
+open Arachne.Http
+open Arachne.Http.Cors
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
 open Freya.Types.Http.Cors
 
 (* CORS

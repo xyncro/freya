@@ -5,3 +5,5 @@ Unquote
 NUnit
 System.Net.Http
 Chiron
+Arachne.Http.Cors
+Arachne.Uri.Template

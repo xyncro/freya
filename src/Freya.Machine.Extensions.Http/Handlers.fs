@@ -23,6 +23,7 @@ module internal Freya.Machine.Extensions.Http.Handlers
 
 open Aether
 open Aether.Operators
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine

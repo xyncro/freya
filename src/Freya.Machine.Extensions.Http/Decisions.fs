@@ -21,6 +21,7 @@
 [<RequireQualifiedAccess>]
 module internal Freya.Machine.Extensions.Http.Decisions
 
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine

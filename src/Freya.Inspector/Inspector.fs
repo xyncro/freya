@@ -23,6 +23,7 @@ module Freya.Inspector.Inspector
 
 open Aether
 open Aether.Operators
+open Arachne.Http
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
