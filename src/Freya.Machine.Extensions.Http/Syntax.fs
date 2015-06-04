@@ -23,11 +23,11 @@ module Freya.Machine.Extensions.Http.Syntax
 
 open System
 open Aether
+open Arachne.Http
+open Arachne.Language
+open Arachne.Uri
 open Freya.Core
 open Freya.Machine
-open Freya.Types.Http
-open Freya.Types.Language
-open Freya.Types.Uri
 
 (* Helper Functions *)
 

@@ -22,11 +22,12 @@
 module internal Freya.Machine.Extensions.Http.Operations
 
 open System
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Operators
-open Freya.Types.Http
 
 (* Helpers *)
 

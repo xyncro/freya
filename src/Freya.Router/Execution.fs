@@ -23,12 +23,13 @@ module internal Freya.Router.Execution
 
 open Aether
 open Aether.Operators
+open Arachne.Http
+open Arachne.Uri.Template
 open FParsec
+open Hekate
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
-open Freya.Types.Uri.Template
-open Hekate
+open Freya.Lenses.Http
 
 (* Types
 

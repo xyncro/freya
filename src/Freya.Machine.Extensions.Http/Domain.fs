@@ -22,10 +22,10 @@
 module Freya.Machine.Extensions.Http.Domain
 
 open System
+open Arachne.Http
+open Arachne.Language
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
-open Freya.Types.Language
 
 (* Cache Control *)
 

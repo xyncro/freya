@@ -2,3 +2,5 @@ Aether
 FParsec
 FSharp.Core
 Microsoft.Owin.SelfHost
+Arachne.Http.Cors
+Arachne.Uri.Template

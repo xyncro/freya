@@ -1,4 +1,8 @@
-﻿open Freya.Core
+﻿open Microsoft.Owin.Hosting
+open Arachne.Http
+open Arachne.Language
+open Arachne.Uri.Template
+open Freya.Core
 open Freya.Core.Operators
 open Freya.Inspector
 open Freya.Machine
@@ -6,10 +10,6 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Inspector
 open Freya.Router
 open Freya.Router.Inspector
-open Freya.Types.Http
-open Freya.Types.Language
-open Freya.Types.Uri.Template
-open Microsoft.Owin.Hosting
 
 // Resources
 

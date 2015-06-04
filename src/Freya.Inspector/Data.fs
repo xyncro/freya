@@ -30,7 +30,7 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
-open Freya.Types.Uri.Template
+open Arachne.Uri.Template
 
 (* Route *)
 

@@ -21,6 +21,9 @@
 module Freya.TodoBackend.Api
 
 open System
+open Arachne.Http
+open Arachne.Http.Cors
+open Arachne.Uri.Template
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Inspector
@@ -31,9 +34,6 @@ open Freya.Machine.Inspector
 open Freya.Machine.Router
 open Freya.Router
 open Freya.Router.Inspector
-open Freya.Types.Http
-open Freya.Types.Http.Cors
-open Freya.Types.Uri.Template
 open Freya.TodoBackend.Domain
 
 (* Route Properties

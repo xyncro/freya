@@ -22,10 +22,10 @@
 module Freya.Machine.Extensions.Http.Cors.Syntax
 
 open Aether
+open Arachne.Http
+open Arachne.Http.Cors
 open Freya.Core
 open Freya.Machine
-open Freya.Types.Http
-open Freya.Types.Http.Cors
 
 (* Helper Functions *)
 
