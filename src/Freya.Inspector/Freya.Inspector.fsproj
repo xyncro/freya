@@ -75,6 +75,11 @@
     <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
+      <Name>Freya.Lenses.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
       <Name>Freya.Machine.Extensions.Http.Cors</Name>
       <Project>{9E1E2CDC-81A2-4F7C-8A61-0C2312CECD2F}</Project>
@@ -106,14 +111,6 @@
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-      <Name>Freya.Types.Http</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Project>{BD71C030-27BF-47BE-8E9B-D07F9A6F52CB}</Project>
-      <Name>Freya.Types.Http.Cors</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

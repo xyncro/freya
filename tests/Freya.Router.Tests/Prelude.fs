@@ -7,8 +7,8 @@ open Aether.Operators
 open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http
 open Freya.Router
-open Freya.Types.Http
 
 let private freyaState () =
     let env = 

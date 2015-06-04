@@ -1,9 +1,9 @@
 source https://nuget.org/api/v2
 
 nuget Aether
-nuget Arachne.Http 1.0.0-alpha-6
-nuget Arachne.Http.Cors 1.0.0-alpha-6
-nuget Arachne.Uri.Template 1.0.0-alpha-6
+nuget Arachne.Http
+nuget Arachne.Http.Cors
+nuget Arachne.Uri.Template
 nuget Chiron
 nuget FParsec
 nuget FSharp.Core

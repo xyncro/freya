@@ -25,7 +25,7 @@ open Arachne.Http
 open Arachne.Http.Cors
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http.Cors
+open Freya.Lenses.Http.Cors
 
 (* CORS
 

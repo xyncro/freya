@@ -24,10 +24,10 @@ module internal Freya.Machine.Extensions.Http.Cors.Operations
 open Arachne.Http.Cors
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http.Cors
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Operators
-open Freya.Types.Http.Cors
 
 (* Operations *)
 

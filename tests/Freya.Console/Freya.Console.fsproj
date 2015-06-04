@@ -75,14 +75,6 @@
       <Name>Freya.Router</Name>
       <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-      <Name>Freya.Types.Http</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Project>{BD71C030-27BF-47BE-8E9B-D07F9A6F52CB}</Project>
-      <Name>Freya.Types.Http.Cors</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

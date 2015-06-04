@@ -21,9 +21,9 @@
 [<RequireQualifiedAccess>]
 module internal Freya.Machine.Extensions.Http.Cors.Defaults
 
-open Freya.Core
 open Arachne.Http
 open Arachne.Http.Cors
+open Freya.Core
 
 let corsHeadersExposed =
     Freya.init List.empty<string>

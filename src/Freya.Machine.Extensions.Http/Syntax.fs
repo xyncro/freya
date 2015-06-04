@@ -28,7 +28,6 @@ open Arachne.Language
 open Arachne.Uri
 open Freya.Core
 open Freya.Machine
-open Freya.Types.Http
 
 (* Helper Functions *)
 

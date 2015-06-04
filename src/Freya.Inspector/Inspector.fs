@@ -27,7 +27,7 @@ open Arachne.Http
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
+open Freya.Lenses.Http
 
 (* Runtime *)
 

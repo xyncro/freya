@@ -29,7 +29,7 @@ open FParsec
 open Hekate
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Types.Http
+open Freya.Lenses.Http
 
 (* Types
 

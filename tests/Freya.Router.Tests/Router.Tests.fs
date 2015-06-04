@@ -2,10 +2,10 @@
 
 open NUnit.Framework
 open Swensen.Unquote
-open Freya.Core
-open Freya.Router
 open Arachne.Http
 open Arachne.Uri.Template
+open Freya.Core
+open Freya.Router
 
 [<Test>]
 let ``Router With No Routes Returns Next`` () =

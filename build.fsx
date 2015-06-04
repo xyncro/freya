@@ -85,6 +85,19 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
+                  { Name = "Freya.Lenses.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Arachne.Http"
+                          Local "Freya.Core" ] }
+                  { Name = "Freya.Lenses.Http.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Arachne.Http.Cors"
+                          Local "Freya.Core"
+                          Local "Freya.Lenses.Http" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -99,7 +112,7 @@ let freya =
                           Package "Aether"
                           Package "Arachne.Http"
                           Local "Freya.Core"
-                          Local "Freya.Types.Http"
+                          Local "Freya.Lenses.Http"
                           Local "Freya.Machine" ] }
                   { Name = "Freya.Machine.Extensions.Http.Cors"
                     Dependencies =
@@ -107,8 +120,8 @@ let freya =
                           Package "Aether"
                           Package "Arachne.Http.Cors"
                           Local "Freya.Core"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Http.Cors"
+                          Local "Freya.Lenses.Http"
+                          Local "Freya.Lenses.Http.Cors"
                           Local "Freya.Machine"
                           Local "Freya.Machine.Extensions.Http" ] }
                   { Name = "Freya.Machine.Router"
@@ -134,20 +147,7 @@ let freya =
                           Package "Arachne.Uri.Template"
                           Local "Freya.Core"
                           Local "Freya.Recorder"
-                          Local "Freya.Types.Http" ] }
-                  { Name = "Freya.Types.Http"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "Arachne.Http"
-                          Local "Freya.Core" ] }
-                  { Name = "Freya.Types.Http.Cors"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "Arachne.Http.Cors"
-                          Local "Freya.Core"
-                          Local "Freya.Types.Http" ] } ]
+                          Local "Freya.Lenses.Http" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
                   { Name = "Freya.Machine.Tests" }
@@ -225,7 +225,7 @@ Target "Publish.Debug" (fun _ ->
 
         git.VerifyChecksums files
         release.VerifyPdbChecksums files
-        release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
+        release.CreateSrcSrv baseUrl git.Commit (git.Paths files)
         
         Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
 

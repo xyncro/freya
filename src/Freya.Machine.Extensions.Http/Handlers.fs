@@ -26,9 +26,9 @@ open Aether.Operators
 open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Operators
-open Freya.Types.Http
 
 (* Negotiation *)
 

@@ -57,6 +57,11 @@
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
       <Name>Freya.Inspector</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
+      <Name>Freya.Lenses.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
       <Project>{9E1E2CDC-81A2-4F7C-8A61-0C2312CECD2F}</Project>
       <Name>Freya.Machine.Extensions.Http.Cors</Name>
@@ -84,14 +89,6 @@
     <ProjectReference Include="..\..\src\Freya.Router\Freya.Router.fsproj">
       <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
       <Name>Freya.Router</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-      <Name>Freya.Types.Http</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Project>{BD71C030-27BF-47BE-8E9B-D07F9A6F52CB}</Project>
-      <Name>Freya.Types.Http.Cors</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -322,6 +319,7 @@
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
       <Paket>True</Paket>
     </Reference>
   </ItemGroup>

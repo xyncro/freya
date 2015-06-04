@@ -15,10 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Http.Lenses
+module Freya.Lenses.Http.Lenses
 
 open System.Collections.Generic
 open System.IO

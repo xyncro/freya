@@ -28,9 +28,9 @@ open Arachne.Language
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Types.Http
 
 (* Utility
 
