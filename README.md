@@ -20,12 +20,6 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 | :------ | :------: |
 | Freya (meta) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.svg?style=flat)](https://www.nuget.org/packages/Freya/) |
 | Freya.Core | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Core.svg?style=flat)](https://www.nuget.org/packages/Freya.Core/) |
-| Arachne | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.svg?style=flat)](https://www.nuget.org/packages/Arachne/) |
-| Arachne.Uri | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.Uri.svg?style=flat)](https://www.nuget.org/packages/Arachne.Uri/) |
-| Arachne.Uri.Template | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.Uri.Template.svg?style=flat)](https://www.nuget.org/packages/Arachne.Uri.Template/) |
-| Arachne.Language | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.Language.svg?style=flat)](https://www.nuget.org/packages/Arachne.Language/) |
-| Arachne.Http | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.Http.svg?style=flat)](https://www.nuget.org/packages/Arachne.Http/) |
-| Arachne.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Arachne.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Arachne.Http.Cors/) |
 | Freya.Recorder | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
 | Freya.Machine | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
 | Freya.Machine.Extensions.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
