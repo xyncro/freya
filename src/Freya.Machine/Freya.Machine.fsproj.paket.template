@@ -1,0 +1,15 @@
+type project
+owners
+    panesofglass
+    kolektiv
+language en-US
+iconUrl https://raw.githubusercontent.com/freya-fs/freya/master/docs/files/img/logo.png
+licenseUrl https://raw.githubusercontent.com/freya-fs/freya/master/LICENSE.txt
+projectUrl https://github.com/freya-fs/freya
+tags
+    f#
+    fsharp
+    web
+    owin
+    http
+    machine
