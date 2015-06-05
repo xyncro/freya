@@ -4,10 +4,11 @@ module internal Freya.Router.Tests.Prelude
 open System.Collections.Generic
 open Aether
 open Aether.Operators
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Lenses.Http
 open Freya.Router
-open Freya.Types.Http
 
 let private freyaState () =
     let env = 

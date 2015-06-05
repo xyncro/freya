@@ -27,7 +27,7 @@ open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Router
-open Freya.Types.Uri.Template
+open Arachne.Uri.Template
 
 (* Content *)
 

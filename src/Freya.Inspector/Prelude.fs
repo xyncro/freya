@@ -28,9 +28,9 @@ open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
-open Freya.Types.Http
-open Freya.Types.Http.Cors
-open Freya.Types.Language
+open Arachne.Http
+open Arachne.Http.Cors
+open Arachne.Language
 
 (* Presets
 

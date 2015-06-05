@@ -24,7 +24,7 @@ module Freya.Router.Lenses
 open Aether
 open Aether.Operators
 open Freya.Core
-open Freya.Types.Uri.Template
+open Arachne.Uri.Template
 
 (* Keys *)
 

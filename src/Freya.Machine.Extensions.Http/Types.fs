@@ -21,8 +21,8 @@
 [<AutoOpen>]
 module Freya.Machine.Extensions.Http.Types
 
-open Freya.Types.Http
-open Freya.Types.Language
+open Arachne.Http
+open Arachne.Language
 
 (* Negotiation *)
 

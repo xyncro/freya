@@ -24,7 +24,7 @@ module Freya.Inspector.Pipeline
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Recorder
-open Freya.Types.Http
+open Arachne.Http
 
 (* Functions *)
 

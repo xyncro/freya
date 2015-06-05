@@ -4,25 +4,24 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{98A74F15-7AAE-46BE-8E94-C5A2B85BD900}</ProjectGuid>
+    <ProjectGuid>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Freya.Types.Http.Cors.Tests</RootNamespace>
-    <AssemblyName>Freya.Types.Http.Cors.Tests</AssemblyName>
+    <RootNamespace>Freya.Lenses.Http</RootNamespace>
+    <AssemblyName>Freya.Lenses.Http</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>Freya.Types.Http.Cors.Tests</Name>
+    <Name>Freya.Lenses.Http</Name>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Freya.Types.Http.Cors.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Freya.Lenses.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,8 +30,25 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Freya.Types.Http.Cors.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Freya.Lenses.Http.XML</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Lenses.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -49,38 +65,6 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <ItemGroup>
-    <Compile Include="Types.Tests.fs" />
-    <Content Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Freya.Types.Http.Cors\Freya.Types.Http.Cors.fsproj">
-      <Name>Freya.Types.Http.Cors</Name>
-      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types\Freya.Types.fsproj">
-      <Name>Freya.Types</Name>
-      <Project>{ef160ebe-806e-4f88-81ac-b9488ede1085}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Freya.Types.Tests\Freya.Types.Tests.fsproj">
-      <Name>Freya.Types.Tests</Name>
-      <Project>{D39640C6-2258-4571-830E-7028E19DB6BA}</Project>
-    </ProjectReference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Types.Http\Freya.Types.Http.fsproj">
-      <Name>Freya.Types.Http</Name>
-      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Freya.Types.Uri\Freya.Types.Uri.fsproj">
-      <Name>Freya.Types.Uri</Name>
-      <Project>{8A5AC05B-CB43-43B0-A763-992D1A04D271}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -88,6 +72,61 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Aether">
+          <HintPath>..\..\packages\Aether\lib\net40\Aether.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Arachne.Core">
+          <HintPath>..\..\packages\Arachne.Core\lib\net45\Arachne.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Arachne.Http">
+          <HintPath>..\..\packages\Arachne.Http\lib\net45\Arachne.Http.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Arachne.Language">
+          <HintPath>..\..\packages\Arachne.Language\lib\net45\Arachne.Language.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
+      <ItemGroup>
+        <Reference Include="Arachne.Uri">
+          <HintPath>..\..\packages\Arachne.Uri\lib\net45\Arachne.Uri.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
       <ItemGroup>
@@ -163,33 +202,6 @@
       <ItemGroup>
         <Reference Include="FSharp.Core">
           <HintPath>..\..\packages\FSharp.Core\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\FSharp.Core.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <ItemGroup>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-      <Paket>True</Paket>
-    </Reference>
-  </ItemGroup>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == 'Silverlight' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v5.0')">
-      <ItemGroup>
-        <Reference Include="Unquote">
-          <HintPath>..\..\packages\Unquote\lib\sl4\Unquote.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
-      <ItemGroup>
-        <Reference Include="Unquote">
-          <HintPath>..\..\packages\Unquote\lib\net40\Unquote.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

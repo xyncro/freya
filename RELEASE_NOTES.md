@@ -1,15 +1,20 @@
-### New in 0.11.0-alpha - (Released TBD)
+### New in 1.0.0 - (Released 2015-06-05)
+* `Arachne` moved to `Arachne`
+* `Freya.Types.Http` renamed `Freya.Lenses.Http` and now takes a dependency on `Arachne.Http` and exposes only the Freya lenses
+* `Freya.Types.Http.Cors` renamed `Freya.Lenses.Http.Cors` and now takes a dependency on `Arachne.Http.Cors` and exposes only the Freya lenses
+
+### New in 0.11.0-alpha - (Released 2015-05-04)
 * Breaking changes:
   * `Freya.Pipeline` merged into `Freya.Core`
   * `Freya.Integration` merged into `Freya.Core`
   * `Freya.Pipeline` and `Freya.Integration` are no longer separate packages
   * `Freya.Pipeline` is now `Freya.Core.Pipeline` and automatically opened when `Freya.Core` is opened
   * `Freya.Integration` is its own module named `Freya.Core.Integration`, automatically opened when `Freya.Core` is opened, and no longer split into `Freya.Core.Integration` and `Freya.Pipeline.Integration`
-  * `Freya.Types.Uri.Template` introduced
+  * `Arachne.Uri.Template` introduced
   * `Freya.Router` now uses URI Templates as route specifications, along with a new internal graph model
 
 ### New in 0.10.0-alpha - (Released 2015-03-21)
-* Updated Freya.Types.* family
+* Updated Arachne.* family
 * Naming convention updates and simplification
 * Experimental release of URI Template implementation (not for primetime!)
 

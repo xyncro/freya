@@ -21,7 +21,6 @@
 [<AutoOpen>]
 module internal Freya.Machine.Extensions.Http.Constants
 
-
 [<RequireQualifiedAccess>]
 module Actions =
 

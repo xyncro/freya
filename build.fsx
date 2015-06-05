@@ -85,6 +85,19 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether" ] }
+                  { Name = "Freya.Lenses.Http"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Arachne.Http"
+                          Local "Freya.Core" ] }
+                  { Name = "Freya.Lenses.Http.Cors"
+                    Dependencies =
+                        [ Package "FSharp.Core"
+                          Package "Aether"
+                          Package "Arachne.Http.Cors"
+                          Local "Freya.Core"
+                          Local "Freya.Lenses.Http" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
                         [ Package "FSharp.Core"
@@ -97,34 +110,32 @@ let freya =
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
+                          Package "Arachne.Http"
                           Local "Freya.Core"
-                          Local "Freya.Machine"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Language"
-                          Local "Freya.Types.Uri" ] }
+                          Local "Freya.Lenses.Http"
+                          Local "Freya.Machine" ] }
                   { Name = "Freya.Machine.Extensions.Http.Cors"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
+                          Package "Arachne.Http.Cors"
                           Local "Freya.Core"
+                          Local "Freya.Lenses.Http"
+                          Local "Freya.Lenses.Http.Cors"
                           Local "Freya.Machine"
-                          Local "Freya.Machine.Extensions.Http"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Http.Cors"
-                          Local "Freya.Types.Language"
-                          Local "Freya.Types.Uri" ] }
+                          Local "Freya.Machine.Extensions.Http" ] }
                   { Name = "Freya.Machine.Router"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Local "Freya.Core"
                           Local "Freya.Machine"
-                          Local "Freya.Router"
-                          Local "Freya.Types.Http" ] }
+                          Local "Freya.Router" ] }
                   { Name = "Freya.Recorder"
                     Dependencies =
                         [ Package "FSharp.Core"
                           Package "Aether"
                           Package "Chiron"
+                          Package "Arachne.Core"
                           Local "Freya.Core" ] }
                   { Name = "Freya.Router"
                     Dependencies =
@@ -132,58 +143,16 @@ let freya =
                           Package "Aether"
                           Package "Chiron"
                           Package "Hekate"
+                          Package "Arachne.Http"
+                          Package "Arachne.Uri.Template"
                           Local "Freya.Core"
                           Local "Freya.Recorder"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Uri.Template" ] }
-                  { Name = "Freya.Types"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "FParsec" ] }
-                  { Name = "Freya.Types.Http"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "FParsec"
-                          Local "Freya.Core"
-                          Local "Freya.Types"
-                          Local "Freya.Types.Language"
-                          Local "Freya.Types.Uri" ] }
-                  { Name = "Freya.Types.Http.Cors"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
-                          Package "FParsec"
-                          Local "Freya.Types"
-                          Local "Freya.Types.Http"
-                          Local "Freya.Types.Uri" ] }
-                  { Name = "Freya.Types.Language"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "FParsec"
-                          Local "Freya.Types" ] }
-                  { Name = "Freya.Types.Uri"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "FParsec"
-                          Local "Freya.Types" ] }
-                  { Name = "Freya.Types.Uri.Template"
-                    Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "FParsec"
-                          Local "Freya.Types"
-                          Local "Freya.Types.Uri" ] } ]
+                          Local "Freya.Lenses.Http" ] } ]
               Test =
                 [ { Name = "Freya.Core.Tests" }
                   { Name = "Freya.Machine.Tests" }
                   { Name = "Freya.Machine.Extensions.Http.Tests" }
-                  { Name = "Freya.Router.Tests" }
-                  { Name = "Freya.Types.Tests" }
-                  { Name = "Freya.Types.Http.Tests" }
-                  { Name = "Freya.Types.Http.Cors.Tests" }
-                  { Name = "Freya.Types.Language.Tests" }
-                  { Name = "Freya.Types.Uri.Tests" }
-                  { Name = "Freya.Types.Uri.Template.Tests" } ] } }
+                  { Name = "Freya.Router.Tests" } ] } }
       VersionControl =
         { Source = "https://github.com/freya-fs/freya"
           Raw = "https://raw.github.com/freya-fs" } }
@@ -199,11 +168,20 @@ let release =
 let assemblyVersion =
     release.AssemblyVersion
 
+let isAppVeyorBuild =
+    environVar "APPVEYOR" <> null
+
+let majorMinorVersion (version: string) =
+    let parts = version.Split([|'.'|])
+    sprintf "%s.%s" parts.[0] parts.[1]
+
 let nugetVersion =
-    match isLocalBuild, release.NugetVersion.Contains "-" with
-    | false, true -> sprintf "%s-%s" release.NugetVersion buildVersion
-    | false, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
-    | _ -> release.NugetVersion
+    if isAppVeyorBuild then
+        let parts = release.NugetVersion.Split([|'-'|])
+        if Array.length parts = 2 then
+            sprintf "%s.%s-%s" (majorMinorVersion parts.[0]) buildVersion parts.[1]
+        else sprintf "%s.%s" (majorMinorVersion release.NugetVersion) buildVersion
+    else release.NugetVersion
 
 let notes =
     String.concat Environment.NewLine release.Notes
@@ -256,7 +234,7 @@ Target "Publish.Debug" (fun _ ->
 
         git.VerifyChecksums files
         release.VerifyPdbChecksums files
-        release.CreateSrcSrv baseUrl git.Revision (git.Paths files)
+        release.CreateSrcSrv baseUrl git.Commit (git.Paths files)
         
         Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
 
@@ -314,8 +292,10 @@ Target "Source.AssemblyInfo" (fun _ ->
     freya.Structure.Projects.Source
     |> List.iter (fun project ->
         CreateFSharpAssemblyInfo (assemblyInfo project)
-            [ Attribute.Description freya.Metadata.Summary
+            [ Attribute.Company (String.concat ", " freya.Metadata.Authors)
+              Attribute.Description freya.Metadata.Summary
               Attribute.FileVersion assemblyVersion
+              Attribute.InformationalVersion nugetVersion
               Attribute.Product project.Name
               Attribute.Title project.Name
               Attribute.Version assemblyVersion ]))

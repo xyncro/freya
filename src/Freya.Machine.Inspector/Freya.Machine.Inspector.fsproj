@@ -15,7 +15,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>bin\Debug\</OutputPath>
@@ -31,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\Freya.Machine.Inspector.XML</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -74,8 +74,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
       <Name>Freya.Machine</Name>
-      <Project>{01d9fff1-396d-4a0b-9efc-98a2f333c7cb}</Project>
-      <Private>True</Private>
+      <Project>{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>

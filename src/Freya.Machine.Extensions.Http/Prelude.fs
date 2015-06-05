@@ -21,8 +21,8 @@
 [<AutoOpen>]
 module internal Freya.Machine.Extensions.Http.Prelude
 
-open Freya.Machine
 open System.Runtime.CompilerServices
+open Freya.Machine
 
 (* Internals *)
 

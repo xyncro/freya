@@ -15,24 +15,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Types.Http.Cors.Lenses
+module Freya.Lenses.Http.Cors.Lenses
 
 open Aether.Operators
-open Freya.Types.Http
-
-(* Aliases *)
-
-type private ACAC = AccessControlAllowCredentials
-type private ACAH = AccessControlAllowHeaders
-type private ACAM = AccessControlAllowMethods
-type private ACAO = AccessControlAllowOrigin
-type private ACAE = AccessControlExposeHeaders
-type private ACMA = AccessControlMaxAge
-type private ACRH = AccessControlRequestHeaders
-type private ACRM = AccessControlRequestMethod
+open Arachne.Http.Cors
+open Freya.Lenses.Http
 
 (* Request Lenses *)
 
@@ -48,10 +39,10 @@ module Request =
             Request.headersKey key <??> (tryParse, format)
 
         let accessControlRequestHeaders =
-            headerPIso "Access-Control-Request-Headers" ACRH.TryParse ACRH.Format
+            headerPIso "Access-Control-Request-Headers" AccessControlRequestHeaders.TryParse AccessControlRequestHeaders.Format
 
         let accessControlRequestMethod =
-            headerPIso "Access-Control-Request-Method" ACRM.TryParse ACRM.Format
+            headerPIso "Access-Control-Request-Method" AccessControlRequestMethod.TryParse AccessControlRequestMethod.Format
 
         let origin =
             headerPIso "Origin" Origin.TryParse Origin.Format
@@ -70,19 +61,19 @@ module Response =
             Response.headersKey key <??> (tryParse, format)
 
         let accessControlAllowCredentials =
-            headerPIso "Access-Control-Allow-Credentials" ACAC.TryParse ACAC.Format
+            headerPIso "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
 
         let accessControlAllowHeaders =
-            headerPIso "Access-Control-Allow-Headers" ACAH.TryParse ACAH.Format
+            headerPIso "Access-Control-Allow-Headers" AccessControlAllowHeaders.TryParse AccessControlAllowHeaders.Format
 
         let accessControlAllowMethods =
-            headerPIso "Access-Control-Allow-Methods" ACAM.TryParse ACAM.Format
+            headerPIso "Access-Control-Allow-Methods" AccessControlAllowMethods.TryParse AccessControlAllowMethods.Format
 
         let accessControlAllowOrigin =
-            headerPIso "Access-Control-Allow-Origin" ACAO.TryParse ACAO.Format
+            headerPIso "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
 
         let accessControlExposeHeaders =
-            headerPIso "Access-Control-Expose-Headers" ACAE.TryParse ACAE.Format
+            headerPIso "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
 
         let accessControlMaxAge =
-            headerPIso "Access-Control-Max-Age" ACMA.TryParse ACMA.Format
+            headerPIso "Access-Control-Max-Age" AccessControlMaxAge.TryParse AccessControlMaxAge.Format
