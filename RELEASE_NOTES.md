@@ -1,7 +1,9 @@
-### New in 1.0.0-alpha - (Released TBD)
+### New in 1.0.0 - (Released 2015-06-05)
 * `Arachne` moved to `Arachne`
+* `Freya.Types.Http` renamed `Freya.Lenses.Http` and now takes a dependency on `Arachne.Http` and exposes only the Freya lenses
+* `Freya.Types.Http.Cors` renamed `Freya.Lenses.Http.Cors` and now takes a dependency on `Arachne.Http.Cors` and exposes only the Freya lenses
 
-### New in 0.11.0-alpha - (Released TBD)
+### New in 0.11.0-alpha - (Released 2015-05-04)
 * Breaking changes:
   * `Freya.Pipeline` merged into `Freya.Core`
   * `Freya.Integration` merged into `Freya.Core`

@@ -168,11 +168,16 @@ let release =
 let assemblyVersion =
     release.AssemblyVersion
 
+let isAppVeyorBuild =
+    environVar "APPVEYOR" <> null
+
 let nugetVersion =
-    match isLocalBuild, release.NugetVersion.Contains "-" with
-    | false, true -> sprintf "%s-%s" release.NugetVersion buildVersion
-    | false, _ -> sprintf "%s.%s" release.NugetVersion buildVersion
-    | _ -> release.NugetVersion
+    if isAppVeyorBuild then
+        let parts = release.NugetVersion.Split([|'-'|])
+        if Array.length parts = 2 then
+            sprintf "%s.%s-%s" parts.[0] buildVersion parts.[1]
+        else sprintf "%s.%s" release.NugetVersion buildVersion
+    else release.NugetVersion
 
 let notes =
     String.concat Environment.NewLine release.Notes
@@ -283,8 +288,10 @@ Target "Source.AssemblyInfo" (fun _ ->
     freya.Structure.Projects.Source
     |> List.iter (fun project ->
         CreateFSharpAssemblyInfo (assemblyInfo project)
-            [ Attribute.Description freya.Metadata.Summary
+            [ Attribute.Company (String.concat ", " freya.Metadata.Authors)
+              Attribute.Description freya.Metadata.Summary
               Attribute.FileVersion assemblyVersion
+              Attribute.InformationalVersion nugetVersion
               Attribute.Product project.Name
               Attribute.Title project.Name
               Attribute.Version assemblyVersion ]))
