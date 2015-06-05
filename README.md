@@ -23,11 +23,11 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 | Freya.Lenses.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http/) |
 | Freya.Lenses.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http.Cors/) |
 | Freya.Recorder | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
+| Freya.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Router/) |
 | Freya.Machine | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
+| Freya.Machine.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Router/) |
 | Freya.Machine.Extensions.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
 | Freya.Machine.Extensions.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http.Cors/) |
-| Freya.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Router/) |
-| Freya.Machine.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Router/) |
 
 ## Questions?
 
