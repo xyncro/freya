@@ -171,12 +171,16 @@ let assemblyVersion =
 let isAppVeyorBuild =
     environVar "APPVEYOR" <> null
 
+let majorMinorVersion (version: string) =
+    let parts = version.Split([|'.'|])
+    sprintf "%s.%s" parts.[0] parts.[1]
+
 let nugetVersion =
     if isAppVeyorBuild then
         let parts = release.NugetVersion.Split([|'-'|])
         if Array.length parts = 2 then
-            sprintf "%s.%s-%s" parts.[0] buildVersion parts.[1]
-        else sprintf "%s.%s" release.NugetVersion buildVersion
+            sprintf "%s.%s-%s" (majorMinorVersion parts.[0]) buildVersion parts.[1]
+        else sprintf "%s.%s" (majorMinorVersion release.NugetVersion) buildVersion
     else release.NugetVersion
 
 let notes =
