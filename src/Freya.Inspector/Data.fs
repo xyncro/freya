@@ -46,20 +46,20 @@ let private recordHeaders =
         List.map (fun (record: FreyaRecorderRecord) ->
             { FreyaRecorderRecordHeader.Id = record.Id
               Timestamp = record.Timestamp }) >> Json.serialize
-    <!> listRecords
+    <!> FreyaRecorder.History.list
 
 let private recordDetail =
         Option.map (fun (record: FreyaRecorderRecord) ->
             { Id = record.Id
               Timestamp = record.Timestamp
               Extensions = (Map.toList >> List.map fst) record.Data } |> Json.serialize)
-    <!> (getRecord =<< id)
+    <!> (FreyaRecorder.History.tryFind =<< id)
 
 let private inspectionData inspectors =
         fun record ext ->
             Map.tryFind ext inspectors
             |> Option.bind (fun i -> Option.bind i.Inspection.Data record)
-    <!> (getRecord =<< id)
+    <!> (FreyaRecorder.History.tryFind =<< id)
     <*> extension
 
 (* Functions *)

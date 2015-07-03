@@ -24,16 +24,24 @@ module Freya.Core.Lenses
 open Aether
 open Aether.Operators
 
-(* Environment Lenses *)
+[<RequireQualifiedAccess>]
+module Environment =
 
-/// An Aether lens providing access to a required <see cref="FreyaEnvironment" />, or OWIN environment, value.
-let environmentKeyLens<'a> key =
-         FreyaState.EnvironmentLens
-    >--> mutDictLens<string, obj> key 
-    <--> boxIso<'a>
+    let required<'a> k =
+                FreyaState.EnvironmentLens
+           >--> mutDictLens<string, obj> k
+           <--> boxIso<'a>
 
-/// An Aether lens providing access to an optional <see cref="FreyaEnvironment" />, or OWIN environment, value.
-let environmentKeyPLens<'a> key =
-         FreyaState.EnvironmentLens
-    >-?> mutDictPLens<string, obj> key
-    <?-> boxIso<'a>
+    let optional<'a> k =
+            FreyaState.EnvironmentLens
+       >-?> mutDictPLens<string, obj> k
+       <?-> boxIso<'a>
+
+[<RequireQualifiedAccess>]
+module Memo =
+
+    let id<'a> i =
+            FreyaState.MetaLens
+       >--> FreyaMetaState.MemosLens
+       >-?> mapPLens i
+       <?-> boxIso<'a>

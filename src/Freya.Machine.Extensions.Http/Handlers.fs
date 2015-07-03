@@ -35,22 +35,22 @@ open Freya.Machine.Operators
 let private charsetsNegotiated config =
     ContentNegotiation.Charset.negotiated
         (!?. Request.Headers.acceptCharset)
-        (tryGetConfigOrElse Configuration.CharsetsSupported Defaults.charsetsSupported config)
+        (Configuration.tryGetOrElse Properties.CharsetsSupported Defaults.charsetsSupported config)
 
 let private encodingsNegotiated config =
     ContentNegotiation.Encoding.negotiated
         (!?. Request.Headers.acceptEncoding)
-        (tryGetConfigOrElse Configuration.EncodingsSupported Defaults.encodingsSupported config)
+        (Configuration.tryGetOrElse Properties.EncodingsSupported Defaults.encodingsSupported config)
 
 let private mediaTypesNegotiated config =
     ContentNegotiation.MediaType.negotiated
         (!?. Request.Headers.accept)
-        (tryGetConfigOrElse Configuration.MediaTypesSupported Defaults.mediaTypesSupported config)
+        (Configuration.tryGetOrElse Properties.MediaTypesSupported Defaults.mediaTypesSupported config)
 
 let private languagesNegotiated config =
     ContentNegotiation.Language.negotiated
         (!?. Request.Headers.acceptLanguage)
-        (tryGetConfigOrElse Configuration.LanguagesSupported Defaults.languagesSupported config)
+        (Configuration.tryGetOrElse Properties.LanguagesSupported Defaults.languagesSupported config)
 
 (* Specification *)
 
@@ -125,7 +125,7 @@ let private handle config m =
 
 let private userHandler key =
     Some (Compile (fun config ->
-        tryGetConfig key config
+        Configuration.tryGet key config
         |> Option.map (fun m -> Compiled (Unary (handle config m), configured))
         |> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 

@@ -26,7 +26,7 @@ let [<Literal>] testKey =
 (* Lenses *)
 
 let private testLens =
-    environmentKeyPLens testKey <?-> (unbox<int>, box)
+    Environment.optional testKey <?-> (unbox<int>, box)
 
 (* Functions *)
 

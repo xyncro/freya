@@ -33,31 +33,31 @@ open Freya.Core
 module Request =
 
     let body =
-        environmentKeyLens<Stream> Constants.requestBody
+        Environment.required<Stream> Constants.requestBody
 
     let headers =
-        environmentKeyLens<IDictionary<string, string []>> Constants.requestHeaders
+        Environment.required<IDictionary<string, string []>> Constants.requestHeaders
 
     let headersKey key =
         headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let meth = 
-        environmentKeyLens<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
+        Environment.required<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
 
     let path = 
-        environmentKeyLens<string> Constants.requestPath
+        Environment.required<string> Constants.requestPath
 
     let pathBase =
-        environmentKeyLens<string> Constants.requestPathBase
+        Environment.required<string> Constants.requestPathBase
 
     let httpVersion =
-        environmentKeyLens<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
+        Environment.required<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
 
     let scheme =
-        environmentKeyLens<string> Constants.requestScheme
+        Environment.required<string> Constants.requestScheme
 
     let query =
-        environmentKeyLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
+        Environment.required<string> Constants.requestQueryString // <--> TODO: Isomorphism
 
 // TODO: Reinstate when query is iso again
 
@@ -196,22 +196,22 @@ module Request =
 module Response =
 
     let body =
-        environmentKeyLens<Stream> Constants.responseBody
+        Environment.required<Stream> Constants.responseBody
 
     let headers =
-        environmentKeyLens<IDictionary<string, string []>> Constants.responseHeaders
+        Environment.required<IDictionary<string, string []>> Constants.responseHeaders
 
     let headersKey key =
         headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let httpVersion =
-        environmentKeyPLens<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
+        Environment.optional<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
 
     let reasonPhrase =
-        environmentKeyPLens<string> Constants.responseReasonPhrase
+        Environment.optional<string> Constants.responseReasonPhrase
 
     let statusCode =
-        environmentKeyPLens<int> Constants.responseStatusCode
+        Environment.optional<int> Constants.responseStatusCode
 
     (* Response Header Lenses *)
 

@@ -70,5 +70,5 @@ let ``todobackend returns empty array at first`` () =
         use request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
         use! response = Async.AwaitTask <| client.SendAsync request
         let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
-        result =? "[]" }
+        result =! "[]" }
     |> Async.RunSynchronously

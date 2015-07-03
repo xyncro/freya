@@ -42,9 +42,7 @@ type FreyaRecorderRecord =
     static member DataLens =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-(* Lenses *)    
-
-let freyaRecordDataPLens<'a> key =
-         FreyaRecorderRecord.DataLens
-    >-?> mapPLens key
-    <?-> boxIso<'a>
+    static member KeyPLens<'a> key =
+        FreyaRecorderRecord.DataLens
+        >-?> mapPLens key
+        <?-> boxIso<'a>

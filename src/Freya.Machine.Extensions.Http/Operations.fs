@@ -32,7 +32,7 @@ open Freya.Machine.Operators
 (* Helpers *)
 
 let private allow =
-       tryGetConfig Configuration.MethodsSupported
+       Configuration.tryGet Properties.MethodsSupported
     >> Option.map (fun x -> (.?=) Response.Headers.allow =<< (Allow <!> x))
     >> Option.orElse ((.?=) Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
 
@@ -40,22 +40,22 @@ let private date =
     (.?=) Response.Headers.date (Date.Date DateTime.UtcNow)
 
 let private eTag =
-       tryGetConfig Configuration.ETag
+       Configuration.tryGet Properties.ETag
     >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private expires =
-       tryGetConfig Configuration.Expires 
+       Configuration.tryGet Properties.Expires 
     >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private lastModified =
-       tryGetConfig Configuration.LastModified 
+       Configuration.tryGet Properties.LastModified 
     >> Option.map (fun x -> (.?=) Response.Headers.lastModified =<< (LastModified <!> x))
     >> Option.orElse (Freya.init ())
 
 let private location =
-       tryGetConfig Configuration.Location
+       Configuration.tryGet Properties.Location
     >> Option.map (fun x -> (.?=) Response.Headers.location =<< (Location <!> x))
     >> Option.orElse (Freya.init ())
 

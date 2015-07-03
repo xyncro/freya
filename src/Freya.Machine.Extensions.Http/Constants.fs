@@ -32,24 +32,6 @@ module Actions =
     let [<Literal>] Put = prefix + "Put"
 
 [<RequireQualifiedAccess>]
-module Configuration =
-
-    let [<Literal>] CharsetsSupported = "charsetsSupported"
-    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
-    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
-    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
-    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
-    let [<Literal>] EncodingsSupported = "encodingsSupported"
-    let [<Literal>] ETag = "etag"
-    let [<Literal>] Expires = "expires"
-    let [<Literal>] LanguagesSupported = "languagesSupported"
-    let [<Literal>] LastModified = "lastModified"
-    let [<Literal>] Location = "location"
-    let [<Literal>] MediaTypesSupported = "mediaTypesSupported"
-    let [<Literal>] MethodsSupported = "methodsSupported"
-    let [<Literal>] MethodsKnown = "methodsKnown"
-
-[<RequireQualifiedAccess>]
 module Decisions =
 
     (* Public *)
@@ -201,3 +183,21 @@ module Operations =
     let [<Literal>] NotImplemented = "NotImplemented"
     let [<Literal>] UnknownMethod = "UnknownMethod"
     let [<Literal>] ServiceUnavailable = "ServiceUnavailable"
+
+[<RequireQualifiedAccess>]
+module Properties =
+
+    let [<Literal>] CharsetsSupported = "charsetsSupported"
+    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
+    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
+    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
+    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
+    let [<Literal>] EncodingsSupported = "encodingsSupported"
+    let [<Literal>] ETag = "etag"
+    let [<Literal>] Expires = "expires"
+    let [<Literal>] LanguagesSupported = "languagesSupported"
+    let [<Literal>] LastModified = "lastModified"
+    let [<Literal>] Location = "location"
+    let [<Literal>] MediaTypesSupported = "mediaTypesSupported"
+    let [<Literal>] MethodsSupported = "methodsSupported"
+    let [<Literal>] MethodsKnown = "methodsKnown"

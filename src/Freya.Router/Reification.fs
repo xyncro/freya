@@ -18,18 +18,18 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Router.Reification
 
 open Freya.Core
 open Freya.Core.Operators
 
-let private run exec graph =
-        recordGraph graph
-     *> execute exec
+let private run graph record =
+        recordGraph record
+     *> Execution.execute graph
 
 let reify router =
     let _, routes = router List.empty
-    let compiled = compile routes
+    let compiled = Compilation.compile routes
 
     run compiled (createGraphRecord compiled)

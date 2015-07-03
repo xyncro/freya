@@ -29,7 +29,8 @@ open Arachne.Http
 (* Functions *)
 
 let private initialize =
-    initializeRecord *> Freya.next
+        FreyaRecorder.Current.initialize
+     *> Freya.next
 
 let private record config =
     freya {

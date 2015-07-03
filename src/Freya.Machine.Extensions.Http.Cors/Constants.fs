@@ -22,14 +22,6 @@
 module internal Freya.Machine.Extensions.Http.Cors.Constants
 
 [<RequireQualifiedAccess>]
-module Configuration =
-
-    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
-    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
-    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
-    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
-
-[<RequireQualifiedAccess>]
 module Decisions =
 
     let [<Literal>] CorsEnabled = "corsEnabled"
@@ -45,3 +37,11 @@ module Operations =
     let [<Literal>] CorsPreflight = prefix + "CorsPreflight"
     let [<Literal>] CorsActual = prefix + "CorsActual"
     let [<Literal>] CorsOrigin = prefix + "CorsOrigin"
+
+[<RequireQualifiedAccess>]
+module Properties =
+
+    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
+    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
+    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
+    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"

@@ -51,10 +51,10 @@ let private freyaRequestRecord meth path =
 
 (* Lenses *)
 
-let internal recordPLens =
-    freyaRecordDataPLens<FreyaRequestRecord> recordKey
+let internal requestRecordPLens =
+    FreyaRecorderRecord.KeyPLens<FreyaRequestRecord> recordKey
 
 (* Initialization *)
 
 let internal initializeRecord (meth, path) =
-    updateRecord ((freyaRequestRecord meth path) ^?= recordPLens)
+    FreyaRecorder.Current.map (freyaRequestRecord meth path ^?= requestRecordPLens)

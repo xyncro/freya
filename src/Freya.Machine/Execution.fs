@@ -137,7 +137,7 @@ let private progress node =
 let rec private traverse graph traversal =
     match traversal with
     | Operation node ->
-        match tryFindNode node (graph ^. compilationGraphLens) with
+        match tryFindNode node (graph ^. Compilation.CompilationGraph.GraphLens) with
         | Some (_, Some (Unary op)) -> unary node op graph traversal
         | Some (_, Some (Binary op)) -> binary node op graph traversal
         | _ -> failwith ""
@@ -150,19 +150,19 @@ let rec private traverse graph traversal =
 
 and private start graph traversal =
         recordExecution Start
-     *> ((fun _ -> tryFindNext Start None (graph ^. compilationGraphLens)) <!> Freya.init ()
+     *> ((fun _ -> tryFindNext Start None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> Freya.init ()
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> Freya.init (Failure ""))
 
 and private unary current op graph traversal =
         recordExecution current
-     *> ((fun _ -> tryFindNext current None (graph ^. compilationGraphLens)) <!> op
+     *> ((fun _ -> tryFindNext current None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> failwith "")
 
 and private binary current op graph traversal =
         recordExecution current
-     *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. compilationGraphLens)) <!> op
+     *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
       >>= function | _, Some next -> traverse graph (progress next traversal)
                    | _, _ -> failwith "")
 
@@ -179,7 +179,7 @@ let private run graph =
         createTraversal <!> Freya.init Start
     >>= traverse graph
 
-(* Execution
+(* Execute
 
    Function for executing a compiled graph, throwing on failure which
    may need reconsideration or a more generalised handling approach

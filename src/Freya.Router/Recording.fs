@@ -125,36 +125,36 @@ and FreyaRouterExecutionMatchAction =
 
 (* Construction *)
 
-let internal createGraphRecord (Graph graph) =
+let internal createGraphRecord (Compilation.Graph graph) =
     { Nodes =
         Graph.nodes graph
         |> List.map (fun (v, l) ->
             match v, l with
-            | Root, _ ->
+            | Compilation.Root, _ ->
                 { Key = "root"
                   Methods = [] }
-            | Key k, Empty ->
+            | Compilation.Key k, Compilation.Empty ->
                 { Key = k
                   Methods = [] }
-            | Key k, Endpoints es ->
+            | Compilation.Key k, Compilation.Endpoints es ->
                 { Key = k
-                  Methods = List.map (fun (Endpoint (m, _)) -> m.ToString ()) es })
+                  Methods = List.map (fun (Compilation.Endpoint (m, _)) -> m.ToString ()) es })
       Edges =
         Graph.edges graph
         |> List.map (fun (k1, k2, _) ->
             match k1, k2 with
-            | Root, Key k ->
+            | Compilation.Root, Compilation.Key k ->
                 { From = "root"
                   To = k }
-            | Key k1, Key k2 ->
+            | Compilation.Key k1, Compilation.Key k2 ->
                 { From = k1
                   To = k2 }
             | _ ->
                 failwith "Edge Match Failure") }
 
-(* Defaults *)
+(* Constructors *)
 
-let private defaultFreyaRouterRecord =
+let private freyaRouterRecord () =
     { Graph =
         { Nodes = List.empty
           Edges = List.empty }
@@ -164,7 +164,7 @@ let private defaultFreyaRouterRecord =
 (* Lenses *)
 
 let freyaRouterRecordPLens =
-    freyaRecordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
+    FreyaRecorderRecord.KeyPLens<FreyaRouterRecord> freyaRouterRecordKey
 
 let private graphPLens =
         freyaRouterRecordPLens
@@ -178,33 +178,33 @@ let private executionNodesPLens =
 (* Recording *)
 
 let private keyValue =
-    function | Root -> "root"
-             | Key k -> k
+    function | Compilation.Root -> "root"
+             | Compilation.Key k -> k
 
 let internal recordGraph graph =
-    updateRecord ((fun _ -> graph) ^?%= graphPLens)
+    FreyaRecorder.Current.map ((fun _ -> graph) ^?%= graphPLens)
 
 let internal recordCompletionSuccess key =
-    updateRecord ((fun nodes ->
+    FreyaRecorder.Current.map ((fun nodes ->
         { Key = keyValue key
           Action = Completion FreyaRouterExecutionCompletionAction.Success } :: nodes) ^?%= executionNodesPLens)
 
 let internal recordCompletionFailure key =
-    updateRecord ((fun nodes ->
+    FreyaRecorder.Current.map ((fun nodes ->
         { Key = keyValue key
           Action = Completion FreyaRouterExecutionCompletionAction.Failure } :: nodes) ^?%= executionNodesPLens)
 
 let internal recordMatchSuccess key =
-    updateRecord ((fun nodes ->
+    FreyaRecorder.Current.map ((fun nodes ->
         { Key = keyValue key
           Action = Match Success } :: nodes) ^?%= executionNodesPLens)
 
 let internal recordMatchFailure key =
-    updateRecord ((fun nodes ->
+    FreyaRecorder.Current.map ((fun nodes ->
         { Key = keyValue key
           Action = Match Failure } :: nodes) ^?%= executionNodesPLens)
 
 (* Initialization *)
 
 let initializeFreyaRouterRecord =
-    updateRecord (defaultFreyaRouterRecord ^?= freyaRouterRecordPLens)
+    FreyaRecorder.Current.map (freyaRouterRecord () ^?= freyaRouterRecordPLens)

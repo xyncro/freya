@@ -41,8 +41,7 @@ let [<Literal>] private dataKey =
 module Route =
 
     let data =
-             environmentKeyPLens dataKey 
-        <?-> boxIso<UriTemplateData>
+             Environment.optional<UriTemplateData> dataKey 
 
     let value key =
              data 

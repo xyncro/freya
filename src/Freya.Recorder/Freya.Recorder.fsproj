@@ -43,7 +43,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Storage.fs" />
-    <Compile Include="Integration.fs" />
+    <Compile Include="Recorder.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">

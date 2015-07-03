@@ -14,9 +14,9 @@ let ``pipeline executes both monads if first returns next`` () =
 
     let choice, env = run (o1 >?= o2)
 
-    choice =? Next
-    unbox env.Environment.["o1"] =? true
-    unbox env.Environment.["o2"] =? true
+    choice =! Next
+    unbox env.Environment.["o1"] =! true
+    unbox env.Environment.["o2"] =! true
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate`` () =
@@ -25,6 +25,6 @@ let ``pipeline executes only the first monad if first returns terminate`` () =
 
     let choice, env = run (o1 >?= o2)
 
-    choice =? Halt
-    unbox env.Environment.["o1"] =? true
-    unbox env.Environment.["o2"] =? false
+    choice =! Halt
+    unbox env.Environment.["o1"] =! true
+    unbox env.Environment.["o2"] =! false

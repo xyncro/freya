@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Router.Execution
 
 open Aether
@@ -75,9 +75,9 @@ and private TraversalData =
         (fun (Data (_, d)) -> d), (fun d (Data (p, _)) -> Data (p, d))
 
 and private TraversalPosition =
-    | Position of CompilationKey * int
+    | Position of Compilation.CompilationKey * int
 
-    static member KeyLens : Lens<TraversalPosition, CompilationKey> =
+    static member KeyLens : Lens<TraversalPosition, Compilation.CompilationKey> =
         (fun (Position (k, _)) -> k), (fun k (Position (_, i)) -> Position (k, i))
 
     static member OrderLens : Lens<TraversalPosition, int> =
@@ -93,7 +93,7 @@ let private createTraversal meth path =
         Invariant (meth), 
         State (
             Data (path, UriTemplateData Map.empty),
-            Position (Root, 0)) :: [])
+            Position (Compilation.Root, 0)) :: [])
 
 (* Lenses
 
@@ -157,11 +157,11 @@ let private (|Parsed|_|) parser path =
 
 let private tryFindPipe key meth =
         Graph.findNode key
-     >> function | _, Endpoints endpoints ->
+     >> function | _, Compilation.Endpoints endpoints ->
                     List.tryPick (fun node ->
                         match node with
-                        | Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
-                        | Endpoint (All, pipe) -> Some pipe
+                        | Compilation.Endpoint (Methods m, pipe) when List.exists ((=) meth) m -> Some pipe
+                        | Compilation.Endpoint (All, pipe) -> Some pipe
                         | _ -> None) endpoints
                  | _ ->
                     None
@@ -171,7 +171,7 @@ let private tryFindEdge key order =
      >> function | Some edges ->
                     List.tryPick (fun edge ->
                         match edge with
-                        | key', Edge (parser, order') when order = order' -> Some (key', Edge (parser, order))
+                        | key', Compilation.Edge (parser, order') when order = order' -> Some (key', Compilation.Edge (parser, order))
                         | _ -> None) edges
                  | _ ->
                     None
@@ -217,12 +217,12 @@ let private abandon =
 let rec private traverse graph traversal =
     match traversal with
     | Candidate (meth, data, key) ->
-        match tryFindPipe key meth (graph ^. graphLens) with
+        match tryFindPipe key meth (graph ^. Compilation.CompilationGraph.GraphLens) with
         | Some pipe -> completionSuccess key data pipe
         | _ -> completionFailure key graph traversal
     | Progression (path, key, order) ->
-        match tryFindEdge key order (graph ^. graphLens) with
-        | Some (key', Edge (parser, _)) ->
+        match tryFindEdge key order (graph ^. Compilation.CompilationGraph.GraphLens) with
+        | Some (key', Compilation.Edge (parser, _)) ->
             match path with
             | Parsed parser (data, path') -> matchSuccess key' data path' graph traversal
             | _ -> matchFailure key' graph traversal

@@ -39,12 +39,12 @@ let private systemDecision f =
 
 let private corsEnabled config =
     Cors.enabled
-        (tryGetConfig Configuration.CorsOriginsSupported config)
+        (Configuration.tryGet Properties.CorsOriginsSupported config)
 
 let private corsOriginAllowed config =
     Cors.originAllowed
         (!?. Request.Headers.origin)
-        (tryGetConfigOrElse Configuration.CorsOriginsSupported Defaults.corsOriginsSupported config)
+        (Configuration.tryGetOrElse Properties.CorsOriginsSupported Defaults.corsOriginsSupported config)
 
 let private corsOptions _ =
     Cors.options

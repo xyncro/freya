@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Machine.Precompilation
 
 open Aether
@@ -40,8 +40,12 @@ open Hekate
 type PrecompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
-    static member GraphIso =
+    static member private GraphIso =
         (fun (Graph x) -> x), (fun x -> Graph (x))
+
+    static member GraphLens =
+            idLens
+       <--> PrecompilationGraph.GraphIso
 
 type PrecompilationResult =
     | Precompilation of PrecompilationGraph
@@ -55,12 +59,6 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
             [ Start, None
               Finish, None ]
             [ Start, Finish, None ])
-
-(* Lenses *)
-
-let precompilationGraphLens =
-        idLens
-   <--> PrecompilationGraph.GraphIso
 
 (* Ordering
 
@@ -128,9 +126,9 @@ let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
 let private extend extensions graph =
-    Extension ((applyExtensions extensions ^%= precompilationGraphLens) graph)
+    Extension ((applyExtensions extensions ^%= PrecompilationGraph.GraphLens) graph)
 
-(* Precompilation
+(* Precompile
 
    The internally accessible function for precompiling a machine specification
    in to a complete source graph (or not, in the case of intermediate stage

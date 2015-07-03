@@ -9,13 +9,13 @@ open Freya.Core.Operators
 (* AppFunc *)
 
 let private answerLens =
-    environmentKeyPLens "Answer"
+    Environment.optional "Answer"
 
 let private o1Lens =
-    environmentKeyLens "o1"
+    Environment.required "o1"
 
 let private o2Lens =
-    environmentKeyLens "o2"
+    Environment.required "o2"
 
 [<Test>]
 let ``freya computation can compose with an OwinAppFunc`` () =
@@ -33,7 +33,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
             return Option.get v1 }
     
     let result = run m
-    fst result =? "42"
+    fst result =! "42"
 
 [<Test>]
 let ``freya computation can roundtrip to and from OwinAppFunc`` () =
@@ -51,7 +51,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
             return Option.get v1 }
     
     let result = run m
-    fst result =? "42"
+    fst result =! "42"
 
 (** MidFunc **)
 
@@ -77,8 +77,8 @@ let app =
 let ``test app works`` () =
     let env = invoke app
 
-    env.ContainsKey("Answer") =? true
-    unbox env.["Answer"] =? "42"
+    env.ContainsKey("Answer") =! true
+    unbox env.["Answer"] =! "42"
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
@@ -88,9 +88,9 @@ let ``pipeline executes both monads if first returns next`` () =
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "1,2,42"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "1,2,42"
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns halt`` () =
@@ -100,9 +100,9 @@ let ``pipeline executes only the first monad if first returns halt`` () =
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
-    unbox env.["Answer"] =? "1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! false
+    unbox env.["Answer"] =! "1"
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app`` () =
@@ -112,9 +112,9 @@ let ``pipeline executes app and both monads if first returns next after running 
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "42,2,1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "42,2,1"
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns halt after running the app`` () =
@@ -124,9 +124,9 @@ let ``pipeline executes app and both monads if first returns halt after running 
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "42,2,1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "42,2,1"
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with composed pipeline`` () =
@@ -137,9 +137,9 @@ let ``pipeline executes both monads if first returns next with composed pipeline
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "1,2,42"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "1,2,42"
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
@@ -150,9 +150,9 @@ let ``pipeline executes only the first monad if first returns terminate with com
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
-    unbox env.["Answer"] =? "1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! false
+    unbox env.["Answer"] =! "1"
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app with composed pipeline`` () =
@@ -163,9 +163,9 @@ let ``pipeline executes app and both monads if first returns next after running 
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "42,1,2"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "42,1,2"
 
 [<Test>]
 let ``pipeline executes app and only the first monad if first returns halt after running the app with composed pipeline`` () =
@@ -176,9 +176,9 @@ let ``pipeline executes app and only the first monad if first returns halt after
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
-    unbox env.["Answer"] =? "42,1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! false
+    unbox env.["Answer"] =! "42,1"
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with wrapped pipeline OwinMidFunc`` () =
@@ -189,9 +189,9 @@ let ``pipeline executes both monads if first returns next with wrapped pipeline 
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    unbox env.["Answer"] =? "1,42,2"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    unbox env.["Answer"] =! "1,42,2"
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with wrapped pipeline OwinMidFunc`` () =
@@ -202,9 +202,9 @@ let ``pipeline executes only the first monad if first returns terminate with wra
 
     let env = invoke composed
 
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
-    unbox env.["Answer"] =? "1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! false
+    unbox env.["Answer"] =! "1"
 
 [<Test>]
 let ``MidFunc can roundtrip to Freya Pipeline before / after and back`` () =
@@ -223,12 +223,12 @@ let ``MidFunc can roundtrip to Freya Pipeline before / after and back`` () =
 
     let env = invoke composed
 
-    env.ContainsKey("Answer") =? true
-    unbox env.["Answer"] =? "42"
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("o4") =? true
-    unbox env.["o4"] =? true
+    env.ContainsKey("Answer") =! true
+    unbox env.["Answer"] =! "42"
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("o4") =! true
+    unbox env.["o4"] =! true
 
 [<Test>]
 let ``MidFunc that terminates early and doesn't call next Halts correctly as a Freya Pipeline`` () =
@@ -245,10 +245,10 @@ let ``MidFunc that terminates early and doesn't call next Halts correctly as a F
 
     let env = invoke composed
 
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("Answer") =? false
-    env.ContainsKey("o4") =? false
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("Answer") =! false
+    env.ContainsKey("o4") =! false
 
 [<Test>]
 let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya Pipeline`` () =
@@ -268,10 +268,10 @@ let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya
     let env = invoke composed
 
     // TOOD: What *should* happen here?
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("Answer") =? false
-    env.ContainsKey("o4") =? false
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("Answer") =! false
+    env.ContainsKey("o4") =! false
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines`` () =
@@ -292,14 +292,14 @@ let ``MidFunc can work with other Freya Pipelines`` () =
 
     let env = invoke composed
 
-    env.ContainsKey("Answer") =? true
-    unbox env.["Answer"] =? "1,42,2"
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("o4") =? true
-    unbox env.["o4"] =? true
+    env.ContainsKey("Answer") =! true
+    unbox env.["Answer"] =! "1,42,2"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("o4") =! true
+    unbox env.["o4"] =! true
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when first halts`` () =
@@ -320,13 +320,13 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when first 
 
     let env = invoke composed
 
-    env.ContainsKey("Answer") =? true
-    unbox env.["Answer"] =? "1"
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? false
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("o4") =? false
+    env.ContainsKey("Answer") =! true
+    unbox env.["Answer"] =! "1"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! false
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("o4") =! false
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when midFunc returns early`` () =
@@ -345,12 +345,12 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when midFun
 
     let env = invoke composed
 
-    env.ContainsKey("Answer") =? false
-    unbox env.["o1"] =? false
-    unbox env.["o2"] =? false
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("o4") =? false
+    env.ContainsKey("Answer") =! false
+    unbox env.["o1"] =! false
+    unbox env.["o2"] =! false
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("o4") =! false
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when second halts`` () =
@@ -371,10 +371,10 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when second
 
     let env = invoke composed
 
-    env.ContainsKey("Answer") =? true
-    unbox env.["Answer"] =? "1,42,2"
-    unbox env.["o1"] =? true
-    unbox env.["o2"] =? true
-    env.ContainsKey("o3") =? true
-    unbox env.["o3"] =? true
-    env.ContainsKey("o4") =? false
+    env.ContainsKey("Answer") =! true
+    unbox env.["Answer"] =! "1,42,2"
+    unbox env.["o1"] =! true
+    unbox env.["o2"] =! true
+    env.ContainsKey("o3") =! true
+    unbox env.["o3"] =! true
+    env.ContainsKey("o4") =! false

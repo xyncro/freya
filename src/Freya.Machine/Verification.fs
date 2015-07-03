@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Machine.Verification
 
 (* NOTE: This verification system is rather basic at the moment
@@ -41,7 +41,7 @@ open Hekate
    executing a verified graph. *)
 
 type VerificationResult =
-    | Verification of CompilationGraph
+    | Verification of Compilation.CompilationGraph
     | Error of string
 
 (* Projections
@@ -51,32 +51,32 @@ type VerificationResult =
    which may then be checked for properties using specific assertions. *)
 
 type private Projection =
-    | Projection of (CompilationGraph -> FreyaMachineNode list)
+    | Projection of (Compilation.CompilationGraph -> FreyaMachineNode list)
 
 let private startNodes =
     Projection (
-            flip (^.) compilationGraphLens
+            flip (^.) Compilation.CompilationGraph.GraphLens
          >> Graph.nodes
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
-            flip (^.) compilationGraphLens
+            flip (^.) Compilation.CompilationGraph.GraphLens
          >> Graph.nodes
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
-            flip (^.) compilationGraphLens
+            flip (^.) Compilation.CompilationGraph.GraphLens
          >> Graph.nodes
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
-            flip (^.) compilationGraphLens
+            flip (^.) Compilation.CompilationGraph.GraphLens
          >> Graph.nodes
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))
@@ -90,26 +90,26 @@ let private binaryNodes =
    of a group of nodes). *)
 
 type private Assertion =
-    | Individual of (CompilationGraph -> FreyaMachineNode -> bool)
-    | Group of (CompilationGraph -> FreyaMachineNode list -> bool)
+    | Individual of (Compilation.CompilationGraph -> FreyaMachineNode -> bool)
+    | Group of (Compilation.CompilationGraph -> FreyaMachineNode list -> bool)
 
 let private size i =
     Group (fun _ nodes -> List.length nodes = i)
 
 let private haveNoSuccessors =
-    Individual (fun (CompilationGraph.Graph graph) node ->
+    Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
         match Graph.successors node graph with
         | Some [] -> true
         | _ -> false)
 
 let private haveUnarySuccessors =
-    Individual (fun (CompilationGraph.Graph graph) node ->
+    Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
         match Graph.successors node graph with
         | Some s when List.length s = 1 -> true
         | _ -> false)
 
 let private haveBinarySuccessors =
-    Individual (fun (CompilationGraph.Graph graph) node ->
+    Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
         match Graph.successors node graph with
         | Some s when List.length s = 2 -> true
         | _ -> false)
@@ -196,7 +196,7 @@ let private invariants =
       unary
       binary ]
 
-(* Verification *)
+(* Verify *)
 
 let verify graph =
         checkGroups graph invariants

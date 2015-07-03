@@ -34,14 +34,14 @@ let private systemDecision f =
         Compiled (Binary (f config), unconfigurable)))
 
 let private userDecision key def =
-    Some (Compile (tryGetConfig key
+    Some (Compile (Configuration.tryGet key
         >> Option.map (fun x -> Compiled (Binary x, configured))
         >> Option.orElse (Compiled (Binary (Freya.init def), unconfigured))))
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
         (!?. Request.Headers.acceptCharset)
-        (tryGetConfigOrElse Configuration.CharsetsSupported Defaults.charsetsSupported config)
+        (Configuration.tryGetOrElse Properties.CharsetsSupported Defaults.charsetsSupported config)
 
 let private charsetRequested _ =
     ContentNegotiation.Charset.requested 
@@ -50,7 +50,7 @@ let private charsetRequested _ =
 let private encodingNegotiable config =
     ContentNegotiation.Encoding.negotiable
         (!?. Request.Headers.acceptEncoding)
-        (tryGetConfigOrElse Configuration.EncodingsSupported Defaults.encodingsSupported config)
+        (Configuration.tryGetOrElse Properties.EncodingsSupported Defaults.encodingsSupported config)
 
 let private encodingRequested _ =
     ContentNegotiation.Encoding.requested 
@@ -71,7 +71,7 @@ let private ifMatchRequested _ =
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
         (!?. Request.Headers.ifModifiedSince)
-        (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
+        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
@@ -92,7 +92,7 @@ let private ifNoneMatchRequested _ =
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
         (!?. Request.Headers.ifUnmodifiedSince)
-        (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
+        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
@@ -105,7 +105,7 @@ let private ifUnmodifiedSinceValid _ =
 let private languageNegotiable config =
     ContentNegotiation.Language.negotiable
         (!?. Request.Headers.acceptLanguage)
-        (tryGetConfigOrElse Configuration.LanguagesSupported Defaults.languagesSupported config)
+        (Configuration.tryGetOrElse Properties.LanguagesSupported Defaults.languagesSupported config)
 
 let private languageRequested _ =
     ContentNegotiation.Language.requested
@@ -114,7 +114,7 @@ let private languageRequested _ =
 let private mediaTypeNegotiable config =
     ContentNegotiation.MediaType.negotiable
         (!?. Request.Headers.accept)
-        (tryGetConfigOrElse Configuration.MediaTypesSupported Defaults.mediaTypesSupported config)
+        (Configuration.tryGetOrElse Properties.MediaTypesSupported Defaults.mediaTypesSupported config)
 
 let private mediaTypeRequested _ =
     ContentNegotiation.MediaType.requested
@@ -131,7 +131,7 @@ let private methodGetOrHead _ =
 let private methodKnown config =
     Method.known
         (!. Request.meth)
-        (tryGetConfigOrElse Configuration.MethodsKnown Defaults.methodsKnown config)
+        (Configuration.tryGetOrElse Properties.MethodsKnown Defaults.methodsKnown config)
 
 let private methodOptions _ =
     Method.options
@@ -164,7 +164,7 @@ let private methodPutToExisting _ =
 let private methodSupported config =
     Method.supported
         (!. Request.meth)
-        (tryGetConfigOrElse Configuration.MethodsSupported Defaults.methodsSupported config)
+        (Configuration.tryGetOrElse Properties.MethodsSupported Defaults.methodsSupported config)
 
 (* Graph *)
 

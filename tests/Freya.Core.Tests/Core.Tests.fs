@@ -5,7 +5,7 @@ open NUnit.Framework
 open Swensen.Unquote
 
 let private answerLens =
-    environmentKeyLens "Answer"
+    Environment.required "Answer"
 
 [<Test>]
 let ``getLM, setLM, modLM behave correctly`` () =
@@ -21,7 +21,7 @@ let ``getLM, setLM, modLM behave correctly`` () =
 
     let result = run m
 
-    fst result =? (42, 84)
+    fst result =! (42, 84)
 
 (* Operators *)
 
@@ -33,7 +33,7 @@ let ``apply correctly unwraps and applies Freya computations`` () =
     let f = Freya.init ((+) 40)
     let test = Freya.apply f comp
     let result = run test
-    fst result =? 42
+    fst result =! 42
 
 [<Test>]
 let ``map correctly applies a function to a Freya computation`` () =
@@ -41,7 +41,7 @@ let ``map correctly applies a function to a Freya computation`` () =
         Freya.init 40
         |> Freya.map ((+) 2)
     let result = run test
-    fst result =? 42
+    fst result =! 42
 
 [<Test>]
 let ``map2 correctly applies a function to Freya computations`` () =
@@ -49,7 +49,7 @@ let ``map2 correctly applies a function to Freya computations`` () =
     let comp2 = Freya.init 40
     let test = Freya.map2 (+) comp1 comp2
     let result = run test
-    fst result =? 42
+    fst result =! 42
 
 [<Test>]
 let ``map + apply correctly chain across applicative computations`` () =
@@ -57,4 +57,4 @@ let ``map + apply correctly chain across applicative computations`` () =
     let comp2 = Freya.init 40
     let test = (+) <!> comp1 <*> comp2
     let result = run test
-    fst result =? 42
+    fst result =! 42

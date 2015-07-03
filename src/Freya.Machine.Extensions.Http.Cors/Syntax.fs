@@ -30,7 +30,7 @@ open Freya.Machine
 (* Helper Functions *)
 
 let private setConfig<'a> key a =
-    Lens.map FreyaMachineSpecification.ConfigurationLens (setConfig<'a> key a)
+    Lens.map FreyaMachineSpecification.ConfigurationLens (Configuration.set<'a> key a)
 
 (* Custom Operations
 
@@ -40,20 +40,20 @@ let private setConfig<'a> key a =
 
 type FreyaMachineBuilder with
 
-    (* Configuration *)
+    (* Properties *)
 
-    [<CustomOperation (Configuration.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
+    [<CustomOperation (Properties.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
     member x.CorsHeadersExposed (monad, headers: Freya<string list>) = 
-        x.Map (monad, setConfig Configuration.CorsHeadersExposed headers)
+        x.Map (monad, setConfig Properties.CorsHeadersExposed headers)
 
-    [<CustomOperation (Configuration.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
+    [<CustomOperation (Properties.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.CorsHeadersSupported (monad, headers: Freya<string list>) = 
-        x.Map (monad, setConfig Configuration.CorsHeadersSupported headers)
+        x.Map (monad, setConfig Properties.CorsHeadersSupported headers)
 
-    [<CustomOperation (Configuration.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    [<CustomOperation (Properties.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.CorsMethodsSupported (monad, methods: Freya<Method list>) = 
-        x.Map (monad, setConfig Configuration.CorsMethodsSupported methods)
+        x.Map (monad, setConfig Properties.CorsMethodsSupported methods)
 
-    [<CustomOperation (Configuration.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    [<CustomOperation (Properties.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member x.CorsOriginsSupported (monad, origins: Freya<AccessControlAllowOriginRange>) = 
-        x.Map (monad, setConfig Configuration.CorsOriginsSupported origins)
+        x.Map (monad, setConfig Properties.CorsOriginsSupported origins)
