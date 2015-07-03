@@ -52,7 +52,7 @@ let private freyaRequestRecord meth path =
 (* Lenses *)
 
 let internal requestRecordPLens =
-    FreyaRecorderRecord.KeyPLens<FreyaRequestRecord> recordKey
+    Record.record<FreyaRequestRecord> recordKey
 
 (* Initialization *)
 

@@ -232,19 +232,19 @@ let rec private traverse graph traversal =
         Freya.init Unmatched
 
 and private completionSuccess key data pipe =
-        recordCompletionSuccess key
+        Recording.Record.completion Recording.Success key
      *> Freya.init (Matched (data, pipe))
 
 and private completionFailure key graph traversal =
-        recordCompletionFailure key
+        Recording.Record.completion Recording.Failure key
      *> traverse graph ((abandon ^%= Traversal.StateLens) traversal)
 
 and private matchSuccess key data path graph traversal =
-        recordMatchSuccess key
+        Recording.Record.match' Recording.Success key
      *> traverse graph ((capture key data path ^%= Traversal.StateLens) traversal)
 
 and private matchFailure key graph traversal =
-        recordMatchFailure key
+        Recording.Record.match' Recording.Failure key
      *> traverse graph ((reject ^%= Traversal.StateLens) traversal)
 
 and private matchMiss graph traversal =

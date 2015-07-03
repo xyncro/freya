@@ -42,11 +42,11 @@ let private runtime =
 
 (* Inspection *)
 
-let private data =
+let private extract =
      flip (^?.) requestRecordPLens >> Option.map Json.serialize
 
 let private inspection =
-    { Data = data }
+    { Extract = extract }
 
 (* Inspector *)
 

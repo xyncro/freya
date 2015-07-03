@@ -20,31 +20,40 @@
 
 module Freya.Machine.Inspector
 
-open Aether
 open Aether.Operators
 open Chiron
-open Freya.Core
 open Freya.Inspector
+open Freya.Machine
+open Freya.Recorder
 
 (* Runtime *)
 
+let private record =
+    { Recording.Execution =
+        { Nodes = List.empty }
+      Recording.Graph =
+        { Nodes = List.empty
+          Edges = List.empty } }
+
 let private initialize =
-    initializeFreyaMachineRecord
+    FreyaRecorder.Current.map (record ^?= Record.record<Recording.FreyaMachineRecord> "machine")
 
 let private runtime =
     { Initialize = initialize }
 
 (* Inspection *)
 
-let private data =
-    flip (^?.) freyaMachineRecordPLens >> Option.map Json.serialize
+let private extract =
+    fun _ -> Some (Json.Object (Map.empty))
+
+    //flip (^?.) (Record.record<Recording.FreyaMachineRecord> "machine") >> Option.map Json.serialize
 
 let private inspection =
-    { Data = data }
+    { Extract = extract }
 
 (* Inspector *)
 
 let freyaMachineInspector =
-    { Key = freyaMachineRecordKey
+    { Key = "machine"
       Runtime = runtime
       Inspection = inspection }

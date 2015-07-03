@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="Lenses.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Recorder.fs" />
   </ItemGroup>

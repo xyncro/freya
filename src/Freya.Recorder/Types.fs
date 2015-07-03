@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -23,8 +24,8 @@ module Freya.Recorder.Types
 open System
 open Aether
 open Aether.Operators
-open Chiron
-open Chiron.Operators
+//open Chiron
+//open Chiron.Operators
 open Freya.Core
 
 (* Types *)
@@ -34,15 +35,15 @@ type FreyaRecorderRecord =
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member ToJson (x: FreyaRecorderRecord) =
-            Json.write "id" x.Id
-         *> Json.write "timestamp" x.Timestamp
-         *> Json.write "inspections" ((Map.toList >> List.map fst) x.Data)
+//    static member ToJson (x: FreyaRecorderRecord) =
+//            Json.write "id" x.Id
+//         *> Json.write "timestamp" x.Timestamp
+//         *> Json.write "inspections" ((Map.toList >> List.map fst) x.Data)
 
     static member DataLens =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-    static member KeyPLens<'a> key =
-        FreyaRecorderRecord.DataLens
-        >-?> mapPLens key
-        <?-> boxIso<'a>
+//    static member KeyPLens<'a> key =
+//        FreyaRecorderRecord.DataLens
+//        >-?> mapPLens key
+//        <?-> boxIso<'a>

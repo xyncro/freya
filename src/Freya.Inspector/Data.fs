@@ -58,7 +58,7 @@ let private recordDetail =
 let private inspectionData inspectors =
         fun record ext ->
             Map.tryFind ext inspectors
-            |> Option.bind (fun i -> Option.bind i.Inspection.Data record)
+            |> Option.bind (fun i -> Option.bind i.Inspection.Extract record)
     <!> (FreyaRecorder.History.tryFind =<< id)
     <*> extension
 

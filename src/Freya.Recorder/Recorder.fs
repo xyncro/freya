@@ -5,6 +5,11 @@ open System
 open Freya.Core
 open Freya.Core.Operators
 
+(* Keys *)
+
+let [<Literal>] private requestIdKey =
+    "freya.Inspector.RequestId"
+
 (* Lenses *)
 
 let private requestIdPLens =
@@ -16,12 +21,12 @@ let private requestIdPLens =
 module Current =
 
     let initialize =
-            Freya.fromAsync initialize
+            Freya.fromAsync Storage.initialize
         =<< Freya.init () 
         >>= (.?=) requestIdPLens
 
     let map f =
-        Option.iter (flip update f) <!> (!?.) requestIdPLens
+        Option.iter (flip Storage.update f) <!> (!?.) requestIdPLens
 
 (* History *)
 
@@ -31,7 +36,7 @@ module History =
     (* Inspection *)
 
     let list =
-        Freya.fromAsync list =<< Freya.init ()
+        Freya.fromAsync Storage.list =<< Freya.init ()
 
     let tryFind id =
-        Freya.fromAsync read id
+        Freya.fromAsync Storage.read id

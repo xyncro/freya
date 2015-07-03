@@ -17,7 +17,7 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Recorder.Storage
 
 open System
@@ -25,14 +25,9 @@ open Aether
 open Aether.Operators
 open Freya.Core
 
-(* Keys *)
-
-let [<Literal>] internal requestIdKey = 
-    "freya.Inspector.RequestId"
-
 (* Types *)
 
-type StorageProtocol =
+type private StorageProtocol =
     | Create of AsyncReplyChannel<Guid>
     | Update of Guid * (FreyaRecorderRecord -> FreyaRecorderRecord)
     | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>

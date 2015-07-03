@@ -149,25 +149,25 @@ let rec private traverse graph traversal =
         failwith ""
 
 and private start graph traversal =
-        recordExecution Start
+        Recording.Record.execution Start
      *> ((fun _ -> tryFindNext Start None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> Freya.init ()
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> Freya.init (Failure ""))
 
 and private unary current op graph traversal =
-        recordExecution current
+        Recording.Record.execution current
      *> ((fun _ -> tryFindNext current None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> failwith "")
 
 and private binary current op graph traversal =
-        recordExecution current
+        Recording.Record.execution current
      *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
       >>= function | _, Some next -> traverse graph (progress next traversal)
                    | _, _ -> failwith "")
 
 and private finish () =
-        recordExecution Finish
+        Recording.Record.execution Finish
      *> Freya.init Success
 
 (* Run

@@ -40,7 +40,7 @@ and FreyaInspectorRuntime =
     { Initialize: Freya<unit> }
 
 and FreyaInspectorInspection =
-    { Data: FreyaRecorderRecord -> Json option }
+    { Extract: FreyaRecorderRecord -> Json option }
 
 (* Record Models *)
 

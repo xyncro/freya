@@ -18,43 +18,12 @@
 //
 //----------------------------------------------------------------------------
 
-module Freya.Router.Inspector
+[<AutoOpen>]
+module internal Freya.Machine.Prelude
 
-open Aether.Operators
-open Chiron
-open Freya.Inspector
-open Freya.Recorder
-open Freya.Router
+open System.Runtime.CompilerServices
 
-(* Runtime *)
+(* Internals *)
 
-let private record =
-    { Recording.Graph =
-        { Nodes = List.empty
-          Edges = List.empty }
-      Recording.Execution =
-        { Nodes = List.empty } }
-
-
-let private initialize =
-    FreyaRecorder.Current.map (record ^?= Record.record<Recording.FreyaRouterRecord> "router")
-
-let private runtime =
-    { Initialize = initialize }
-
-(* Inspection *)
-
-let private extract =
-    fun _ -> Some (Json.Object (Map.empty))
-
-    //flip (^?.) freyaRouterRecordPLens >> Option.map Json.serialize
-
-let private inspection =
-    { Extract = extract }
-
-(* Inspector *)
-
-let freyaRouterInspector =
-    { Key = "router"
-      Runtime = runtime
-      Inspection = inspection }
+[<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
+do ()
