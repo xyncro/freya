@@ -5,20 +5,17 @@ open System
 open Freya.Core
 open Freya.Core.Operators
 
-(* Keys *)
-
-let [<Literal>] private requestIdKey =
-    "freya.Inspector.RequestId"
-
-(* Lenses *)
-
-let private requestIdPLens =
-    Environment.optional<Guid> requestIdKey
-
 (* Current *)
 
 [<RequireQualifiedAccess>]
 module Current =
+
+    (* Lenses *)
+
+    let private requestIdPLens =
+        Environment.optional<Guid> "freya.Inspector.RequestId"
+
+    (* Functions *)
 
     let initialize =
             Freya.fromAsync Storage.initialize
@@ -33,7 +30,7 @@ module Current =
 [<RequireQualifiedAccess>]
 module History =
 
-    (* Inspection *)
+    (* Functions *)
 
     let list =
         Freya.fromAsync Storage.list =<< Freya.init ()
