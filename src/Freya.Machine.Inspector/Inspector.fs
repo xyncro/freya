@@ -18,10 +18,12 @@
 //
 //----------------------------------------------------------------------------
 
-module Freya.Machine.Inspector
+[<AutoOpen>]
+module Freya.Machine.Inspector.Inspector
 
 open Aether.Operators
 open Chiron
+open Freya.Core
 open Freya.Inspector
 open Freya.Machine
 open Freya.Recorder
@@ -36,7 +38,7 @@ let private record =
           Edges = List.empty } }
 
 let private initialize =
-    FreyaRecorder.Current.map (record ^?= Record.record<Recording.FreyaMachineRecord> "machine")
+    FreyaRecorder.Current.map (record ^?= Record.record "machine")
 
 let private runtime =
     { Initialize = initialize }
@@ -44,9 +46,7 @@ let private runtime =
 (* Inspection *)
 
 let private extract =
-    fun _ -> Some (Json.Object (Map.empty))
-
-    //flip (^?.) (Record.record<Recording.FreyaMachineRecord> "machine") >> Option.map Json.serialize
+    flip (^?.) (Record.record "machine") >> Option.map (FreyaMachineInspection.OfRecord >> Json.serialize)
 
 let private inspection =
     { Extract = extract }

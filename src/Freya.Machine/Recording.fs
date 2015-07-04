@@ -22,8 +22,6 @@
 module internal Freya.Machine.Recording
 
 open Aether.Operators
-//open Chiron
-//open Chiron.Operators
 open Freya.Recorder
 open Hekate
 
@@ -37,18 +35,14 @@ let private fail e =
 (* Types *)
 
 type FreyaMachineRecord =
-    { Execution: FreyaMachineExecutionRecord
-      Graph: FreyaMachineGraphRecord }
-
-    static member ExecutionLens =
-        (fun x -> x.Execution), (fun e x -> { x with Execution = e })
+    { Graph: FreyaMachineGraphRecord
+      Execution: FreyaMachineExecutionRecord }
 
     static member GraphLens =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-//    static member ToJson (x: FreyaMachineRecord) =
-//            Json.write "execution" x.Execution
-//         *> Json.write "graph" x.Graph
+    static member ExecutionLens =
+        (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Graph *)
 
@@ -56,30 +50,16 @@ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-//    static member ToJson (x: FreyaMachineGraphRecord) =
-//            Json.write "nodes" x.Nodes
-//         *> Json.write "edges" x.Edges
-
 and FreyaMachineGraphNodeRecord =
     { Id: string
       Type: string
       Configurable: bool
       Configured: bool }
 
-//    static member ToJson (x: FreyaMachineGraphNodeRecord) =
-//            Json.write "id" x.Id
-//         *> Json.write "type" x.Type
-//         *> Json.write "configurable" x.Configurable
-//         *> Json.write "configured" x.Configured
-
 and FreyaMachineGraphEdgeRecord =
     { From: string
       To: string
       Value: bool option }
-
-//    static member ToJson (x:FreyaMachineGraphEdgeRecord) =
-//            Json.write "from" x.From
-//         *> Json.write "to" x.To
 
 (* Execution *)
 
@@ -89,17 +69,8 @@ and FreyaMachineExecutionRecord =
     static member NodesLens =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-//    static member ToJson (x: FreyaMachineExecutionRecord) =
-//            Json.write "nodes" x.Nodes
-//
 and FreyaMachineExecutionNodeRecord =
     { Id: FreyaMachineNode }
-
-//    static member ToJson (x: FreyaMachineExecutionNodeRecord) =
-//        match x.Id with
-//        | Start -> Json.write "id" "start"
-//        | Finish -> Json.write "id" "finish"
-//        | Operation x -> Json.write "id" x
 
 (* Construction *)
 
@@ -150,13 +121,13 @@ module Record =
     (* Lenses *)
 
     let private recordPLens =
-             Record.record<FreyaMachineRecord> "machine" 
-        >?-> FreyaMachineRecord.GraphLens
+            Record.record "machine" 
+       >?-> FreyaMachineRecord.GraphLens
 
     let private executionPLens =
-             Record.record<FreyaMachineRecord> "machine" 
-        >?-> FreyaMachineRecord.ExecutionLens 
-        >?-> FreyaMachineExecutionRecord.NodesLens
+            Record.record "machine" 
+       >?-> FreyaMachineRecord.ExecutionLens 
+       >?-> FreyaMachineExecutionRecord.NodesLens
 
     (* Functions *)
 

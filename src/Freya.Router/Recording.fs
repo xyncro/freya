@@ -23,8 +23,6 @@ module internal Freya.Router.Recording
 
 open Aether
 open Aether.Operators
-//open Chiron
-//open Chiron.Operators
 open Freya.Recorder
 open Hekate
 
@@ -40,10 +38,6 @@ type FreyaRouterRecord =
     static member ExecutionLens =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
-//    static member ToJson (x: FreyaRouterRecord) =
-//            Json.write "graph" x.Graph
-//         *> Json.write "execution" x.Execution
-
 and FreyaRouterGraphRecord =
     { Nodes: FreyaRouterGraphNodeRecord list
       Edges: FreyaRouterGraphEdgeRecord list }
@@ -54,25 +48,13 @@ and FreyaRouterGraphRecord =
     static member EdgesLens =
         (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
-//    static member ToJson (x: FreyaRouterGraphRecord) =
-//            Json.write "nodes" x.Nodes
-//         *> Json.write "edges" x.Edges
-
 and FreyaRouterGraphNodeRecord =
     { Key: string
       Methods: string list }
 
-//    static member ToJson (x: FreyaRouterGraphNodeRecord) =
-//            Json.write "key" x.Key
-//         *> Json.write "methods" x.Methods
-
 and FreyaRouterGraphEdgeRecord =
     { From: string
       To: string }
-
-//    static member ToJson (x: FreyaRouterGraphEdgeRecord) =
-//            Json.write "from" x.From
-//         *> Json.write "to" x.To
 
 and FreyaRouterExecutionRecord =
     { Nodes: FreyaRouterExecutionNodeRecord list }
@@ -80,47 +62,17 @@ and FreyaRouterExecutionRecord =
     static member NodesLens : Lens<FreyaRouterExecutionRecord, FreyaRouterExecutionNodeRecord list> =
         (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
 
-//    static member ToJson (x: FreyaRouterExecutionRecord) =
-//            Json.write "nodes" x.Nodes
-
 and FreyaRouterExecutionNodeRecord =
     { Key: string
-      Action: FreyaRouterExecutionAction }
+      Action: FreyaRouterExecutionActionRecord }
 
-//    static member ToJson (x: FreyaRouterExecutionNodeRecord) =
-//            Json.write "key" x.Key
-//         *> Json.write "action" x.Action
+and FreyaRouterExecutionActionRecord =
+    | Completion of FreyaRouterExecutionStatusRecord
+    | Match of FreyaRouterExecutionStatusRecord
 
-and FreyaRouterExecutionAction =
-    | Completion of FreyaRouterExecutionStatus
-    | Match of FreyaRouterExecutionStatus
-
-and FreyaRouterExecutionStatus =
+and FreyaRouterExecutionStatusRecord =
     | Success
     | Failure
-
-////    static member ToJson (x: FreyaRouterExecutionAction) =
-////        match x with
-////        | Completion x -> Json.write "completion" x
-////        | Match x -> Json.write "match" x
-//
-//and FreyaRouterExecutionCompletionAction =
-//    | Success
-//    | Failure
-//
-////    static member ToJson (x: FreyaRouterExecutionCompletionAction) =
-////        match x with
-////        | Success -> Json.write "result" "success"
-////        | Failure -> Json.write "result" "failure"
-//
-//and FreyaRouterExecutionMatchAction =
-//    | Success
-//    | Failure
-//
-////    static member ToJson (x: FreyaRouterExecutionMatchAction) =
-////        match x with
-////        | Success -> Json.write "result" "success"
-////        | Failure -> Json.write "result" "failure"
 
 (* Construction *)
 
@@ -159,13 +111,13 @@ module Record =
     (* Lenses *)
 
     let private graphPLens =
-            Record.record<FreyaRouterRecord> "router"
+            Record.record "router"
        >?-> FreyaRouterRecord.GraphLens
 
     let private executionNodesPLens =
-             Record.record<FreyaRouterRecord> "router"
-        >?-> FreyaRouterRecord.ExecutionLens
-        >?-> FreyaRouterExecutionRecord.NodesLens
+            Record.record "router"
+       >?-> FreyaRouterRecord.ExecutionLens
+       >?-> FreyaRouterExecutionRecord.NodesLens
 
     (* Functions *)
 
