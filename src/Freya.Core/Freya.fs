@@ -126,7 +126,7 @@ let mapLensPartial l f =
    usage model). *)
 
 let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memoPLens = Memo.id<'a> (Guid.NewGuid ())
+    let memoPLens = Memo.Id_<'a> (Guid.NewGuid ())
 
     fun state ->
         async {

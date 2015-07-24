@@ -38,10 +38,10 @@ type FreyaMachineRecord =
     { Graph: FreyaMachineGraphRecord
       Execution: FreyaMachineExecutionRecord }
 
-    static member GraphLens =
+    static member Graph_ =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member ExecutionLens =
+    static member Execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Graph *)
@@ -66,7 +66,7 @@ and FreyaMachineGraphEdgeRecord =
 and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
-    static member NodesLens =
+    static member Nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
 and FreyaMachineExecutionNodeRecord =
@@ -91,7 +91,7 @@ let private (|Binary|_|) =
     function | Name n, Some (c: FreyaMachineOperationMetadata) -> Some (n, "binary", c.Configurable, c.Configured)
              | _ -> None
 
-let createRecord (Compilation.Metadata meta) =
+let graphRecord (Compilation.Metadata meta) =
     { Nodes =
         Graph.nodes meta
         |> List.map (fun (v, l) ->
@@ -120,19 +120,19 @@ module Record =
 
     (* Lenses *)
 
-    let private recordPLens =
-            Record.record "machine" 
-       >?-> FreyaMachineRecord.GraphLens
+    let private graph_ =
+            Record.Record_ "machine" 
+       >?-> FreyaMachineRecord.Graph_
 
-    let private executionPLens =
-            Record.record "machine" 
-       >?-> FreyaMachineRecord.ExecutionLens 
-       >?-> FreyaMachineExecutionRecord.NodesLens
+    let private execution_ =
+            Record.Record_ "machine" 
+       >?-> FreyaMachineRecord.Execution_
+       >?-> FreyaMachineExecutionRecord.Nodes_
 
     (* Functions *)
 
     let definition record =
-        FreyaRecorder.Current.map (record ^?= recordPLens)
+        FreyaRecorder.Current.map (record ^?= graph_)
 
-    let execution id =
-        FreyaRecorder.Current.map ((fun es -> es @ [ { Id = id } ]) ^?%= executionPLens)
+    let execution node =
+        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^?%= execution_)

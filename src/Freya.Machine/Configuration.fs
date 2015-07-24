@@ -27,8 +27,8 @@ open Freya.Core
 
 (* Lenses *)
 
-let private configPLens<'a> key =
-         FreyaMachineConfiguration.DataLens
+let private config_<'a> key =
+         FreyaMachineConfiguration.Data_
     >-?> mapPLens key
     <?-> boxIso<'a>
 
@@ -39,10 +39,10 @@ let private configPLens<'a> key =
    overhead, but is only used at reification time in general cases. *)
 
 let tryGet<'a> key =
-    flip (^?.) (configPLens<'a> key)
+    flip (^?.) (config_<'a> key)
 
 let tryGetOrElse key def =
     tryGet key >> Option.orElse def
 
 let set<'a> key =
-    flip (^?=) (configPLens<'a> key)
+    flip (^?=) (config_<'a> key)

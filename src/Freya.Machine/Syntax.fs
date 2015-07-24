@@ -21,7 +21,7 @@
 [<AutoOpen>]
 module Freya.Machine.Syntax
 
-open Aether
+open Aether.Operators
 
 type FreyaMachineBuilder with
 
@@ -31,4 +31,4 @@ type FreyaMachineBuilder with
 
     [<CustomOperation ("using", MaintainsVariableSpaceUsingBind = true)>]
     member x.Using (m, extension) =
-        x.Map (m, Lens.map FreyaMachineSpecification.ExtensionsLens (Set.add extension))
+        x.Map (m, Set.add extension ^%= FreyaMachineSpecification.Extensions_)

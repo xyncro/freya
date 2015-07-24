@@ -43,16 +43,16 @@ let private corsEnabled config =
 
 let private corsOriginAllowed config =
     Cors.originAllowed
-        (!?. Request.Headers.origin)
+        (!?. Request.Headers.Origin_)
         (Configuration.tryGetOrElse Properties.CorsOriginsSupported Defaults.corsOriginsSupported config)
 
 let private corsOptions _ =
     Cors.options
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private corsPreflight _ =
     Cors.isPreflight
-        (!?. Request.Headers.accessControlRequestMethod)
+        (!?. Request.Headers.AccessControlRequestMethod_)
 
 (* Graph *)
 

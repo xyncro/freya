@@ -50,7 +50,7 @@ open Freya.TodoBackend.Domain
 
 let id =
     freya {
-        let! id = Freya.getLensPartial (Route.atom "id")
+        let! id = Freya.getLensPartial (Route.Atom_ "id")
         return (Option.get >> Guid.Parse) id } |> Freya.memo
 
 (* Body Properties
@@ -223,8 +223,7 @@ let todoRoutes =
 
 let config =
     { Inspectors = 
-        [ freyaRequestInspector
-          freyaMachineInspector
+        [ freyaMachineInspector
           freyaRouterInspector ] }
 
 let inspect =

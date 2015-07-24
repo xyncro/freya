@@ -35,10 +35,10 @@ open Arachne.Uri.Template
 (* Route *)
 
 let private id =
-    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.atom "id"))
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.Atom_ "id"))
 
 let private extension =
-    Freya.memo (Option.get <!> (!?.) (Route.atom "ext"))
+    Freya.memo (Option.get <!> (!?.) (Route.Atom_ "ext"))
 
 (* Data *)
 

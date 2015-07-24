@@ -28,7 +28,7 @@ open Freya.Core
 [<RequireQualifiedAccess>]
 module Record =
 
-    let record<'a> key =
-            FreyaRecorderRecord.DataLens
+    let Record_<'a> key =
+            FreyaRecorderRecord.Data_
        >-?> mapPLens key
        <?-> boxIso<'a>

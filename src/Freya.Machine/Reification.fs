@@ -66,7 +66,7 @@ let reify machine =
         match Compilation.compile spec.Configuration precompilation with
         | Compilation.Compilation (compilation, metadata) ->
             match Verification.verify compilation with
-            | Verification.Verification compilation -> run compilation (Recording.createRecord metadata)
+            | Verification.Verification compilation -> run compilation (Recording.graphRecord metadata)
             | Verification.Error e -> fail e
         | Compilation.Error e ->
             fail e

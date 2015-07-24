@@ -28,6 +28,16 @@ open Freya.Inspector
 open Freya.Recorder
 open Freya.Router
 
+(* Keys *)
+
+let private key =
+    "router"
+
+(* Lenses *)
+
+let private record_ =
+    Record.Record_ key
+
 (* Runtime *)
 
 let private record =
@@ -38,7 +48,7 @@ let private record =
         { Nodes = List.empty } }
 
 let private initialize =
-    FreyaRecorder.Current.map (record ^?= Record.record "router")
+    FreyaRecorder.Current.map (record ^?= record_)
 
 let private runtime =
     { Initialize = initialize }
@@ -46,7 +56,7 @@ let private runtime =
 (* Inspection *)
 
 let private extract =
-    flip (^?.) (Record.record "router") >> Option.map (FreyaRouterInspection.OfRecord >> Json.serialize)
+    flip (^?.) record_ >> Option.map (FreyaRouterInspection.OfRecord >> Json.serialize)
 
 let private inspection =
     { Extract = extract }
@@ -54,6 +64,6 @@ let private inspection =
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Key = "router"
+    { Key = key
       Runtime = runtime
       Inspection = inspection }

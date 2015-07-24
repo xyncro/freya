@@ -22,9 +22,6 @@
 module Freya.Recorder.Types
 
 open System
-open Aether
-open Aether.Operators
-open Freya.Core
 
 (* Types *)
 
@@ -33,5 +30,5 @@ type FreyaRecorderRecord =
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member DataLens =
+    static member Data_ =
         (fun x -> x.Data), (fun d x -> { x with Data = d })

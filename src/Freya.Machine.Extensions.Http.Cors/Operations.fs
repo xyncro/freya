@@ -41,7 +41,7 @@ let private corsActual config =
 
 let private corsOrigin _ =
     Cors.origin
-        (Option.map (fun (Origin x) -> x) >> Option.get <!> (!?.) Request.Headers.origin)
+        (Option.map (fun (Origin x) -> x) >> Option.get <!> (!?.) Request.Headers.Origin_)
 
 let private corsPreflight config =
     Cors.preflight

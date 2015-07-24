@@ -53,13 +53,13 @@ type private ExecutionResult =
 type private Traversal =
     | Traversal of TraversalState
 
-    static member StateIso =
+    static member State_ =
         (fun (Traversal x) -> x), (fun x -> Traversal x)
 
 and private TraversalState =
     | State of FreyaMachineNode
 
-    static member NodeIso =
+    static member Node_ =
         (fun (State x) -> x), (fun x -> State x)
 
 (* Constructors
@@ -75,10 +75,14 @@ let private createTraversal node =
    A lens from the traversal state to the current node, purely a simple
    isomorphism until the traversal state is potentially expanded. *)
 
-let private nodeLens =
+let private compilationGraph_ =
         idLens
-   <--> Traversal.StateIso
-   <--> TraversalState.NodeIso
+   <--> Compilation.CompilationGraph.Graph_
+
+let private node_ =
+        idLens
+   <--> Traversal.State_
+   <--> TraversalState.Node_
 
 (* Patterns
 
@@ -125,7 +129,7 @@ let private tryFindNext node op =
    the traversal state. *)
 
 let private progress node =
-    node ^= nodeLens
+    node ^= node_
 
 (* Traversal
 
@@ -137,7 +141,7 @@ let private progress node =
 let rec private traverse graph traversal =
     match traversal with
     | Operation node ->
-        match tryFindNode node (graph ^. Compilation.CompilationGraph.GraphLens) with
+        match tryFindNode node (graph ^. compilationGraph_) with
         | Some (_, Some (Unary op)) -> unary node op graph traversal
         | Some (_, Some (Binary op)) -> binary node op graph traversal
         | _ -> failwith ""
@@ -149,25 +153,25 @@ let rec private traverse graph traversal =
         failwith ""
 
 and private start graph traversal =
-        Recording.Record.execution Start
-     *> ((fun _ -> tryFindNext Start None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> Freya.init ()
+        Recording.Record.execution { Id = Start }
+     *> ((fun _ -> tryFindNext Start None (graph ^. compilationGraph_)) <!> Freya.init ()
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> Freya.init (Failure ""))
 
 and private unary current op graph traversal =
-        Recording.Record.execution current
-     *> ((fun _ -> tryFindNext current None (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
+        Recording.Record.execution { Id = current }
+     *> ((fun _ -> tryFindNext current None (graph ^. compilationGraph_)) <!> op
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> failwith "")
 
 and private binary current op graph traversal =
-        Recording.Record.execution current
-     *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. Compilation.CompilationGraph.GraphLens)) <!> op
+        Recording.Record.execution { Id = current }
+     *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. compilationGraph_)) <!> op
       >>= function | _, Some next -> traverse graph (progress next traversal)
                    | _, _ -> failwith "")
 
 and private finish () =
-        Recording.Record.execution Finish
+        Recording.Record.execution { Id = Finish }
      *> Freya.init Success
 
 (* Run

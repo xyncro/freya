@@ -25,22 +25,22 @@ let [<Literal>] testKey =
 
 (* Lenses *)
 
-let private testLens =
-    Environment.optional testKey <?-> (unbox<int>, box)
+let private test_ =
+    Environment.Optional_ testKey <?-> (unbox<int>, box)
 
 (* Functions *)
 
 let private get =
-    Lens.getPartial testLens
+    Lens.getPartial test_
 
 let private set i =
-    Freya.setLensPartial testLens i *> Freya.next
+    Freya.setLensPartial test_ i *> Freya.next
 
 let private run meth path m =
     let router = FreyaRouter.toPipeline m
 
-    Async.RunSynchronously ((   Freya.setLens Request.path path 
-                             *> Freya.setLens Request.meth meth 
+    Async.RunSynchronously ((   Freya.setLens Request.Path_ path 
+                             *> Freya.setLens Request.Method_ meth 
                              *> router) (freyaState ()))
 
 let result meth path m =

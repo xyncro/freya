@@ -21,7 +21,6 @@
 [<RequireQualifiedAccess>]
 module internal Freya.Router.Recording
 
-open Aether
 open Aether.Operators
 open Freya.Recorder
 open Hekate
@@ -32,20 +31,20 @@ type FreyaRouterRecord =
     { Graph: FreyaRouterGraphRecord
       Execution: FreyaRouterExecutionRecord }
 
-    static member GraphLens =
+    static member Graph_ =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member ExecutionLens =
+    static member Execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 and FreyaRouterGraphRecord =
     { Nodes: FreyaRouterGraphNodeRecord list
       Edges: FreyaRouterGraphEdgeRecord list }
 
-    static member NodesLens : Lens<FreyaRouterGraphRecord, FreyaRouterGraphNodeRecord list> =
-        (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
+    static member Nodes_ =
+        (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterGraphRecord.Nodes = n })
 
-    static member EdgesLens =
+    static member Edges_ =
         (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
 and FreyaRouterGraphNodeRecord =
@@ -59,8 +58,8 @@ and FreyaRouterGraphEdgeRecord =
 and FreyaRouterExecutionRecord =
     { Nodes: FreyaRouterExecutionNodeRecord list }
 
-    static member NodesLens : Lens<FreyaRouterExecutionRecord, FreyaRouterExecutionNodeRecord list> =
-        (fun x -> x.Nodes), (fun n x -> { x with Nodes = n })
+    static member Nodes_ =
+        (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterExecutionRecord.Nodes = n })
 
 and FreyaRouterExecutionNodeRecord =
     { Key: string
@@ -110,14 +109,14 @@ module Record =
 
     (* Lenses *)
 
-    let private graphPLens =
-            Record.record "router"
-       >?-> FreyaRouterRecord.GraphLens
+    let private graph_ =
+            Record.Record_ "router"
+       >?-> FreyaRouterRecord.Graph_
 
-    let private executionNodesPLens =
-            Record.record "router"
-       >?-> FreyaRouterRecord.ExecutionLens
-       >?-> FreyaRouterExecutionRecord.NodesLens
+    let private executionNodes_ =
+            Record.Record_ "router"
+       >?-> FreyaRouterRecord.Execution_
+       >?-> FreyaRouterExecutionRecord.Nodes_
 
     (* Functions *)
 
@@ -126,14 +125,14 @@ module Record =
                  | Compilation.Key k -> k
 
     let graph graph =
-        FreyaRecorder.Current.map ((fun _ -> graph) ^?%= graphPLens)
+        FreyaRecorder.Current.map ((fun _ -> graph) ^?%= graph_)
 
     let completion status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Completion status } :: nodes) ^?%= executionNodesPLens)
+              Action = Completion status } :: nodes) ^?%= executionNodes_)
 
     let match' status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Match status } :: nodes) ^?%= executionNodesPLens)
+              Action = Match status } :: nodes) ^?%= executionNodes_)

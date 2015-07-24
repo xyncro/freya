@@ -30,6 +30,7 @@ module internal Freya.Machine.Verification
    designed, which would possibly have relevance to being ported
    back in to the core Hekate library. *)
 
+open Aether
 open Aether.Operators
 open Freya.Core
 open Hekate
@@ -55,28 +56,28 @@ type private Projection =
 
 let private startNodes =
     Projection (
-            flip (^.) Compilation.CompilationGraph.GraphLens
+            flip (^.) (idLens <--> Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
-            flip (^.) Compilation.CompilationGraph.GraphLens
+            flip (^.) (idLens <--> Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
-            flip (^.) Compilation.CompilationGraph.GraphLens
+            flip (^.) (idLens <--> Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
-            flip (^.) Compilation.CompilationGraph.GraphLens
+            flip (^.) (idLens <--> Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))

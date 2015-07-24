@@ -12,18 +12,18 @@ module Current =
 
     (* Lenses *)
 
-    let private requestIdPLens =
-        Environment.optional<Guid> "freya.Inspector.RequestId"
+    let private requestId_ =
+        Environment.Optional_<Guid> "freya.Inspector.RequestId"
 
     (* Functions *)
 
     let initialize =
             Freya.fromAsync Storage.initialize
         =<< Freya.init () 
-        >>= (.?=) requestIdPLens
+        >>= (.?=) requestId_
 
     let map f =
-        Option.iter (flip Storage.update f) <!> (!?.) requestIdPLens
+        Option.iter (flip Storage.update f) <!> (!?.) requestId_
 
 (* History *)
 

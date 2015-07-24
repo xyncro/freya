@@ -33,37 +33,37 @@ open Freya.Machine.Operators
 
 let private allow =
        Configuration.tryGet Properties.MethodsSupported
-    >> Option.map (fun x -> (.?=) Response.Headers.allow =<< (Allow <!> x))
-    >> Option.orElse ((.?=) Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
+    >> Option.map (fun x -> (.?=) Response.Headers.Allow_ =<< (Allow <!> x))
+    >> Option.orElse ((.?=) Response.Headers.Allow_ =<< (Allow <!> Defaults.methodsSupported))
 
 let private date =
-    (.?=) Response.Headers.date (Date.Date DateTime.UtcNow)
+    (.?=) Response.Headers.Date_ (Date.Date DateTime.UtcNow)
 
 let private eTag =
        Configuration.tryGet Properties.ETag
-    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private expires =
        Configuration.tryGet Properties.Expires 
-    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private lastModified =
        Configuration.tryGet Properties.LastModified 
-    >> Option.map (fun x -> (.?=) Response.Headers.lastModified =<< (LastModified <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.LastModified_ =<< (LastModified <!> x))
     >> Option.orElse (Freya.init ())
 
 let private location =
        Configuration.tryGet Properties.Location
-    >> Option.map (fun x -> (.?=) Response.Headers.location =<< (Location <!> x))
+    >> Option.map (fun x -> (.?=) Response.Headers.Location_ =<< (Location <!> x))
     >> Option.orElse (Freya.init ())
 
 let private phrase =
-    (.?=) Response.reasonPhrase
+    (.?=) Response.ReasonPhrase_
 
 let private status =
-    (.?=) Response.statusCode
+    (.?=) Response.StatusCode_
 
 (* Operations *)
 

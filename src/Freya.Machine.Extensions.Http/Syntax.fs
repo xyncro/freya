@@ -32,7 +32,7 @@ open Freya.Machine
 (* Helper Functions *)
 
 let private setConfig<'a> key a =
-    Lens.map FreyaMachineSpecification.ConfigurationLens (Configuration.set<'a> key a)
+    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key a)
 
 (* Custom Operations
 

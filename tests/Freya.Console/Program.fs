@@ -38,8 +38,7 @@ let routes =
 
 let config =
     { Inspectors =
-        [ freyaRequestInspector
-          freyaMachineInspector
+        [ freyaMachineInspector
           freyaRouterInspector ] }
 
 let pipeline =

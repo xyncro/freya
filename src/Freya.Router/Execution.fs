@@ -49,9 +49,8 @@ type private ExecutionResult =
 type private Traversal =
     | Traversal of TraversalInvariant * TraversalState list
 
-    static member StateLens : Lens<Traversal, TraversalState list> =
-        (fun (Traversal (_, s)) -> s),
-        (fun s (Traversal (i, _)) -> Traversal (i, s))
+    static member State_ =
+        (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
 and private TraversalInvariant =
     | Invariant of Method
@@ -59,28 +58,28 @@ and private TraversalInvariant =
 and private TraversalState =
     | State of TraversalData * TraversalPosition
 
-    static member DataLens : Lens<TraversalState, TraversalData> =
+    static member Data_ =
         (fun (State (d, _)) -> d), (fun d (State (_, p)) -> State (d, p))
 
-    static member PositionLens : Lens<TraversalState, TraversalPosition> =
+    static member Position_ =
         (fun (State (_, p)) -> p), (fun p (State (d, _)) -> State (d, p))
 
 and private TraversalData =
     | Data of string * UriTemplateData
 
-    static member PathLens : Lens<TraversalData, string> =
+    static member Path_ =
         (fun (Data (p, _)) -> p), (fun p (Data (_, d)) -> Data (p, d))
 
-    static member DataLens : Lens<TraversalData, UriTemplateData> =
+    static member Data_ =
         (fun (Data (_, d)) -> d), (fun d (Data (p, _)) -> Data (p, d))
 
 and private TraversalPosition =
     | Position of Compilation.CompilationKey * int
 
-    static member KeyLens : Lens<TraversalPosition, Compilation.CompilationKey> =
+    static member Key_ =
         (fun (Position (k, _)) -> k), (fun k (Position (_, i)) -> Position (k, i))
 
-    static member OrderLens : Lens<TraversalPosition, int> =
+    static member Order_ =
         (fun (Position (_, i)) -> i), (fun i (Position (k, _)) -> Position (k, i))
 
 (* Constructors
@@ -100,21 +99,26 @@ let private createTraversal meth path =
    Lenses into the traversal state to enable deep modifications to
    the state data structure as part of the traversal. *)
 
-let private dataLens =
-        TraversalState.DataLens
-   >--> TraversalData.DataLens
+let private data_ =
+        TraversalState.Data_
+   >--> TraversalData.Data_
 
-let private pathLens =
-        TraversalState.DataLens
-   >--> TraversalData.PathLens
+let private path_ =
+        TraversalState.Data_
+   >--> TraversalData.Path_
 
-let private keyLens =
-        TraversalState.PositionLens
-   >--> TraversalPosition.KeyLens
+let private key_ =
+        TraversalState.Position_
+   >--> TraversalPosition.Key_
 
-let private orderLens =
-        TraversalState.PositionLens
-   >--> TraversalPosition.OrderLens
+let private order_ =
+        TraversalState.Position_
+   >--> TraversalPosition.Order_
+
+let private compilationGraph_ =
+        idLens
+   <--> Compilation.CompilationGraph.Graph_
+
 
 (* Patterns
 
@@ -189,18 +193,18 @@ let private tryFindEdge key order =
 let private capture key data path =
     function | state :: states ->
                 (state
-                 |> key ^= keyLens
-                 |> 0 ^= orderLens
-                 |> (+) data ^%= dataLens
-                 |> path ^= pathLens) :: state :: states
+                 |> key ^= key_
+                 |> 0 ^= order_
+                 |> (+) data ^%= data_
+                 |> path ^= path_) :: state :: states
              | _ -> []
 
 let private reject =
-    function | state :: states -> (((+) 1) ^%= orderLens) state :: states
+    function | state :: states -> (((+) 1) ^%= order_) state :: states
              | _ -> []
 
 let private abandon =
-    function | _ :: state :: states -> (((+) 1) ^%= orderLens) state :: states
+    function | _ :: state :: states -> (((+) 1) ^%= order_) state :: states
              | _ -> []
 
 (* Traversal
@@ -217,11 +221,11 @@ let private abandon =
 let rec private traverse graph traversal =
     match traversal with
     | Candidate (meth, data, key) ->
-        match tryFindPipe key meth (graph ^. Compilation.CompilationGraph.GraphLens) with
+        match tryFindPipe key meth (graph ^. compilationGraph_) with
         | Some pipe -> completionSuccess key data pipe
         | _ -> completionFailure key graph traversal
     | Progression (path, key, order) ->
-        match tryFindEdge key order (graph ^. Compilation.CompilationGraph.GraphLens) with
+        match tryFindEdge key order (graph ^. compilationGraph_) with
         | Some (key', Compilation.Edge (parser, _)) ->
             match path with
             | Parsed parser (data, path') -> matchSuccess key' data path' graph traversal
@@ -237,18 +241,18 @@ and private completionSuccess key data pipe =
 
 and private completionFailure key graph traversal =
         Recording.Record.completion Recording.Failure key
-     *> traverse graph ((abandon ^%= Traversal.StateLens) traversal)
+     *> traverse graph ((abandon ^%= Traversal.State_) traversal)
 
 and private matchSuccess key data path graph traversal =
         Recording.Record.match' Recording.Success key
-     *> traverse graph ((capture key data path ^%= Traversal.StateLens) traversal)
+     *> traverse graph ((capture key data path ^%= Traversal.State_) traversal)
 
 and private matchFailure key graph traversal =
         Recording.Record.match' Recording.Failure key
-     *> traverse graph ((reject ^%= Traversal.StateLens) traversal)
+     *> traverse graph ((reject ^%= Traversal.State_) traversal)
 
 and private matchMiss graph traversal =
-        traverse graph ((abandon ^%= Traversal.StateLens) traversal)
+        traverse graph ((abandon ^%= Traversal.State_) traversal)
 
 (* Search
 
@@ -257,7 +261,7 @@ and private matchMiss graph traversal =
    traversal. *)
 
 let private search graph =
-        createTraversal <!> (!. Request.meth) <*> (!. Request.path)
+        createTraversal <!> (!. Request.Method_) <*> (!. Request.Path_)
     >>= traverse graph
 
 (* Execution
@@ -272,5 +276,5 @@ let private search graph =
 
 let execute graph =
         search graph
-    >>= function | Matched (data, pipe) -> (Route.data .?= data) *> pipe
+    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
                  | Unmatched -> Freya.next

@@ -27,12 +27,12 @@ open Aether.Operators
 [<RequireQualifiedAccess>]
 module Environment =
 
-    let required<'a> k =
+    let Required_<'a> k =
                 FreyaState.EnvironmentLens
            >--> mutDictLens<string, obj> k
            <--> boxIso<'a>
 
-    let optional<'a> k =
+    let Optional_<'a> k =
             FreyaState.EnvironmentLens
        >-?> mutDictPLens<string, obj> k
        <?-> boxIso<'a>
@@ -40,7 +40,7 @@ module Environment =
 [<RequireQualifiedAccess>]
 module Memo =
 
-    let id<'a> i =
+    let Id_<'a> i =
             FreyaState.MetaLens
        >--> FreyaMetaState.MemosLens
        >-?> mapPLens i

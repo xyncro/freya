@@ -38,12 +38,8 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
 
-    static member private GraphIso =
+    static member Graph_ =
         (fun (Graph x) -> x), (fun x -> Graph x)
-
-    static member GraphLens =
-            idLens
-       <--> CompilationGraph.GraphIso
 
 and MetadataGraph =
     | Metadata of Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
@@ -51,6 +47,12 @@ and MetadataGraph =
 type CompilationResult =
     | Compilation of CompilationGraph * MetadataGraph
     | Error of string
+
+(* Lenses *)
+
+let private precompilationGraph_ =
+        idLens
+   <--> Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation
 
@@ -66,7 +68,7 @@ let private build config graph =
         let g2 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
         let g3 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
 
-        Graph g2, Metadata g3) (graph ^. Precompilation.PrecompilationGraph.GraphLens)
+        Graph g2, Metadata g3) (graph ^. precompilationGraph_)
 
 (* Compile *)
 

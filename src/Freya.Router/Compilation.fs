@@ -36,12 +36,8 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
 
-    static member private GraphIso : Iso<CompilationGraph, Graph<CompilationKey, CompilationNode, CompilationEdge>> =
+    static member Graph_ =
         (fun (Graph g) -> g), (fun g -> Graph g)
-
-    static member GraphLens =
-            idLens
-       <--> CompilationGraph.GraphIso
 
 and CompilationKey =
     | Root
@@ -64,6 +60,12 @@ and CompilationEdge =
 
 let private defaultCompilationGraph =
     Graph (Graph.create [ Root, Empty ] [])
+
+(* Lenses *)
+
+let private compilationGraph_ =
+        idLens
+   <--> CompilationGraph.Graph_
 
 (* Patterns
 
@@ -134,7 +136,7 @@ let rec private addRoute current graph route =
             ((fun graph ->
                 (match Graph.containsNode last graph with
                  | false -> addNode last >> updateNode last meth pipe >> addEdge current last part
-                 | _ -> updateNode last meth pipe) graph) ^%= CompilationGraph.GraphLens) graph
+                 | _ -> updateNode last meth pipe) graph) ^%= compilationGraph_) graph
 
         graph
     | Next (part, route) ->
@@ -145,7 +147,7 @@ let rec private addRoute current graph route =
             ((fun graph ->
                 (match Graph.containsNode next graph with
                  | false -> addNode next >> addEdge current next part
-                 | _ -> id) graph) ^%= CompilationGraph.GraphLens) graph
+                 | _ -> id) graph) ^%= compilationGraph_) graph
 
         addRoute next graph route
     | _ ->

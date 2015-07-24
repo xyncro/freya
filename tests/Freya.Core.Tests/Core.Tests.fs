@@ -4,18 +4,18 @@ open Freya.Core
 open NUnit.Framework
 open Swensen.Unquote
 
-let private answerLens =
-    Environment.required "Answer"
+let private answer_ =
+    Environment.Required_ "Answer"
 
 [<Test>]
 let ``getLM, setLM, modLM behave correctly`` () =
     let m =
         freya {
-            do! Freya.setLens answerLens 42
-            let! v1 = Freya.getLens answerLens
+            do! Freya.setLens answer_ 42
+            let! v1 = Freya.getLens answer_
 
-            do! Freya.mapLens answerLens ((*) 2)
-            let! v2 = Freya.getLens answerLens
+            do! Freya.mapLens answer_ ((*) 2)
+            let! v2 = Freya.getLens answer_
 
             return v1, v2 }
 

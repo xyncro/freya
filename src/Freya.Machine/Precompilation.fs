@@ -40,12 +40,8 @@ open Hekate
 type PrecompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
-    static member private GraphIso =
+    static member Graph_ =
         (fun (Graph x) -> x), (fun x -> Graph (x))
-
-    static member GraphLens =
-            idLens
-       <--> PrecompilationGraph.GraphIso
 
 type PrecompilationResult =
     | Precompilation of PrecompilationGraph
@@ -59,6 +55,12 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
             [ Start, None
               Finish, None ]
             [ Start, Finish, None ])
+
+(* Lenses *)
+
+let private precompilationGraph_ =
+        idLens
+   <--> PrecompilationGraph.Graph_
 
 (* Ordering
 
@@ -126,7 +128,7 @@ let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
 let private extend extensions graph =
-    Extension ((applyExtensions extensions ^%= PrecompilationGraph.GraphLens) graph)
+    Extension ((applyExtensions extensions ^%= precompilationGraph_) graph)
 
 (* Precompile
 
