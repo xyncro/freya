@@ -70,11 +70,14 @@
     <Compile Include="Types.fs" />
     <Compile Include="Content.fs" />
     <Compile Include="Data.fs" />
-    <Compile Include="Recording.fs" />
-    <Compile Include="Inspector.fs" />
     <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
+      <Name>Freya.Core</Name>
+      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
       <Name>Freya.Lenses.Http</Name>
       <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
@@ -108,10 +111,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
-      <Name>Freya.Core</Name>
-      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">

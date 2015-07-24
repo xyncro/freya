@@ -19,29 +19,16 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Recorder.Integration
+module Freya.Recorder.Lenses
 
-open System
+open Aether
+open Aether.Operators
 open Freya.Core
-open Freya.Core.Operators
 
-(* Lenses *)
+[<RequireQualifiedAccess>]
+module Record =
 
-let private requestIdPLens =
-    environmentKeyPLens<Guid> requestIdKey
-
-(* Execution *)
-
-let initializeRecord =
-    Freya.fromAsync initialize =<< Freya.init () >>= (.?=) requestIdPLens
-
-let updateRecord f =
-    Option.iter (flip update f) <!> (!?.) requestIdPLens
-
-(* Inspection *)
-
-let listRecords : Freya<FreyaRecorderRecord list> =
-    Freya.fromAsync list =<< Freya.init ()
-
-let getRecord id : Freya<FreyaRecorderRecord option> =
-    Freya.fromAsync read id
+    let Record_<'a> key =
+            FreyaRecorderRecord.Data_
+       >-?> mapPLens key
+       <?-> boxIso<'a>

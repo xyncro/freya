@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Machine.Compilation
 
 open Aether
@@ -38,7 +38,7 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
 
-    static member GraphIso =
+    static member Graph_ =
         (fun (Graph x) -> x), (fun x -> Graph x)
 
 and MetadataGraph =
@@ -50,9 +50,9 @@ type CompilationResult =
 
 (* Lenses *)
 
-let compilationGraphLens =
+let private precompilationGraph_ =
         idLens
-   <--> CompilationGraph.GraphIso
+   <--> Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation
 
@@ -68,7 +68,9 @@ let private build config graph =
         let g2 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
         let g3 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
 
-        Graph g2, Metadata g3) (graph ^. precompilationGraphLens)
+        Graph g2, Metadata g3) (graph ^. precompilationGraph_)
+
+(* Compile *)
 
 let compile config graph =
     Compilation (build config graph)

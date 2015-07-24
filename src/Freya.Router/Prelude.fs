@@ -19,39 +19,11 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Inspector.Inspector
+module internal Freya.Router.Prelude
 
-open Aether
-open Aether.Operators
-open Arachne.Http
-open Chiron
-open Freya.Core
-open Freya.Core.Operators
-open Freya.Lenses.Http
+open System.Runtime.CompilerServices
 
-(* Runtime *)
+(* Internals *)
 
-let private tuple a b =
-    a, b
-
-let private initialize =
-        tuple <!> (!. Request.meth) <*> (!. Request.path)
-    >>= initializeRecord
-
-let private runtime =
-    { Initialize = initialize }
-
-(* Inspection *)
-
-let private data =
-     flip (^?.) recordPLens >> Option.map Json.serialize
-
-let private inspection =
-    { Data = data }
-
-(* Inspector *)
-
-let freyaRequestInspector =
-    { Key = recordKey
-      Runtime = runtime
-      Inspection = inspection }
+[<assembly: InternalsVisibleTo ("Freya.Router.Inspector")>]
+do ()

@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Router.Compilation
 
 open Aether
@@ -36,7 +36,7 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
 
-    static member GraphIso : Iso<CompilationGraph, Graph<CompilationKey, CompilationNode, CompilationEdge>> =
+    static member Graph_ =
         (fun (Graph g) -> g), (fun g -> Graph g)
 
 and CompilationKey =
@@ -61,14 +61,11 @@ and CompilationEdge =
 let private defaultCompilationGraph =
     Graph (Graph.create [ Root, Empty ] [])
 
-(* Lenses
+(* Lenses *)
 
-   Lenses used within compilation to provide access in to the complex
-   data structure(s) used as a routing graph. *)
-
-let graphLens =
-         idLens
-    <--> CompilationGraph.GraphIso
+let private compilationGraph_ =
+        idLens
+   <--> CompilationGraph.Graph_
 
 (* Patterns
 
@@ -139,7 +136,7 @@ let rec private addRoute current graph route =
             ((fun graph ->
                 (match Graph.containsNode last graph with
                  | false -> addNode last >> updateNode last meth pipe >> addEdge current last part
-                 | _ -> updateNode last meth pipe) graph) ^%= graphLens) graph
+                 | _ -> updateNode last meth pipe) graph) ^%= compilationGraph_) graph
 
         graph
     | Next (part, route) ->
@@ -150,7 +147,7 @@ let rec private addRoute current graph route =
             ((fun graph ->
                 (match Graph.containsNode next graph with
                  | false -> addNode next >> addEdge current next part
-                 | _ -> id) graph) ^%= graphLens) graph
+                 | _ -> id) graph) ^%= compilationGraph_) graph
 
         addRoute next graph route
     | _ ->

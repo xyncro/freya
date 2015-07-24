@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module Freya.Machine.Configuration
 
 open Aether
@@ -27,8 +27,8 @@ open Freya.Core
 
 (* Lenses *)
 
-let private configPLens<'a> key =
-         FreyaMachineConfiguration.DataLens
+let private config_<'a> key =
+         FreyaMachineConfiguration.Data_
     >-?> mapPLens key
     <?-> boxIso<'a>
 
@@ -38,11 +38,11 @@ let private configPLens<'a> key =
    machine specifications, in a typed way (imposes a boxing and unboxing
    overhead, but is only used at reification time in general cases. *)
 
-let tryGetConfig<'a> key =
-    flip (^?.) (configPLens<'a> key)
+let tryGet<'a> key =
+    flip (^?.) (config_<'a> key)
 
-let tryGetConfigOrElse key def =
-    tryGetConfig key >> Option.orElse def
+let tryGetOrElse key def =
+    tryGet key >> Option.orElse def
 
-let setConfig<'a> key =
-    flip (^?=) (configPLens<'a> key)
+let set<'a> key =
+    flip (^?=) (config_<'a> key)

@@ -35,10 +35,10 @@ open Arachne.Uri.Template
 (* Route *)
 
 let private id =
-    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.atom "id"))
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.Atom_ "id"))
 
 let private extension =
-    Freya.memo (Option.get <!> (!?.) (Route.atom "ext"))
+    Freya.memo (Option.get <!> (!?.) (Route.Atom_ "ext"))
 
 (* Data *)
 
@@ -46,20 +46,20 @@ let private recordHeaders =
         List.map (fun (record: FreyaRecorderRecord) ->
             { FreyaRecorderRecordHeader.Id = record.Id
               Timestamp = record.Timestamp }) >> Json.serialize
-    <!> listRecords
+    <!> FreyaRecorder.History.list
 
 let private recordDetail =
         Option.map (fun (record: FreyaRecorderRecord) ->
             { Id = record.Id
               Timestamp = record.Timestamp
               Extensions = (Map.toList >> List.map fst) record.Data } |> Json.serialize)
-    <!> (getRecord =<< id)
+    <!> (FreyaRecorder.History.tryFind =<< id)
 
 let private inspectionData inspectors =
         fun record ext ->
             Map.tryFind ext inspectors
-            |> Option.bind (fun i -> Option.bind i.Inspection.Data record)
-    <!> (getRecord =<< id)
+            |> Option.bind (fun i -> Option.bind i.Inspection.Extract record)
+    <!> (FreyaRecorder.History.tryFind =<< id)
     <*> extension
 
 (* Functions *)

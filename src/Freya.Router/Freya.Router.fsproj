@@ -50,6 +50,7 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Builder.fs" />
     <Compile Include="Lenses.fs" />
@@ -146,17 +147,6 @@
       <ItemGroup>
         <Reference Include="Arachne.Uri.Template">
           <HintPath>..\..\packages\Arachne.Uri.Template\lib\net45\Arachne.Uri.Template.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch')">
-      <ItemGroup>
-        <Reference Include="Chiron">
-          <HintPath>..\..\packages\Chiron\lib\net45\Chiron.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

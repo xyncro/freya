@@ -19,42 +19,11 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Inspector.Recording
+module internal Freya.Machine.Prelude
 
-open Aether
-open Aether.Operators
-open Chiron
-open Chiron.Operators
-open Freya.Recorder
-open Arachne.Http
+open System.Runtime.CompilerServices
 
-(* Keys *)
+(* Internals *)
 
-let [<Literal>] internal recordKey =
-    "request"
-
-(* Types *)
-
-type FreyaRequestRecord =
-    { Method: Method
-      Path: string }
-
-    static member ToJson (x: FreyaRequestRecord) =
-            Json.write "method" (x.Method.ToString ())
-         *> Json.write "path" x.Path
-
-(* Constructors *)
-
-let private freyaRequestRecord meth path =
-    { Method = meth
-      Path = path }
-
-(* Lenses *)
-
-let internal recordPLens =
-    freyaRecordDataPLens<FreyaRequestRecord> recordKey
-
-(* Initialization *)
-
-let internal initializeRecord (meth, path) =
-    updateRecord ((freyaRequestRecord meth path) ^?= recordPLens)
+[<assembly:InternalsVisibleTo ("Freya.Machine.Inspector")>]
+do ()

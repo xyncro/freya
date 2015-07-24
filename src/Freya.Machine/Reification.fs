@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Machine.Reification
 
 open Freya.Core
@@ -47,9 +47,9 @@ let private fail e =
    The graphs are effectively captured as a closure here, eliminating
    concerns about generation efficiency. *)
 
-let private run exec graph =
-        recordDefinition graph
-     *> execute exec
+let private run graph record =
+        Recording.Record.definition record
+     *> Execution.execute graph
      *> Freya.halt
 
 (* Reification
@@ -61,12 +61,12 @@ let private run exec graph =
 let reify machine =
     let _, spec = machine defaultFreyaMachineSpecification
 
-    match precompile spec.Extensions with
-    | Precompilation precompilation ->
-        match compile spec.Configuration precompilation with
-        | Compilation (compilation, metadata) ->
-            match verify compilation with
-            | Verification compilation -> run compilation (createGraphRecord metadata)
+    match Precompilation.precompile spec.Extensions with
+    | Precompilation.Precompilation precompilation ->
+        match Compilation.compile spec.Configuration precompilation with
+        | Compilation.Compilation (compilation, metadata) ->
+            match Verification.verify compilation with
+            | Verification.Verification compilation -> run compilation (Recording.graphRecord metadata)
             | Verification.Error e -> fail e
         | Compilation.Error e ->
             fail e

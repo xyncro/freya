@@ -1,3 +1,8 @@
+### New in 2.0.0 - (Released 2015-07-24)
+* Lens naming changed to conform to emerging consensus of <Property>_ styling
+* Internal refactoring for greater clarity
+* Updated version of Arachne with additional lenses in to URI types
+
 ### New in 1.0.0 - (Released 2015-06-05)
 * `Arachne` moved to `Arachne`
 * `Freya.Types.Http` renamed `Freya.Lenses.Http` and now takes a dependency on `Arachne.Http` and exposes only the Freya lenses

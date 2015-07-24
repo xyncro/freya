@@ -81,19 +81,19 @@ module Cors =
 
     let private accessControlAllowMethods corsMethodsAllowed =
             AccessControlAllowMethods <!> corsMethodsAllowed
-        >>= Freya.setLensPartial Response.Headers.accessControlAllowMethods
+        >>= Freya.setLensPartial Response.Headers.AccessControlAllowMethods_
 
     let private accessControlExposeHeaders corsHeadersExposed =
             AccessControlExposeHeaders <!> corsHeadersExposed
-        >>= Freya.setLensPartial Response.Headers.accessControlExposeHeaders
+        >>= Freya.setLensPartial Response.Headers.AccessControlExposeHeaders_
 
     let private accessControlAllowHeaders corsHeadersAllowed =
             AccessControlAllowHeaders <!> corsHeadersAllowed
-        >>= Freya.setLensPartial Response.Headers.accessControlAllowHeaders
+        >>= Freya.setLensPartial Response.Headers.AccessControlAllowHeaders_
 
     let private accessControlAllowOrigin origin =
             (Origins >> AccessControlAllowOrigin) <!> origin
-        >>= Freya.setLensPartial Response.Headers.accessControlAllowOrigin 
+        >>= Freya.setLensPartial Response.Headers.AccessControlAllowOrigin_ 
 
     let actual =
         accessControlExposeHeaders

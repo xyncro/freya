@@ -25,6 +25,7 @@ open System.Collections.Generic
 open System.IO
 open Aether.Operators
 open Arachne.Http
+open Arachne.Uri
 open Freya.Core
 
 (* Request Lenses *)
@@ -32,288 +33,288 @@ open Freya.Core
 [<RequireQualifiedAccess>]
 module Request =
 
-    let body =
-        environmentKeyLens<Stream> Constants.requestBody
+    let Body_ =
+        Environment.Required_<Stream> Constants.requestBody
 
-    let headers =
-        environmentKeyLens<IDictionary<string, string []>> Constants.requestHeaders
+    let Headers_ =
+        Environment.Required_<IDictionary<string, string []>> Constants.requestHeaders
 
-    let headersKey key =
-        headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+    let Header_ key =
+        Headers_ >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
-    let meth = 
-        environmentKeyLens<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
+    let Method_ = 
+        Environment.Required_<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
 
-    let path = 
-        environmentKeyLens<string> Constants.requestPath
+    let Path_ =
+        Environment.Required_<string> Constants.requestPath
 
-    let pathBase =
-        environmentKeyLens<string> Constants.requestPathBase
+    let PathBase_ =
+        Environment.Required_<string> Constants.requestPathBase
 
-    let httpVersion =
-        environmentKeyLens<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
+    let HttpVersion_ =
+        Environment.Required_<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
 
-    let scheme =
-        environmentKeyLens<string> Constants.requestScheme
+    let Scheme_ =
+        Environment.Required_<string> Constants.requestScheme <--> (Scheme.Parse, Scheme.Format)
 
-    let query =
-        environmentKeyLens<string> Constants.requestQueryString // <--> TODO: Isomorphism
+    let Query_ =
+        Environment.Required_<string> Constants.requestQueryString <--> (Query.Parse, Query.Format)
 
 // TODO: Reinstate when query is iso again
 
 //    let queryKey key =
-//        query >-?> mapPheaderPIso key
+//        query >-?> mapPHeader_ key
 
     (* Request Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private headerPIso key tryParse format =
-            headersKey key <??> (tryParse, format)
+        let private header_ key tryParse format =
+            Header_ key <??> (tryParse, format)
 
-        let accept =
-            headerPIso "Accept" Accept.TryParse Accept.Format
+        let Accept_ =
+            header_ "Accept" Accept.TryParse Accept.Format
 
-        let acceptCharset =
-            headerPIso "Accept-Charset" AcceptCharset.TryParse AcceptCharset.Format
+        let AcceptCharset_ =
+            header_ "Accept-Charset" AcceptCharset.TryParse AcceptCharset.Format
 
-        let acceptEncoding =
-            headerPIso "Accept-Encoding" AcceptEncoding.TryParse AcceptEncoding.Format
+        let AcceptEncoding_ =
+            header_ "Accept-Encoding" AcceptEncoding.TryParse AcceptEncoding.Format
 
-        let acceptLanguage =
-            headerPIso "Accept-Language" AcceptLanguage.TryParse AcceptLanguage.Format
+        let AcceptLanguage_ =
+            header_ "Accept-Language" AcceptLanguage.TryParse AcceptLanguage.Format
 
         // TODO: typed Authorization
 
-        let authorization =
-            headersKey "Authorization"
+        let Authorization_ =
+            Header_ "Authorization"
 
-        let cacheControl =
-            headerPIso "Cache-Control" CacheControl.TryParse CacheControl.Format
+        let CacheControl_ =
+            header_ "Cache-Control" CacheControl.TryParse CacheControl.Format
 
-        let connection =
-            headerPIso "Connection" Connection.TryParse Connection.Format
+        let Connection_ =
+            header_ "Connection" Connection.TryParse Connection.Format
 
-        let contentEncoding =
-            headerPIso "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
+        let ContentEncoding_ =
+            header_ "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
 
-        let contentLanguage =
-            headerPIso "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
+        let ContentLanguage_ =
+            header_ "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
 
-        let contentLength =
-            headerPIso "Content-Length" ContentLength.TryParse, ContentLength.Format
+        let ContentLength_ =
+            header_ "Content-Length" ContentLength.TryParse, ContentLength.Format
 
-        let contentLocation =
-            headerPIso "Content-Location" ContentLocation.TryParse, ContentLocation.Format
+        let ContentLocation_ =
+            header_ "Content-Location" ContentLocation.TryParse, ContentLocation.Format
 
-        let contentType =
-            headerPIso "Content-Type" ContentType.TryParse ContentType.Format
+        let ContentType_ =
+            header_ "Content-Type" ContentType.TryParse ContentType.Format
 
-        let date =
-            headerPIso "Date" Date.TryParse Date.Format
+        let Date_ =
+            header_ "Date" Date.TryParse Date.Format
 
-        let expect =
-            headerPIso "Expect" Expect.TryParse Expect.Format
+        let Expect_ =
+            header_ "Expect" Expect.TryParse Expect.Format
 
         // TODO: typed From
 
-        let from =
-            headersKey "From"
+        let From_ =
+            Header_ "From"
 
-        let host =
-            headerPIso "Host" Host.TryParse Host.Format
+        let Host_ =
+            header_ "Host" Host.TryParse Host.Format
 
-        let ifMatch =
-            headerPIso "If-Match" IfMatch.TryParse IfMatch.Format
+        let IfMatch_ =
+            header_ "If-Match" IfMatch.TryParse IfMatch.Format
 
-        let ifModifiedSince =
-            headerPIso "If-Modified-Since" IfModifiedSince.TryParse IfModifiedSince.Format
+        let IfModifiedSince_ =
+            header_ "If-Modified-Since" IfModifiedSince.TryParse IfModifiedSince.Format
 
-        let ifNoneMatch =
-            headerPIso "If-None-Match" IfNoneMatch.TryParse IfNoneMatch.Format
+        let IfNoneMatch_ =
+            header_ "If-None-Match" IfNoneMatch.TryParse IfNoneMatch.Format
 
-        let ifRange =
-            headerPIso "If-Range" IfRange.TryParse IfRange.Format
+        let IfRange_ =
+            header_ "If-Range" IfRange.TryParse IfRange.Format
 
-        let ifUnmodifiedSince =
-            headerPIso "If-Unmodified-Since" IfUnmodifiedSince.TryParse IfUnmodifiedSince.Format
+        let IfUnmodifiedSince_ =
+            header_ "If-Unmodified-Since" IfUnmodifiedSince.TryParse IfUnmodifiedSince.Format
 
-        let maxForwards =
-            headerPIso "Max-Forwards" MaxForwards.TryParse MaxForwards.Format
+        let MaxForwards_ =
+            header_ "Max-Forwards" MaxForwards.TryParse MaxForwards.Format
 
         // TODO: typed Pragma
 
-        let pragma =
-            headersKey "Pragma"
+        let Pragma_ =
+            Header_ "Pragma"
 
         // TODO: typed ProxyAuthorization
 
-        let proxyAuthorization =
-            headersKey "Proxy-Authorization"
+        let ProxyAuthorization_ =
+            Header_ "Proxy-Authorization"
 
         // TODO: typed Range
 
-        let range =
-            headersKey "Range"
+        let Range_ =
+            Header_ "Range"
 
-        let referer =
-            headerPIso "Referer" Referer.TryParse Referer.Format
+        let Referer_ =
+            header_ "Referer" Referer.TryParse Referer.Format
 
         // TODO: typed TE
 
-        let TE =
-            headersKey "TE"
+        let TE_ =
+            Header_ "TE"
 
         // TODO: typed Trailer
 
-        let trailer =
-            headersKey "Trailer"
+        let Trailer_ =
+            Header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let transferEncoding =
-            headersKey "Transfer-Encoding"
+        let TransferEncoding_ =
+            Header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let upgrade =
-            headersKey "Upgrade"
+        let Upgrade_ =
+            Header_ "Upgrade"
 
         // TODO: typed UserAgent
 
-        let userAgent =
-            headersKey "User-Agent"
+        let UserAgent_ =
+            Header_ "User-Agent"
 
         // TODO: typed Via
 
-        let via =
-            headersKey "Via"
+        let Via_ =
+            Header_ "Via"
 
 (* Response Lenses *)
 
 [<RequireQualifiedAccess>]
 module Response =
 
-    let body =
-        environmentKeyLens<Stream> Constants.responseBody
+    let Body_ =
+        Environment.Required_<Stream> Constants.responseBody
 
-    let headers =
-        environmentKeyLens<IDictionary<string, string []>> Constants.responseHeaders
+    let Headers_ =
+        Environment.Required_<IDictionary<string, string []>> Constants.responseHeaders
 
-    let headersKey key =
-        headers >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+    let Header_ key =
+        Headers_ >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
-    let httpVersion =
-        environmentKeyPLens<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
+    let HttpVersion_ =
+        Environment.Optional_<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
 
-    let reasonPhrase =
-        environmentKeyPLens<string> Constants.responseReasonPhrase
+    let ReasonPhrase_ =
+        Environment.Optional_<string> Constants.responseReasonPhrase
 
-    let statusCode =
-        environmentKeyPLens<int> Constants.responseStatusCode
+    let StatusCode_ =
+        Environment.Optional_<int> Constants.responseStatusCode
 
     (* Response Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private headerPIso key tryParse format =
-            headersKey key <??> (tryParse, format)
+        let private header_ key tryParse format =
+            Header_ key <??> (tryParse, format)
 
         // TODO: typed AcceptRanges
 
-        let acceptRanges =
-            headersKey "Accept-Ranges"
+        let AcceptRanges_ =
+            Header_ "Accept-Ranges"
 
-        let age =
-            headerPIso "Age" Age.TryParse Age.Format
+        let Age_ =
+            header_ "Age" Age.TryParse Age.Format
 
-        let allow =
-            headerPIso "Allow" Allow.TryParse Allow.Format
+        let Allow_ =
+            header_ "Allow" Allow.TryParse Allow.Format
 
-        let cacheControl =
-            headerPIso "Cache-Control" CacheControl.TryParse CacheControl.Format
+        let CacheControl_ =
+            header_ "Cache-Control" CacheControl.TryParse CacheControl.Format
 
-        let connection =
-            headerPIso "Connection" Connection.TryParse Connection.Format
+        let Connection_ =
+            header_ "Connection" Connection.TryParse Connection.Format
 
-        let contentEncoding =
-            headerPIso "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
+        let ContentEncoding_ =
+            header_ "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
 
-        let contentLanguage =
-            headerPIso "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
+        let ContentLanguage_ =
+            header_ "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
 
-        let contentLength =
-            headerPIso "Content-Length" ContentLength.TryParse ContentLength.Format
+        let ContentLength_ =
+            header_ "Content-Length" ContentLength.TryParse ContentLength.Format
 
-        let contentLocation =
-            headerPIso "Content-Location" ContentLocation.TryParse ContentLocation.Format
+        let ContentLocation_ =
+            header_ "Content-Location" ContentLocation.TryParse ContentLocation.Format
 
         // TODO: typed ContentRange
 
-        let contentRange =
-            headersKey "Content-Range"
+        let ContentRange_ =
+            Header_ "Content-Range"
 
-        let contentType =
-            headerPIso "Content-Type" ContentType.TryParse ContentType.Format
+        let ContentType_ =
+            header_ "Content-Type" ContentType.TryParse ContentType.Format
 
-        let date =
-            headerPIso "Date" Date.TryParse Date.Format
+        let Date_ =
+            header_ "Date" Date.TryParse Date.Format
 
-        let eTag =
-            headerPIso "ETag" ETag.TryParse ETag.Format
+        let ETag_ =
+            header_ "ETag" ETag.TryParse ETag.Format
 
-        let expires =
-            headerPIso "Expires" Expires.TryParse Expires.Format
+        let Expires_ =
+            header_ "Expires" Expires.TryParse Expires.Format
 
-        let lastModified =
-            headerPIso "Last-Modified" LastModified.TryParse LastModified.Format
+        let LastModified_ =
+            header_ "Last-Modified" LastModified.TryParse LastModified.Format
 
-        let location =
-            headerPIso "Location" Location.TryParse Location.Format
+        let Location_ =
+            header_ "Location" Location.TryParse Location.Format
 
         // TODO: typed ProxyAuthenticate
 
-        let proxyAuthenticate =
-            headersKey "Proxy-Authenticate"
+        let ProxyAuthenticate_ =
+            Header_ "Proxy-Authenticate"
 
         // TODO: typed RetryAfter
 
-        let retryAfter =
-            headerPIso "Retry-After" RetryAfter.TryParse RetryAfter.Format
+        let RetryAfter_ =
+            header_ "Retry-After" RetryAfter.TryParse RetryAfter.Format
 
         // TODO: typed Server
 
-        let server =
-            headersKey "Server"
+        let Server_ =
+            Header_ "Server"
 
         // TODO: typed Trailer
 
-        let trailer =
-            headersKey "Trailer"
+        let Trailer_ =
+            Header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let transferEncoding =
-            headersKey "Transfer-Encoding"
+        let TransferEncoding_ =
+            Header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let upgrade =
-            headersKey "Upgrade"
+        let Upgrade_ =
+            Header_ "Upgrade"
 
         // TODO: typed Vary
 
-        let vary =
-            headersKey "Vary"
+        let Vary_ =
+            Header_ "Vary"
 
         // TODO: typed Warning
 
-        let warning =
-            headersKey "Warning"
+        let Warning_ =
+            Header_ "Warning"
 
         // TODO: typed WWWAuthenticate
 
-        let wwwAuthenticate =
-            headersKey "WWW-Authenticate"
+        let WwwAuthenticate_ =
+            Header_ "WWW-Authenticate"

@@ -55,6 +55,16 @@
       <Name>Freya.Inspector</Name>
       <Project>{27EC7C3C-DAFC-48FC-9953-42C58BF85354}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Lenses.Http.Cors\Freya.Lenses.Http.Cors.fsproj">
+      <Name>Freya.Lenses.Http.Cors</Name>
+      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
+      <Name>Freya.Lenses.Http</Name>
+      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
       <Name>Freya.Machine.Extensions.Http</Name>
       <Project>{F394E9C1-0681-4653-B946-30C4FBA1226F}</Project>

@@ -32,38 +32,38 @@ open Freya.Machine.Operators
 (* Helpers *)
 
 let private allow =
-       tryGetConfig Configuration.MethodsSupported
-    >> Option.map (fun x -> (.?=) Response.Headers.allow =<< (Allow <!> x))
-    >> Option.orElse ((.?=) Response.Headers.allow =<< (Allow <!> Defaults.methodsSupported))
+       Configuration.tryGet Properties.MethodsSupported
+    >> Option.map (fun x -> (.?=) Response.Headers.Allow_ =<< (Allow <!> x))
+    >> Option.orElse ((.?=) Response.Headers.Allow_ =<< (Allow <!> Defaults.methodsSupported))
 
 let private date =
-    (.?=) Response.Headers.date (Date.Date DateTime.UtcNow)
+    (.?=) Response.Headers.Date_ (Date.Date DateTime.UtcNow)
 
 let private eTag =
-       tryGetConfig Configuration.ETag
-    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
+       Configuration.tryGet Properties.ETag
+    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private expires =
-       tryGetConfig Configuration.Expires 
-    >> Option.map (fun x -> (.?=) Response.Headers.expires =<< (Expires <!> x))
+       Configuration.tryGet Properties.Expires 
+    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
     >> Option.orElse (Freya.init ())
 
 let private lastModified =
-       tryGetConfig Configuration.LastModified 
-    >> Option.map (fun x -> (.?=) Response.Headers.lastModified =<< (LastModified <!> x))
+       Configuration.tryGet Properties.LastModified 
+    >> Option.map (fun x -> (.?=) Response.Headers.LastModified_ =<< (LastModified <!> x))
     >> Option.orElse (Freya.init ())
 
 let private location =
-       tryGetConfig Configuration.Location
-    >> Option.map (fun x -> (.?=) Response.Headers.location =<< (Location <!> x))
+       Configuration.tryGet Properties.Location
+    >> Option.map (fun x -> (.?=) Response.Headers.Location_ =<< (Location <!> x))
     >> Option.orElse (Freya.init ())
 
 let private phrase =
-    (.?=) Response.reasonPhrase
+    (.?=) Response.ReasonPhrase_
 
 let private status =
-    (.?=) Response.statusCode
+    (.?=) Response.StatusCode_
 
 (* Operations *)
 

@@ -40,23 +40,22 @@ let [<Literal>] private dataKey =
 [<RequireQualifiedAccess>]
 module Route =
 
-    let data =
-             environmentKeyPLens dataKey 
-        <?-> boxIso<UriTemplateData>
+    let Data_ =
+            Environment.Optional_ dataKey 
 
-    let value key =
-             data 
-        <?-> UriTemplateData.UriTemplateDataIso
-        >??> mapPLens (Key key)
+    let Value_ key =
+            Data_ 
+       <?-> UriTemplateData.UriTemplateData_
+       >??> mapPLens (Key key)
 
-    let atom key =
-             value key
-        <??> UriTemplateValue.AtomPIso
+    let Atom_ key =
+            Value_ key
+       <??> UriTemplateValue.Atom_
 
-    let list key =
-             value key
-        <??> UriTemplateValue.ListPIso
+    let List_ key =
+            Value_ key
+       <??> UriTemplateValue.List_
 
-    let keys key =
-             value key
-        <??> UriTemplateValue.KeysPIso
+    let Keys_ key =
+            Value_ key
+       <??> UriTemplateValue.Keys_

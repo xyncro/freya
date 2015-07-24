@@ -34,137 +34,137 @@ let private systemDecision f =
         Compiled (Binary (f config), unconfigurable)))
 
 let private userDecision key def =
-    Some (Compile (tryGetConfig key
+    Some (Compile (Configuration.tryGet key
         >> Option.map (fun x -> Compiled (Binary x, configured))
         >> Option.orElse (Compiled (Binary (Freya.init def), unconfigured))))
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
-        (!?. Request.Headers.acceptCharset)
-        (tryGetConfigOrElse Configuration.CharsetsSupported Defaults.charsetsSupported config)
+        (!?. Request.Headers.AcceptCharset_)
+        (Configuration.tryGetOrElse Properties.CharsetsSupported Defaults.charsetsSupported config)
 
 let private charsetRequested _ =
     ContentNegotiation.Charset.requested 
-        (!?. Request.Headers.acceptCharset)
+        (!?. Request.Headers.AcceptCharset_)
 
 let private encodingNegotiable config =
     ContentNegotiation.Encoding.negotiable
-        (!?. Request.Headers.acceptEncoding)
-        (tryGetConfigOrElse Configuration.EncodingsSupported Defaults.encodingsSupported config)
+        (!?. Request.Headers.AcceptEncoding_)
+        (Configuration.tryGetOrElse Properties.EncodingsSupported Defaults.encodingsSupported config)
 
 let private encodingRequested _ =
     ContentNegotiation.Encoding.requested 
-        (!?. Request.Headers.acceptEncoding)
+        (!?. Request.Headers.AcceptEncoding_)
 
 let private ifMatchAny _ =
     CacheControl.IfMatch.any 
-        (!?. Request.Headers.ifMatch)
+        (!?. Request.Headers.IfMatch_)
 
 let private ifMatchExistsForMissing _ =
     CacheControl.IfMatch.requested 
-        (!?. Request.Headers.ifMatch)
+        (!?. Request.Headers.IfMatch_)
 
 let private ifMatchRequested _ =
     CacheControl.IfMatch.requested 
-        (!?. Request.Headers.ifMatch)
+        (!?. Request.Headers.IfMatch_)
 
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
-        (!?. Request.Headers.ifModifiedSince)
-        (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
+        (!?. Request.Headers.IfModifiedSince_)
+        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
-        (!?. Request.Headers.ifModifiedSince)
+        (!?. Request.Headers.IfModifiedSince_)
 
 let private ifModifiedSinceValid _ =
     CacheControl.IfModifiedSince.valid
-        (!?. Request.Headers.ifModifiedSince)
+        (!?. Request.Headers.IfModifiedSince_)
 
 let private ifNoneMatchAny _ =
     CacheControl.IfNoneMatch.any
-        (!?. Request.Headers.ifNoneMatch)
+        (!?. Request.Headers.IfNoneMatch_)
 
 let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
-        (!?. Request.Headers.ifNoneMatch)
+        (!?. Request.Headers.IfNoneMatch_)
 
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
-        (!?. Request.Headers.ifUnmodifiedSince)
-        (tryGetConfigOrElse Configuration.LastModified Defaults.lastModified config)
+        (!?. Request.Headers.IfUnmodifiedSince_)
+        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
-        (!?. Request.Headers.ifUnmodifiedSince)
+        (!?. Request.Headers.IfUnmodifiedSince_)
 
 let private ifUnmodifiedSinceValid _ =
     CacheControl.IfUnmodifiedSince.valid
-        (!?. Request.Headers.ifUnmodifiedSince)
+        (!?. Request.Headers.IfUnmodifiedSince_)
 
 let private languageNegotiable config =
     ContentNegotiation.Language.negotiable
-        (!?. Request.Headers.acceptLanguage)
-        (tryGetConfigOrElse Configuration.LanguagesSupported Defaults.languagesSupported config)
+        (!?. Request.Headers.AcceptLanguage_)
+        (Configuration.tryGetOrElse Properties.LanguagesSupported Defaults.languagesSupported config)
 
 let private languageRequested _ =
     ContentNegotiation.Language.requested
-        (!?. Request.Headers.acceptLanguage)
+        (!?. Request.Headers.AcceptLanguage_)
 
 let private mediaTypeNegotiable config =
     ContentNegotiation.MediaType.negotiable
-        (!?. Request.Headers.accept)
-        (tryGetConfigOrElse Configuration.MediaTypesSupported Defaults.mediaTypesSupported config)
+        (!?. Request.Headers.Accept_)
+        (Configuration.tryGetOrElse Properties.MediaTypesSupported Defaults.mediaTypesSupported config)
 
 let private mediaTypeRequested _ =
     ContentNegotiation.MediaType.requested
-        (!?. Request.Headers.accept)
+        (!?. Request.Headers.Accept_)
 
 let private methodDelete _ =
     Method.delete
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodGetOrHead _ =
     Method.getOrHead
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodKnown config =
     Method.known
-        (!. Request.meth)
-        (tryGetConfigOrElse Configuration.MethodsKnown Defaults.methodsKnown config)
+        (!. Request.Method_)
+        (Configuration.tryGetOrElse Properties.MethodsKnown Defaults.methodsKnown config)
 
 let private methodOptions _ =
     Method.options
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPatch _ =
     Method.patch
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPostToExisting _ =
     Method.post
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPostToGone _ =
     Method.post
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPostToMissing _ =
     Method.post
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPut _ =
     Method.put
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodPutToExisting _ =
     Method.put
-        (!. Request.meth)
+        (!. Request.Method_)
 
 let private methodSupported config =
     Method.supported
-        (!. Request.meth)
-        (tryGetConfigOrElse Configuration.MethodsSupported Defaults.methodsSupported config)
+        (!. Request.Method_)
+        (Configuration.tryGetOrElse Properties.MethodsSupported Defaults.methodsSupported config)
 
 (* Graph *)
 

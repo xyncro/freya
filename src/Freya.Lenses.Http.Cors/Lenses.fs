@@ -35,17 +35,17 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private headerPIso key tryParse format =
-            Request.headersKey key <??> (tryParse, format)
+        let private header_ key tryParse format =
+            Request.Header_ key <??> (tryParse, format)
 
-        let accessControlRequestHeaders =
-            headerPIso "Access-Control-Request-Headers" AccessControlRequestHeaders.TryParse AccessControlRequestHeaders.Format
+        let AccessControlRequestHeaders_ =
+            header_ "Access-Control-Request-Headers" AccessControlRequestHeaders.TryParse AccessControlRequestHeaders.Format
 
-        let accessControlRequestMethod =
-            headerPIso "Access-Control-Request-Method" AccessControlRequestMethod.TryParse AccessControlRequestMethod.Format
+        let AccessControlRequestMethod_ =
+            header_ "Access-Control-Request-Method" AccessControlRequestMethod.TryParse AccessControlRequestMethod.Format
 
-        let origin =
-            headerPIso "Origin" Origin.TryParse Origin.Format
+        let Origin_ =
+            header_ "Origin" Origin.TryParse Origin.Format
 
 (* Response Lenses *)
 
@@ -57,23 +57,23 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private headerPIso key tryParse format =
-            Response.headersKey key <??> (tryParse, format)
+        let private header_ key tryParse format =
+            Response.Header_ key <??> (tryParse, format)
 
-        let accessControlAllowCredentials =
-            headerPIso "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
+        let AccessControlAllowCredentials_ =
+            header_ "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
 
-        let accessControlAllowHeaders =
-            headerPIso "Access-Control-Allow-Headers" AccessControlAllowHeaders.TryParse AccessControlAllowHeaders.Format
+        let AccessControlAllowHeaders_ =
+            header_ "Access-Control-Allow-Headers" AccessControlAllowHeaders.TryParse AccessControlAllowHeaders.Format
 
-        let accessControlAllowMethods =
-            headerPIso "Access-Control-Allow-Methods" AccessControlAllowMethods.TryParse AccessControlAllowMethods.Format
+        let AccessControlAllowMethods_ =
+            header_ "Access-Control-Allow-Methods" AccessControlAllowMethods.TryParse AccessControlAllowMethods.Format
 
-        let accessControlAllowOrigin =
-            headerPIso "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
+        let AccessControlAllowOrigin_ =
+            header_ "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
 
-        let accessControlExposeHeaders =
-            headerPIso "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
+        let AccessControlExposeHeaders_ =
+            header_ "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
 
-        let accessControlMaxAge =
-            headerPIso "Access-Control-Max-Age" AccessControlMaxAge.TryParse AccessControlMaxAge.Format
+        let AccessControlMaxAge_ =
+            header_ "Access-Control-Max-Age" AccessControlMaxAge.TryParse AccessControlMaxAge.Format

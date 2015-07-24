@@ -28,7 +28,7 @@ open Freya.Machine.Operators
 (* Actions *)
 
 let private userAction key =
-    Some (Compile (tryGetConfig key
+    Some (Compile (Configuration.tryGet key
         >> Option.map (fun x -> Compiled (Unary x, configured))
         >> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 

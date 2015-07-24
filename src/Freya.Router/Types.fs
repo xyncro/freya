@@ -21,7 +21,6 @@
 [<AutoOpen>]
 module Freya.Router.Types
 
-open Aether
 open Freya.Core
 open Arachne.Http
 open Arachne.Uri.Template
@@ -34,7 +33,7 @@ type FreyaRoute =
       Template: UriTemplate
       Pipeline: FreyaPipeline }
 
-    static member TemplateLens : Lens<FreyaRoute, UriTemplate> =
+    static member Template_ =
         (fun x -> x.Template), (fun t x -> { x with Template = t })
 
 and FreyaRouteSpecification =

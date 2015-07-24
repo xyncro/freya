@@ -32,7 +32,7 @@ open Freya.Machine
 (* Helper Functions *)
 
 let private setConfig<'a> key a =
-    Lens.map FreyaMachineSpecification.ConfigurationLens (setConfig<'a> key a)
+    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key a)
 
 (* Custom Operations
 
@@ -59,48 +59,6 @@ type FreyaMachineBuilder with
     [<CustomOperation (Actions.Put, MaintainsVariableSpaceUsingBind = true)>]
     member x.DoPut (m, put) =
         x.Map (m, setConfig Actions.Put put)
-
-    (* Configuration *)
-
-    [<CustomOperation (Configuration.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CharsetsSupported (m, charsets: Freya<Charset list>) = 
-        x.Map (m, setConfig Configuration.CharsetsSupported charsets)
-
-    [<CustomOperation (Configuration.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.EncodingsSupported (m, encodings: Freya<ContentCoding list>) = 
-        x.Map (m, setConfig Configuration.EncodingsSupported encodings)
-
-    [<CustomOperation (Configuration.ETag, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ETag (m, etag: Freya<EntityTag>) = 
-        x.Map (m, setConfig Configuration.ETag etag)
-
-    [<CustomOperation (Configuration.Expires, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Expires (m, expires: Freya<DateTime>) = 
-        x.Map (m, setConfig Configuration.Expires expires)
-
-    [<CustomOperation (Configuration.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LanguagesSupported (m, languages: Freya<LanguageTag list>) = 
-        x.Map (m, setConfig Configuration.LanguagesSupported languages)
-
-    [<CustomOperation (Configuration.LastModified, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LastModified (m, modified: Freya<DateTime>) = 
-        x.Map (m, setConfig Configuration.LastModified modified)
-
-    [<CustomOperation (Configuration.Location, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Location (m, location: Freya<UriReference>) = 
-        x.Map (m, setConfig Configuration.Location location)
-
-    [<CustomOperation (Configuration.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MediaTypesSupported (m, mediaTypes: Freya<MediaType list>) =
-        x.Map (m, setConfig Configuration.MediaTypesSupported mediaTypes)
-
-    [<CustomOperation (Configuration.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsKnown (m, methods: Freya<Method list>) = 
-        x.Map (m, setConfig Configuration.MethodsKnown methods)
-
-    [<CustomOperation (Configuration.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsSupported (m, methods: Freya<Method list>) = 
-        x.Map (m, setConfig Configuration.MethodsSupported methods)
 
     (* Decisions *)
 
@@ -325,3 +283,45 @@ type FreyaMachineBuilder with
     [<CustomOperation (Handlers.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
     member x.HandleServiceUnavailable (m, h: Specification -> Freya<Representation>) = 
         x.Map (m, setConfig Handlers.ServiceUnavailable h)
+
+    (* Properties *)
+
+    [<CustomOperation (Properties.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.CharsetsSupported (m, charsets: Freya<Charset list>) = 
+        x.Map (m, setConfig Properties.CharsetsSupported charsets)
+
+    [<CustomOperation (Properties.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.EncodingsSupported (m, encodings: Freya<ContentCoding list>) = 
+        x.Map (m, setConfig Properties.EncodingsSupported encodings)
+
+    [<CustomOperation (Properties.ETag, MaintainsVariableSpaceUsingBind = true)>]
+    member x.ETag (m, etag: Freya<EntityTag>) = 
+        x.Map (m, setConfig Properties.ETag etag)
+
+    [<CustomOperation (Properties.Expires, MaintainsVariableSpaceUsingBind = true)>]
+    member x.Expires (m, expires: Freya<DateTime>) = 
+        x.Map (m, setConfig Properties.Expires expires)
+
+    [<CustomOperation (Properties.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.LanguagesSupported (m, languages: Freya<LanguageTag list>) = 
+        x.Map (m, setConfig Properties.LanguagesSupported languages)
+
+    [<CustomOperation (Properties.LastModified, MaintainsVariableSpaceUsingBind = true)>]
+    member x.LastModified (m, modified: Freya<DateTime>) = 
+        x.Map (m, setConfig Properties.LastModified modified)
+
+    [<CustomOperation (Properties.Location, MaintainsVariableSpaceUsingBind = true)>]
+    member x.Location (m, location: Freya<UriReference>) = 
+        x.Map (m, setConfig Properties.Location location)
+
+    [<CustomOperation (Properties.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.MediaTypesSupported (m, mediaTypes: Freya<MediaType list>) =
+        x.Map (m, setConfig Properties.MediaTypesSupported mediaTypes)
+
+    [<CustomOperation (Properties.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
+    member x.MethodsKnown (m, methods: Freya<Method list>) = 
+        x.Map (m, setConfig Properties.MethodsKnown methods)
+
+    [<CustomOperation (Properties.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
+    member x.MethodsSupported (m, methods: Freya<Method list>) = 
+        x.Map (m, setConfig Properties.MethodsSupported methods)

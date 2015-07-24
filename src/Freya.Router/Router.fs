@@ -24,4 +24,4 @@ module Freya.Router.FreyaRouter
 open Freya.Core
 
 let toPipeline : FreyaRouter -> FreyaPipeline =
-    reify
+    Reification.reify

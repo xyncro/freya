@@ -19,7 +19,7 @@
 
 /// Core combinator definitions for <see cref="Freya{T}" /> computations.
 [<RequireQualifiedAccess>]
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Freya
 
 open System
@@ -125,14 +125,8 @@ let mapLensPartial l f =
    only once per state (commonly once per request in the usual Freya
    usage model). *)
 
-let private memoPLens<'a> key =
-         FreyaState.MetaLens 
-    >--> FreyaMetaState.MemosLens 
-    >-?> mapPLens key
-    <?-> boxIso<'a>
-
 let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memoPLens = memoPLens<'a> (Guid.NewGuid ())
+    let memoPLens = Memo.Id_<'a> (Guid.NewGuid ())
 
     fun state ->
         async {
