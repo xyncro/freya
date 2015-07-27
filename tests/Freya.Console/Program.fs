@@ -1,28 +1,22 @@
 ﻿open Microsoft.Owin.Hosting
 open Arachne.Uri.Template
 open Freya.Core
+open Freya.Lenses.Http
 open Freya.Router
 
 // Handlers
 
-let handlerA =
+let handler x =
     freya {
-        return! Freya.next }
-
-let handlerB =
-    freya {
-        return! Freya.next }
-
-let handlerC =
-    freya {
+        do! Freya.setLensPartial Response.ReasonPhrase_ (sprintf "Handler %s" x)
         return! Freya.next }
 
 // Routing
 
 let routes = freyaRouter {
-    route All (UriTemplate.Parse "/{location}/hello") handlerA
-    route All (UriTemplate.Parse "/{place}/goodbye") handlerB
-    route All (UriTemplate.Parse "/{location}/goodbye") handlerC } |> FreyaRouter.toPipeline
+    route All (UriTemplate.Parse "/{location}/hello") (handler "A")
+    route All (UriTemplate.Parse "/{place}/goodbye") (handler "B")
+    route All (UriTemplate.Parse "/{location}/goodbye") (handler "C") } |> FreyaRouter.toPipeline
 
 // App
 

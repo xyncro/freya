@@ -31,26 +31,32 @@ open Freya.Core.Operators
 open Freya.Lenses.Http
 open Hekate
 
-(* Types *)
+(* Types
+
+   Types representing the potential outcome of a router execution,
+   as well as the intermediate state tracked throughout a traversal
+   of the compiled routing graph.
+
+   We take a n-furcating exhaustive search over the routing space,
+   closing edges as we go, producing a set of all possible matches and the
+   data captured, and then select the highest precedence match. *)
+
+(* Result *)
 
 type private SearchResult =
     | Matched of UriTemplateData * FreyaPipeline
     | Unmatched
 
+(* Traversal *)
+
 type private Traversal =
     | Traversal of TraversalInvariant * TraversalState
-
-    static member Invariant_ =
-        (fun (Traversal (i, _)) -> i), (fun i (Traversal (_, s)) -> Traversal (i, s))
 
     static member State_ =
         (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
 and private TraversalInvariant =
     | Invariant of Method
-
-    static member Method_ =
-        (fun (Invariant m) -> m), (fun m (Invariant (_)) -> Invariant (m))
 
 and private TraversalState =
     | State of TraversalPosition * TraversalData
@@ -76,7 +82,11 @@ and private TraversalData =
     static member Data_ =
         (fun (Data d) -> d), (fun d (Data (_)) -> Data (d))
 
-(* Constructors *)
+(* Constructors
+
+   Construction functions for common types, in this case a simple default
+   traversal, starting at the tree root and capturing no data, with
+   a starting path, and an invariant method on which to match. *)
 
 let private traversal meth path =
     Traversal (
@@ -85,7 +95,11 @@ let private traversal meth path =
             Position (path, Compilation.Root),
             Data (UriTemplateData (Map.empty))))
 
-(* Lenses *)
+(* Lenses
+
+   Lenses in to aspects of the traversal, chiefly the traversal state
+   elements, taking an immutable approach to descending state capture
+   throughout the graph traversal. *)
 
 let private data_ =
         Traversal.State_
@@ -102,14 +116,19 @@ let private path_ =
    >--> TraversalState.Position_
    >--> TraversalPosition.Path_
 
-(* Functions *)
+(* Patterns
 
-let private tryMatch parser path =
-    match run parser path with
-    | Success (data, _, p) -> Some (data, path.Substring (int p.Index))
-    | _ -> None
+   Patterns used to match varying states throughout the traversal process,
+   beginning with the high level states that a traversal may occupy, i.e.
+   working with a candidate match (when the path is exhausted) or working
+   with a progression (the continuation of the current traversal).
 
-(* Patterns *)
+   A pattern for matching paths against the current parser, with data captured
+   and the result paths returned follows, before a filtering pattern to only
+   return candidate endpoints which match the invariant method stored as part
+   of the traversal. *)
+
+(* Traversal *)
 
 let private (|Candidate|_|) =
     function | Traversal (Invariant meth,
@@ -124,6 +143,20 @@ let private (|Progression|_|) =
                               Position (path, key),
                               Data _)) -> Some (key, path)
 
+let private (|Successors|_|) key (Compilation.Graph graph) =
+    match Graph.successors key graph with
+    | Some x -> Some x
+    | _ -> None
+
+(* Matching *)
+
+let private (|Match|_|) parser path =
+    match run parser path with
+    | Success (data, _, p) -> Some (data, path.Substring (int p.Index))
+    | _ -> None
+
+(* Filtering *)
+
 let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
     match Graph.tryFindNode key graph with
     | Some (_, Compilation.Endpoints endpoints) ->
@@ -136,11 +169,6 @@ let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
                     | endpoints -> Some endpoints
     | _ -> None
 
-let private (|Successors|_|) key (Compilation.Graph graph) =
-    match Graph.successors key graph with
-    | Some x -> Some x
-    | _ -> None
-
 (* Traversal *)
 
 let rec private traverse graph traversal =
@@ -149,33 +177,54 @@ let rec private traverse graph traversal =
         match graph with
         | Endpoints key meth endpoints ->
             endpoints
-            |> List.map (fun endpoint -> endpoint, data)
+            |> List.map (fun (Compilation.Endpoint (precedence, _, pipe)) ->
+                precedence, data, pipe)
         | _ -> []
     | Progression (key, path) ->
         match graph with
         | Successors (key) successors ->
             successors
             |> List.map (fun (key', Compilation.Edge parser) ->
-                match tryMatch parser path with
-                | Some (data', path') ->
-                    let traversal' =
-                        traversal
-                        |> Lens.map data_ ((+) data')
-                        |> Lens.set key_ key'
-                        |> Lens.set path_ path'
-
-                    traverse graph traversal'
+                match path with
+                | Match parser (data', path') ->
+                    traversal
+                    |> (^%=) ((+) data') data_
+                    |> (^=) key' key_
+                    |> (^=) path' path_
+                    |> traverse graph
                 | _ ->
                     [])
             |> List.concat
         | _ -> []
     | _ -> []
 
-(* Search *)
+(* Selection
+
+   Select the highest precedence data and pipeline pair from the given set of
+   candidates, using the supplied precedence value. *)
+
+let private select =
+    function | [] ->
+                Freya.init (
+                    Unmatched)
+             | endpoints ->
+                Freya.init (
+                    Matched (
+                        endpoints
+                        |> List.minBy (fun (precedence, _, _) -> precedence)
+                        |> fun (_, data, pipe) -> data, pipe))
+
+(* Search
+
+   Combine a list of all possible route matches and associated captured data,
+   produced by a traversal of the compiled routing graph, with a selection of
+   the matched route (data and pipeline pair) with the highest precedence,
+   as measured by the order in which the routes were declared in the compilation
+   phase. *)
 
 let private search graph =
         traverse graph <!> (traversal <!> (!. Request.Method_) <*> (!. Request.Path_))
-    //>>= traverse graph
+    >>= select
 
 (* Execution
 
@@ -187,13 +236,7 @@ let private search graph =
    In the case of a non-match, fall through to whatever follows the
    router instance. *)
 
-let run x =
-    printfn "%A" x
-    Freya.next
-
 let execute graph =
         search graph
-    >>= function | x -> run x
-
-//    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
-//                 | Unmatched -> Freya.next
+    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
+                 | Unmatched -> Freya.next

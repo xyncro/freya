@@ -43,32 +43,15 @@ and CompilationKey =
     | Root
     | Key of string
 
-    override x.ToString () =
-        match x with
-        | Root -> "<key>"
-        | Key x -> sprintf "<key %s>" x
-
 and CompilationNode =
     | Empty
     | Endpoints of CompilationEndpoint list
 
-    override x.ToString () =
-        match x with
-        | Empty -> "<node>"
-        | Endpoints x -> sprintf "<node %A>" x
-
 and CompilationEndpoint =
     | Endpoint of int * FreyaRouteMethod * FreyaPipeline
 
-    override x.ToString () =
-        match x with
-        | Endpoint (i, m, _) -> sprintf "<endpoint %i:%A>" i m
-
 and CompilationEdge =
     | Edge of Parser<UriTemplateData, unit>
-
-    override x.ToString () =
-        "<edge>"
 
 (* Defaults
 
