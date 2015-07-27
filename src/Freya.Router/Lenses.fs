@@ -23,8 +23,8 @@ module Freya.Router.Lenses
 
 open Aether
 open Aether.Operators
-open Freya.Core
 open Arachne.Uri.Template
+open Freya.Core
 
 (* Keys *)
 

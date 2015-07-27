@@ -73,6 +73,11 @@ and FreyaRouterExecutionStatusRecord =
     | Success
     | Failure
 
+    override x.ToString () =
+        match x with
+        | Success -> "Success"
+        | Failure -> "Failure"
+
 (* Construction *)
 
 let createRecord (Compilation.Graph graph) =
@@ -88,7 +93,7 @@ let createRecord (Compilation.Graph graph) =
                   Methods = [] }
             | Compilation.Key k, Compilation.Endpoints es ->
                 { Key = k
-                  Methods = List.map (fun (Compilation.Endpoint (m, _)) -> m.ToString ()) es })
+                  Methods = List.map (fun (Compilation.Endpoint (_, m, _)) -> m.ToString ()) es })
       Edges =
         Graph.edges graph
         |> List.map (fun (k1, k2, _) ->

@@ -23,9 +23,9 @@ module internal Freya.Router.Compilation
 
 open Aether
 open Aether.Operators
+open Arachne.Uri.Template
 open FParsec
 open Freya.Core
-open Arachne.Uri.Template
 open Hekate
 
 (* Types
@@ -43,15 +43,32 @@ and CompilationKey =
     | Root
     | Key of string
 
+    override x.ToString () =
+        match x with
+        | Root -> "<key>"
+        | Key x -> sprintf "<key %s>" x
+
 and CompilationNode =
     | Empty
     | Endpoints of CompilationEndpoint list
 
+    override x.ToString () =
+        match x with
+        | Empty -> "<node>"
+        | Endpoints x -> sprintf "<node %A>" x
+
 and CompilationEndpoint =
-    | Endpoint of FreyaRouteMethod * FreyaPipeline
+    | Endpoint of int * FreyaRouteMethod * FreyaPipeline
+
+    override x.ToString () =
+        match x with
+        | Endpoint (i, m, _) -> sprintf "<endpoint %i:%A>" i m
 
 and CompilationEdge =
-    | Edge of Parser<UriTemplateData, unit> * int
+    | Edge of Parser<UriTemplateData, unit>
+
+    override x.ToString () =
+        "<edge>"
 
 (* Defaults
 
@@ -111,22 +128,21 @@ let private composeKeys k1 k2 =
 let private addNode key =
     Graph.addNode (key, Empty)
 
-let private updateNode key meth pipe =
+let private updateNode key precedence meth pipe =
     Graph.mapNodes (fun key' node ->
         match key = key' with
         | true ->
             match node with
-            | Empty -> Endpoints [ Endpoint (meth, pipe) ]
-            | Endpoints (endpoints) -> Endpoints (endpoints @ [ Endpoint (meth, pipe) ])
+            | Empty -> Endpoints [ Endpoint (precedence, meth, pipe) ]
+            | Endpoints (endpoints) -> Endpoints (endpoints @ [ Endpoint (precedence, meth, pipe) ])
         | _ ->
             node)
 
 let private addEdge key1 key2 part graph =
     Graph.addEdge (key1, key2,
-        Edge (UriTemplatePart.Matching.Match part,
-              Option.get (Graph.outwardDegree key1 graph))) graph
+        Edge (UriTemplatePart.Matching.Match part)) graph
 
-let rec private addRoute current graph route =
+let rec private addRoute current graph (precedence, route) =
     match route with
     | Last (meth, _, part, pipe) ->
         let last =
@@ -135,8 +151,8 @@ let rec private addRoute current graph route =
         let graph =
             ((fun graph ->
                 (match Graph.containsNode last graph with
-                 | false -> addNode last >> updateNode last meth pipe >> addEdge current last part
-                 | _ -> updateNode last meth pipe) graph) ^%= compilationGraph_) graph
+                 | false -> addNode last >> updateNode last precedence meth pipe >> addEdge current last part
+                 | _ -> updateNode last precedence meth pipe) graph) ^%= compilationGraph_) graph
 
         graph
     | Next (part, route) ->
@@ -149,7 +165,7 @@ let rec private addRoute current graph route =
                  | false -> addNode next >> addEdge current next part
                  | _ -> id) graph) ^%= compilationGraph_) graph
 
-        addRoute next graph route
+        addRoute next graph (precedence, route)
     | _ ->
         graph
 
@@ -160,4 +176,5 @@ let rec private addRoute current graph route =
    directly (and hopefully efficiently). *)
 
 let compile =
-    List.fold (addRoute Root) defaultCompilationGraph
+        List.mapi (fun precedence route -> precedence, route)
+     >> List.fold (addRoute Root) defaultCompilationGraph

@@ -1,54 +1,33 @@
 ﻿open Microsoft.Owin.Hosting
-open Arachne.Http
-open Arachne.Language
 open Arachne.Uri.Template
 open Freya.Core
-open Freya.Core.Operators
-open Freya.Inspector
-open Freya.Machine
-open Freya.Machine.Extensions.Http
-open Freya.Machine.Inspector
 open Freya.Router
-open Freya.Router.Inspector
 
-// Resources
+// Handlers
 
-let ok _ =
+let handlerA =
     freya {
-        return {
-            Data = "Hello World"B
-            Description =
-                { Charset = Some Charset.Utf8
-                  Encodings = None
-                  MediaType = Some MediaType.Text
-                  Languages = Some [ LanguageTag.Parse "en-gb" ] } } }
+        return! Freya.next }
 
-let resource =
-    freyaMachine {
-        using http
-        handleOk ok } |> FreyaMachine.toPipeline
+let handlerB =
+    freya {
+        return! Freya.next }
 
-// Routes
+let handlerC =
+    freya {
+        return! Freya.next }
 
-let routes =
-    freyaRouter {
-        route All (UriTemplate.Parse "/{id}") resource } |> FreyaRouter.toPipeline
+// Routing
 
-// Pipeline
-
-let config =
-    { Inspectors =
-        [ freyaMachineInspector
-          freyaRouterInspector ] }
-
-let pipeline =
-        freyaInspector config
-    >?= routes
+let routes = freyaRouter {
+    route All (UriTemplate.Parse "/{location}/hello") handlerA
+    route All (UriTemplate.Parse "/{place}/goodbye") handlerB
+    route All (UriTemplate.Parse "/{location}/goodbye") handlerC } |> FreyaRouter.toPipeline
 
 // App
 
 let app =
-    OwinAppFunc.ofFreya pipeline
+    OwinAppFunc.ofFreya routes
 
 type App () =
     member __.Configuration () =
