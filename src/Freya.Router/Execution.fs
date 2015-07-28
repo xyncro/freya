@@ -24,6 +24,7 @@ module internal Freya.Router.Execution
 open Aether
 open Aether.Operators
 open Arachne.Http
+open Arachne.Uri
 open Arachne.Uri.Template
 open FParsec
 open Freya.Core
@@ -68,13 +69,16 @@ and private TraversalState =
         (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
 and private TraversalPosition =
-    | Position of string * Compilation.CompilationKey
+    | Position of string * string * Compilation.CompilationKey
 
     static member Path_ =
-        (fun (Position (p, _)) -> p), (fun p (Position (_, k)) -> Position (p, k))
+        (fun (Position (p, _, _)) -> p), (fun p (Position (_, q, k)) -> Position (p, q, k))
+
+    static member Query_ =
+        (fun (Position (_, q, _)) -> q), (fun q (Position (p, _, k)) -> Position (p, q, k))
 
     static member Key_ =
-        (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
+        (fun (Position (_, _, k)) -> k), (fun k (Position (p, q, _)) -> Position (p, q, k))
 
 and private TraversalData =
     | Data of UriTemplateData
@@ -88,11 +92,11 @@ and private TraversalData =
    traversal, starting at the tree root and capturing no data, with
    a starting path, and an invariant method on which to match. *)
 
-let private traversal meth path =
+let private traversal path query meth =
     Traversal (
-        Invariant (meth),
+        Invariant meth,
         State (
-            Position (path, Compilation.Root),
+            Position (path, query, Compilation.Root),
             Data (UriTemplateData (Map.empty))))
 
 (* Lenses
@@ -101,20 +105,39 @@ let private traversal meth path =
    elements, taking an immutable approach to descending state capture
    throughout the graph traversal. *)
 
-let private data_ =
+(* Traversal *)
+
+let private traversalData_ =
         Traversal.State_
    >--> TraversalState.Data_
    >--> TraversalData.Data_
 
-let private key_ =
+let private traversalKey_ =
         Traversal.State_
    >--> TraversalState.Position_
    >--> TraversalPosition.Key_
 
-let private path_ =
+let private traversalPath_ =
         Traversal.State_
    >--> TraversalState.Position_
    >--> TraversalPosition.Path_
+
+let private traversalQuery_ =
+        Traversal.State_
+   >--> TraversalState.Position_
+   >--> TraversalPosition.Query_
+
+(* Request *)
+
+let private requestMethod_ =
+        Request.Method_
+
+let private requestPath_ =
+        Request.Path_
+
+let private requestQuery_ =
+        Request.Query_
+   <--> Query.Query_
 
 (* Patterns
 
@@ -131,11 +154,11 @@ let private path_ =
 (* Traversal *)
 
 let private (|Candidate|_|) =
-    function | Traversal (Invariant m, State (Position ("", k), Data d)) -> Some (k, m, d)
+    function | Traversal (Invariant m, State (Position ("", _, k), Data d)) -> Some (k, m, d)
              | _ -> None
 
 let private (|Progression|_|) =
-    function | Traversal (Invariant _, State (Position (p, k), Data _)) -> Some (k, p)
+    function | Traversal (Invariant _, State (Position (c, _, k), Data _)) -> Some (k, c)
 
 let private (|Successors|_|) key (Compilation.Graph graph) =
     match Graph.successors key graph with
@@ -206,9 +229,9 @@ let rec private traverse graph traversal =
                 match path with
                 | Match parser (data', path') ->
                     traversal
-                    |> Lens.map data_ ((+) data')
-                    |> Lens.set key_ key'
-                    |> Lens.set path_ path'
+                    |> Lens.map traversalData_ ((+) data')
+                    |> Lens.set traversalKey_ key'
+                    |> Lens.set traversalPath_ path'
                     |> traverse graph
                 | _ ->
                     emptyM) successors
@@ -240,7 +263,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> (!. Request.Method_) <*> (!. Request.Path_)
+        traversal <!> !. requestPath_ <*> !. requestQuery_ <*> !. requestMethod_
     >>= traverse graph
     >>= select
 
