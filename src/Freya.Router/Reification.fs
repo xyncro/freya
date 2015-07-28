@@ -32,4 +32,4 @@ let reify router =
     let _, routes = router List.empty
     let graph = Compilation.compile routes
 
-    run graph (Recording.createRecord graph)
+    run graph (Recording.graphRecord graph)

@@ -43,7 +43,7 @@ open Hekate
 
 (* Result *)
 
-type private SearchResult =
+type private ExecutionResult =
     | Matched of UriTemplateData * FreyaPipeline
     | Unmatched
 
@@ -131,17 +131,11 @@ let private path_ =
 (* Traversal *)
 
 let private (|Candidate|_|) =
-    function | Traversal (Invariant meth,
-                          State (
-                              Position ("", key),
-                              Data data)) -> Some (key, meth, data)
+    function | Traversal (Invariant m, State (Position ("", k), Data d)) -> Some (k, m, d)
              | _ -> None
 
 let private (|Progression|_|) =
-    function | Traversal (Invariant _,
-                          State (
-                              Position (path, key),
-                              Data _)) -> Some (key, path)
+    function | Traversal (Invariant _, State (Position (p, k), Data _)) -> Some (k, p)
 
 let private (|Successors|_|) key (Compilation.Graph graph) =
     match Graph.successors key graph with
@@ -169,7 +163,15 @@ let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
                     | endpoints -> Some endpoints
     | _ -> None
 
-(* Traversal *)
+(* Traversal
+
+   Traversal of the compiled routing graph, finding all matches for the
+   path and method in the traversal state. The search is exhaustive, as a
+   search which only finds the first match may not find the match which has
+   the highest declared precendence.
+
+   The exhaustive approach also allows for potential secondary selection
+   strategies in addition to simple precedence selection in future. *)
 
 let private emptyM =
     Freya.init []

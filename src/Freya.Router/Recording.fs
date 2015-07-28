@@ -80,7 +80,7 @@ and FreyaRouterExecutionStatusRecord =
 
 (* Construction *)
 
-let createRecord (Compilation.Graph graph) =
+let graphRecord (Compilation.Graph graph) =
     { Nodes =
         Graph.nodes graph
         |> List.map (fun (v, l) ->
