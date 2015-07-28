@@ -163,7 +163,7 @@ let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
         endpoints
         |> List.filter (
            function | Compilation.Endpoint (_, All, _) -> true
-                    | Compilation.Endpoint (_, Methods methods, _) when List.exists ((=) meth) methods -> true
+                    | Compilation.Endpoint (_, Methods ms, _) when List.exists ((=) meth) ms -> true
                     | _ -> false)
         |> function | [] -> None
                     | endpoints -> Some endpoints
@@ -171,32 +171,47 @@ let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
 
 (* Traversal *)
 
+let private emptyM =
+    Freya.init []
+
+let private foldM f xs state =
+    List.foldBack (fun x (xs, state) ->
+        Async.RunSynchronously (f x state) ||> fun x state ->
+            (x :: xs, state)) xs ([], state)
+
+let private  mapM f xs =
+        foldM f xs <!> Freya.getState
+    >>= fun (xs, state) ->
+                Freya.setState state
+             *> Freya.init xs
+
 let rec private traverse graph traversal =
     match traversal with
     | Candidate (key, meth, data) ->
         match graph with
         | Endpoints key meth endpoints ->
-            endpoints
-            |> List.map (fun (Compilation.Endpoint (precedence, _, pipe)) ->
-                precedence, data, pipe)
-        | _ -> []
+            Freya.init (
+                endpoints
+                |> List.map (fun (Compilation.Endpoint (precedence, _, pipe)) ->
+                    precedence, data, pipe))
+        | _ ->
+            emptyM
     | Progression (key, path) ->
         match graph with
         | Successors (key) successors ->
-            successors
-            |> List.map (fun (key', Compilation.Edge parser) ->
+                List.concat
+            <!> mapM (fun (key', Compilation.Edge parser) ->
                 match path with
                 | Match parser (data', path') ->
                     traversal
-                    |> (^%=) ((+) data') data_
-                    |> (^=) key' key_
-                    |> (^=) path' path_
+                    |> Lens.map data_ ((+) data')
+                    |> Lens.set key_ key'
+                    |> Lens.set path_ path'
                     |> traverse graph
                 | _ ->
-                    [])
-            |> List.concat
-        | _ -> []
-    | _ -> []
+                    emptyM) successors
+        | _ -> emptyM
+    | _ -> emptyM
 
 (* Selection
 
@@ -223,7 +238,8 @@ let private select =
    phase. *)
 
 let private search graph =
-        traverse graph <!> (traversal <!> (!. Request.Method_) <*> (!. Request.Path_))
+        traversal <!> (!. Request.Method_) <*> (!. Request.Path_)
+    >>= traverse graph
     >>= select
 
 (* Execution
