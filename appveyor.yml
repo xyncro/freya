@@ -10,3 +10,5 @@ test: off
 artifacts:
 - path: bin/Freya.*.nupkg
   name: nuget
+- provider: Webhook
+  url: https://webhooks.gitter.im/e/289b3f174c2b681ff11a
