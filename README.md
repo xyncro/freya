@@ -16,18 +16,18 @@ Functional web development in F# based on the [HTTP finite state machine](https:
 
 ## Packages
 
-| Name | NuGet |
-| :------ | :------: |
-| Freya (meta) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.svg?style=flat)](https://www.nuget.org/packages/Freya/) |
-| Freya.Core | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Core.svg?style=flat)](https://www.nuget.org/packages/Freya.Core/) |
-| Freya.Lenses.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http/) |
-| Freya.Lenses.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http.Cors/) |
-| Freya.Recorder | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
-| Freya.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Router/) |
-| Freya.Machine | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
-| Freya.Machine.Router | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Router/) |
-| Freya.Machine.Extensions.Http | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
-| Freya.Machine.Extensions.Http.Cors | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http.Cors/) |
+| Name | Description | NuGet |
+| :------ | :------ | :------: |
+| Freya (meta) | Meta package referencing all other Freya packages [docs](http://docs.freya.io/en/latest/index.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.svg?style=flat)](https://www.nuget.org/packages/Freya/) |
+| Freya.Core | Provides the basic abstractions on which the Freya stack is built. [docs](http://docs.freya.io/en/latest/core/index.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Core.svg?style=flat)](https://www.nuget.org/packages/Freya.Core/) |
+| Freya.Lenses.Http | Provides additional Freya lenses on top of ![Arachne.Http](http://img.shields.io/nuget/v/Arachne.Http.svg?style=flat)](https://www.nuget.org/packages/Arachne.Http/) [docs](http://docs.freya.io/en/latest/types-and-lenses/http.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http/) |
+| Freya.Lenses.Http.Cors | Provides additional Freya lenses on top of ![Arachne.Http.Cors](http://img.shields.io/nuget/v/Arachne.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Arachne.Http.Cors/) [docs](http://docs.freya.io/en/latest/types-and-lenses/http-cors.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Lenses.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Lenses.Http.Cors/) |
+| Freya.Recorder | Records graph interactions for use in logging and visual debugging [docs](http://docs.freya.io/en/latest/index.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Recorder.svg?style=flat)](https://www.nuget.org/packages/Freya.Recorder/) |
+| Freya.Router | Provides a routing mechanism for Freya apps [docs](http://docs.freya.io/en/latest/router/index.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Router/) |
+| Freya.Machine | Provides the Freya Machine graph infrastructure [docs](http://docs.freya.io/en/latest/machine/index.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine/) |
+| Freya.Machine.Router | Provides router integration for Freya Machines [docs](http://docs.freya.io/en/latest/machine/resources.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Router.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Router/) |
+| Freya.Machine.Extensions.Http | Provides the HTTP graph extension for Freya Machine [docs](http://docs.freya.io/en/latest/machine/extensions/http.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http/) |
+| Freya.Machine.Extensions.Http.Cors | Provides CORS extensions to the Freya Machine graph [docs](http://docs.freya.io/en/latest/machine/extensions/http-cors.html) | [![NuGet Status](http://img.shields.io/nuget/v/Freya.Machine.Extensions.Http.Cors.svg?style=flat)](https://www.nuget.org/packages/Freya.Machine.Extensions.Http.Cors/) |
 
 ## Questions?
 
