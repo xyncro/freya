@@ -57,7 +57,7 @@ let [<Literal>] requestId = "owin.RequestId"
 let [<Literal>] requestUser = "owin.RequestUser"
 
 (* 3.2.2 Response Data *)
-    
+
 [<CompiledName ("ResponseStatusCode")>]
 let [<Literal>] responseStatusCode = "owin.ResponseStatusCode"
 
@@ -116,6 +116,9 @@ module CommonKeys =
 
     [<CompiledName ("OnSendingHeaders")>]
     let [<Literal>] onSendingHeaders = "server.OnSendingHeaders"
+
+    [<CompiledName ("ServerName")>]
+    let [<Literal>] serverName = "server.Name"
 
 (* SendFile Extensions
    See [http://owin.org/extensions/owin-SendFile-Extension-v0.3.0.htm] *)
