@@ -1,0 +1,29 @@
+type file
+id Freya
+title Freya
+version 1.0.0
+owners
+    panesofglass
+    kolektiv
+authors Ryan Riley (@panesofglass), Andrew Cherry (@kolektiv)
+summary Freya - A Functional-First F# Web Stack
+description
+    Freya - A Functional-First F# Web Stack
+dependencies
+    Freya.Machine.Extensions.Cors >= 1.0.0
+    Freya.Machine.Router >= 1.0.0
+language en-US
+iconUrl https://raw.githubusercontent.com/freya-fs/freya/master/docs/files/img/logo.png
+licenseUrl https://raw.githubusercontent.com/freya-fs/freya/master/LICENSE.txt
+projectUrl https://github.com/freya-fs/freya
+tags
+    f#
+    fsharp
+    web
+    owin
+    http
+    machine
+releaseNotes
+    * `Arachne` moved to `Arachne`
+    * `Freya.Types.Http` renamed `Freya.Lenses.Http` and now takes a dependency on `Arachne.Http` and exposes only the Freya lenses
+    * `Freya.Types.Http.Cors` renamed `Freya.Lenses.Http.Cors` and now takes a dependency on `Arachne.Http.Cors` and exposes only the Freya lenses
