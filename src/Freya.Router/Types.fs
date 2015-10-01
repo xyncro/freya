@@ -21,9 +21,9 @@
 [<AutoOpen>]
 module Freya.Router.Types
 
-open Freya.Core
 open Arachne.Http
 open Arachne.Uri.Template
+open Freya.Core
 
 (* Routes *)
 

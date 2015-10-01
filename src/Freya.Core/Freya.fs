@@ -76,46 +76,52 @@ let inline map2 f m1 m2 =
 
    Functions for working with the state within a Freya<'T> function. *)
 
-/// Gets the Freya State within a Freya monad
-let getState =
-    fun state -> async { return state, state }
+[<RequireQualifiedAccess>]
+module State =
 
-/// Sets the Freya State within a Freya monad
-let setState state =
-    fun _ -> async { return (), state }
+    /// Gets the Freya State within a Freya monad
+    let get =
+        fun state -> async { return state, state }
 
-/// Modifies the Freya State within a Freya monad
-let mapState f =
-    fun state -> async { return (), f state }
+    /// Sets the Freya State within a Freya monad
+    let set state =
+        fun _ -> async { return (), state }
+
+    /// Modifies the Freya State within a Freya monad
+    let map f =
+        fun state -> async { return (), f state }
 
 (* Lens
 
    Functions for working with the state within a Freya<'T> function, using
    Aether based lenses. *)
 
-/// Gets part of the Core State within a Core monad using an Aether lens
-let getLens l = 
-    map (Lens.get l) getState
+[<RequireQualifiedAccess>]
+module Lens =
 
-/// Gets part of the Core State within a Core monad using a partial Aether lens
-let getLensPartial l = 
-    map (Lens.getPartial l) getState
+    /// Gets part of the Core State within a Core monad using an Aether lens
+    let get l = 
+        map (Lens.get l) State.get
 
-/// Sets part of the Core State within a Core monad using an Aether lens
-let setLens l v =
-    mapState (Lens.set l v)
+    /// Gets part of the Core State within a Core monad using a partial Aether lens
+    let getPartial l = 
+        map (Lens.getPartial l) State.get
 
-/// Sets part of the Core State within a Core monad using a partial Aether lens
-let setLensPartial l v = 
-    mapState (Lens.setPartial l v)
+    /// Sets part of the Core State within a Core monad using an Aether lens
+    let set l v =
+        State.map (Lens.set l v)
 
-/// Modifies part of the Core State within a Core monad using an Aether lens
-let mapLens l f = 
-    mapState (Lens.map l f)
+    /// Sets part of the Core State within a Core monad using a partial Aether lens
+    let setPartial l v = 
+        State.map (Lens.setPartial l v)
 
-/// Modifies part of the Core State within a Core monad using a partial Aether lens
-let mapLensPartial l f = 
-    mapState (Lens.mapPartial l f)
+    /// Modifies part of the Core State within a Core monad using an Aether lens
+    let map l f = 
+        State.map (Lens.map l f)
+
+    /// Modifies part of the Core State within a Core monad using a partial Aether lens
+    let mapPartial l f = 
+        State.map (Lens.mapPartial l f)
 
 (* Memo
 
@@ -130,14 +136,14 @@ let memo<'a> (m: Freya<'a>) : Freya<'a> =
 
     fun state ->
         async {
-            let! memo, state = getLensPartial memoPLens state
+            let! memo, state = Lens.getPartial memoPLens state
 
             match memo with
             | Some memo ->
                 return memo, state
             | _ ->
                 let! memo, state = m state
-                let! _, state = setLensPartial memoPLens memo state
+                let! _, state = Lens.setPartial memoPLens memo state
 
                 return memo, state }
 

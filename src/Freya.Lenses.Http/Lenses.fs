@@ -60,11 +60,6 @@ module Request =
     let Query_ =
         Environment.Required_<string> Constants.requestQueryString <--> (Query.Parse, Query.Format)
 
-// TODO: Reinstate when query is iso again
-
-//    let queryKey key =
-//        query >-?> mapPHeader_ key
-
     (* Request Header Lenses *)
 
     [<RequireQualifiedAccess>]

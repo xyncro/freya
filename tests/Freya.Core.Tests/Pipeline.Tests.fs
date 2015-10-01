@@ -9,8 +9,8 @@ open Freya.Core.Operators
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> Freya.next
-    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> Freya.next
+    let o1 = Freya.State.map (fun x -> x.Environment.["o1"] <- true; x) *> Freya.next
+    let o2 = Freya.State.map (fun x -> x.Environment.["o2"] <- true; x) *> Freya.next
 
     let choice, env = run (o1 >?= o2)
 
@@ -20,8 +20,8 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate`` () =
-    let o1 = Freya.mapState (fun x -> x.Environment.["o1"] <- true; x) *> Freya.halt
-    let o2 = Freya.mapState (fun x -> x.Environment.["o2"] <- true; x) *> Freya.next
+    let o1 = Freya.State.map (fun x -> x.Environment.["o1"] <- true; x) *> Freya.halt
+    let o2 = Freya.State.map (fun x -> x.Environment.["o2"] <- true; x) *> Freya.next
 
     let choice, env = run (o1 >?= o2)
 
