@@ -11,11 +11,11 @@ let private answer_ =
 let ``getLM, setLM, modLM behave correctly`` () =
     let m =
         freya {
-            do! Freya.setLens answer_ 42
-            let! v1 = Freya.getLens answer_
+            do! Freya.Lens.set answer_ 42
+            let! v1 = Freya.Lens.get answer_
 
-            do! Freya.mapLens answer_ ((*) 2)
-            let! v2 = Freya.getLens answer_
+            do! Freya.Lens.map answer_ ((*) 2)
+            let! v2 = Freya.Lens.get answer_
 
             return v1, v2 }
 

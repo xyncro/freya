@@ -8,7 +8,7 @@ open Freya.Router
 
 let handler x =
     freya {
-        do! Freya.setLensPartial Response.ReasonPhrase_ (sprintf "Handler %s" x)
+        do! Freya.Lens.setPartial Response.ReasonPhrase_ (sprintf "Handler %s" x)
         return! Freya.next }
 
 // Routing

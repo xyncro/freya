@@ -58,22 +58,22 @@ let inline (<=<) m1 m2 =
    providing operator based alternatives to Freya.getLens, etc. *)
 
 let inline (!.) l =
-    Freya.getLens l
+    Freya.Lens.get l
 
 let inline (!?.) l =
-    Freya.getLensPartial l
+    Freya.Lens.getPartial l
 
 let inline (.=) l v =
-    Freya.setLens l v
+    Freya.Lens.set l v
 
 let inline (.?=) l v =
-    Freya.setLensPartial l v
+    Freya.Lens.setPartial l v
 
 let inline (%=) l f =
-    Freya.mapLens l f
+    Freya.Lens.map l f
 
 let inline (%?=) l f =
-    Freya.mapLensPartial l f
+    Freya.Lens.mapPartial l f
 
 (* Pipeline *)
 

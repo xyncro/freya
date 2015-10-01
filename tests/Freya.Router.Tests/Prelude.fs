@@ -15,9 +15,6 @@ let private freyaState () =
     let env = 
         Dictionary<string, obj> () :> IDictionary<string, obj>
 
-    env.[Constants.requestPath] <- ""
-    env.[Constants.requestMethod] <- ""
-
     { Environment = env
       Meta =
         { Memos = Map.empty } }
@@ -38,15 +35,15 @@ let private get =
     Lens.getPartial test_
 
 let private set i =
-    Freya.setLensPartial test_ i *> Freya.next
+    Freya.Lens.setPartial test_ i *> Freya.next
 
 let private run meth path query m =
     let router = FreyaRouter.toPipeline m
     let state = freyaState ()
 
-    Async.RunSynchronously ((   Freya.setLens Request.Method_ meth
-                             *> Freya.setLens Request.Path_ path
-                             *> Freya.setLens Request.Query_ query
+    Async.RunSynchronously ((   Freya.Lens.set Request.Method_ meth
+                             *> Freya.Lens.set Request.Path_ path
+                             *> Freya.Lens.set Request.Query_ query
                              *> router) state)
 
 let result meth path query m =

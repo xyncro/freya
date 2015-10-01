@@ -205,9 +205,9 @@ let private foldM f xs state =
             (x :: xs, state)) xs ([], state)
 
 let private  mapM f xs =
-        foldM f xs <!> Freya.getState
+        foldM f xs <!> Freya.State.get
     >>= fun (xs, state) ->
-                Freya.setState state
+                Freya.State.set state
              *> Freya.init xs
 
 let rec private traverse graph traversal =
