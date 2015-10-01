@@ -86,7 +86,11 @@ let setState state =
 
 /// Modifies the Freya State within a Freya monad
 let mapState f =
-    fun state -> async { return (), f state }
+    fun state ->
+        async {
+            let newState = f state
+
+            return (), newState }
 
 (* Lens
 

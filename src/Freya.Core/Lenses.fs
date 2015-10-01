@@ -28,12 +28,12 @@ open Aether.Operators
 module Environment =
 
     let Required_<'a> k =
-                FreyaState.EnvironmentLens
-           >--> mutDictLens<string, obj> k
-           <--> boxIso<'a>
+            FreyaState.Environment_
+       >--> mutDictLens<string, obj> k
+       <--> boxIso<'a>
 
     let Optional_<'a> k =
-            FreyaState.EnvironmentLens
+            FreyaState.Environment_
        >-?> mutDictPLens<string, obj> k
        <?-> boxIso<'a>
 
@@ -41,7 +41,7 @@ module Environment =
 module Memo =
 
     let Id_<'a> i =
-            FreyaState.MetaLens
-       >--> FreyaMetaState.MemosLens
+            FreyaState.Meta_
+       >--> FreyaMetaState.Memos_
        >-?> mapPLens i
        <?-> boxIso<'a>
