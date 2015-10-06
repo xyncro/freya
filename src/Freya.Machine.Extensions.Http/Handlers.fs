@@ -72,7 +72,7 @@ let private charset_ =
    <?-> ContentType.MediaType_
    >?-> MediaType.Parameters_
    <?-> Parameters.Parameters_
-   >??> mapPLens "charset"
+   >??> key_ "charset"
 
 let private charset =
         Option.map (fun (Charset x) -> charset_ .?= x)

@@ -59,7 +59,7 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        idLens
+        id_
    <--> PrecompilationGraph.Graph_
 
 (* Ordering

@@ -64,7 +64,7 @@ let private defaultCompilationGraph =
 (* Lenses *)
 
 let private compilationGraph_ =
-        idLens
+        id_
    <--> CompilationGraph.Graph_
 
 (* Patterns

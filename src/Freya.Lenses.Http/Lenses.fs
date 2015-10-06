@@ -40,7 +40,7 @@ module Request =
         Environment.Required_<IDictionary<string, string []>> Constants.requestHeaders
 
     let Header_ key =
-        Headers_ >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+        Headers_ >-?> mutKeyP_<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let Method_ = 
         Environment.Required_<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
@@ -198,7 +198,7 @@ module Response =
         Environment.Required_<IDictionary<string, string []>> Constants.responseHeaders
 
     let Header_ key =
-        Headers_ >-?> mutDictPLens<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+        Headers_ >-?> mutKeyP_<string, string []> key <?-> ((String.concat ","), (Array.create 1))
 
     let HttpVersion_ =
         Environment.Optional_<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)

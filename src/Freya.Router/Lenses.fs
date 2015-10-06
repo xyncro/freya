@@ -46,7 +46,7 @@ module Route =
     let Value_ key =
             Data_ 
        <?-> UriTemplateData.UriTemplateData_
-       >??> mapPLens (Key key)
+       >??> key_ (Key key)
 
     let Atom_ key =
             Value_ key

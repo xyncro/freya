@@ -29,13 +29,13 @@ module Environment =
 
     let Required_<'a> k =
             FreyaState.Environment_
-       >--> mutDictLens<string, obj> k
-       <--> boxIso<'a>
+       >--> mutKey_<string, obj> k
+       <--> box_<'a>
 
     let Optional_<'a> k =
             FreyaState.Environment_
-       >-?> mutDictPLens<string, obj> k
-       <?-> boxIso<'a>
+       >-?> mutKeyP_<string, obj> k
+       <?-> box_<'a>
 
 [<RequireQualifiedAccess>]
 module Memo =
@@ -43,5 +43,5 @@ module Memo =
     let Id_<'a> i =
             FreyaState.Meta_
        >--> FreyaMetaState.Memos_
-       >-?> mapPLens i
-       <?-> boxIso<'a>
+       >-?> key_ i
+       <?-> box_<'a>
