@@ -83,40 +83,34 @@ let freya =
             { Source =
                 [ { Name = "Freya.Core"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether" ] }
+                        [ Package "Aether" ] }
                   { Name = "Freya.Lenses.Http"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Arachne.Http"
                           Local "Freya.Core" ] }
                   { Name = "Freya.Lenses.Http.Cors"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Arachne.Http.Cors"
                           Local "Freya.Core"
                           Local "Freya.Lenses.Http" ] }
                   { Name = "Freya.Machine"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Hekate"
                           Local "Freya.Core"
                           Local "Freya.Recorder" ] }
                   { Name = "Freya.Machine.Extensions.Http"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Arachne.Http"
                           Local "Freya.Core"
                           Local "Freya.Lenses.Http"
                           Local "Freya.Machine" ] }
                   { Name = "Freya.Machine.Extensions.Http.Cors"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Arachne.Http.Cors"
                           Local "Freya.Core"
                           Local "Freya.Lenses.Http"
@@ -125,20 +119,17 @@ let freya =
                           Local "Freya.Machine.Extensions.Http" ] }
                   { Name = "Freya.Machine.Router"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Local "Freya.Core"
+                        [ Local "Freya.Core"
                           Local "Freya.Machine"
                           Local "Freya.Router" ] }
                   { Name = "Freya.Recorder"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Arachne.Core"
                           Local "Freya.Core" ] }
                   { Name = "Freya.Router"
                     Dependencies =
-                        [ Package "FSharp.Core"
-                          Package "Aether"
+                        [ Package "Aether"
                           Package "Hekate"
                           Package "Arachne.Http"
                           Package "Arachne.Uri.Template"

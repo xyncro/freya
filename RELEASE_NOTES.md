@@ -1,3 +1,6 @@
+### New in 2.0.1 - (Released 2015-10-12)
+* Updated dependencies, and removal of FSharp.Core from produced package dependencies
+
 ### New in 2.0.0 - (Released 2015-07-24)
 * Lens naming changed to conform to emerging consensus of <Property>_ styling
 * Internal refactoring for greater clarity

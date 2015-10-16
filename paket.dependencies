@@ -2,8 +2,8 @@ source https://nuget.org/api/v2
 
 nuget Arachne.Http.Cors
 nuget Arachne.Uri.Template
+nuget Aether
 nuget Chiron
-nuget FSharp.Core 3.1.2.1
 nuget Hekate
 nuget Microsoft.Owin.SelfHost
 nuget Microsoft.Owin.Testing

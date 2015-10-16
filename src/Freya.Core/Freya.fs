@@ -24,8 +24,6 @@ module Freya.Core.Freya
 
 open System
 open Aether
-open Aether.Operators
-open Aether
 
 (* Basic
 
