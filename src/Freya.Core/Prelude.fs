@@ -44,7 +44,7 @@ let compareOn f x (y: obj) =
 (* Lenses *)
 
 /// Defines get and set functions for a <see cref="Lens{T1, T2}" /> over an <see cref="IDictionary{T1, T2}" />.
-let mutDictLens<'k,'v> k : Lens<IDictionary<'k,'v>, 'v> =
+let mutKey_<'k,'v> k : Lens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.[k]),
     (fun v d -> d.[k] <- v; d)
 
@@ -55,14 +55,14 @@ let mutDictLens<'k,'v> k : Lens<IDictionary<'k,'v>, 'v> =
 /// The partial lens uses TryGetValue to retrieve the requested key's value and returns an <see cref="Option{T}" />.
 /// The set function will always add or overwrite the value for key k.
 /// </remarks>
-let mutDictPLens<'k,'v> k : PLens<IDictionary<'k,'v>, 'v> =
+let mutKeyP_<'k,'v> k : PLens<IDictionary<'k,'v>, 'v> =
     (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
     (fun v d -> d.[k] <- v; d)
 
 (* Isomorphisms *)
 
 /// Provides isomorphisms for boxing and unboxing.
-let boxIso<'a> : Iso<obj, 'a> =
+let box_<'a> : Iso<obj, 'a> =
     unbox<'a>, box
 
 (* Functions *)

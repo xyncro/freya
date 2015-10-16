@@ -40,8 +40,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1AF60757
 	ProjectSection(SolutionItems) = preProject
 		tests\Freya.Console\Freya.Console.fsproj.paket.references = tests\Freya.Console\Freya.Console.fsproj.paket.references
 		tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references = tests\Freya.Core.Tests\Freya.Core.Tests.fsproj.paket.references
-		tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj.paket.references = tests\Freya.Integration.Tests\Freya.Integration.Tests.fsproj.paket.references
-		tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references = tests\Freya.Pipeline.Tests\Freya.Pipeline.Tests.fsproj.paket.references
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "machine", "machine", "{6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999}"

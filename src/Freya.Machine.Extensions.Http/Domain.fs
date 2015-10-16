@@ -372,12 +372,12 @@ module Method =
     (* Decisions *)
 
     let known meth known =
-            (fun x -> List.exists (fun x' -> x = x'))
+            fun x -> List.exists (fun x' -> x = x')
         <!> meth
         <*> known
 
     let supported meth supported =
-            (fun x -> List.exists (fun x' -> x = x'))
+            fun x -> List.exists (fun x' -> x = x')
         <!> meth
         <*> supported
 

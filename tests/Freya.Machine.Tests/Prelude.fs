@@ -75,7 +75,7 @@ let readStream (x: Stream) =
 
 let readBody =
     freya {
-        let! body = Freya.getLens Request.Body_
+        let! body = Freya.Lens.get Request.Body_
 
         return readStream body }
 

@@ -51,7 +51,7 @@ type CompilationResult =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        idLens
+        id_
    <--> Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation

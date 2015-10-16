@@ -30,5 +30,5 @@ module Record =
 
     let Record_<'a> key =
             FreyaRecorderRecord.Data_
-       >-?> mapPLens key
-       <?-> boxIso<'a>
+       >-?> key_ key
+       <?-> box_<'a>

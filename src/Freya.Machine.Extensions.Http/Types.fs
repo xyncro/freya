@@ -36,6 +36,14 @@ type Representation =
     { Data: byte []
       Description: Description }
 
+    static member empty =
+        { Data = [||]
+          Description =
+            { Charset = None
+              Encodings = None
+              MediaType = None
+              Languages = None } }
+
 and Specification =
     { Charsets: Negotiation<Charset>
       Encodings: Negotiation<ContentCoding>

@@ -37,11 +37,11 @@ type FreyaState =
     { Environment: FreyaEnvironment
       Meta: FreyaMetaState }
 
-    static member internal EnvironmentLens =
+    static member internal Environment_ =
         (fun x -> x.Environment), 
         (fun e x -> { x with Environment = e })
 
-    static member internal MetaLens =
+    static member internal Meta_ =
         (fun x -> x.Meta), 
         (fun m x -> { x with Meta = m })
 
@@ -55,7 +55,7 @@ type FreyaState =
 and FreyaMetaState =
     { Memos: Map<Guid, obj> }
 
-    static member internal MemosLens =
+    static member internal Memos_ =
         (fun x -> x.Memos),
         (fun m x -> { x with Memos = m })
 

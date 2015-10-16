@@ -29,8 +29,8 @@ open Freya.Core
 
 let private config_<'a> key =
          FreyaMachineConfiguration.Data_
-    >-?> mapPLens key
-    <?-> boxIso<'a>
+    >-?> key_ key
+    <?-> box_<'a>
 
 (* Configuration
 

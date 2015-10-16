@@ -2,13 +2,13 @@ source https://nuget.org/api/v2
 
 nuget Arachne.Http.Cors
 nuget Arachne.Uri.Template
+nuget Aether
 nuget Chiron
 nuget Hekate
 nuget Microsoft.Owin.SelfHost
 nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
-nuget System.Net.Http
 nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake

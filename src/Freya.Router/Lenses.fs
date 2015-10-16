@@ -23,8 +23,8 @@ module Freya.Router.Lenses
 
 open Aether
 open Aether.Operators
-open Freya.Core
 open Arachne.Uri.Template
+open Freya.Core
 
 (* Keys *)
 
@@ -46,7 +46,7 @@ module Route =
     let Value_ key =
             Data_ 
        <?-> UriTemplateData.UriTemplateData_
-       >??> mapPLens (Key key)
+       >??> key_ (Key key)
 
     let Atom_ key =
             Value_ key
