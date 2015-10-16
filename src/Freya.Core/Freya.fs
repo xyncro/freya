@@ -121,6 +121,33 @@ module Lens =
     let mapPartial l f = 
         State.map (Lens.mapPartial l f)
 
+(* Deprecated lens functionality, to be removed in a future
+   release. *)
+
+[<Obsolete ("Use Freya.Lens.get instead.")>]
+let getLens =
+    Lens.get
+
+[<Obsolete ("Use Freya.Lens.getPartial instead.")>]
+let getLensPartial =
+    Lens.getPartial
+
+[<Obsolete ("Use Freya.Lens.set instead.")>]
+let setLens =
+    Lens.set
+
+[<Obsolete ("Use Freya.Lens.setPartial instead.")>]
+let setLensPartial =
+    Lens.setPartial
+
+[<Obsolete ("Use Freya.Lens.map instead.")>]
+let mapLens =
+    Lens.map
+
+[<Obsolete ("Use Freya.Lens.mapPartial instead.")>]
+let mapLensPartial =
+    Lens.mapPartial
+
 (* Memo
 
    Functions for memoizing the result of a Freya<'T> function, storing
