@@ -89,6 +89,21 @@ module State =
     let map f =
         fun state -> async { return (), f state }
 
+(* Deprecated state functionality, to be removed in a future
+   release. *)
+
+[<Obsolete ("Use Freya.State.get instead.")>]
+let getState =
+    State.get
+
+[<Obsolete ("Use Freya.State.set instead.")>]
+let setState =
+    State.set
+
+[<Obsolete ("Use Freya.State.map instead.")>]
+let mapState =
+    State.map
+
 (* Lens
 
    Functions for working with the state within a Freya<'T> function, using
@@ -157,18 +172,18 @@ let mapLensPartial =
    usage model). *)
 
 let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memoPLens = Memo.Id_<'a> (Guid.NewGuid ())
+    let memo_ = Memo.Id_<'a> (Guid.NewGuid ())
 
     fun state ->
         async {
-            let! memo, state = Lens.getPartial memoPLens state
+            let! memo, state = Lens.getPartial memo_ state
 
             match memo with
             | Some memo ->
                 return memo, state
             | _ ->
                 let! memo, state = m state
-                let! _, state = Lens.setPartial memoPLens memo state
+                let! _, state = Lens.setPartial memo_ memo state
 
                 return memo, state }
 
