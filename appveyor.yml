@@ -1,15 +1,20 @@
 version: '{build}'
+branches:
+  except:
+    - gh-pages
 install:
-- git submodule update --init --recursive
+  - git submodule update --init --recursive
 nuget:
   project_feed: true
   disable_publish_on_pr: true
+build:
+  verbosity: minimal
 build_script:
-- build.cmd Default
+  - build.cmd Default
 test: off
 artifacts:
-- path: bin/Freya.*.nupkg
-  name: nuget
+  - path: 'bin/Freya.*.nupkg'
+    name: nuget
 notifications:
-- provider: Webhook
-  url: https://webhooks.gitter.im/e/289b3f174c2b681ff11a
+  - provider: Webhook
+    url: https://webhooks.gitter.im/e/289b3f174c2b681ff11a

@@ -163,12 +163,16 @@ let majorMinorVersion (version: string) =
     let parts = version.Split([|'.'|])
     sprintf "%s.%s" parts.[0] parts.[1]
 
-let nugetVersion =
+let nugetVersion = 
     if isAppVeyorBuild then
-        let parts = release.NugetVersion.Split([|'-'|])
-        if Array.length parts = 2 then
-            sprintf "%s.%s-%s" (majorMinorVersion parts.[0]) buildVersion parts.[1]
-        else sprintf "%s.%s" (majorMinorVersion release.NugetVersion) buildVersion
+        let nugetVersion =
+            let isTagged = Boolean.Parse(environVar "APPVEYOR_REPO_TAG")
+            if isTagged then
+                environVar "APPVEYOR_REPO_TAG_NAME"
+            else
+                sprintf "%s-b%03i" release.NugetVersion (int buildVersion)
+        Shell.Exec("appveyor", sprintf "UpdateBuild -Version \"%s\"" nugetVersion) |> ignore
+        nugetVersion
     else release.NugetVersion
 
 let notes =
