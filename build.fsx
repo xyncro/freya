@@ -215,9 +215,9 @@ let tags (s: Solution) =
 open SourceLink
 
 Target "Publish.Debug" (fun _ ->
-    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" solution.VersionControl.Raw (solution.Name.ToLowerInvariant ())
+    let baseUrl = sprintf "%s/%s/{0}/%%var2%%" freya.VersionControl.Raw (freya.Name.ToLowerInvariant ())
 
-    solution.Structure.Projects.Source
+    freya.Structure.Projects.Source
     |> List.iter (fun project ->
         let release = VsProj.LoadRelease (projectFile project)
         let files = release.Compiles -- "**/AssemblyInfo.fs"
