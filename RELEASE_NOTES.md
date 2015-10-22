@@ -1,6 +1,6 @@
-### New in 2.0.2 - (Released TBD)
+### New in 2.0.201 - (Released TBD)
 
-### New in 2.0.1 - (Released 2015-10-12)
+### New in 2.0.200 - (Released 2015-10-12)
 * Updated dependencies, and removal of FSharp.Core from produced package dependencies
 
 ### New in 2.0.0 - (Released 2015-07-24)
