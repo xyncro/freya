@@ -159,9 +159,13 @@ let assemblyVersion =
 let isAppVeyorBuild =
     environVar "APPVEYOR" <> null
 
-let majorMinorVersion (version: string) =
-    let parts = version.Split([|'.'|])
-    sprintf "%s.%s" parts.[0] parts.[1]
+let defaultTarget =
+    if isAppVeyorBuild then
+        let repositoryDir = environVar "APPVEYOR_BUILD_FOLDER"
+        if repositoryDir <> null && Git.Information.getBranchName repositoryDir = "master"
+        then "Publish"
+        else "Default"
+    else "Default"
 
 let nugetVersion = 
     if isAppVeyorBuild then
@@ -319,4 +323,4 @@ Target "Publish" DoNothing
 
 (* Run *)
 
-RunTargetOrDefault "Default"
+RunTargetOrDefault defaultTarget

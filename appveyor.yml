@@ -1,4 +1,5 @@
 version: '{build}'
+clone_depth: 10
 install:
 - cmd: git submodule update --init --recursive
 nuget:
