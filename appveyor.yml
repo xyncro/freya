@@ -1,11 +1,13 @@
 version: '{build}'
 install:
-- git submodule update --init --recursive
+- cmd: git submodule update --init --recursive
 nuget:
   project_feed: true
   disable_publish_on_pr: true
+build:
+  verbosity: minimal
 build_script:
-- build.cmd Default
+  - build.cmd Default
 test: off
 artifacts:
 - path: bin/Freya.*.nupkg
