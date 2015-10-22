@@ -1,11 +1,19 @@
 version: '{build}'
+clone_depth: 10
 install:
-- git submodule update --init --recursive
+- cmd: git submodule update --init --recursive
 nuget:
   project_feed: true
   disable_publish_on_pr: true
+build:
+  verbosity: minimal
+before_build:
+- ps: Write-Host $env:APPVEYOR_PULL_REQUEST_NUMBER
+- ps: Write-Host $env:APPVEYOR_REPO_BRANCH
 build_script:
-- build.cmd Default
+- ps: >-
+    If($env:APPVEYOR_REPO_BRANCH -eq 'master'){ .\build.cmd Publish }
+    Else { .\build.cmd Default }
 test: off
 artifacts:
 - path: bin/Freya.*.nupkg
