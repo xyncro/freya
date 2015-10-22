@@ -9,6 +9,7 @@ build:
   verbosity: minimal
 before_build:
 - ps: Write-Host $env:APPVEYOR_PULL_REQUEST_NUMBER
+- ps: Write-Host $env:APPVEYOR_REPO_BRANCH
 build_script:
 - ps: >-
     If($env:APPVEYOR_REPO_BRANCH -eq 'master'){ .\build.cmd Publish }
