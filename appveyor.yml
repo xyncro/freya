@@ -11,7 +11,7 @@ before_build:
 - ps: Write-Host $env:APPVEYOR_PULL_REQUEST_NUMBER
 build_script:
 - ps: >-
-    If($env:APPVEYOR_REPO_BRANCH -eq master){ .\build.cmd Publish }
+    If($env:APPVEYOR_REPO_BRANCH -eq 'master'){ .\build.cmd Publish }
     Else { .\build.cmd Default }
 test: off
 artifacts:
