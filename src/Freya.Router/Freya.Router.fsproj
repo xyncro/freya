@@ -64,14 +64,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
       <Name>Freya.Lenses.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Recorder\Freya.Recorder.fsproj">
       <Name>Freya.Recorder</Name>
       <Project>{D9563CFE-4DE3-4398-BAE4-D103843552C0}</Project>
     </ProjectReference>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -80,6 +78,7 @@
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
+    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

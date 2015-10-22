@@ -43,3 +43,4 @@ tools/
 *ncrunch*
 *.userprefs
 AssemblyInfo.fs
+.fake/

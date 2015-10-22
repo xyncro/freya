@@ -64,11 +64,11 @@
     <Compile Include="Extension.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
@@ -77,8 +77,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
       <Name>Freya.Lenses.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine\Freya.Machine.fsproj">
       <Name>Freya.Machine</Name>
