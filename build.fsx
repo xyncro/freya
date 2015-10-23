@@ -207,8 +207,8 @@ let generatePaketTemplate (project : SourceProject) =
 let generateMetaPaketTemplate (projects : SourceProject list) =
     let lines =
         [|  yield "type file"
-            yield "id Freya"
-            yield "title Freya"
+            yield "id " + freya.Name
+            yield "title " + freya.Name
             yield "owners"
             for owner in freya.Metadata.Owners do
                 yield "    " + owner
