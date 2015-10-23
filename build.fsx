@@ -181,7 +181,7 @@ let notes =
     String.concat Environment.NewLine release.Notes
 
 let githubRawUrl branch path =
-    sprintf "%s/%s/%s" freya.VersionControl.Raw branch path
+    sprintf "%s/%s/%s/%s" freya.VersionControl.Raw "freya" branch path
 
 let paketTemplateFile (x: SourceProject) =
     sprintf "src/%s/%s.fsproj.paket.template" x.Name x.Name
@@ -252,9 +252,6 @@ let dependencies (x: SourceProject) =
 
 let projectFile (x: SourceProject) =
     sprintf "src/%s/%s.fsproj" x.Name x.Name
-
-let tags (s: Solution) =
-    String.concat " " s.Metadata.Keywords
 
 #if MONO
 #else
