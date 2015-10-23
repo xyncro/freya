@@ -9,6 +9,7 @@
     <RootNamespace>Freya.Machine.Extensions.Http.Tests</RootNamespace>
     <AssemblyName>Freya.Machine.Extensions.Http.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Freya.Machine.Extensions.Http.Tests</Name>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -67,6 +68,7 @@
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -75,7 +77,6 @@
       <Name>Freya.Machine.Extensions.Http</Name>
       <Project>{F394E9C1-0681-4653-B946-30C4FBA1226F}</Project>
     </ProjectReference>
-    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v3.5' Or $(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6')">

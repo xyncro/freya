@@ -50,7 +50,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="AssemblyInfo.fs" Condition="Exists('AssemblyInfo.fs')" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Defaults.fs" />
@@ -61,6 +61,7 @@
     <Compile Include="Extension.fs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -85,7 +86,6 @@
       <Project>{F394E9C1-0681-4653-B946-30C4FBA1226F}</Project>
       <Name>Freya.Machine.Extensions.Http</Name>
     </ProjectReference>
-    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
