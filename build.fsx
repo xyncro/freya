@@ -80,7 +80,7 @@ let freya =
               "machine" ]
           Info =
             { ReadMe = "README.md"
-              License = "LICENSE.txt"
+              License = "LICENSE.md"
               Notes = "RELEASE_NOTES.md"
               IconUrl = "docs/files/img/logo.png" } }
       Structure =
