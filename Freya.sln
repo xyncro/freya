@@ -89,20 +89,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lenses", "lenses", "{C7604B
 		src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj.paket.references = src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj.paket.references
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{F31B0EA2-B03B-4269-9D1B-BD688179173F}"
-	ProjectSection(SolutionItems) = preProject
-		paket.template = paket.template
-		src\Freya.Core\Freya.Core.fsproj.paket.template = src\Freya.Core\Freya.Core.fsproj.paket.template
-		src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj.paket.template = src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj.paket.template
-		src\Freya.Lenses.Http.Cors\Freya.Lenses.Http.Cors.fsproj.paket.template = src\Freya.Lenses.Http.Cors\Freya.Lenses.Http.Cors.fsproj.paket.template
-		src\Freya.Machine\Freya.Machine.fsproj.paket.template = src\Freya.Machine\Freya.Machine.fsproj.paket.template
-		src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.template = src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj.paket.template
-		src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj.paket.template = src\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj.paket.template
-		src\Freya.Machine.Router\Freya.Machine.Router.fsproj.paket.template = src\Freya.Machine.Router\Freya.Machine.Router.fsproj.paket.template
-		src\Freya.Recorder\Freya.Recorder.fsproj.paket.template = src\Freya.Recorder\Freya.Recorder.fsproj.paket.template
-		src\Freya.Router\Freya.Router.fsproj.paket.template = src\Freya.Router\Freya.Router.fsproj.paket.template
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{4B77A140-D2FF-4C67-BD08-8C0081221263}"
 	ProjectSection(SolutionItems) = preProject
 		build.cmd = build.cmd
@@ -250,7 +236,6 @@ Global
 		{4D494624-6C17-4AC5-AB78-2BF6E05C4B4F} = {87F63A63-9BE7-408B-937D-A4174FCE5734}
 		{432B863E-38B9-4D40-9A6B-1F5B2132D241} = {291EFE25-4571-4F3D-A7A3-A900C66EBA62}
 		{B0FD1DB9-A189-4963-81EC-6F55B45660DB} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
-		{F31B0EA2-B03B-4269-9D1B-BD688179173F} = {432B863E-38B9-4D40-9A6B-1F5B2132D241}
 		{1AF60757-05E6-45AA-AFDA-AE56B3F577A8} = {B0FD1DB9-A189-4963-81EC-6F55B45660DB}
 		{6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999} = {1AF60757-05E6-45AA-AFDA-AE56B3F577A8}
 		{50F16B9C-964A-4949-B696-93D8F0454AFC} = {6DFD92C6-E3CE-4A96-8735-0EF2B6D4A999}
