@@ -37,7 +37,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,13 +58,11 @@
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Lenses.Http.Cors\Freya.Lenses.Http.Cors.fsproj">
       <Name>Freya.Lenses.Http.Cors</Name>
-      <Project>{bd71c030-27bf-47be-8e9b-d07f9a6f52cb}</Project>
-      <Private>True</Private>
+      <Project>{BD71C030-27BF-47BE-8E9B-D07F9A6F52CB}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
       <Name>Freya.Lenses.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
       <Name>Freya.Machine.Extensions.Http</Name>

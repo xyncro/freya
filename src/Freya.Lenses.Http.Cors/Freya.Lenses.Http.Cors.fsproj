@@ -50,16 +50,11 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="AssemblyInfo.fs" Condition="Exists('AssemblyInfo.fs')" />
     <Compile Include="Lenses.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
-      <Name>Freya.Lenses.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,6 +62,10 @@
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
       <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
+      <Name>Freya.Lenses.Http</Name>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

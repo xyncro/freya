@@ -9,6 +9,7 @@
     <RootNamespace>Freya.Core.Tests</RootNamespace>
     <AssemblyName>Freya.Core.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Freya.Core.Tests</Name>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -63,7 +64,7 @@
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

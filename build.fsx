@@ -21,6 +21,7 @@ type Solution =
 and Metadata =
     { Summary: string
       Description: string
+      Owners: string list
       Authors: string list
       Keywords: string list
       Info: Info }
@@ -28,7 +29,8 @@ and Metadata =
 and Info =
     { ReadMe: string
       License: string
-      Notes: string }
+      Notes: string
+      IconUrl: string }
 
 and Structure =
     { Solution: string
@@ -62,10 +64,13 @@ let freya =
     { Name = "Freya"
       Metadata =
         { Summary = "Freya - A Functional-First F# Web Stack"
-          Description = "Freya"
+          Description = "Freya - A Functional-First F# Web Stack"
+          Owners =
+            [ "kolektiv"
+              "panesofglass" ]
           Authors =
-            [ "Ryan Riley (@panesofglass)"
-              "Andrew Cherry (@kolektiv)" ]
+            [ "Andrew Cherry (@kolektiv)"
+              "Ryan Riley (@panesofglass)" ]
           Keywords =
             [ "f#"
               "fsharp"
@@ -75,8 +80,9 @@ let freya =
               "machine" ]
           Info =
             { ReadMe = "README.md"
-              License = "LICENSE.txt"
-              Notes = "RELEASE_NOTES.md" } }
+              License = "LICENSE.md"
+              Notes = "RELEASE_NOTES.md"
+              IconUrl = "docs/files/img/logo.png" } }
       Structure =
         { Solution = "Freya.sln"
           Projects =
@@ -143,7 +149,7 @@ let freya =
                   { Name = "Freya.Router.Tests" } ] } }
       VersionControl =
         { Source = "https://github.com/freya-fs/freya"
-          Raw = "https://raw.github.com/freya-fs" } }
+          Raw = "https://raw.githubusercontent.com/freya-fs" } }
 
 (* Properties
 
@@ -159,20 +165,78 @@ let assemblyVersion =
 let isAppVeyorBuild =
     environVar "APPVEYOR" <> null
 
-let majorMinorVersion (version: string) =
-    let parts = version.Split([|'.'|])
-    sprintf "%s.%s" parts.[0] parts.[1]
-
-let nugetVersion =
+let nugetVersion = 
     if isAppVeyorBuild then
-        let parts = release.NugetVersion.Split([|'-'|])
-        if Array.length parts = 2 then
-            sprintf "%s.%s-%s" (majorMinorVersion parts.[0]) buildVersion parts.[1]
-        else sprintf "%s.%s" (majorMinorVersion release.NugetVersion) buildVersion
+        let nugetVersion =
+            let isTagged = Boolean.Parse(environVar "APPVEYOR_REPO_TAG")
+            if isTagged then
+                environVar "APPVEYOR_REPO_TAG_NAME"
+            else
+                sprintf "%s-b%03i" release.NugetVersion (int buildVersion)
+        Shell.Exec("appveyor", sprintf "UpdateBuild -Version \"%s\"" nugetVersion) |> ignore
+        nugetVersion
     else release.NugetVersion
 
 let notes =
     String.concat Environment.NewLine release.Notes
+
+let githubRawUrl branch path =
+    sprintf "%s/%s/%s/%s" freya.VersionControl.Raw "freya" branch path
+
+let paketTemplateFile (x: SourceProject) =
+    sprintf "src/%s/%s.fsproj.paket.template" x.Name x.Name
+
+let generatePaketTemplate (project : SourceProject) =
+    let lines =
+        [|  yield "type project"
+            yield "owners"
+            for owner in freya.Metadata.Owners do
+                yield "    " + owner
+            yield "language en-US"
+            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
+            yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
+            yield "projectUrl " + freya.VersionControl.Source
+            yield "tags"
+            for tag in freya.Metadata.Keywords do
+                yield "    " + tag |]
+    let text =
+        lines
+        |> Array.fold (fun (sb : Text.StringBuilder) line -> sb.AppendLine line) (Text.StringBuilder())
+    File.WriteAllText(paketTemplateFile project, text.ToString())
+
+let generateMetaPaketTemplate (projects : SourceProject list) =
+    let lines =
+        [|  yield "type file"
+            yield "id " + freya.Name
+            yield "title " + freya.Name
+            yield "owners"
+            for owner in freya.Metadata.Owners do
+                yield "    " + owner
+            yield "authors"
+            for author in freya.Metadata.Authors do
+                yield "    " + author
+            yield "summary " + freya.Metadata.Summary
+            yield "description"
+            yield "    " + freya.Metadata.Description
+            yield "dependencies"
+            for project in projects do
+                yield (sprintf "    %s >= %s" project.Name nugetVersion)
+            yield "language en-US"
+            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
+            yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
+            yield "projectUrl " + freya.VersionControl.Source
+            yield "tags"
+            for tag in freya.Metadata.Keywords do
+                yield "    " + tag |]
+    let text =
+        lines
+        |> Array.fold (fun (sb : Text.StringBuilder) line -> sb.AppendLine line) (Text.StringBuilder())
+    File.WriteAllText("paket.template", text.ToString())
+
+let generatePaketTemplates (projects : SourceProject list) =
+    for project in projects do
+        generatePaketTemplate project
+    generateMetaPaketTemplate projects
 
 (* Targets
 
@@ -186,23 +250,8 @@ let dependencies (x: SourceProject) =
     |> List.map (function | Package x -> x, GetPackageVersion "packages" x
                           | Local x -> x, nugetVersion)
 
-let extensions =
-    [ "dll"
-      "pdb"
-      "xml" ]
-
-let files (x: SourceProject) =
-    extensions
-    |> List.map (fun ext ->
-         sprintf @"..\src\%s\bin\Release\%s.%s" x.Name x.Name ext,
-         Some "lib/net45", 
-         None)
-
 let projectFile (x: SourceProject) =
-    sprintf @"src/%s/%s.fsproj" x.Name x.Name
-
-let tags (s: Solution) =
-    String.concat " " s.Metadata.Keywords
+    sprintf "src/%s/%s.fsproj" x.Name x.Name
 
 #if MONO
 #else
@@ -215,55 +264,22 @@ Target "Publish.Debug" (fun _ ->
 
     freya.Structure.Projects.Source
     |> List.iter (fun project ->
-        use git = new GitRepo __SOURCE_DIRECTORY__
-
         let release = VsProj.LoadRelease (projectFile project)
         let files = release.Compiles -- "**/AssemblyInfo.fs"
-
-        git.VerifyChecksums files
-        release.VerifyPdbChecksums files
-        release.CreateSrcSrv baseUrl git.Commit (git.Paths files)
-        
-        Pdbstr.exec release.OutputFilePdb release.OutputFilePdbSrcSrv))
-
-Target "Publish.MetaPackage" (fun _ ->
-    NuGet (fun x ->
-        { x with
-            AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Authors = freya.Metadata.Authors
-            Dependencies =
-                freya.Structure.Projects.Source
-                |> List.map (fun project ->
-                    project.Name, nugetVersion)
-            Description = freya.Metadata.Description
-            Files = List.empty
-            OutputPath = "bin"
-            Project = "Freya"
-            Publish = hasBuildParam "nugetkey"
-            ReleaseNotes = notes
-            Summary = freya.Metadata.Summary
-            Tags = tags freya
-            Version = nugetVersion }) "nuget/template.nuspec")
-
-Target "Publish.Packages" (fun _ ->
-    freya.Structure.Projects.Source 
-    |> List.iter (fun project ->
-        NuGet (fun x ->
-            { x with
-                AccessKey = getBuildParamOrDefault "nugetkey" ""
-                Authors = freya.Metadata.Authors
-                Dependencies = dependencies project
-                Description = freya.Metadata.Description
-                Files = files project
-                OutputPath = "bin"
-                Project = project.Name
-                Publish = hasBuildParam "nugetkey"
-                ReleaseNotes = notes
-                Summary = freya.Metadata.Summary
-                Tags = tags freya
-                Version = nugetVersion }) "nuget/template.nuspec"))
-
+        SourceLink.Index files release.OutputFilePdb __SOURCE_DIRECTORY__ baseUrl))
 #endif
+
+Target "Publish.Pack" (fun _ ->
+    generatePaketTemplates freya.Structure.Projects.Source
+    Paket.Pack (fun x ->
+        { x with
+            OutputPath = "bin"
+            Version = nugetVersion
+            ReleaseNotes = notes }))
+
+Target "Publish.Push" (fun _ ->
+    Paket.Push (fun p ->
+        { p with WorkingDir = "bin" }))
 
 (* Source *)
 
@@ -327,14 +343,16 @@ Target "Publish" DoNothing
 
 (* Publish *)
 
-"Source"
-#if MONO
-#else
-==> "Publish.Debug"
-==> "Publish.Packages"
-==> "Publish.MetaPackage"
-#endif
+"Default"
+==> "Publish.Push"
 ==> "Publish"
+
+(* Default *)
+
+"Source"
+=?> ("Publish.Debug", not isMono)
+==> "Publish.Pack"
+==> "Default"
 
 (* Source *)
 
@@ -344,12 +362,6 @@ Target "Publish" DoNothing
 ==> "Source.Build"
 ==> "Source.Test"
 ==> "Source"
-
-(* Default *)
-
-"Source"
-==> "Publish"
-==> "Default"
 
 (* Run *)
 

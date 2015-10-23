@@ -10,6 +10,7 @@
     <RootNamespace>Freya.Inspector</RootNamespace>
     <AssemblyName>Freya.Inspector</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Freya.Inspector</Name>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -66,6 +67,7 @@
     <EmbeddedResource Include="..\..\ui\inspector\dist\index.html">
       <Link>content\index.html</Link>
     </EmbeddedResource>
+    <Compile Include="AssemblyInfo.fs" Condition="Exists('AssemblyInfo.fs')" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Content.fs" />
@@ -75,13 +77,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Freya.Core\Freya.Core.fsproj">
       <Name>Freya.Core</Name>
-      <Project>{1aae3d8f-196f-4868-88ab-47d860cf091f}</Project>
-      <Private>True</Private>
+      <Project>{1AAE3D8F-196F-4868-88AB-47D860CF091F}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Lenses.Http\Freya.Lenses.Http.fsproj">
       <Name>Freya.Lenses.Http</Name>
-      <Project>{93e3081c-9430-4e07-b0aa-cad7f7a9c2dc}</Project>
-      <Private>True</Private>
+      <Project>{93E3081C-9430-4E07-B0AA-CAD7F7A9C2DC}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Freya.Machine.Extensions.Http.Cors\Freya.Machine.Extensions.Http.Cors.fsproj">
       <Name>Freya.Machine.Extensions.Http.Cors</Name>
@@ -107,7 +107,7 @@
       <Name>Freya.Router</Name>
       <Project>{23F496CA-50F7-4905-A89D-568D29331D1D}</Project>
     </ProjectReference>
-    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

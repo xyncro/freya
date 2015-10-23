@@ -43,3 +43,5 @@ tools/
 *ncrunch*
 *.userprefs
 AssemblyInfo.fs
+.fake/
+*paket.template
