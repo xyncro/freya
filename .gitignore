@@ -44,4 +44,5 @@ tools/
 *.userprefs
 AssemblyInfo.fs
 .fake/
-*paket.template
+**/*paket.template
+
