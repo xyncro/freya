@@ -1,4 +1,4 @@
-FRAMEWORK: NET45
+FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:
@@ -33,7 +33,7 @@ NUGET
       Aether (>= 7.0.1)
 
 GROUP Build
-FRAMEWORK: NET45
+FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:
@@ -41,7 +41,7 @@ NUGET
     SourceLink.Fake (1.1.0)
 
 GROUP Test
-FRAMEWORK: NET45
+FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:

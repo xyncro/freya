@@ -1,5 +1,5 @@
 source https://nuget.org/api/v2
-framework: net45
+framework: >= net45
 
 nuget Arachne.Http.Cors
 nuget Arachne.Uri.Template
@@ -10,7 +10,7 @@ nuget Hekate
 group Build
 
   source https://nuget.org/api/v2
-  framework: net45
+  framework: >= net45
 
   nuget FAKE
   nuget SourceLink.Fake
@@ -18,7 +18,7 @@ group Build
 group Test
 
   source https://nuget.org/api/v2
-  framework: net45
+  framework: >= net45
 
   nuget Microsoft.Owin.SelfHost
   nuget Microsoft.Owin.Testing
