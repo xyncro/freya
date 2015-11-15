@@ -67,13 +67,6 @@
     <Compile Include="Builder.fs" />
     <Compile Include="Integration.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
       <ItemGroup>
@@ -85,4 +78,11 @@
       </ItemGroup>
     </When>
   </Choose>
+  <ItemGroup>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
 </Project>

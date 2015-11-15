@@ -1,4 +1,7 @@
 Aether
-Microsoft.Owin.SelfHost
 Arachne.Http.Cors
 Arachne.Uri.Template
+
+group Test
+
+  Microsoft.Owin.SelfHost

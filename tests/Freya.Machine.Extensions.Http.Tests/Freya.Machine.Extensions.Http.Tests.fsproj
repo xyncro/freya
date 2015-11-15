@@ -67,17 +67,6 @@
     <Compile Include="Domain.Tests.fs" />
     <Content Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
-      <Name>Freya.Machine.Extensions.Http</Name>
-      <Project>{F394E9C1-0681-4653-B946-30C4FBA1226F}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
       <ItemGroup>
@@ -153,7 +142,7 @@
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
       <ItemGroup>
         <Reference Include="nunit.framework">
-          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+          <HintPath>..\..\packages\test\NUnit\lib\nunit.framework.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
@@ -164,11 +153,22 @@
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
       <ItemGroup>
         <Reference Include="Unquote">
-          <HintPath>..\..\packages\Unquote\lib\net45\Unquote.dll</HintPath>
+          <HintPath>..\..\packages\test\Unquote\lib\net45\Unquote.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
       </ItemGroup>
     </When>
   </Choose>
+  <ItemGroup>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\src\Freya.Machine.Extensions.Http\Freya.Machine.Extensions.Http.fsproj">
+      <Name>Freya.Machine.Extensions.Http</Name>
+      <Project>{F394E9C1-0681-4653-B946-30C4FBA1226F}</Project>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
