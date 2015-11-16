@@ -72,6 +72,12 @@ let inline flip f a b =
 [<RequireQualifiedAccess>]
 module Option =
 
+    let unsafe_ : Isomorphism<'a option,'a> =
+        Option.get, Some
+
+    let mapEpimorphism (e: Epimorphism<'a,'b>) : Isomorphism<'a option,'b option> =
+        Option.bind (fst e), Option.map (snd e)
+
     let mapIsomorphism (i: Isomorphism<'a,'b>) : Isomorphism<'a option, 'b option> =
         Option.map (fst i), Option.map (snd i)
 

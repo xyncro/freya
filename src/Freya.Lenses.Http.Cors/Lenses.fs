@@ -23,6 +23,7 @@ module Freya.Lenses.Http.Cors.Lenses
 
 open Aether.Operators
 open Arachne.Http.Cors
+open Freya.Core
 open Freya.Lenses.Http
 
 (* Request Lenses *)
@@ -35,17 +36,24 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Request.Header_ key <??> (tryParse, format)
+        let private value_ key e =
+                Request.header_ key
+           <--> Option.mapEpimorphism e
 
-        let AccessControlRequestHeaders_ =
-            header_ "Access-Control-Request-Headers" AccessControlRequestHeaders.TryParse AccessControlRequestHeaders.Format
+        let accessControlRequestHeaders_ =
+            value_
+                "Access-Control-Request-Headers"
+                (AccessControlRequestHeaders.TryParse, AccessControlRequestHeaders.Format)
 
-        let AccessControlRequestMethod_ =
-            header_ "Access-Control-Request-Method" AccessControlRequestMethod.TryParse AccessControlRequestMethod.Format
+        let accessControlRequestMethod_ =
+            value_
+                "Access-Control-Request-Method"
+                (AccessControlRequestMethod.TryParse, AccessControlRequestMethod.Format)
 
-        let Origin_ =
-            header_ "Origin" Origin.TryParse Origin.Format
+        let origin_ =
+            value_
+                "Origin"
+                (Origin.TryParse, Origin.Format)
 
 (* Response Lenses *)
 
@@ -57,23 +65,36 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Response.Header_ key <??> (tryParse, format)
+        let private value_ key e =
+                Response.header_ key
+           <--> Option.mapEpimorphism e
 
-        let AccessControlAllowCredentials_ =
-            header_ "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
+        let accessControlAllowCredentials_ =
+            value_
+                "Access-Control-Allow-Credentials"
+                (AccessControlAllowCredentials.TryParse, AccessControlAllowCredentials.Format)
 
-        let AccessControlAllowHeaders_ =
-            header_ "Access-Control-Allow-Headers" AccessControlAllowHeaders.TryParse AccessControlAllowHeaders.Format
+        let accessControlAllowHeaders_ =
+            value_
+                "Access-Control-Allow-Headers"
+                (AccessControlAllowHeaders.TryParse, AccessControlAllowHeaders.Format)
 
-        let AccessControlAllowMethods_ =
-            header_ "Access-Control-Allow-Methods" AccessControlAllowMethods.TryParse AccessControlAllowMethods.Format
+        let accessControlAllowMethods_ =
+            value_
+                "Access-Control-Allow-Methods"
+                (AccessControlAllowMethods.TryParse, AccessControlAllowMethods.Format)
 
-        let AccessControlAllowOrigin_ =
-            header_ "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
+        let accessControlAllowOrigin_ =
+            value_
+                "Access-Control-Allow-Origin"
+                (AccessControlAllowOrigin.TryParse, AccessControlAllowOrigin.Format)
 
-        let AccessControlExposeHeaders_ =
-            header_ "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
+        let accessControlExposeHeaders_ =
+            value_
+                "Access-Control-Expose-Headers"
+                (AccessControlExposeHeaders.TryParse, AccessControlExposeHeaders.Format)
 
-        let AccessControlMaxAge_ =
-            header_ "Access-Control-Max-Age" AccessControlMaxAge.TryParse AccessControlMaxAge.Format
+        let accessControlMaxAge_ =
+            value_
+                "Access-Control-Max-Age"
+                (AccessControlMaxAge.TryParse, AccessControlMaxAge.Format)
