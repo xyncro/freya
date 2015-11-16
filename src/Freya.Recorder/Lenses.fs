@@ -30,5 +30,5 @@ module Record =
 
     let Record_<'a> key =
             FreyaRecorderRecord.Data_
-       >-?> key_ key
-       <?-> box_<'a>
+       >--> Map.value_ key
+       <--> Option.mapIsomorphism box_<'a>
