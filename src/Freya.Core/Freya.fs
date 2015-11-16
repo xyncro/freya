@@ -89,21 +89,6 @@ module State =
     let map f =
         fun state -> async { return (), f state }
 
-(* Deprecated state functionality, to be removed in a future
-   release. *)
-
-[<Obsolete ("Use Freya.State.get instead.")>]
-let getState =
-    State.get
-
-[<Obsolete ("Use Freya.State.set instead.")>]
-let setState =
-    State.set
-
-[<Obsolete ("Use Freya.State.map instead.")>]
-let mapState =
-    State.map
-
 (* Lens
 
    Functions for working with the state within a Freya<'T> function, using
@@ -116,52 +101,32 @@ module Lens =
     let get l = 
         map (Lens.get l) State.get
 
-    /// Gets part of the Core State within a Core monad using a partial Aether lens
-    let getPartial l = 
-        map (Lens.getPartial l) State.get
 
     /// Sets part of the Core State within a Core monad using an Aether lens
     let set l v =
         State.map (Lens.set l v)
 
-    /// Sets part of the Core State within a Core monad using a partial Aether lens
-    let setPartial l v = 
-        State.map (Lens.setPartial l v)
 
     /// Modifies part of the Core State within a Core monad using an Aether lens
     let map l f = 
         State.map (Lens.map l f)
 
+(* Prism *)
+
+[<RequireQualifiedAccess>]
+module Prism =
+
+    /// Gets part of the Core State within a Core monad using a partial Aether lens
+    let get l = 
+        map (Prism.get l) State.get
+
+    /// Sets part of the Core State within a Core monad using a partial Aether lens
+    let set l v = 
+        State.map (Prism.set l v)
+
     /// Modifies part of the Core State within a Core monad using a partial Aether lens
-    let mapPartial l f = 
-        State.map (Lens.mapPartial l f)
-
-(* Deprecated lens functionality, to be removed in a future
-   release. *)
-
-[<Obsolete ("Use Freya.Lens.get instead.")>]
-let getLens =
-    Lens.get
-
-[<Obsolete ("Use Freya.Lens.getPartial instead.")>]
-let getLensPartial =
-    Lens.getPartial
-
-[<Obsolete ("Use Freya.Lens.set instead.")>]
-let setLens =
-    Lens.set
-
-[<Obsolete ("Use Freya.Lens.setPartial instead.")>]
-let setLensPartial =
-    Lens.setPartial
-
-[<Obsolete ("Use Freya.Lens.map instead.")>]
-let mapLens =
-    Lens.map
-
-[<Obsolete ("Use Freya.Lens.mapPartial instead.")>]
-let mapLensPartial =
-    Lens.mapPartial
+    let map l f = 
+        State.map (Prism.map l f)
 
 (* Memo
 
@@ -172,18 +137,18 @@ let mapLensPartial =
    usage model). *)
 
 let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memo_ = Memo.Id_<'a> (Guid.NewGuid ())
+    let memo_ = Memo.id_<'a> (Guid.NewGuid ())
 
     fun state ->
         async {
-            let! memo, state = Lens.getPartial memo_ state
+            let! memo, state = Lens.get memo_ state
 
             match memo with
             | Some memo ->
                 return memo, state
             | _ ->
                 let! memo, state = m state
-                let! _, state = Lens.setPartial memo_ memo state
+                let! _, state = Lens.set memo_ (Some memo) state
 
                 return memo, state }
 

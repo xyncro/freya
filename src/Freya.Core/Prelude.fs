@@ -33,7 +33,7 @@ let equalsOn f x (y: obj) =
     | :? 'T as y -> (f x) = (f y)
     | _ -> false
  
-let hashOn f x = 
+let hashOn f x =
     hash (f x)
  
 let compareOn f x (y: obj) =
@@ -41,40 +41,40 @@ let compareOn f x (y: obj) =
     | :? 'T as y -> compare (f x) (f y)
     | _ -> invalidArg "y" "cannot compare values of different types"
 
-(* Lenses *)
-
-/// Defines get and set functions for a <see cref="Lens{T1, T2}" /> over an <see cref="IDictionary{T1, T2}" />.
-let mutKey_<'k,'v> k : Lens<IDictionary<'k,'v>, 'v> =
-    (fun d -> d.[k]),
-    (fun v d -> d.[k] <- v; d)
-
-/// <summary>
-/// Defines get and set functions for a partial lens, <see cref="PLens{T1, T2}" />, over an <see cref="IDictionary{T1, T2}" />.
-/// </summary>
-/// <remarks>
-/// The partial lens uses TryGetValue to retrieve the requested key's value and returns an <see cref="Option{T}" />.
-/// The set function will always add or overwrite the value for key k.
-/// </remarks>
-let mutKeyP_<'k,'v> k : PLens<IDictionary<'k,'v>, 'v> =
-    (fun d -> d.TryGetValue k |> function | true, v -> Some v | _ -> None),
-    (fun v d -> d.[k] <- v; d)
-
 (* Isomorphisms *)
 
 /// Provides isomorphisms for boxing and unboxing.
-let box_<'a> : Iso<obj, 'a> =
+let box_<'a> : Isomorphism<obj, 'a> =
     unbox<'a>, box
+
+(* Dict Extensions *)
+
+[<RequireQualifiedAccess>]
+module Dict =
+
+    let value_<'k,'v> k : Lens<IDictionary<'k,'v>, 'v option> =
+        (fun d ->
+            match d.TryGetValue k with
+            | true, v -> Some v
+            | _ -> None),
+        (fun v d ->
+            match v with
+            | Some v -> d.[k] <- v; d
+            | _ -> d)
 
 (* Functions *)
 
-let inline flip f a b = 
+let inline flip f a b =
     f b a
 
 (* Option Extensions *)
 
 [<RequireQualifiedAccess>]
 module Option =
-    
+
+    let mapIsomorphism (i: Isomorphism<'a,'b>) : Isomorphism<'a option, 'b option> =
+        Option.map (fst i), Option.map (snd i)
+
     let orElse def =
         function | Some x -> x
                  | _ -> def

@@ -60,20 +60,22 @@ let inline (<=<) m1 m2 =
 let inline (!.) l =
     Freya.Lens.get l
 
-let inline (!?.) l =
-    Freya.Lens.getPartial l
-
 let inline (.=) l v =
     Freya.Lens.set l v
-
-let inline (.?=) l v =
-    Freya.Lens.setPartial l v
 
 let inline (%=) l f =
     Freya.Lens.map l f
 
-let inline (%?=) l f =
-    Freya.Lens.mapPartial l f
+(* Prism *)
+
+let inline (!?.) p =
+    Freya.Prism.get p
+
+let inline (.?=) p v =
+    Freya.Prism.set p v
+
+let inline (%?=) p f =
+    Freya.Prism.map p f
 
 (* Pipeline *)
 

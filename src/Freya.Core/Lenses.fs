@@ -27,21 +27,16 @@ open Aether.Operators
 [<RequireQualifiedAccess>]
 module Environment =
 
-    let Required_<'a> k =
+    let value_<'a> k =
             FreyaState.Environment_
-       >--> mutKey_<string, obj> k
-       <--> box_<'a>
-
-    let Optional_<'a> k =
-            FreyaState.Environment_
-       >-?> mutKeyP_<string, obj> k
-       <?-> box_<'a>
+       >--> Dict.value_<string, obj> k
+       <--> Option.mapIsomorphism box_<'a>
 
 [<RequireQualifiedAccess>]
 module Memo =
 
-    let Id_<'a> i =
+    let id_<'a> i =
             FreyaState.Meta_
        >--> FreyaMetaState.Memos_
-       >-?> key_ i
-       <?-> box_<'a>
+       >--> Map.value_ i
+       <--> Option.mapIsomorphism box_<'a>

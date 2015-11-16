@@ -9,13 +9,13 @@ open Freya.Core.Operators
 (* AppFunc *)
 
 let private answer_ =
-    Environment.Optional_ "Answer"
+    Environment.value_ "Answer"
 
 let private o1_ =
-    Environment.Required_ "o1"
+    Environment.value_ "o1"
 
 let private o2_ =
-    Environment.Required_ "o2"
+    Environment.value_ "o2"
 
 [<Test>]
 let ``freya computation can compose with an OwinAppFunc`` () =
@@ -29,7 +29,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = Freya.Lens.getPartial answer_
+            let! v1 = Freya.Lens.get answer_
             return Option.get v1 }
     
     let result = run m
@@ -37,7 +37,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
 
 [<Test>]
 let ``freya computation can roundtrip to and from OwinAppFunc`` () =
-    let app = Freya.Lens.setPartial answer_ "42"
+    let app = Freya.Lens.set answer_ (Some "42")
 
     let converted =
         app
@@ -47,7 +47,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = Freya.Lens.getPartial answer_
+            let! v1 = Freya.Lens.get answer_
             return Option.get v1 }
     
     let result = run m
@@ -57,20 +57,20 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
 
 let o1 =
     freya {
-        do! Freya.Lens.set o1_ true
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "1" prev) }
+        do! Freya.Lens.set o1_ (Some true)
+        let! prev = Freya.Lens.get answer_
+        do! Freya.Lens.set answer_ (Some (appendString "1" prev)) }
 
 let o2 =
     freya {
-        do! Freya.Lens.set o2_ true
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "2" prev) }
+        do! Freya.Lens.set o2_ (Some true)
+        let! prev = Freya.Lens.get answer_
+        do! Freya.Lens.set answer_ (Some (appendString "2" prev)) }
 
 let app =
     freya {
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "42" prev) }
+        let! prev = Freya.Lens.get answer_
+        do! Freya.Lens.set answer_ (Some (appendString "42" prev)) }
     |> OwinAppFunc.ofFreya
 
 [<Test>]
