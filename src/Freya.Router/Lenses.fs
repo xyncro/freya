@@ -40,22 +40,23 @@ let [<Literal>] private dataKey =
 [<RequireQualifiedAccess>]
 module Route =
 
-    let Data_ =
-            Environment.Optional_ dataKey 
+    let data_ =
+            Environment.value_ dataKey
+       <--> Option.unsafe_
 
-    let Value_ key =
-            Data_ 
-       <?-> UriTemplateData.UriTemplateData_
-       >??> key_ (Key key)
+    let value_ key =
+            data_ 
+       <--> UriTemplateData.UriTemplateData_
+       >--> Map.value_ (Key key)
 
-    let Atom_ key =
-            Value_ key
-       <??> UriTemplateValue.Atom_
+    let atom_ key =
+            value_ key
+       <--> Option.mapEpimorphism UriTemplateValue.Atom_
 
-    let List_ key =
-            Value_ key
-       <??> UriTemplateValue.List_
+    let list_ key =
+            value_ key
+       <--> Option.mapEpimorphism UriTemplateValue.List_
 
-    let Keys_ key =
-            Value_ key
-       <??> UriTemplateValue.Keys_
+    let keys_ key =
+            value_ key
+       <--> Option.mapEpimorphism UriTemplateValue.Keys_

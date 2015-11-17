@@ -81,6 +81,9 @@ module Option =
     let mapIsomorphism (i: Isomorphism<'a,'b>) : Isomorphism<'a option, 'b option> =
         Option.map (fst i), Option.map (snd i)
 
+    let mapLens (l: Lens<'a,'b>) : Prism<'a option,'b> =
+        Option.map (fst l), fun b -> Option.map (snd l b)
+
     let orElse def =
         function | Some x -> x
                  | _ -> def

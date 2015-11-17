@@ -22,6 +22,7 @@
 module internal Freya.Router.Recording
 
 open Aether.Operators
+open Freya.Core
 open Freya.Recorder
 open Hekate
 
@@ -115,12 +116,12 @@ module Record =
     (* Lenses *)
 
     let private graph_ =
-            Record.Record_ "router"
-       >?-> FreyaRouterRecord.Graph_
+            Record.Record_<FreyaRouterRecord> "router"
+       >-?> Option.mapLens FreyaRouterRecord.Graph_
 
     let private executionNodes_ =
             Record.Record_ "router"
-       >?-> FreyaRouterRecord.Execution_
+       >-?> Option.mapLens FreyaRouterRecord.Execution_
        >?-> FreyaRouterExecutionRecord.Nodes_
 
     (* Functions *)

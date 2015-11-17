@@ -276,5 +276,5 @@ let private search graph =
 
 let execute graph =
         search graph
-    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
+    >>= function | Matched (data, pipe) -> (Route.data_ .= data) *> pipe
                  | Unmatched -> Freya.next
