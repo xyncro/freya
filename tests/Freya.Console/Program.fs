@@ -1,10 +1,13 @@
-﻿open Microsoft.Owin.Hosting
 open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Suave.Logging
+open Suave.Owin
+open Suave.Types
+open Suave.Web
 
 // Resources
 
@@ -20,19 +23,18 @@ let resource =
 
 // App
 
-let app =
-    OwinAppFunc.ofFreya resource
-
-type App () =
-    member __.Configuration () =
-        app
+let config =
+    { defaultConfig with
+        bindings = [ HttpBinding.mk' HTTP "0.0.0.0" 7000 ]
+        logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
 // Main
 
 [<EntryPoint>]
 let main _ =
 
-    let _ = WebApp.Start<App> "http://localhost:8080"
-    let _ = System.Console.ReadLine ()
+    printfn "Listening on port 7000"
+    let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya resource)
+    startWebServer config owin
 
     0

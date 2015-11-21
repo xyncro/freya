@@ -6,10 +6,10 @@ nuget Arachne.Uri.Template
 nuget Aether
 nuget Chiron
 nuget Hekate
-nuget Microsoft.Owin.SelfHost
 nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
+nuget Suave
 nuget Unquote
 nuget FAKE
 nuget SourceLink.Fake
