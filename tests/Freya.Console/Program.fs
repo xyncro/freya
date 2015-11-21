@@ -1,4 +1,6 @@
+open System.Text
 open Arachne.Http
+open Arachne.Language
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
@@ -11,9 +13,17 @@ open Suave.Web
 
 // Resources
 
+let inline represent (x : string) =
+    { Description =
+        { Charset = Some Charset.Utf8
+          Encodings = None
+          MediaType = Some MediaType.Text
+          Languages = Some [ LanguageTag.Parse "en" ] }
+      Data = Encoding.UTF8.GetBytes x }
+
 let ok _ =
-        Freya.Lens.setPartial Response.ReasonPhrase_ "Hey Folks!"
-     *> Freya.init Representation.empty
+        Freya.Lens.setPartial Response.ReasonPhrase_ "Hey, folks!"
+     *> Freya.init (represent "Hey, folks!")
 
 let resource =
     freyaMachine {
@@ -28,13 +38,14 @@ let config =
         bindings = [ HttpBinding.mk' HTTP "0.0.0.0" 7000 ]
         logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
+let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya resource)
+
 // Main
 
 [<EntryPoint>]
 let main _ =
 
     printfn "Listening on port 7000"
-    let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya resource)
     startWebServer config owin
 
     0
