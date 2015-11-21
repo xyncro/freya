@@ -44,5 +44,10 @@ let tryGet<'a> key =
 let tryGetOrElse key def =
     tryGet key >> Option.orElse def
 
+let tryGetOrNone key =
+    tryGet key >> function
+    | Some x -> Freya.map Some x
+    | None   -> Freya.init None
+
 let set<'a> key =
     flip (^?=) (config_<'a> key)

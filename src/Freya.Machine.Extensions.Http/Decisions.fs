@@ -29,19 +29,6 @@ open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Operators
 
-(* Helper functions *)
-
-let private lastModified config =
-    let getter = Configuration.tryGet<Freya<DateTime>> Properties.LastModified config
-    freya {
-        match getter with
-        | Some g ->
-            let! date = g
-            return Some date
-        | None ->
-            return None
-    }
-
 (* Decisions *)
 
 let private systemDecision f =
@@ -86,7 +73,7 @@ let private ifMatchRequested _ =
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
         (!?. Request.Headers.IfModifiedSince_)
-        (lastModified config)
+        (Configuration.tryGetOrNone Properties.LastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
@@ -107,7 +94,7 @@ let private ifNoneMatchRequested _ =
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
         (!?. Request.Headers.IfUnmodifiedSince_)
-        (lastModified config)
+        (Configuration.tryGetOrNone Properties.LastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
