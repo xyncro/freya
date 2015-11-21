@@ -64,8 +64,3 @@ let methodsSupported =
     Freya.init [
         GET
         HEAD ]
-
-(* Modification *)
-
-let lastModified =
-    Freya.init Option<DateTime>.None

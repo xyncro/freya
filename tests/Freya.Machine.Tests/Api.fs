@@ -76,6 +76,12 @@ let patchTodo =
    guarantee that these functions are idempotent within the scope of a
    request, allowing us to use them as part of multiple decisions safely. *)
 
+let lastModificationDate = DateTime (2015, 1, 1)
+
+let todoLastModified =
+    freya {
+        return lastModificationDate } |> Freya.memo
+
 let add =
     freya {
         let! newTodo = newTodo
@@ -170,7 +176,8 @@ let common =
         corsHeadersSupported corsHeaders
         corsOriginsSupported corsOrigins
         languagesSupported en
-        mediaTypesSupported json }
+        mediaTypesSupported json
+        lastModified todoLastModified }
 
 let todosMethods =
     freya {
