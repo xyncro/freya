@@ -1,4 +1,5 @@
 ### New in 2.0.201 - (Released TBD)
+* Fixed Last Modified, If-Modified-Since and If-Unmodified-Since headers
 
 ### New in 2.0.200 - (Released 2015-10-12)
 * Updated dependencies, and removal of FSharp.Core from produced package dependencies
