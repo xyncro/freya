@@ -27,15 +27,15 @@ let [<Literal>] testKey =
 (* Lenses *)
 
 let private test_ =
-    Environment.Optional_ testKey
+    Environment.value_ testKey
 
 (* Functions *)
 
 let private get =
-    Lens.getPartial test_
+    Lens.get test_
 
 let private set i =
-    Freya.Lens.setPartial test_ i *> Freya.next
+    Freya.Lens.set test_ i *> Freya.next
 
 let private run meth path query m =
     let router = FreyaRouter.toPipeline m
@@ -63,10 +63,10 @@ let Post =
 (* Routes *)
 
 let route1 =
-    set 1
+    set (Some 1)
 
 let route2 =
-    set 2
+    set (Some 2)
 
 let route3 =
-    set 3
+    set (Some 3)
