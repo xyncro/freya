@@ -37,20 +37,20 @@ module Request =
     module Headers =
 
         let private value_ key e =
-                Request.Header_ key
+                Request.header_ key
            <--> Option.mapEpimorphism e
 
-        let AccessControlRequestHeaders_ =
+        let accessControlRequestHeaders_ =
             value_
                 "Access-Control-Request-Headers"
                 (AccessControlRequestHeaders.TryParse, AccessControlRequestHeaders.Format)
 
-        let AccessControlRequestMethod_ =
+        let accessControlRequestMethod_ =
             value_
                 "Access-Control-Request-Method"
                 (AccessControlRequestMethod.TryParse, AccessControlRequestMethod.Format)
 
-        let Origin_ =
+        let origin_ =
             value_
                 "Origin"
                 (Origin.TryParse, Origin.Format)
@@ -66,35 +66,35 @@ module Response =
     module Headers =
 
         let private value_ key e =
-                Response.Header_ key
+                Response.header_ key
            <--> Option.mapEpimorphism e
 
-        let AccessControlAllowCredentials_ =
+        let accessControlAllowCredentials_ =
             value_
                 "Access-Control-Allow-Credentials"
                 (AccessControlAllowCredentials.TryParse, AccessControlAllowCredentials.Format)
 
-        let AccessControlAllowHeaders_ =
+        let accessControlAllowHeaders_ =
             value_
                 "Access-Control-Allow-Headers"
                 (AccessControlAllowHeaders.TryParse, AccessControlAllowHeaders.Format)
 
-        let AccessControlAllowMethods_ =
+        let accessControlAllowMethods_ =
             value_
                 "Access-Control-Allow-Methods"
                 (AccessControlAllowMethods.TryParse, AccessControlAllowMethods.Format)
 
-        let AccessControlAllowOrigin_ =
+        let accessControlAllowOrigin_ =
             value_
                 "Access-Control-Allow-Origin"
                 (AccessControlAllowOrigin.TryParse, AccessControlAllowOrigin.Format)
 
-        let AccessControlExposeHeaders_ =
+        let accessControlExposeHeaders_ =
             value_
                 "Access-Control-Expose-Headers"
                 (AccessControlExposeHeaders.TryParse, AccessControlExposeHeaders.Format)
 
-        let AccessControlMaxAge_ =
+        let accessControlMaxAge_ =
             value_
                 "Access-Control-Max-Age"
                 (AccessControlMaxAge.TryParse, AccessControlMaxAge.Format)

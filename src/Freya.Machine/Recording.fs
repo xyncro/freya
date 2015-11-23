@@ -22,6 +22,7 @@
 module internal Freya.Machine.Recording
 
 open Aether.Operators
+open Freya.Core
 open Freya.Recorder
 open Hekate
 
@@ -122,11 +123,11 @@ module Record =
 
     let private graph_ =
             Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Graph_
+       >-?> Option.mapLens FreyaMachineRecord.Graph_
 
     let private execution_ =
             Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Execution_
+       >-?> Option.mapLens FreyaMachineRecord.Execution_
        >?-> FreyaMachineExecutionRecord.Nodes_
 
     (* Functions *)

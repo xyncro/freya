@@ -124,18 +124,6 @@ let private traversalPathAndQuery_ =
    >--> TraversalState.Position_
    >--> TraversalPosition.PathAndQuery_
 
-(* Request *)
-
-let private requestMethod_ =
-        Request.Method_
-
-let private requestPath_ =
-        Request.Path_
-
-let private requestQuery_ =
-        Request.Query_
-   <--> Query.Query_
-
 (* Patterns
 
    Patterns used to match varying states throughout the traversal process,
@@ -260,7 +248,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> !. requestMethod_ <*> !. requestPath_ <*> !. requestQuery_
+        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ <--> Query.Query_)
     >>= traverse graph
     >>= select
 

@@ -33,43 +33,43 @@ open Freya.Core
 [<RequireQualifiedAccess>]
 module Request =
 
-    let Body_ =
+    let body_ =
             Environment.value_<Stream> Constants.requestBody
        <--> Option.unsafe_
 
-    let Headers_ =
+    let headers_ =
             Environment.value_<IDictionary<string, string []>> Constants.requestHeaders
        <--> Option.unsafe_
 
-    let Header_ key =
-            Headers_
+    let header_ key =
+            headers_
        >--> Dict.value_<string, string []> key
        <--> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
 
-    let Method_ = 
+    let method_ = 
             Environment.value_<string> Constants.requestMethod
        <--> Option.unsafe_
        <--> (Method.Parse, Method.Format)
 
-    let Path_ =
+    let path_ =
             Environment.value_<string> Constants.requestPath
        <--> Option.unsafe_
 
-    let PathBase_ =
+    let pathBase_ =
             Environment.value_<string> Constants.requestPathBase
        <--> Option.unsafe_
 
-    let HttpVersion_ =
+    let httpVersion_ =
             Environment.value_<string> Constants.requestProtocol
        <--> Option.unsafe_
        <--> (HttpVersion.Parse, HttpVersion.Format)
 
-    let Scheme_ =
+    let scheme_ =
             Environment.value_<string> Constants.requestScheme
        <--> Option.unsafe_
        <--> (Scheme.Parse, Scheme.Format)
 
-    let Query_ =
+    let query_ =
             Environment.value_<string> Constants.requestQueryString
        <--> Option.unsafe_
        <--> (Query.Parse, Query.Format)
@@ -80,195 +80,195 @@ module Request =
     module Headers =
 
         let private value_ key e =
-                Header_ key
+                header_ key
            <--> Option.mapEpimorphism e
 
-        let Accept_ =
+        let accept_ =
             value_
                 "Accept"
                 (Accept.TryParse, Accept.Format)
 
-        let AcceptCharset_ =
+        let acceptCharset_ =
             value_
                 "Accept-Charset"
                 (AcceptCharset.TryParse, AcceptCharset.Format)
 
-        let AcceptEncoding_ =
+        let acceptEncoding_ =
             value_
                 "Accept-Encoding"
                 (AcceptEncoding.TryParse, AcceptEncoding.Format)
 
-        let AcceptLanguage_ =
+        let acceptLanguage_ =
             value_
                 "Accept-Language"
                 (AcceptLanguage.TryParse, AcceptLanguage.Format)
 
         // TODO: typed Authorization
 
-        let Authorization_ =
-            Header_ "Authorization"
+        let authorization_ =
+            header_ "Authorization"
 
-        let CacheControl_ =
+        let cacheControl_ =
             value_
                 "Cache-Control"
                 (CacheControl.TryParse, CacheControl.Format)
 
-        let Connection_ =
+        let connection_ =
             value_
                 "Connection"
                 (Connection.TryParse, Connection.Format)
 
-        let ContentEncoding_ =
+        let contentEncoding_ =
             value_
                 "Content-Encoding"
                 (ContentEncoding.TryParse, ContentEncoding.Format)
 
-        let ContentLanguage_ =
+        let contentLanguage_ =
             value_
                 "Content-Language"
                 (ContentLanguage.TryParse, ContentLanguage.Format)
 
-        let ContentLength_ =
+        let contentLength_ =
             value_
                 "Content-Length"
                 (ContentLength.TryParse, ContentLength.Format)
 
-        let ContentLocation_ =
+        let contentLocation_ =
             value_
                 "Content-Location"
                 (ContentLocation.TryParse, ContentLocation.Format)
 
-        let ContentType_ =
+        let contentType_ =
             value_
                 "Content-Type"
                 (ContentType.TryParse, ContentType.Format)
 
-        let Date_ =
+        let date_ =
             value_
                 "Date"
                 (Date.TryParse, Date.Format)
 
-        let Expect_ =
+        let expect_ =
             value_
                 "Expect"
                 (Expect.TryParse, Expect.Format)
 
         // TODO: typed From
 
-        let From_ =
-            Header_ "From"
+        let from_ =
+            header_ "From"
 
-        let Host_ =
+        let host_ =
             value_
                 "Host"
                 (Host.TryParse, Host.Format)
 
-        let IfMatch_ =
+        let ifMatch_ =
             value_
                 "If-Match"
                 (IfMatch.TryParse, IfMatch.Format)
 
-        let IfModifiedSince_ =
+        let ifModifiedSince_ =
             value_
                 "If-Modified-Since"
                 (IfModifiedSince.TryParse, IfModifiedSince.Format)
 
-        let IfNoneMatch_ =
+        let ifNoneMatch_ =
             value_
                 "If-None-Match"
                 (IfNoneMatch.TryParse, IfNoneMatch.Format)
 
-        let IfRange_ =
+        let ifRange_ =
             value_
                 "If-Range"
                 (IfRange.TryParse, IfRange.Format)
 
-        let IfUnmodifiedSince_ =
+        let ifUnmodifiedSince_ =
             value_
                 "If-Unmodified-Since"
                 (IfUnmodifiedSince.TryParse, IfUnmodifiedSince.Format)
 
-        let MaxForwards_ =
+        let maxForwards_ =
             value_
                 "Max-Forwards"
                 (MaxForwards.TryParse, MaxForwards.Format)
 
         // TODO: typed Pragma
 
-        let Pragma_ =
-            Header_ "Pragma"
+        let pragma_ =
+            header_ "Pragma"
 
         // TODO: typed ProxyAuthorization
 
-        let ProxyAuthorization_ =
-            Header_ "Proxy-Authorization"
+        let proxyAuthorization_ =
+            header_ "Proxy-Authorization"
 
         // TODO: typed Range
 
-        let Range_ =
-            Header_ "Range"
+        let range_ =
+            header_ "Range"
 
-        let Referer_ =
+        let referer_ =
             value_
                 "Referer"
                 (Referer.TryParse, Referer.Format)
 
         // TODO: typed TE
 
-        let TE_ =
-            Header_ "TE"
+        let te_ =
+            header_ "TE"
 
         // TODO: typed Trailer
 
-        let Trailer_ =
-            Header_ "Trailer"
+        let trailer_ =
+            header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let TransferEncoding_ =
-            Header_ "Transfer-Encoding"
+        let transferEncoding_ =
+            header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let Upgrade_ =
-            Header_ "Upgrade"
+        let upgrade_ =
+            header_ "Upgrade"
 
         // TODO: typed UserAgent
 
-        let UserAgent_ =
-            Header_ "User-Agent"
+        let userAgent_ =
+            header_ "User-Agent"
 
         // TODO: typed Via
 
-        let Via_ =
-            Header_ "Via"
+        let via_ =
+            header_ "Via"
 
 (* Response Lenses *)
 
 [<RequireQualifiedAccess>]
 module Response =
 
-    let Body_ =
+    let body_ =
             Environment.value_<Stream> Constants.responseBody
        <--> Option.unsafe_
 
-    let Headers_ =
+    let headers_ =
             Environment.value_<IDictionary<string, string []>> Constants.responseHeaders
        <--> Option.unsafe_
 
-    let Header_ key =
-            Headers_
+    let header_ key =
+            headers_
        >--> Dict.value_<string, string []> key
        <--> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
 
-    let HttpVersion_ =
+    let httpVersion_ =
             Environment.value_<string> Constants.responseProtocol
        <--> Option.mapIsomorphism (HttpVersion.Parse, HttpVersion.Format)
 
-    let ReasonPhrase_ =
+    let reasonPhrase_ =
             Environment.value_<string> Constants.responseReasonPhrase
 
-    let StatusCode_ =
+    let statusCode_ =
             Environment.value_<int> Constants.responseStatusCode
 
     (* Response Header Lenses *)
@@ -277,60 +277,60 @@ module Response =
     module Headers =
 
         let private value_ key e =
-                Header_ key
+                header_ key
            <--> Option.mapEpimorphism e
 
         // TODO: typed AcceptRanges
 
-        let AcceptRanges_ =
-            Header_ "Accept-Ranges"
+        let acceptRanges_ =
+            header_ "Accept-Ranges"
 
-        let Age_ =
+        let age_ =
             value_
                 "Age"
                 (Age.TryParse, Age.Format)
 
-        let Allow_ =
+        let allow_ =
             value_
                 "Allow"
                 (Allow.TryParse, Allow.Format)
 
-        let CacheControl_ =
+        let cacheControl_ =
             value_
                 "Cache-Control"
                 (CacheControl.TryParse, CacheControl.Format)
 
-        let Connection_ =
+        let connection_ =
             value_
                 "Connection"
                 (Connection.TryParse, Connection.Format)
 
-        let ContentEncoding_ =
+        let contentEncoding_ =
             value_
                 "Content-Encoding"
                 (ContentEncoding.TryParse, ContentEncoding.Format)
 
-        let ContentLanguage_ =
+        let contentLanguage_ =
             value_
                 "Content-Language"
                 (ContentLanguage.TryParse, ContentLanguage.Format)
 
-        let ContentLength_ =
+        let contentLength_ =
             value_
                 "Content-Length"
                 (ContentLength.TryParse, ContentLength.Format)
 
-        let ContentLocation_ =
+        let contentLocation_ =
             value_
                 "Content-Location"
                 (ContentLocation.TryParse, ContentLocation.Format)
 
         // TODO: typed ContentRange
 
-        let ContentRange_ =
-            Header_ "Content-Range"
+        let contentRange_ =
+            header_ "Content-Range"
 
-        let ContentType_ =
+        let contentType_ =
             value_
                 "Content-Type"
                 (ContentType.TryParse, ContentType.Format)
@@ -362,47 +362,47 @@ module Response =
 
         // TODO: typed ProxyAuthenticate
 
-        let ProxyAuthenticate_ =
-            Header_ "Proxy-Authenticate"
+        let proxyAuthenticate_ =
+            header_ "Proxy-Authenticate"
 
         // TODO: typed RetryAfter
 
-        let RetryAfter_ =
+        let retryAfter_ =
             value_
                 "Retry-After"
                 (RetryAfter.TryParse, RetryAfter.Format)
 
         // TODO: typed Server
 
-        let Server_ =
-            Header_ "Server"
+        let server_ =
+            header_ "Server"
 
         // TODO: typed Trailer
 
-        let Trailer_ =
-            Header_ "Trailer"
+        let trailer_ =
+            header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let TransferEncoding_ =
-            Header_ "Transfer-Encoding"
+        let transferEncoding_ =
+            header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let Upgrade_ =
-            Header_ "Upgrade"
+        let upgrade_ =
+            header_ "Upgrade"
 
         // TODO: typed Vary
 
-        let Vary_ =
-            Header_ "Vary"
+        let vary_ =
+            header_ "Vary"
 
         // TODO: typed Warning
 
-        let Warning_ =
-            Header_ "Warning"
+        let warning_ =
+            header_ "Warning"
 
         // TODO: typed WWWAuthenticate
 
-        let WwwAuthenticate_ =
-            Header_ "WWW-Authenticate"
+        let wwwAuthenticate_ =
+            header_ "WWW-Authenticate"

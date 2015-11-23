@@ -41,9 +41,9 @@ let private run meth path query m =
     let router = FreyaRouter.toPipeline m
     let state = freyaState ()
 
-    Async.RunSynchronously ((   Freya.Lens.set Request.Method_ meth
-                             *> Freya.Lens.set Request.Path_ path
-                             *> Freya.Lens.set Request.Query_ query
+    Async.RunSynchronously ((   Freya.Lens.set Request.method_ meth
+                             *> Freya.Lens.set Request.path_ path
+                             *> Freya.Lens.set Request.query_ query
                              *> router) state)
 
 let result meth path query m =
