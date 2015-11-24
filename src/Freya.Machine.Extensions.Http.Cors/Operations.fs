@@ -37,16 +37,16 @@ let private systemOperation f =
 
 let private corsActual config =
     Cors.actual
-        (Configuration.tryGetOrElse Properties.CorsHeadersExposed Defaults.corsHeadersExposed config)
+        ((Configuration.get Properties.CorsHeadersExposed >> Option.orElse Defaults.corsHeadersExposed) config)
 
 let private corsOrigin _ =
     Cors.origin
-        (Option.map (fun (Origin x) -> x) >> Option.get <!> (!?.) Request.Headers.Origin_)
+        (Option.map (fun (Origin x) -> x) >> Option.get <!> (!.) Request.Headers.origin_)
 
 let private corsPreflight config =
     Cors.preflight
-        (Configuration.tryGetOrElse Properties.CorsHeadersSupported Defaults.corsHeadersSupported config)
-        (Configuration.tryGetOrElse Properties.CorsMethodsSupported Defaults.corsMethodsSupported config)
+        ((Configuration.get Properties.CorsHeadersSupported >> Option.orElse Defaults.corsHeadersSupported) config)
+        ((Configuration.get Properties.CorsMethodsSupported >> Option.orElse Defaults.corsMethodsSupported) config)
 
 (* Graph *)
 

@@ -34,23 +34,23 @@ open Freya.Machine.Operators
 
 let private charsetsNegotiated config =
     ContentNegotiation.Charset.negotiated
-        (!?. Request.Headers.AcceptCharset_)
-        (Configuration.tryGetOrElse Properties.CharsetsSupported Defaults.charsetsSupported config)
+        (Freya.Lens.get Request.Headers.acceptCharset_)
+        ((Configuration.get Properties.CharsetsSupported >> Option.orElse Defaults.charsetsSupported) config)
 
 let private encodingsNegotiated config =
     ContentNegotiation.Encoding.negotiated
-        (!?. Request.Headers.AcceptEncoding_)
-        (Configuration.tryGetOrElse Properties.EncodingsSupported Defaults.encodingsSupported config)
+        (Freya.Lens.get Request.Headers.acceptEncoding_)
+        ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
 let private mediaTypesNegotiated config =
     ContentNegotiation.MediaType.negotiated
-        (!?. Request.Headers.Accept_)
-        (Configuration.tryGetOrElse Properties.MediaTypesSupported Defaults.mediaTypesSupported config)
+        (Freya.Lens.get Request.Headers.accept_)
+        ((Configuration.get Properties.MediaTypesSupported >> Option.orElse Defaults.mediaTypesSupported) config)
 
 let private languagesNegotiated config =
     ContentNegotiation.Language.negotiated
-        (!?. Request.Headers.AcceptLanguage_)
-        (Configuration.tryGetOrElse Properties.LanguagesSupported Defaults.languagesSupported config)
+        (Freya.Lens.get Request.Headers.acceptLanguage_)
+        ((Configuration.get Properties.LanguagesSupported >> Option.orElse Defaults.languagesSupported) config)
 
 (* Specification *)
 
@@ -68,26 +68,26 @@ let private specification config =
 (* Representation *)
 
 let private charset_ =
-        Response.Headers.ContentType_
-   <?-> ContentType.MediaType_
-   >?-> MediaType.Parameters_
+        Response.Headers.contentType_
+   <--> Option.mapIsomorphism ContentType.MediaType_
+   >-?> Option.mapLens MediaType.Parameters_
    <?-> Parameters.Parameters_
-   >??> key_ "charset"
+   >?-> Map.value_ "charset"
 
 let private charset =
-        Option.map (fun (Charset x) -> charset_ .?= x)
+        Option.map (fun (Charset x) -> charset_ .?= Some x)
      >> Option.orElse (Freya.init ())
 
 let private encodings =
-        Option.map (fun x -> Response.Headers.ContentEncoding_ .?= ContentEncoding x)
+        Option.map (fun x -> Response.Headers.contentEncoding_ .= Some (ContentEncoding x))
      >> Option.orElse (Freya.init ())
 
 let private mediaType =
-        Option.map (fun x -> Response.Headers.ContentType_ .?= ContentType x)
+        Option.map (fun x -> Response.Headers.contentType_ .= Some (ContentType x))
      >> Option.orElse (Freya.init ())
 
 let private languages =
-        Option.map (fun x -> Response.Headers.ContentLanguage_ .?= ContentLanguage x)
+        Option.map (fun x -> Response.Headers.contentLanguage_ .= Some (ContentLanguage x))
      >> Option.orElse (Freya.init ())
 
 let private description x =
@@ -97,7 +97,7 @@ let private description x =
      *> languages x.Languages
 
 let private data x =
-    Response.Body_ %= (fun b -> b.Write (x, 0, x.Length); b)
+    Response.body_ %= (fun body -> body.Write (x, 0, x.Length); body)
 
 (* Handlers *)
 
@@ -105,7 +105,7 @@ let private handle config m =
     let specification = specification config
 
     freya {
-        let! meth = !. Request.Method_
+        let! meth = Freya.Lens.get Request.method_
         let! specification = specification
         let! representation = m specification
 
@@ -125,7 +125,7 @@ let private handle config m =
 
 let private userHandler key =
     Some (Compile (fun config ->
-        Configuration.tryGet key config
+        Configuration.get key config
         |> Option.map (fun m -> Compiled (Unary (handle config m), configured))
         |> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 

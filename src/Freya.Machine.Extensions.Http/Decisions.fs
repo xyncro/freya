@@ -34,137 +34,137 @@ let private systemDecision f =
         Compiled (Binary (f config), unconfigurable)))
 
 let private userDecision key def =
-    Some (Compile (Configuration.tryGet key
+    Some (Compile (Configuration.get key
         >> Option.map (fun x -> Compiled (Binary x, configured))
         >> Option.orElse (Compiled (Binary (Freya.init def), unconfigured))))
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
-        (!?. Request.Headers.AcceptCharset_)
-        (Configuration.tryGetOrElse Properties.CharsetsSupported Defaults.charsetsSupported config)
+        (Freya.Lens.get Request.Headers.acceptCharset_)
+        ((Configuration.get Properties.CharsetsSupported >> Option.orElse Defaults.charsetsSupported) config)
 
 let private charsetRequested _ =
     ContentNegotiation.Charset.requested 
-        (!?. Request.Headers.AcceptCharset_)
+        (Freya.Lens.get Request.Headers.acceptCharset_)
 
 let private encodingNegotiable config =
     ContentNegotiation.Encoding.negotiable
-        (!?. Request.Headers.AcceptEncoding_)
-        (Configuration.tryGetOrElse Properties.EncodingsSupported Defaults.encodingsSupported config)
+        (Freya.Lens.get Request.Headers.acceptEncoding_)
+        ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
 let private encodingRequested _ =
     ContentNegotiation.Encoding.requested 
-        (!?. Request.Headers.AcceptEncoding_)
+        (Freya.Lens.get Request.Headers.acceptEncoding_)
 
 let private ifMatchAny _ =
     CacheControl.IfMatch.any 
-        (!?. Request.Headers.IfMatch_)
+        (Freya.Lens.get Request.Headers.ifMatch_)
 
 let private ifMatchExistsForMissing _ =
     CacheControl.IfMatch.requested 
-        (!?. Request.Headers.IfMatch_)
+        (Freya.Lens.get Request.Headers.ifMatch_)
 
 let private ifMatchRequested _ =
     CacheControl.IfMatch.requested 
-        (!?. Request.Headers.IfMatch_)
+        (Freya.Lens.get Request.Headers.ifMatch_)
 
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
-        (!?. Request.Headers.IfModifiedSince_)
-        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
+        (Freya.Lens.get Request.Headers.ifModifiedSince_)
+        ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
-        (!?. Request.Headers.IfModifiedSince_)
+        (Freya.Lens.get Request.Headers.ifModifiedSince_)
 
 let private ifModifiedSinceValid _ =
     CacheControl.IfModifiedSince.valid
-        (!?. Request.Headers.IfModifiedSince_)
+        (Freya.Lens.get Request.Headers.ifModifiedSince_)
 
 let private ifNoneMatchAny _ =
     CacheControl.IfNoneMatch.any
-        (!?. Request.Headers.IfNoneMatch_)
+        (Freya.Lens.get Request.Headers.ifNoneMatch_)
 
 let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
-        (!?. Request.Headers.IfNoneMatch_)
+        (Freya.Lens.get Request.Headers.ifNoneMatch_)
 
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
-        (!?. Request.Headers.IfUnmodifiedSince_)
-        (Configuration.tryGetOrElse Properties.LastModified Defaults.lastModified config)
+        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
+        ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
-        (!?. Request.Headers.IfUnmodifiedSince_)
+        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
 
 let private ifUnmodifiedSinceValid _ =
     CacheControl.IfUnmodifiedSince.valid
-        (!?. Request.Headers.IfUnmodifiedSince_)
+        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
 
 let private languageNegotiable config =
     ContentNegotiation.Language.negotiable
-        (!?. Request.Headers.AcceptLanguage_)
-        (Configuration.tryGetOrElse Properties.LanguagesSupported Defaults.languagesSupported config)
+        (Freya.Lens.get Request.Headers.acceptLanguage_)
+        ((Configuration.get Properties.LanguagesSupported >> Option.orElse Defaults.languagesSupported) config)
 
 let private languageRequested _ =
     ContentNegotiation.Language.requested
-        (!?. Request.Headers.AcceptLanguage_)
+        (Freya.Lens.get Request.Headers.acceptLanguage_)
 
 let private mediaTypeNegotiable config =
     ContentNegotiation.MediaType.negotiable
-        (!?. Request.Headers.Accept_)
-        (Configuration.tryGetOrElse Properties.MediaTypesSupported Defaults.mediaTypesSupported config)
+        (Freya.Lens.get Request.Headers.accept_)
+        ((Configuration.get Properties.MediaTypesSupported >> Option.orElse Defaults.mediaTypesSupported) config)
 
 let private mediaTypeRequested _ =
     ContentNegotiation.MediaType.requested
-        (!?. Request.Headers.Accept_)
+        (Freya.Lens.get Request.Headers.accept_)
 
 let private methodDelete _ =
     Method.delete
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodGetOrHead _ =
     Method.getOrHead
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodKnown config =
     Method.known
-        (!. Request.Method_)
-        (Configuration.tryGetOrElse Properties.MethodsKnown Defaults.methodsKnown config)
+        (Freya.Lens.get Request.method_)
+        ((Configuration.get Properties.MethodsKnown >> Option.orElse Defaults.methodsKnown) config)
 
 let private methodOptions _ =
     Method.options
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPatch _ =
     Method.patch
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPostToExisting _ =
     Method.post
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPostToGone _ =
     Method.post
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPostToMissing _ =
     Method.post
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPut _ =
     Method.put
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodPutToExisting _ =
     Method.put
-        (!. Request.Method_)
+        (Freya.Lens.get Request.method_)
 
 let private methodSupported config =
     Method.supported
-        (!. Request.Method_)
-        (Configuration.tryGetOrElse Properties.MethodsSupported Defaults.methodsSupported config)
+        (Freya.Lens.get Request.method_)
+        ((Configuration.get Properties.MethodsSupported >> Option.orElse Defaults.methodsSupported) config)
 
 (* Graph *)
 
@@ -231,70 +231,70 @@ let operations =
       Operation Decisions.ETagMatchesIf                =.        systemDecision (fun _ -> Freya.init true)
       Operation Decisions.ETagMatchesIfNone            =.        systemDecision (fun _ -> Freya.init true)
 
-      Operation Decisions.CharsetNegotiable            >+        Operation Decisions.EncodingRequested           
+      Operation Decisions.CharsetNegotiable            >+        Operation Decisions.EncodingRequested
       Operation Decisions.CharsetNegotiable            >-        Operation Decisions.CharsetsStrict
-      Operation Decisions.CharsetRequested             >+        Operation Decisions.CharsetNegotiable           
+      Operation Decisions.CharsetRequested             >+        Operation Decisions.CharsetNegotiable
       Operation Decisions.CharsetRequested             >-        Operation Decisions.EncodingRequested
-      Operation Decisions.EncodingNegotiable           >+        Operation Decisions.Processable                 
+      Operation Decisions.EncodingNegotiable           >+        Operation Decisions.Processable
       Operation Decisions.EncodingNegotiable           >-        Operation Decisions.EncodingsStrict
-      Operation Decisions.EncodingRequested            >+        Operation Decisions.EncodingNegotiable          
+      Operation Decisions.EncodingRequested            >+        Operation Decisions.EncodingNegotiable
       Operation Decisions.EncodingRequested            >-        Operation Decisions.Processable
-      Operation Decisions.IfMatchAny                   >+        Operation Decisions.IfUnmodifiedSinceRequested  
+      Operation Decisions.IfMatchAny                   >+        Operation Decisions.IfUnmodifiedSinceRequested
       Operation Decisions.IfMatchAny                   >-        Operation Decisions.ETagMatchesIf
-      Operation Decisions.IfMatchExistsForMissing      >+        Operation Operations.PreconditionFailed         
+      Operation Decisions.IfMatchExistsForMissing      >+        Operation Operations.PreconditionFailed
       Operation Decisions.IfMatchExistsForMissing      >-        Operation Decisions.MethodPut
-      Operation Decisions.IfMatchRequested             >+        Operation Decisions.IfMatchAny                  
+      Operation Decisions.IfMatchRequested             >+        Operation Decisions.IfMatchAny
       Operation Decisions.IfMatchRequested             >-        Operation Decisions.IfUnmodifiedSinceRequested
-      Operation Decisions.IfModifiedSinceModified      >+        Operation Decisions.MethodDelete                
+      Operation Decisions.IfModifiedSinceModified      >+        Operation Decisions.MethodDelete
       Operation Decisions.IfModifiedSinceModified      >-        Operation Operations.NotModified
-      Operation Decisions.IfModifiedSinceRequested     >+        Operation Decisions.IfModifiedSinceValid        
+      Operation Decisions.IfModifiedSinceRequested     >+        Operation Decisions.IfModifiedSinceValid
       Operation Decisions.IfModifiedSinceRequested     >-        Operation Decisions.MethodDelete
-      Operation Decisions.IfModifiedSinceValid         >+        Operation Decisions.IfModifiedSinceModified     
+      Operation Decisions.IfModifiedSinceValid         >+        Operation Decisions.IfModifiedSinceModified
       Operation Decisions.IfModifiedSinceValid         >-        Operation Decisions.MethodDelete
-      Operation Decisions.IfNoneMatchAny               >+        Operation Decisions.MethodGetOrHead             
+      Operation Decisions.IfNoneMatchAny               >+        Operation Decisions.MethodGetOrHead
       Operation Decisions.IfNoneMatchAny               >-        Operation Decisions.ETagMatchesIfNone
-      Operation Decisions.IfNoneMatchRequested         >+        Operation Decisions.IfNoneMatchAny              
+      Operation Decisions.IfNoneMatchRequested         >+        Operation Decisions.IfNoneMatchAny
       Operation Decisions.IfNoneMatchRequested         >-        Operation Decisions.IfModifiedSinceRequested
-      Operation Decisions.IfUnmodifiedSinceModified    >+        Operation Decisions.IfNoneMatchRequested        
+      Operation Decisions.IfUnmodifiedSinceModified    >+        Operation Decisions.IfNoneMatchRequested
       Operation Decisions.IfUnmodifiedSinceModified    >-        Operation Operations.PreconditionFailed
-      Operation Decisions.IfUnmodifiedSinceRequested   >+        Operation Decisions.IfUnmodifiedSinceValid      
+      Operation Decisions.IfUnmodifiedSinceRequested   >+        Operation Decisions.IfUnmodifiedSinceValid
       Operation Decisions.IfUnmodifiedSinceRequested   >-        Operation Decisions.IfNoneMatchRequested
-      Operation Decisions.IfUnmodifiedSinceValid       >+        Operation Decisions.IfUnmodifiedSinceModified   
+      Operation Decisions.IfUnmodifiedSinceValid       >+        Operation Decisions.IfUnmodifiedSinceModified
       Operation Decisions.IfUnmodifiedSinceValid       >-        Operation Decisions.IfNoneMatchRequested
-      Operation Decisions.LanguageNegotiable           >+        Operation Decisions.CharsetRequested            
+      Operation Decisions.LanguageNegotiable           >+        Operation Decisions.CharsetRequested
       Operation Decisions.LanguageNegotiable           >-        Operation Decisions.LanguagesStrict
-      Operation Decisions.LanguageRequested            >+        Operation Decisions.LanguageNegotiable          
+      Operation Decisions.LanguageRequested            >+        Operation Decisions.LanguageNegotiable
       Operation Decisions.LanguageRequested            >-        Operation Decisions.CharsetRequested
-      Operation Decisions.MediaTypeNegotiable          >+        Operation Decisions.LanguageRequested           
+      Operation Decisions.MediaTypeNegotiable          >+        Operation Decisions.LanguageRequested
       Operation Decisions.MediaTypeNegotiable          >-        Operation Decisions.MediaTypesStrict
-      Operation Decisions.MediaTypeRequested           >+        Operation Decisions.MediaTypeNegotiable         
+      Operation Decisions.MediaTypeRequested           >+        Operation Decisions.MediaTypeNegotiable
       Operation Decisions.MediaTypeRequested           >-        Operation Decisions.LanguageRequested
-      Operation Decisions.MethodDelete                 >+        Operation Actions.Delete                        
+      Operation Decisions.MethodDelete                 >+        Operation Actions.Delete
       Operation Decisions.MethodDelete                 >-        Operation Decisions.MethodPatch
-      Operation Decisions.MethodGetOrHead              >+        Operation Operations.NotModified                
+      Operation Decisions.MethodGetOrHead              >+        Operation Operations.NotModified
       Operation Decisions.MethodGetOrHead              >-        Operation Operations.PreconditionFailed
-      Operation Decisions.MethodKnown                  >+        Operation Decisions.UriTooLong                  
+      Operation Decisions.MethodKnown                  >+        Operation Decisions.UriTooLong
       Operation Decisions.MethodKnown                  >-        Operation Operations.UnknownMethod
-      Operation Decisions.MethodOptions                >+        Operation Operations.Options                    
+      Operation Decisions.MethodOptions                >+        Operation Operations.Options
       Operation Decisions.MethodOptions                >-        Operation Decisions.MediaTypeRequested
-      Operation Decisions.MethodPatch                  >+        Operation Actions.Patch                         
+      Operation Decisions.MethodPatch                  >+        Operation Actions.Patch
       Operation Decisions.MethodPatch                  >-        Operation Decisions.MethodPostToExisting
-      Operation Decisions.MethodPostToExisting         >+        Operation Actions.Post                          
+      Operation Decisions.MethodPostToExisting         >+        Operation Actions.Post
       Operation Decisions.MethodPostToExisting         >-        Operation Decisions.MethodPutToExisting
-      Operation Decisions.MethodPostToGone             >+        Operation Decisions.AllowPostToGone             
+      Operation Decisions.MethodPostToGone             >+        Operation Decisions.AllowPostToGone
       Operation Decisions.MethodPostToGone             >-        Operation Operations.Gone
-      Operation Decisions.MethodPostToMissing          >+        Operation Decisions.AllowPostToMissing          
+      Operation Decisions.MethodPostToMissing          >+        Operation Decisions.AllowPostToMissing
       Operation Decisions.MethodPostToMissing          >-        Operation Operations.NotFound
-      Operation Decisions.MethodPut                    >+        Operation Decisions.PutToDifferentUri           
+      Operation Decisions.MethodPut                    >+        Operation Decisions.PutToDifferentUri
       Operation Decisions.MethodPut                    >-        Operation Decisions.Existed
-      Operation Decisions.MethodPutToExisting          >+        Operation Decisions.Conflicts                   
+      Operation Decisions.MethodPutToExisting          >+        Operation Decisions.Conflicts
       Operation Decisions.MethodPutToExisting          >-        Operation Decisions.MultipleRepresentations
-      Operation Decisions.MethodSupported              >+        Operation Decisions.Malformed                   
+      Operation Decisions.MethodSupported              >+        Operation Decisions.Malformed
       Operation Decisions.MethodSupported              >-        Operation Operations.MethodNotAllowed
 
-      Operation Decisions.ETagMatchesIf                >+        Operation Decisions.IfUnmodifiedSinceRequested  
+      Operation Decisions.ETagMatchesIf                >+        Operation Decisions.IfUnmodifiedSinceRequested
       Operation Decisions.ETagMatchesIf                >-        Operation Operations.PreconditionFailed
-      Operation Decisions.ETagMatchesIfNone            >+        Operation Decisions.MethodGetOrHead             
+      Operation Decisions.ETagMatchesIfNone            >+        Operation Decisions.MethodGetOrHead
       Operation Decisions.ETagMatchesIfNone            >-        Operation Decisions.IfModifiedSinceRequested
 
       Operation Decisions.Allowed                      >+        Operation Decisions.ContentTypeValid

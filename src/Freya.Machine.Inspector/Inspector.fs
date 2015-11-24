@@ -48,7 +48,7 @@ let private record =
           Edges = List.empty } }
 
 let private initialize =
-    FreyaRecorder.Current.map (record ^?= record_)
+    FreyaRecorder.Current.map (Some record ^= record_)
 
 let private runtime =
     { Initialize = initialize }
@@ -56,7 +56,7 @@ let private runtime =
 (* Inspection *)
 
 let private extract =
-    flip (^?.) record_ >> Option.map (FreyaMachineInspection.OfRecord >> Json.serialize)
+    flip (^.) record_ >> Option.map (FreyaMachineInspection.OfRecord >> Json.serialize)
 
 let private inspection =
     { Extract = extract }

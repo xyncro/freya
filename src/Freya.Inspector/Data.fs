@@ -22,6 +22,7 @@
 module internal Freya.Inspector.Data
 
 open System
+open Arachne.Uri.Template
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
@@ -30,15 +31,14 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
-open Arachne.Uri.Template
 
 (* Route *)
 
 let private id =
-    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.Atom_ "id"))
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!.) (Route.atom_ "id"))
 
 let private extension =
-    Freya.memo (Option.get <!> (!?.) (Route.Atom_ "ext"))
+    Freya.memo (Option.get <!> (!.) (Route.atom_ "ext"))
 
 (* Data *)
 

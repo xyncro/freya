@@ -29,8 +29,8 @@ open Freya.Machine
 
 (* Helper Functions *)
 
-let private setConfig<'a> key a =
-    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key a)
+let private set<'a> key a =
+    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
 
 (* Custom Operations
 
@@ -43,17 +43,17 @@ type FreyaMachineBuilder with
     (* Properties *)
 
     [<CustomOperation (Properties.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersExposed (monad, headers: Freya<string list>) = 
-        x.Map (monad, setConfig Properties.CorsHeadersExposed headers)
+    member x.CorsHeadersExposed (m, headers: Freya<string list>) = 
+        x.Map (m, set Properties.CorsHeadersExposed headers)
 
     [<CustomOperation (Properties.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersSupported (monad, headers: Freya<string list>) = 
-        x.Map (monad, setConfig Properties.CorsHeadersSupported headers)
+    member x.CorsHeadersSupported (m, headers: Freya<string list>) = 
+        x.Map (m, set Properties.CorsHeadersSupported headers)
 
     [<CustomOperation (Properties.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsMethodsSupported (monad, methods: Freya<Method list>) = 
-        x.Map (monad, setConfig Properties.CorsMethodsSupported methods)
+    member x.CorsMethodsSupported (m, methods: Freya<Method list>) = 
+        x.Map (m, set Properties.CorsMethodsSupported methods)
 
     [<CustomOperation (Properties.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsOriginsSupported (monad, origins: Freya<AccessControlAllowOriginRange>) = 
-        x.Map (monad, setConfig Properties.CorsOriginsSupported origins)
+    member x.CorsOriginsSupported (m, origins: Freya<AccessControlAllowOriginRange>) = 
+        x.Map (m, set Properties.CorsOriginsSupported origins)

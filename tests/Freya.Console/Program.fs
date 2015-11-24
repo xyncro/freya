@@ -9,7 +9,7 @@ open Freya.Machine.Extensions.Http
 // Resources
 
 let ok _ =
-        Freya.Lens.setPartial Response.ReasonPhrase_ "Hey Folks!"
+        Freya.Lens.set Response.reasonPhrase_ (Some "Hey Folks!")
      *> Freya.init Representation.empty
 
 let resource =

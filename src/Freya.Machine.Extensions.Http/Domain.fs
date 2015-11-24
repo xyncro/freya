@@ -360,7 +360,7 @@ module ContentNegotiation =
             <!> accept
 
         let negotiable accept supported =
-                function | Negotiated x when List.isEmpty x = false -> true
+                function | Negotiated x when not (List.isEmpty x) -> true
                          | _ -> false
             <!> negotiated accept supported
 

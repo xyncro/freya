@@ -23,14 +23,14 @@ module internal Freya.Inspector.Prelude
 open System.IO
 open System.Reflection
 open System.Text
+open Arachne.Http
+open Arachne.Http.Cors
+open Arachne.Language
 open Chiron
 open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
-open Arachne.Http
-open Arachne.Http.Cors
-open Arachne.Language
 
 (* Presets
 
