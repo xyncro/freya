@@ -25,7 +25,7 @@ NUGET
       Arachne.Core (>= 2.3.25)
       Arachne.Uri (>= 2.3.25)
       FParsec (>= 1.0.2)
-    Chiron (6.0.0-b2)
+    Chiron (6.0.0-b3)
       Aether (8.0.0-b3)
       FParsec
     FParsec (1.0.2)
