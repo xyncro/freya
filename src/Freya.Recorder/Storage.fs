@@ -55,11 +55,11 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^%= StorageState.Records_) state
+        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^% StorageState.Records_) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^%= StorageState.Records_) state
+        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^% StorageState.Records_) state
         state
     | Read (id, chan) ->
         let x = (flip (^.) StorageState.Records_ >> (Seq.tryFind (fun l -> l.Id = id))) state

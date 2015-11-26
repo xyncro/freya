@@ -26,7 +26,6 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
-open Freya.Machine.Operators
 
 (* Decisions *)
 
@@ -168,6 +167,8 @@ let private methodSupported config =
         ((Configuration.get Properties.MethodsSupported >> Option.orElse Defaults.methodsSupported) config)
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Decisions.Allowed                      =.        userDecision Decisions.Allowed true

@@ -29,14 +29,14 @@ module Environment =
 
     let value_<'a> k =
             FreyaState.Environment_
-       >--> Dict.value_<string, obj> k
-       <--> Option.mapIsomorphism box_<'a>
+         >- Dict.value_<string, obj> k
+         >- Option.mapIsomorphism box_<'a>
 
 [<RequireQualifiedAccess>]
 module Memo =
 
     let id_<'a> i =
             FreyaState.Meta_
-       >--> FreyaMetaState.Memos_
-       >--> Map.value_ i
-       <--> Option.mapIsomorphism box_<'a>
+         >- FreyaMetaState.Memos_
+         >- Map.value_ i
+         >- Option.mapIsomorphism box_<'a>

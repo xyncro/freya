@@ -27,7 +27,6 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
-open Freya.Machine.Operators
 
 (* Helpers *)
 
@@ -216,6 +215,8 @@ let private uriTooLong _ =
      *> date
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Operations.Accepted                    =.        systemOperation accepted

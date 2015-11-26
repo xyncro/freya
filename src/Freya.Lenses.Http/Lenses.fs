@@ -35,44 +35,44 @@ module Request =
 
     let body_ =
             Environment.value_<Stream> Constants.requestBody
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let headers_ =
             Environment.value_<IDictionary<string, string []>> Constants.requestHeaders
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let header_ key =
             headers_
-       >--> Dict.value_<string, string []> key
-       <--> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
+         >- Dict.value_<string, string []> key
+         >- Option.mapIsomorphism ((String.concat ","), (Array.create 1))
 
     let method_ = 
             Environment.value_<string> Constants.requestMethod
-       <--> Option.unsafe_
-       <--> (Method.Parse, Method.Format)
+         >- Option.unsafe_
+         >- (Method.Parse, Method.Format)
 
     let path_ =
             Environment.value_<string> Constants.requestPath
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let pathBase_ =
             Environment.value_<string> Constants.requestPathBase
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let httpVersion_ =
             Environment.value_<string> Constants.requestProtocol
-       <--> Option.unsafe_
-       <--> (HttpVersion.Parse, HttpVersion.Format)
+         >- Option.unsafe_
+         >- (HttpVersion.Parse, HttpVersion.Format)
 
     let scheme_ =
             Environment.value_<string> Constants.requestScheme
-       <--> Option.unsafe_
-       <--> (Scheme.Parse, Scheme.Format)
+         >- Option.unsafe_
+         >- (Scheme.Parse, Scheme.Format)
 
     let query_ =
             Environment.value_<string> Constants.requestQueryString
-       <--> Option.unsafe_
-       <--> (Query.Parse, Query.Format)
+         >- Option.unsafe_
+         >- (Query.Parse, Query.Format)
 
     (* Request Header Lenses *)
 
@@ -81,7 +81,7 @@ module Request =
 
         let private value_ key e =
                 header_ key
-           <--> Option.mapEpimorphism e
+             >- Option.mapEpimorphism e
 
         let accept_ =
             value_
@@ -250,20 +250,20 @@ module Response =
 
     let body_ =
             Environment.value_<Stream> Constants.responseBody
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let headers_ =
             Environment.value_<IDictionary<string, string []>> Constants.responseHeaders
-       <--> Option.unsafe_
+         >- Option.unsafe_
 
     let header_ key =
             headers_
-       >--> Dict.value_<string, string []> key
-       <--> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
+         >- Dict.value_<string, string []> key
+         >- Option.mapIsomorphism ((String.concat ","), (Array.create 1))
 
     let httpVersion_ =
             Environment.value_<string> Constants.responseProtocol
-       <--> Option.mapIsomorphism (HttpVersion.Parse, HttpVersion.Format)
+         >- Option.mapIsomorphism (HttpVersion.Parse, HttpVersion.Format)
 
     let reasonPhrase_ =
             Environment.value_<string> Constants.responseReasonPhrase
@@ -278,7 +278,7 @@ module Response =
 
         let private value_ key e =
                 header_ key
-           <--> Option.mapEpimorphism e
+             >- Option.mapEpimorphism e
 
         // TODO: typed AcceptRanges
 

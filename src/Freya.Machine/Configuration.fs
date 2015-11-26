@@ -29,8 +29,8 @@ open Freya.Core
 
 let private config_<'a> key =
         FreyaMachineConfiguration.Data_
-   >--> Map.value_ key
-   <--> Option.mapIsomorphism box_<'a>
+     >- Map.value_ key
+     >- Option.mapIsomorphism box_<'a>
 
 (* Configuration
 

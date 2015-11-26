@@ -117,12 +117,12 @@ module Record =
 
     let private graph_ =
             Record.Record_<FreyaRouterRecord> "router"
-       >-?> Option.mapLens FreyaRouterRecord.Graph_
+         >- Option.mapLens FreyaRouterRecord.Graph_
 
     let private executionNodes_ =
             Record.Record_ "router"
-       >-?> Option.mapLens FreyaRouterRecord.Execution_
-       >?-> FreyaRouterExecutionRecord.Nodes_
+         >- Option.mapLens FreyaRouterRecord.Execution_
+         >? FreyaRouterExecutionRecord.Nodes_
 
     (* Functions *)
 
@@ -131,14 +131,14 @@ module Record =
                  | Compilation.Key k -> k
 
     let graph graph =
-        FreyaRecorder.Current.map ((fun _ -> graph) ^?%= graph_)
+        FreyaRecorder.Current.map ((fun _ -> graph) ^?% graph_)
 
     let completion status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Completion status } :: nodes) ^?%= executionNodes_)
+              Action = Completion status } :: nodes) ^?% executionNodes_)
 
     let match' status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Match status } :: nodes) ^?%= executionNodes_)
+              Action = Match status } :: nodes) ^?% executionNodes_)

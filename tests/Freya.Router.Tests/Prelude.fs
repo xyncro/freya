@@ -52,14 +52,6 @@ let result meth path query m =
 let value meth path query m =
     get (snd (run meth path query m))
 
-(* Methods *)
-
-let Get =
-    Methods [ GET ]
-
-let Post =
-    Methods [ POST ]
-
 (* Routes *)
 
 let route1 =

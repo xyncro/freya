@@ -23,7 +23,6 @@ module internal Freya.Machine.Extensions.Http.Actions
 
 open Freya.Core
 open Freya.Machine
-open Freya.Machine.Operators
 
 (* Actions *)
 
@@ -33,6 +32,8 @@ let private userAction key =
         >> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Actions.Delete                         =.        userAction Actions.Delete

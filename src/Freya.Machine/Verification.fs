@@ -56,28 +56,28 @@ type private Projection =
 
 let private startNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
+            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
+            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
+            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
+            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
          >> Graph.nodes
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))

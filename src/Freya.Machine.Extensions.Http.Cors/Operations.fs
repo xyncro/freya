@@ -27,7 +27,6 @@ open Freya.Core.Operators
 open Freya.Lenses.Http.Cors
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Machine.Operators
 
 (* Operations *)
 
@@ -49,6 +48,8 @@ let private corsPreflight config =
         ((Configuration.get Properties.CorsMethodsSupported >> Option.orElse Defaults.corsMethodsSupported) config)
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Operations.CorsActual                  =.        systemOperation corsActual

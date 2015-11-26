@@ -154,13 +154,11 @@ let updateAction =
         return () }
 
 let corsOrigins =
-    freya {
-        return AccessControlAllowOriginRange.Any }
+    AccessControlAllowOriginRange.Any
 
 let corsHeaders =
-    freya {
-        return [ "accept"
-                 "content-type" ] }
+    [ "accept"
+      "content-type" ]
 
 let common =
     freyaMachine {
@@ -170,15 +168,13 @@ let common =
         corsHeadersSupported corsHeaders
         corsOriginsSupported corsOrigins
         languagesSupported en
-        mediaTypesSupported json }
+        mediaTypesSupported MediaType.Json }
 
 let todosMethods =
-    freya {
-        return [ 
-            DELETE
-            GET
-            OPTIONS
-            POST ] }
+    [ DELETE
+      GET
+      OPTIONS
+      POST ]
 
 let todos =
     freyaMachine {
@@ -191,12 +187,10 @@ let todos =
         handleOk listHandler } |> FreyaMachine.toPipeline
 
 let todoMethods =
-    freya {
-        return [
-            DELETE
-            GET
-            OPTIONS
-            Method.Custom "PATCH" ] }
+    [ DELETE
+      GET
+      OPTIONS
+      Method.Custom "PATCH" ]
 
 let todo =
     freyaMachine {
@@ -216,8 +210,8 @@ let todo =
 
 let todoRoutes =
     freyaRouter {
-        resource (UriTemplate.Parse "/") todos
-        resource (UriTemplate.Parse "/{id}") todo } |> FreyaRouter.toPipeline
+        resource "/" todos
+        resource "/{id}" todo } |> FreyaRouter.toPipeline
 
 (* Inspectors *)
 

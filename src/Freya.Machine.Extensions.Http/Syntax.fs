@@ -37,7 +37,7 @@ module Configuration =
     let add<'a> key a =
         Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
 
-(* (Pseudo (TypeClasses
+(* Pseudo TypeClasses
 
    Static inference functions to allow for type-safe overloading of arguments
    to custom syntax operations. *)

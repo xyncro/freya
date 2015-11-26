@@ -77,12 +77,12 @@ let private createTraversal node =
 
 let private compilationGraph_ =
         id_
-   <--> Compilation.CompilationGraph.Graph_
+     >- Compilation.CompilationGraph.Graph_
 
 let private node_ =
         id_
-   <--> Traversal.State_
-   <--> TraversalState.Node_
+     >- Traversal.State_
+     >- TraversalState.Node_
 
 (* Patterns
 

@@ -28,7 +28,6 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
-open Freya.Machine.Operators
 
 (* Negotiation *)
 
@@ -69,10 +68,10 @@ let private specification config =
 
 let private charset_ =
         Response.Headers.contentType_
-   <--> Option.mapIsomorphism ContentType.MediaType_
-   >-?> Option.mapLens MediaType.Parameters_
-   <?-> Parameters.Parameters_
-   >?-> Map.value_ "charset"
+     >- Option.mapIsomorphism ContentType.MediaType_
+     >- Option.mapLens MediaType.Parameters_
+     >? Parameters.Parameters_
+     >? Map.value_ "charset"
 
 let private charset =
         Option.map (fun (Charset x) -> charset_ .?= Some x)
@@ -130,6 +129,8 @@ let private userHandler key =
         |> Option.orElse (Compiled (Unary (Freya.init ()), unconfigured))))
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Handlers.Accepted                      =.        userHandler Handlers.Accepted

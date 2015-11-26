@@ -31,4 +31,4 @@ type FreyaMachineBuilder with
 
     [<CustomOperation ("using", MaintainsVariableSpaceUsingBind = true)>]
     member x.Using (m, extension) =
-        x.Map (m, Set.add extension ^%= FreyaMachineSpecification.Extensions_)
+        x.Map (m, Set.add extension ^% FreyaMachineSpecification.Extensions_)

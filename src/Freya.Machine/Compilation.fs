@@ -52,7 +52,7 @@ type CompilationResult =
 
 let private precompilationGraph_ =
         id_
-   <--> Precompilation.PrecompilationGraph.Graph_
+     >- Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation
 

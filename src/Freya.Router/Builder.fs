@@ -37,7 +37,7 @@ type FreyaRouterBuilder () =
     member x.Combine (r1, r2) : FreyaRouter = 
         x.Bind (r1, fun () -> r2)
 
-    member internal x.Update (r, update) = 
+    member x.Update (r, update) = 
         x.Bind ((fun res -> (), update res), fun _ -> x.ReturnFrom r)
 
 let freyaRouter = FreyaRouterBuilder ()

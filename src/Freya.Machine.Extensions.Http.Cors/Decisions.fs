@@ -29,7 +29,6 @@ open Freya.Lenses.Http
 open Freya.Lenses.Http.Cors
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Machine.Operators
 
 (* Decisions *)
 
@@ -55,6 +54,8 @@ let private corsPreflight _ =
         (!. Request.Headers.accessControlRequestMethod_)
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Decisions.CorsEnabled                  =.        systemDecision corsEnabled

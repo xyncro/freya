@@ -21,14 +21,12 @@
 [<AutoOpen>]
 module Freya.Machine.Extensions.Http.Cors.Syntax
 
-open Aether
-open Arachne.Http
 open Arachne.Http.Cors
 open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 
-(* (Pseudo (TypeClasses
+(* Pseudo TypeClasses
 
    Static inference functions to allow for type-safe overloading of arguments
    to custom syntax operations. *)
