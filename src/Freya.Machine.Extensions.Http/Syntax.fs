@@ -29,10 +29,224 @@ open Arachne.Uri
 open Freya.Core
 open Freya.Machine
 
-(* Helper Functions *)
+(* Helpers *)
 
-let private set<'a> key a =
-    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
+[<RequireQualifiedAccess>]
+module Configuration =
+
+    let add<'a> key a =
+        Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
+
+(* (Pseudo (TypeClasses
+
+   Static inference functions to allow for type-safe overloading of arguments
+   to custom syntax operations. *)
+
+(* Decisions *)
+
+[<RequireQualifiedAccess>]
+module Decision =
+
+    type Defaults =
+        | Defaults
+
+        static member inline Decision (x: Freya<bool>) =
+            x
+
+        static member inline Decision (x: bool) =
+            Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member Decision: ^a -> Freya<bool>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+(* Handlers *)
+
+[<RequireQualifiedAccess>]
+module Handler =
+
+    type Defaults =
+        | Defaults
+
+        static member inline Handler (x: Specification -> Freya<Representation>) =
+            x
+
+        static member inline Handler (x: Freya<Representation>) =
+            fun (_: Specification) -> x
+
+        static member inline Handler (x: Representation) =
+            fun (_: Specification) -> Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member Handler: ^a -> (Specification -> Freya<Representation>)) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+(* Properties *)
+
+[<RequireQualifiedAccess>]
+module Charsets =
+
+    type Defaults =
+        | Defaults
+
+        static member inline Charsets (x: Freya<Charset list>) =
+            x
+
+        static member inline Charsets (x: Charset list) =
+            Freya.init x
+
+        static member inline Charsets (x: Charset) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member Charsets: ^a -> Freya<Charset list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module ContentCodings =
+
+    type Defaults =
+        | Defaults
+
+        static member inline ContentCodings (x: Freya<ContentCoding list>) =
+            x
+
+        static member inline ContentCodings (x: ContentCoding list) =
+            Freya.init x
+
+        static member inline ContentCodings (x: ContentCoding) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member ContentCodings: ^a -> Freya<ContentCoding list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module DateTime =
+
+    type Defaults =
+        | Defaults
+
+        static member inline DateTime (x: Freya<DateTime>) =
+            x
+
+        static member inline DateTime (x: DateTime) =
+            Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member DateTime: ^a -> Freya<DateTime>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+
+[<RequireQualifiedAccess>]
+module ETag =
+
+    type Defaults =
+        | Defaults
+
+        static member inline ETag (x: Freya<ETag>) =
+            x
+
+        static member inline ETag (x: ETag) =
+            Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member ETag: ^a -> Freya<ETag>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module LanguageTags =
+
+    type Defaults =
+        | Defaults
+
+        static member inline LanguageTags (x: Freya<LanguageTag list>) =
+            x
+
+        static member inline LanguageTags (x: LanguageTag list) =
+            Freya.init x
+
+        static member inline LanguageTags (x: LanguageTag) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member LanguageTags: ^a -> Freya<LanguageTag list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module MediaTypes =
+
+    type Defaults =
+        | Defaults
+
+        static member inline MediaTypes (x: Freya<MediaType list>) =
+            x
+
+        static member inline MediaTypes (x: MediaType list) =
+            Freya.init x
+
+        static member inline MediaTypes (x: MediaType) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member MediaTypes: ^a -> Freya<MediaType list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+
+[<RequireQualifiedAccess>]
+module Methods =
+
+    type Defaults =
+        | Defaults
+
+        static member inline Methods (x: Freya<Method list>) =
+            x
+
+        static member inline Methods (x: Method list) =
+            Freya.init x
+
+        static member inline Methods (x: Method) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member Methods: ^a -> Freya<Method list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module UriReference =
+
+    type Defaults =
+        | Defaults
+
+        static member inline UriReference (x: Freya<UriReference>) =
+            x
+
+        static member inline UriReference (x: UriReference) =
+            Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member UriReference: ^a -> Freya<UriReference>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
 
 (* Custom Operations
 
@@ -46,282 +260,282 @@ type FreyaMachineBuilder with
 
     [<CustomOperation (Actions.Delete, MaintainsVariableSpaceUsingBind = true)>]
     member x.DoDelete (m, delete: Freya<unit>) =
-        x.Map (m, set Actions.Delete delete)
+        x.Map (m, Configuration.add Actions.Delete delete)
 
     [<CustomOperation (Actions.Patch, MaintainsVariableSpaceUsingBind = true)>]
-    member x.DoPatch (m, patch) = 
-        x.Map (m, set Actions.Patch patch)
+    member x.DoPatch (m, patch: Freya<unit>) = 
+        x.Map (m, Configuration.add Actions.Patch patch)
 
     [<CustomOperation (Actions.Post, MaintainsVariableSpaceUsingBind = true)>]
-    member x.DoPost (m, post) = 
-        x.Map (m, set Actions.Post post)
+    member x.DoPost (m, post: Freya<unit>) = 
+        x.Map (m, Configuration.add Actions.Post post)
 
     [<CustomOperation (Actions.Put, MaintainsVariableSpaceUsingBind = true)>]
-    member x.DoPut (m, put) =
-        x.Map (m, set Actions.Put put)
+    member x.DoPut (m, put: Freya<unit>) =
+        x.Map (m, Configuration.add Actions.Put put)
 
     (* Decisions *)
 
     [<CustomOperation (Decisions.Allowed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Allowed (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Allowed d)
+    member inline x.Allowed (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Allowed (Decision.set decision))
 
     [<CustomOperation (Decisions.AllowPostToGone, MaintainsVariableSpaceUsingBind = true)>]
-    member x.AllowPostToGone (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.AllowPostToGone d)
+    member inline x.AllowPostToGone (m, decision) = 
+        x.Map (m, Configuration.add Decisions.AllowPostToGone (Decision.set decision))
 
     [<CustomOperation (Decisions.AllowPostToMissing, MaintainsVariableSpaceUsingBind = true)>]
-    member x.AllowPostToMissing (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.AllowPostToMissing d)
+    member inline x.AllowPostToMissing (m, decision) = 
+        x.Map (m, Configuration.add Decisions.AllowPostToMissing (Decision.set decision))
 
     [<CustomOperation (Decisions.AllowPutToMissing, MaintainsVariableSpaceUsingBind = true)>]
-    member x.AllowPutToMissing (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.AllowPutToMissing d)
+    member inline x.AllowPutToMissing (m, decision) = 
+        x.Map (m, Configuration.add Decisions.AllowPutToMissing (Decision.set decision))
 
     [<CustomOperation (Decisions.Authorized, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Authorized (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Authorized d)
+    member inline x.Authorized (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Authorized (Decision.set decision))
 
     [<CustomOperation (Decisions.CharsetsStrict, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CharsetsStrict (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.CharsetsStrict d)
+    member inline x.CharsetsStrict (m, decision) = 
+        x.Map (m, Configuration.add Decisions.CharsetsStrict (Decision.set decision))
 
     [<CustomOperation (Decisions.Conflicts, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Conflicts (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Conflicts d)
+    member inline x.Conflicts (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Conflicts (Decision.set decision))
 
     [<CustomOperation (Decisions.ContentTypeKnown, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ContentTypeKnown (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.ContentTypeKnown d)
+    member inline x.ContentTypeKnown (m, decision) = 
+        x.Map (m, Configuration.add Decisions.ContentTypeKnown (Decision.set decision))
 
     [<CustomOperation (Decisions.ContentTypeValid, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ContentTypeValid (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.ContentTypeValid d)
+    member inline x.ContentTypeValid (m, decision) = 
+        x.Map (m, Configuration.add Decisions.ContentTypeValid (Decision.set decision))
 
     [<CustomOperation (Decisions.Created, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Created (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Created d)
+    member inline x.Created (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Created (Decision.set decision))
 
     [<CustomOperation (Decisions.Deleted, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Deleted (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Deleted d)
+    member inline x.Deleted (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Deleted (Decision.set decision))
 
     [<CustomOperation (Decisions.EncodingsStrict, MaintainsVariableSpaceUsingBind = true)>]
-    member x.EncodingsStrict (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.EncodingsStrict d)
+    member inline x.EncodingsStrict (m, decision) = 
+        x.Map (m, Configuration.add Decisions.EncodingsStrict (Decision.set decision))
 
     [<CustomOperation (Decisions.EntityLengthValid, MaintainsVariableSpaceUsingBind = true)>]
-    member x.EntityLengthValid (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.EntityLengthValid d)
+    member inline x.EntityLengthValid (m, decision) = 
+        x.Map (m, Configuration.add Decisions.EntityLengthValid (Decision.set decision))
 
     [<CustomOperation (Decisions.Existed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Existed (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Existed d)
+    member inline x.Existed (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Existed (Decision.set decision))
 
     [<CustomOperation (Decisions.Exists, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Exists (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Exists d)
+    member inline x.Exists (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Exists (Decision.set decision))
 
     [<CustomOperation (Decisions.LanguagesStrict, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LanguagesStrict (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.LanguagesStrict d)
+    member inline x.LanguagesStrict (m, decision) = 
+        x.Map (m, Configuration.add Decisions.LanguagesStrict (Decision.set decision))
 
     [<CustomOperation (Decisions.Malformed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Malformed (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Malformed d)
+    member inline x.Malformed (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Malformed (Decision.set decision))
 
     [<CustomOperation (Decisions.MediaTypesStrict, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MediaTypesStrict (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.MediaTypesStrict d)
+    member inline x.MediaTypesStrict (m, decision) = 
+        x.Map (m, Configuration.add Decisions.MediaTypesStrict (Decision.set decision))
 
     [<CustomOperation (Decisions.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MovedPermanently (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.MovedPermanently d)
+    member inline x.MovedPermanently (m, decision) = 
+        x.Map (m, Configuration.add Decisions.MovedPermanently (Decision.set decision))
 
     [<CustomOperation (Decisions.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MovedTemporarily (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.MovedTemporarily d)
+    member inline x.MovedTemporarily (m, decision) = 
+        x.Map (m, Configuration.add Decisions.MovedTemporarily (Decision.set decision))
 
     [<CustomOperation (Decisions.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MultipleRepresentations (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.MultipleRepresentations d)
+    member inline x.MultipleRepresentations (m, decision) = 
+        x.Map (m, Configuration.add Decisions.MultipleRepresentations (Decision.set decision))
 
     [<CustomOperation (Decisions.PostRedirect, MaintainsVariableSpaceUsingBind = true)>]
-    member x.PostRedirect (m, d: Freya<bool>) =
-        x.Map (m, set Decisions.PostRedirect d)
+    member inline x.PostRedirect (m, decision) =
+        x.Map (m, Configuration.add Decisions.PostRedirect (Decision.set decision))
 
     [<CustomOperation (Decisions.Processable, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Processable (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.Processable d)
+    member inline x.Processable (m, decision) = 
+        x.Map (m, Configuration.add Decisions.Processable (Decision.set decision))
 
     [<CustomOperation (Decisions.PutToDifferentUri, MaintainsVariableSpaceUsingBind = true)>]
-    member x.PutToDifferentUri (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.PutToDifferentUri d)
+    member inline x.PutToDifferentUri (m, decision) = 
+        x.Map (m, Configuration.add Decisions.PutToDifferentUri (Decision.set decision))
 
     [<CustomOperation (Decisions.RespondWithEntity, MaintainsVariableSpaceUsingBind = true)>]
-    member x.RespondWithEntity (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.RespondWithEntity d)
+    member inline x.RespondWithEntity (m, decision) = 
+        x.Map (m, Configuration.add Decisions.RespondWithEntity (Decision.set decision))
 
     [<CustomOperation (Decisions.ServiceAvailable, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ServiceAvailable (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.ServiceAvailable d)
+    member inline x.ServiceAvailable (m, decision) = 
+        x.Map (m, Configuration.add Decisions.ServiceAvailable (Decision.set decision))
 
     [<CustomOperation (Decisions.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
-    member x.UriTooLong (m, d: Freya<bool>) = 
-        x.Map (m, set Decisions.UriTooLong d)
+    member inline x.UriTooLong (m, decision) = 
+        x.Map (m, Configuration.add Decisions.UriTooLong (Decision.set decision))
 
     (* Handlers *)
 
     // 200
 
     [<CustomOperation (Handlers.OK, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleOk (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.OK h)
+    member inline x.HandleOk (m, handler) = 
+        x.Map (m, Configuration.add Handlers.OK (Handler.set handler))
 
     [<CustomOperation (Handlers.Options, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleOptions (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Options h)
+    member inline x.HandleOptions (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Options (Handler.set handler))
 
     [<CustomOperation (Handlers.Created, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleCreated (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Created h)
+    member inline x.HandleCreated (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Created (Handler.set handler))
 
     [<CustomOperation (Handlers.Accepted, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleAccepted (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Accepted h)
+    member inline x.HandleAccepted (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Accepted (Handler.set handler))
 
     [<CustomOperation (Handlers.NoContent, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleNoContent (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.NoContent h)
+    member inline x.HandleNoContent (m, handler) = 
+        x.Map (m, Configuration.add Handlers.NoContent (Handler.set handler))
 
     // 300
 
     [<CustomOperation (Handlers.MovedPermanently, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleMovedPermanently (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.MovedPermanently h)
+    member inline x.HandleMovedPermanently (m, handler) = 
+        x.Map (m, Configuration.add Handlers.MovedPermanently (Handler.set handler))
 
     [<CustomOperation (Handlers.SeeOther, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleSeeOther (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.SeeOther h)
+    member inline x.HandleSeeOther (m, handler) = 
+        x.Map (m, Configuration.add Handlers.SeeOther (Handler.set handler))
 
     [<CustomOperation (Handlers.NotModified, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleNotModified (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.NotModified h)
+    member inline x.HandleNotModified (m, handler) = 
+        x.Map (m, Configuration.add Handlers.NotModified (Handler.set handler))
 
     [<CustomOperation (Handlers.MovedTemporarily, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleMovedTemporarily (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.MovedTemporarily h)
+    member inline x.HandleMovedTemporarily (m, handler) = 
+        x.Map (m, Configuration.add Handlers.MovedTemporarily (Handler.set handler))
 
     [<CustomOperation (Handlers.MultipleRepresentations, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleMultipleRepresentations (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.MultipleRepresentations h)
+    member inline x.HandleMultipleRepresentations (m, handler) = 
+        x.Map (m, Configuration.add Handlers.MultipleRepresentations (Handler.set handler))
         
     // 400
 
     [<CustomOperation (Handlers.BadRequest, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleBadRequest (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.BadRequest h)
+    member inline x.HandleBadRequest (m, handler) = 
+        x.Map (m, Configuration.add Handlers.BadRequest (Handler.set handler))
 
     [<CustomOperation (Handlers.Unauthorized, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleUnauthorized (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Unauthorized h)
+    member inline x.HandleUnauthorized (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Unauthorized (Handler.set handler))
 
     [<CustomOperation (Handlers.Forbidden, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleForbidden (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Forbidden h)
+    member inline x.HandleForbidden (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Forbidden (Handler.set handler))
 
     [<CustomOperation (Handlers.NotFound, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleNotFound (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.NotFound h)
+    member inline x.HandleNotFound (m, handler) = 
+        x.Map (m, Configuration.add Handlers.NotFound (Handler.set handler))
 
     [<CustomOperation (Handlers.MethodNotAllowed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleMethodNotAllowed (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.MethodNotAllowed h)
+    member inline x.HandleMethodNotAllowed (m, handler) = 
+        x.Map (m, Configuration.add Handlers.MethodNotAllowed (Handler.set handler))
 
     [<CustomOperation (Handlers.NotAcceptable, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleNotAcceptable (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.NotAcceptable h)
+    member inline x.HandleNotAcceptable (m, handler) = 
+        x.Map (m, Configuration.add Handlers.NotAcceptable (Handler.set handler))
 
     [<CustomOperation (Handlers.Conflict, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleConflict (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Conflict h)
+    member inline x.HandleConflict (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Conflict (Handler.set handler))
 
     [<CustomOperation (Handlers.Gone, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleGone (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.Gone h)
+    member inline x.HandleGone (m, handler) = 
+        x.Map (m, Configuration.add Handlers.Gone (Handler.set handler))
 
     [<CustomOperation (Handlers.PreconditionFailed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandlePreconditionFailed (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.PreconditionFailed h)
+    member inline x.HandlePreconditionFailed (m, handler) = 
+        x.Map (m, Configuration.add Handlers.PreconditionFailed (Handler.set handler))
 
     [<CustomOperation (Handlers.RequestEntityTooLarge, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleRequestEntityTooLarge (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.RequestEntityTooLarge h)
+    member inline x.HandleRequestEntityTooLarge (m, handler) = 
+        x.Map (m, Configuration.add Handlers.RequestEntityTooLarge (Handler.set handler))
 
     [<CustomOperation (Handlers.UriTooLong, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleUriTooLong (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.UriTooLong h)
+    member inline x.HandleUriTooLong (m, handler) = 
+        x.Map (m, Configuration.add Handlers.UriTooLong (Handler.set handler))
 
     [<CustomOperation (Handlers.UnsupportedMediaType, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleUnsupportedMediaType (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.UnsupportedMediaType h)
+    member inline x.HandleUnsupportedMediaType (m, handler) = 
+        x.Map (m, Configuration.add Handlers.UnsupportedMediaType (Handler.set handler))
 
     [<CustomOperation (Handlers.UnprocessableEntity, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleUnprocessableEntity (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.UnprocessableEntity h)
+    member inline x.HandleUnprocessableEntity (m, handler) = 
+        x.Map (m, Configuration.add Handlers.UnprocessableEntity (Handler.set handler))
 
     // 500
 
     [<CustomOperation (Handlers.NotImplemented, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleNotImplemented (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.NotImplemented h)
+    member inline x.HandleNotImplemented (m, handler) = 
+        x.Map (m, Configuration.add Handlers.NotImplemented (Handler.set handler))
 
     [<CustomOperation (Handlers.UnknownMethod, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleUnknownMethod (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.UnknownMethod h)
+    member inline x.HandleUnknownMethod (m, handler) = 
+        x.Map (m, Configuration.add Handlers.UnknownMethod (Handler.set handler))
     
     [<CustomOperation (Handlers.ServiceUnavailable, MaintainsVariableSpaceUsingBind = true)>]
-    member x.HandleServiceUnavailable (m, h: Specification -> Freya<Representation>) = 
-        x.Map (m, set Handlers.ServiceUnavailable h)
+    member inline x.HandleServiceUnavailable (m, handler) =
+        x.Map (m, Configuration.add Handlers.ServiceUnavailable (Handler.set handler))
 
     (* Properties *)
 
     [<CustomOperation (Properties.CharsetsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CharsetsSupported (m, charsets: Freya<Charset list>) = 
-        x.Map (m, set Properties.CharsetsSupported charsets)
+    member inline x.CharsetsSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.CharsetsSupported (Charsets.set supported))
 
     [<CustomOperation (Properties.EncodingsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.EncodingsSupported (m, encodings: Freya<ContentCoding list>) = 
-        x.Map (m, set Properties.EncodingsSupported encodings)
+    member inline x.EncodingsSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.EncodingsSupported (ContentCodings.set supported))
 
     [<CustomOperation (Properties.ETag, MaintainsVariableSpaceUsingBind = true)>]
-    member x.ETag (m, etag: Freya<EntityTag>) = 
-        x.Map (m, set Properties.ETag etag)
+    member inline x.ETag (m, etag) = 
+        x.Map (m, Configuration.add Properties.ETag (ETag.set etag))
 
     [<CustomOperation (Properties.Expires, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Expires (m, expires: Freya<DateTime>) = 
-        x.Map (m, set Properties.Expires expires)
+    member inline x.Expires (m, expires) = 
+        x.Map (m, Configuration.add Properties.Expires (DateTime.set expires))
 
     [<CustomOperation (Properties.LanguagesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LanguagesSupported (m, languages: Freya<LanguageTag list>) = 
-        x.Map (m, set Properties.LanguagesSupported languages)
+    member inline x.LanguagesSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.LanguagesSupported (LanguageTags.set supported))
 
     [<CustomOperation (Properties.LastModified, MaintainsVariableSpaceUsingBind = true)>]
-    member x.LastModified (m, modified: Freya<DateTime>) = 
-        x.Map (m, set Properties.LastModified modified)
+    member inline x.LastModified (m, modified) = 
+        x.Map (m, Configuration.add Properties.LastModified (DateTime.set modified))
 
     [<CustomOperation (Properties.Location, MaintainsVariableSpaceUsingBind = true)>]
-    member x.Location (m, location: Freya<UriReference>) = 
-        x.Map (m, set Properties.Location location)
+    member inline x.Location (m, location) = 
+        x.Map (m, Configuration.add Properties.Location (UriReference.set location))
 
     [<CustomOperation (Properties.MediaTypesSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MediaTypesSupported (m, mediaTypes: Freya<MediaType list>) =
-        x.Map (m, set Properties.MediaTypesSupported mediaTypes)
+    member inline x.MediaTypesSupported (m, supported) =
+        x.Map (m, Configuration.add Properties.MediaTypesSupported (MediaTypes.set supported))
 
     [<CustomOperation (Properties.MethodsKnown, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsKnown (m, methods: Freya<Method list>) = 
-        x.Map (m, set Properties.MethodsKnown methods)
+    member inline x.MethodsKnown (m, known) = 
+        x.Map (m, Configuration.add Properties.MethodsKnown (Methods.set known))
 
     [<CustomOperation (Properties.MethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.MethodsSupported (m, methods: Freya<Method list>) = 
-        x.Map (m, set Properties.MethodsSupported methods)
+    member inline x.MethodsSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.MethodsSupported (Methods.set supported))

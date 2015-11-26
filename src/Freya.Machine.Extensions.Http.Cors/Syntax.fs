@@ -26,11 +26,51 @@ open Arachne.Http
 open Arachne.Http.Cors
 open Freya.Core
 open Freya.Machine
+open Freya.Machine.Extensions.Http
 
-(* Helper Functions *)
+(* (Pseudo (TypeClasses
 
-let private set<'a> key a =
-    Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
+   Static inference functions to allow for type-safe overloading of arguments
+   to custom syntax operations. *)
+
+[<RequireQualifiedAccess>]
+module AccessControlAllowOriginRange =
+
+    type Defaults =
+        | Defaults
+
+        static member inline AccessControlAllowOriginRange (x: Freya<AccessControlAllowOriginRange>) =
+            x
+
+        static member inline AccessControlAllowOriginRange (x: AccessControlAllowOriginRange) =
+            Freya.init x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member AccessControlAllowOriginRange: ^a -> Freya<AccessControlAllowOriginRange>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module Strings =
+
+    type Defaults =
+        | Defaults
+
+        static member inline Strings (x: Freya<string list>) =
+            x
+
+        static member inline Strings (x: string list) =
+            Freya.init x
+
+        static member inline Strings (x: string) =
+            Freya.init [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member Strings: ^a -> Freya<string list>) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
 
 (* Custom Operations
 
@@ -43,17 +83,17 @@ type FreyaMachineBuilder with
     (* Properties *)
 
     [<CustomOperation (Properties.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersExposed (m, headers: Freya<string list>) = 
-        x.Map (m, set Properties.CorsHeadersExposed headers)
+    member inline x.CorsHeadersExposed (m, exposed) = 
+        x.Map (m, Configuration.add Properties.CorsHeadersExposed (Strings.set exposed))
 
     [<CustomOperation (Properties.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsHeadersSupported (m, headers: Freya<string list>) = 
-        x.Map (m, set Properties.CorsHeadersSupported headers)
+    member inline x.CorsHeadersSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.CorsHeadersSupported (Strings.set supported))
 
     [<CustomOperation (Properties.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsMethodsSupported (m, methods: Freya<Method list>) = 
-        x.Map (m, set Properties.CorsMethodsSupported methods)
+    member inline x.CorsMethodsSupported (m, supported) = 
+        x.Map (m, Configuration.add Properties.CorsMethodsSupported (Methods.set supported))
 
     [<CustomOperation (Properties.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
-    member x.CorsOriginsSupported (m, origins: Freya<AccessControlAllowOriginRange>) = 
-        x.Map (m, set Properties.CorsOriginsSupported origins)
+    member inline x.CorsOriginsSupported (m, origins) = 
+        x.Map (m, Configuration.add Properties.CorsOriginsSupported (AccessControlAllowOriginRange.set origins))

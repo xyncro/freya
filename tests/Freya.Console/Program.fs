@@ -15,7 +15,7 @@ let ok _ =
 let resource =
     freyaMachine {
         using http
-        methodsSupported (Freya.init [ GET ])
+        methodsSupported GET
         handleOk ok } |> FreyaMachine.toPipeline
 
 // App

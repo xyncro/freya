@@ -21,6 +21,53 @@
 [<AutoOpen>]
 module Freya.Router.Syntax
 
+open Arachne.Http
+open Arachne.Uri.Template
+
+(* (Pseudo (TypeClasses
+
+   Static inference functions to allow for type-safe overloading of arguments
+   to custom syntax operations. *)
+
+[<RequireQualifiedAccess>]
+module FreyaRouteMethod =
+
+    type Defaults =
+        | Defaults
+
+        static member inline FreyaRouteMethod (x: FreyaRouteMethod) =
+            x
+
+        static member inline FreyaRouteMethod (x: Method list) =
+            Methods x
+
+        static member inline FreyaRouteMethod (x: Method) =
+            Methods [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member FreyaRouteMethod: ^a -> FreyaRouteMethod) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module UriTemplate =
+
+    type Defaults =
+        | Defaults
+
+        static member inline UriTemplate (x: UriTemplate) =
+            x
+
+        static member inline UriTemplate (x: string) =
+            UriTemplate.Parse x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member UriTemplate: ^a -> UriTemplate) a)
+
+    let inline set (x: 'a) =
+        defaults (x, Defaults)
+
 (* Custom Operations
 
    Custom syntax operators used in the FreyaRouter computation
@@ -33,19 +80,11 @@ type FreyaRouterBuilder with
     (* Paths *)
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
-    member x.Route (r, meth, template, pipeline) =
+    member inline x.Route (r, meth, template, pipeline) =
         x.Update (r, (fun x ->
-            { Method = meth
+            { Method = FreyaRouteMethod.set meth
               Specification = Path
-              Template = template
-              Pipeline = pipeline } :: x))
-
-    [<CustomOperation ("routeWithQuery", MaintainsVariableSpaceUsingBind = true)>]
-    member x.RouteWithQuery (r, meth, template, pipeline) =
-        x.Update (r, (fun x ->
-            { Method = meth
-              Specification = PathAndQuery
-              Template = template
+              Template = UriTemplate.set template
               Pipeline = pipeline } :: x))
 
     (* Utility *)
