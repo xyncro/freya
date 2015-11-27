@@ -21,28 +21,40 @@
 [<AutoOpen>]
 module Freya.Machine.Builder
 
+(* Type *)
+
+type FreyaMachine =
+    | FreyaMachine of (FreyaMachineSpecification -> unit * FreyaMachineSpecification)
+
+    static member Pipeline (FreyaMachine x) =
+        Reification.reify x
+
 (* Builder
 
    The Computation Expression builder to give Machine the declarative
    computation expression syntax for specifying Machine Definitions.
-   Specific strongly typed custom operations are defined in
-   Machine.Syntax.fs. *)
+   Specific strongly typed custom operations are defined in Syntax.fs. *)
 
 type FreyaMachineBuilder () =
 
-    member __.Return _ : FreyaMachine =
-        fun spec -> (), spec
+    member __.Return _ =
+        FreyaMachine (fun spec -> (), spec)
 
-    member __.ReturnFrom m : FreyaMachine = 
+    member __.ReturnFrom m =
         m
 
-    member __.Bind (m, k) : FreyaMachine = 
-        m >> fun (result, definition) -> (k result) definition
+    member __.Bind (m, k) =
+        FreyaMachine (fun spec ->
+            let (FreyaMachine m') = m
+            let (FreyaMachine k') = k ()
 
-    member x.Combine (m1, m2) : FreyaMachine = 
+            (), snd (k' (snd (m' spec))))
+
+    member x.Combine (m1, m2) =
         x.Bind (m1, fun () -> m2)
 
     member x.Map (m, f) =
-        x.Bind ((fun spec -> (), f spec), (fun _ -> x.ReturnFrom m))
+        x.Bind (FreyaMachine (fun spec -> (), f spec), (fun _ -> m))
 
-let freyaMachine = FreyaMachineBuilder ()
+let freyaMachine =
+    FreyaMachineBuilder ()

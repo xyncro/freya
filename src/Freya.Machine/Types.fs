@@ -94,12 +94,9 @@ and FreyaMachineExtensionOperation =
     | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdge option
     | RemoveEdge of FreyaMachineNode * FreyaMachineNode
 
-(* Computation Expression *)
+(* Specification *)
 
-type FreyaMachine =
-    FreyaMachineSpecification -> unit * FreyaMachineSpecification
-
-and FreyaMachineSpecification =
+type FreyaMachineSpecification =
     { Configuration: FreyaMachineConfiguration
       Extensions: Set<FreyaMachineExtension> }
 
@@ -115,7 +112,7 @@ and FreyaMachineSpecification =
    an empty machine specification with no existing configuration
    and no extensions (not a machine which will do much). *)
 
-let internal defaultFreyaMachineSpecification =
+let internal freyaMachineSpecification =
     { Configuration = 
         { Data = Map.empty }
       Extensions = Set.empty }
