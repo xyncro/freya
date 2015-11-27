@@ -38,7 +38,7 @@ type FreyaRouterRecord =
     static member Execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
-and FreyaRouterGraphRecord =
+ and FreyaRouterGraphRecord =
     { Nodes: FreyaRouterGraphNodeRecord list
       Edges: FreyaRouterGraphEdgeRecord list }
 
@@ -48,29 +48,29 @@ and FreyaRouterGraphRecord =
     static member Edges_ =
         (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
-and FreyaRouterGraphNodeRecord =
+ and FreyaRouterGraphNodeRecord =
     { Key: string
       Methods: string list }
 
-and FreyaRouterGraphEdgeRecord =
+ and FreyaRouterGraphEdgeRecord =
     { From: string
       To: string }
 
-and FreyaRouterExecutionRecord =
+ and FreyaRouterExecutionRecord =
     { Nodes: FreyaRouterExecutionNodeRecord list }
 
     static member Nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterExecutionRecord.Nodes = n })
 
-and FreyaRouterExecutionNodeRecord =
+ and FreyaRouterExecutionNodeRecord =
     { Key: string
       Action: FreyaRouterExecutionActionRecord }
 
-and FreyaRouterExecutionActionRecord =
+ and FreyaRouterExecutionActionRecord =
     | Completion of FreyaRouterExecutionStatusRecord
     | Match of FreyaRouterExecutionStatusRecord
 
-and FreyaRouterExecutionStatusRecord =
+ and FreyaRouterExecutionStatusRecord =
     | Success
     | Failure
 

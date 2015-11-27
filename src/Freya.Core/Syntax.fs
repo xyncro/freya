@@ -15,14 +15,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Core.Builder
+module Freya.Core.Syntax
 
 open System
-open Freya.Core
-open Freya.Core.Operators
 
 (* Builder *)
 
@@ -42,7 +41,7 @@ type FreyaBuilder () =
         Freya.init ()
     
     member __.Combine (m1: Freya<unit>, m2: Freya<'T>) : Freya<'T> =
-        m1 >>= fun () -> m2
+        Freya.bind (fun () -> m2) m1
     
     member __.TryWith (m: Freya<'T>, handler: exn -> Freya<'T>) : Freya<'T> =
         fun env ->
@@ -58,7 +57,7 @@ type FreyaBuilder () =
         this.TryFinally (body res, (fun () -> 
             match res with 
             | null -> () 
-            | disp -> disp.Dispose()))
+            | res -> res.Dispose ()))
     
     member this.Delay (f) =
         this.Bind (this.Return (), f)
@@ -75,4 +74,5 @@ type FreyaBuilder () =
 
 /// The instance of <see cref="FreyaBuilder" /> used for constructing
 /// <see cref="Freya{T}" /> computations.
-let freya = new FreyaBuilder ()
+let freya =
+    FreyaBuilder ()

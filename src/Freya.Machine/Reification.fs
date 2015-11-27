@@ -50,7 +50,7 @@ let private fail e =
 let private run graph record =
         Recording.Record.definition record
      *> Execution.execute graph
-     *> Freya.halt
+     *> Freya.Pipeline.halt
 
 (* Reification
 

@@ -80,4 +80,4 @@ let inline (%?=) p f =
 (* Pipeline *)
 
 let inline (>?=) p1 p2 = 
-    Freya.pipe p1 p2
+    Freya.Pipeline.compose p1 p2

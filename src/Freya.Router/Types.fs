@@ -36,10 +36,10 @@ type FreyaRoute =
     static member Template_ =
         (fun x -> x.Template), (fun t x -> { x with Template = t })
 
-and FreyaRouteSpecification =
+ and FreyaRouteSpecification =
     | Path
     | PathAndQuery
 
-and FreyaRouteMethod =
+ and FreyaRouteMethod =
     | All
     | Methods of Method list

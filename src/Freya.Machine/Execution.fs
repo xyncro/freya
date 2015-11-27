@@ -56,7 +56,7 @@ type private Traversal =
     static member State_ =
         (fun (Traversal x) -> x), (fun x -> Traversal x)
 
-and private TraversalState =
+ and private TraversalState =
     | State of FreyaMachineNode
 
     static member Node_ =
@@ -152,25 +152,25 @@ let rec private traverse graph traversal =
     | _ ->
         failwith ""
 
-and private start graph traversal =
+ and private start graph traversal =
         Recording.Record.execution { Id = Start }
      *> ((fun _ -> tryFindNext Start None (graph ^. compilationGraph_)) <!> Freya.init ()
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> Freya.init (Failure ""))
 
-and private unary current op graph traversal =
+ and private unary current op graph traversal =
         Recording.Record.execution { Id = current }
      *> ((fun _ -> tryFindNext current None (graph ^. compilationGraph_)) <!> op
       >>= function | Some next -> traverse graph (progress next traversal)
                    | _ -> failwith "")
 
-and private binary current op graph traversal =
+ and private binary current op graph traversal =
         Recording.Record.execution { Id = current }
      *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. compilationGraph_)) <!> op
       >>= function | _, Some next -> traverse graph (progress next traversal)
                    | _, _ -> failwith "")
 
-and private finish () =
+ and private finish () =
         Recording.Record.execution { Id = Finish }
      *> Freya.init Success
 
@@ -191,5 +191,5 @@ let private run graph =
 
 let execute graph =
         run graph
-    >>= function | Success -> Freya.halt
+    >>= function | Success -> Freya.Pipeline.halt
                  | Failure e -> fail e

@@ -26,7 +26,7 @@ open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 
-(* Pseudo TypeClasses
+(* Type Classes
 
    Static inference functions to allow for type-safe overloading of arguments
    to custom syntax operations. *)
@@ -46,7 +46,7 @@ module AccessControlAllowOriginRange =
     let inline defaults (a: ^a, _: ^b) =
             ((^a or ^b) : (static member AccessControlAllowOriginRange: ^a -> Freya<AccessControlAllowOriginRange>) a)
 
-    let inline set (x: 'a) =
+    let inline infer (x: 'a) =
         defaults (x, Defaults)
 
 [<RequireQualifiedAccess>]
@@ -67,7 +67,7 @@ module Strings =
     let inline defaults (a: ^a, _: ^b) =
             ((^a or ^b) : (static member Strings: ^a -> Freya<string list>) a)
 
-    let inline set (x: 'a) =
+    let inline infer (x: 'a) =
         defaults (x, Defaults)
 
 (* Custom Operations
@@ -82,16 +82,16 @@ type FreyaMachineBuilder with
 
     [<CustomOperation (Properties.CorsHeadersExposed, MaintainsVariableSpaceUsingBind = true)>]
     member inline x.CorsHeadersExposed (m, exposed) = 
-        x.Map (m, Configuration.add Properties.CorsHeadersExposed (Strings.set exposed))
+        x.Map (m, Configuration.add Properties.CorsHeadersExposed (Strings.infer exposed))
 
     [<CustomOperation (Properties.CorsHeadersSupported, MaintainsVariableSpaceUsingBind = true)>]
     member inline x.CorsHeadersSupported (m, supported) = 
-        x.Map (m, Configuration.add Properties.CorsHeadersSupported (Strings.set supported))
+        x.Map (m, Configuration.add Properties.CorsHeadersSupported (Strings.infer supported))
 
     [<CustomOperation (Properties.CorsMethodsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member inline x.CorsMethodsSupported (m, supported) = 
-        x.Map (m, Configuration.add Properties.CorsMethodsSupported (Methods.set supported))
+        x.Map (m, Configuration.add Properties.CorsMethodsSupported (Methods.infer supported))
 
     [<CustomOperation (Properties.CorsOriginsSupported, MaintainsVariableSpaceUsingBind = true)>]
     member inline x.CorsOriginsSupported (m, origins) = 
-        x.Map (m, Configuration.add Properties.CorsOriginsSupported (AccessControlAllowOriginRange.set origins))
+        x.Map (m, Configuration.add Properties.CorsOriginsSupported (AccessControlAllowOriginRange.infer origins))

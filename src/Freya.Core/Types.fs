@@ -24,42 +24,6 @@ module Freya.Core.Types
 open System
 open System.Collections.Generic
 
-(* Environment *)
-
-/// Type alias for <see cref="IDictionary<T1, T2>" /> using <see cref="String" /> for keys and containing boxed values.
-type FreyaEnvironment =
-    IDictionary<string, obj>
-
-(* State *)
-
-/// A state value to be threaded through Freya computations,
-/// including the <see cref="CoreEnvironment" /> and <see cref="CoreMetaState" />
-type FreyaState =
-    { Environment: FreyaEnvironment
-      Meta: FreyaMetaState }
-
-    static member internal Environment_ =
-        (fun x -> x.Environment), 
-        (fun e x -> { x with Environment = e })
-
-    static member internal Meta_ =
-        (fun x -> x.Meta), 
-        (fun m x -> { x with Meta = m })
-
-/// <summary>
-/// A state value representing Core computations' memoized values.
-/// </summary>
-/// <remarks>
-/// This state value allows Freya to avoid polluting the <see cref="CoreEnvironment" />
-/// with Freya-specific concerns.
-/// </remarks>
-and FreyaMetaState =
-    { Memos: Map<Guid, obj> }
-
-    static member internal Memos_ =
-        (fun x -> x.Memos),
-        (fun m x -> { x with Memos = m })
-
 (* Computation Expression *)
 
 /// <summary>
@@ -76,11 +40,47 @@ and FreyaMetaState =
 type Freya<'T> =
     FreyaState -> Async<'T * FreyaState>
 
+(* State *)
+
+/// A state value to be threaded through Freya computations,
+/// including the <see cref="CoreEnvironment" /> and <see cref="CoreMetaState" />
+ and FreyaState =
+    { Environment: FreyaEnvironment
+      Meta: FreyaMetaState }
+
+    static member internal Environment_ =
+        (fun x -> x.Environment), 
+        (fun e x -> { x with Environment = e })
+
+    static member internal Meta_ =
+        (fun x -> x.Meta), 
+        (fun m x -> { x with Meta = m })
+
+(* Environment *)
+
+/// Type alias for <see cref="IDictionary<T1, T2>" /> using <see cref="String" /> for keys and containing boxed values.
+ and FreyaEnvironment =
+    IDictionary<string, obj>
+
+/// <summary>
+/// A state value representing Core computations' memoized values.
+/// </summary>
+/// <remarks>
+/// This state value allows Freya to avoid polluting the <see cref="CoreEnvironment" />
+/// with Freya-specific concerns.
+/// </remarks>
+ and FreyaMetaState =
+    { Memos: Map<Guid, obj> }
+
+    static member internal Memos_ =
+        (fun x -> x.Memos),
+        (fun m x -> { x with Memos = m })
+
 (* Pipeline *)
 
 type FreyaPipeline =
     Freya<FreyaPipelineChoice>
 
-and FreyaPipelineChoice =
+ and FreyaPipelineChoice =
     | Next
     | Halt

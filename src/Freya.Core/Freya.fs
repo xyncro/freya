@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 /// Core combinator definitions for <see cref="Freya{T}" /> computations.
@@ -32,17 +33,17 @@ open Aether
 
 /// Wraps a value x in a <see cref="Freya{T}" /> computation.
 let inline init x : Freya<'T> = 
-    fun env -> 
-        async.Return (x, env)
+    fun state -> 
+        async.Return (x, state)
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
 /// into a <see cref="Freya{T}" /> computation.
 let inline fromAsync f =
     (fun f -> 
-        fun env -> 
+        fun state -> 
             async { 
                 let! v = f
-                return v, env }) << f
+                return v, state }) << f
 
 /// Binds a <see cref="Freya{T}" /> computation with a function that
 /// takes the value from the <see cref="Freya{T}" /> computation and
@@ -70,9 +71,22 @@ let inline map f m : Freya<'T> =
 let inline map2 f m1 m2 =
     apply (apply (init f) m1) m2
 
-(* State
+(* Typeclass *)
 
-   Functions for working with the state within a Freya<'T> function. *)
+type Defaults =
+    | Defaults
+
+    static member Freya (x: Freya<_>) =
+        x
+
+    static member Freya (_: unit) =
+        fun state -> async { return (), state }
+
+let inline defaults (a: ^a, _: ^b) =
+        ((^a or ^b) : (static member Freya: ^a -> Freya<_>) a)
+
+let inline infer (x: 'a) =
+    defaults (x, Defaults)
 
 [<RequireQualifiedAccess>]
 module State =
@@ -91,8 +105,8 @@ module State =
 
 (* Lens
 
-   Functions for working with the state within a Freya<'T> function, using
-   Aether based lenses. *)
+    Functions for working with the state within a Freya<'T> function, using
+    Aether based lenses. *)
 
 [<RequireQualifiedAccess>]
 module Lens =
@@ -128,37 +142,59 @@ module Prism =
     let map l f = 
         State.map (Prism.map l f)
 
+[<RequireQualifiedAccess>]
+module Pipeline =
+
+    let next : FreyaPipeline =
+        init Next
+
+    let halt : FreyaPipeline =
+        init Halt
+
+    type Defaults =
+        | Defaults
+
+        static member FreyaPipeline (x: FreyaPipeline) =
+            x
+
+        static member FreyaPipeline (x: FreyaPipelineChoice) : FreyaPipeline =
+            init x
+
+        static member FreyaPipeline (x: Freya<_>) : FreyaPipeline =
+            map2 (fun _ x -> x) x (init Next)
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member FreyaPipeline: ^a -> FreyaPipeline) a)
+
+    let inline infer (x: 'a) =
+        defaults (x, Defaults)
+
+    let inline compose p1 p2 : FreyaPipeline =
+        bind (function | Next -> (infer p2) | _ -> halt) (infer p1)
+
 (* Memo
 
-   Functions for memoizing the result of a Freya<'T> function, storing
-   the computed result within the FreyaMetaState instance of the
-   Freya<'T> state, allowing for computations to be reliably executed
-   only once per state (commonly once per request in the usual Freya
-   usage model). *)
+    Functions for memoizing the result of a Freya<'T> function, storing
+    the computed result within the FreyaMetaState instance of the
+    Freya<'T> state, allowing for computations to be reliably executed
+    only once per state (commonly once per request in the usual Freya
+    usage model). *)
 
-let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memo_ = Memo.id_<'a> (Guid.NewGuid ())
+[<RequireQualifiedAccess>]
+module Memo =
 
-    fun state ->
-        async {
-            let! memo, state = Lens.get memo_ state
+    let wrap<'a> (m: Freya<'a>) : Freya<'a> =
+        let memo_ = Memo.id_<'a> (Guid.NewGuid ())
 
-            match memo with
-            | Some memo ->
-                return memo, state
-            | _ ->
-                let! memo, state = m state
-                let! _, state = Lens.set memo_ (Some memo) state
+        fun state ->
+            async {
+                let! memo, state = Lens.get memo_ state
 
-                return memo, state }
+                match memo with
+                | Some memo ->
+                    return memo, state
+                | _ ->
+                    let! memo, state = m state
+                    let! _, state = Lens.set memo_ (Some memo) state
 
-(* Pipeline *)
-
-let next : FreyaPipeline =
-    init Next
-
-let halt : FreyaPipeline =
-    init Halt
-
-let pipe (p1: FreyaPipeline) (p2: FreyaPipeline) : FreyaPipeline =
-    bind (function | Next -> p2 | _ -> halt) p1
+                    return memo, state }

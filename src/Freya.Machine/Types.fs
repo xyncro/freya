@@ -50,7 +50,7 @@ type FreyaMachineOperation =
     | Unary of Freya<unit>
     | Binary of Freya<bool>
 
-type FreyaMachineOperationMetadata =
+ and FreyaMachineOperationMetadata =
     { Configurable: bool
       Configured: bool }
 
@@ -59,10 +59,10 @@ type FreyaMachineOperationMetadata =
 type FreyaMachineCompiler =
     | Compile of FreyaMachineCompile
 
-and FreyaMachineCompile =
+ and FreyaMachineCompile =
     FreyaMachineConfiguration -> FreyaMachineCompilation
 
-and FreyaMachineCompilation =
+ and FreyaMachineCompilation =
     | Compiled of FreyaMachineOperation * FreyaMachineOperationMetadata
 
 (* Extension *)
@@ -88,7 +88,7 @@ type FreyaMachineExtension =
         member x.CompareTo y =
             compareOn FreyaMachineExtension.Comparable x y
 
-and FreyaMachineExtensionOperation =
+ and FreyaMachineExtensionOperation =
     | AddNode of FreyaMachineNode * FreyaMachineCompiler option
     | RemoveNode of FreyaMachineNode
     | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdge option

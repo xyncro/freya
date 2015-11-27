@@ -10,7 +10,7 @@ open Microsoft.Owin.Hosting
 
 // Resources
 
-let ok _ =
+let ok =
         Freya.Lens.set Response.reasonPhrase_ (Some "Hey Folks!")
      *> Freya.init Representation.empty
 
@@ -18,22 +18,19 @@ let home =
     freyaMachine {
         using http
         methodsSupported GET
-        handleOk ok } |> FreyaMachine.toPipeline
+        handleOk ok }
 
 // Routes
 
 let routes =
     freyaRouter {
-        resource "/" home } |> FreyaRouter.toPipeline
+        resource "/" home }
 
 // App
 
-let app =
-    OwinAppFunc.ofFreya routes
-
 type App () =
     member __.Configuration () =
-        app
+        OwinAppFunc.ofFreya routes
 
 // Main
 

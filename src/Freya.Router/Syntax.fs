@@ -23,8 +23,39 @@ module Freya.Router.Syntax
 
 open Arachne.Http
 open Arachne.Uri.Template
+open Freya.Core
 
-(* (Pseudo (TypeClasses
+(* Expression
+
+   The Computation Expression builder to give Router the declarative
+   computation expression syntax for specifying Routes.
+   Specific strongly typed custom operations are defined in Syntax.fs. *)
+
+type FreyaRouterBuilder () =
+
+    member __.Return _ =
+        FreyaRouter (fun routes -> (), routes)
+
+    member __.ReturnFrom m = 
+        m
+
+    member __.Bind (m, k) =
+        FreyaRouter (fun routes ->
+            let (FreyaRouter m') = m
+            let (FreyaRouter k') = k ()
+
+            (), snd (k' (snd (m' routes))))
+
+    member x.Combine (m1, m2) =
+        x.Bind (m1, fun () -> m2)
+
+    member x.Map (m, f) = 
+        x.Bind (FreyaRouter (fun routes -> (), f routes), fun _ -> m)
+
+let freyaRouter =
+    FreyaRouterBuilder ()
+
+(* Type Classes
 
    Static inference functions to allow for type-safe overloading of arguments
    to custom syntax operations. *)
@@ -47,7 +78,7 @@ module FreyaRouteMethod =
     let inline defaults (a: ^a, _: ^b) =
             ((^a or ^b) : (static member FreyaRouteMethod: ^a -> FreyaRouteMethod) a)
 
-    let inline set (x: 'a) =
+    let inline infer (x: 'a) =
         defaults (x, Defaults)
 
 [<RequireQualifiedAccess>]
@@ -65,7 +96,7 @@ module UriTemplate =
     let inline defaults (a: ^a, _: ^b) =
             ((^a or ^b) : (static member UriTemplate: ^a -> UriTemplate) a)
 
-    let inline set (x: 'a) =
+    let inline infer (x: 'a) =
         defaults (x, Defaults)
 
 (* Custom Operations
@@ -82,10 +113,10 @@ type FreyaRouterBuilder with
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
     member inline x.Route (r, meth, template, pipeline) =
         x.Map (r, (fun x ->
-            { Method = FreyaRouteMethod.set meth
+            { Method = FreyaRouteMethod.infer meth
               Specification = Path
-              Template = UriTemplate.set template
-              Pipeline = pipeline } :: x))
+              Template = UriTemplate.infer template
+              Pipeline = Freya.Pipeline.infer pipeline } :: x))
 
     (* Utility *)
 

@@ -58,7 +58,6 @@
     <Compile Include="Recording.fs" />
     <Compile Include="Execution.fs" />
     <Compile Include="Reification.fs" />
-    <Compile Include="Builder.fs" />
     <Compile Include="Router.fs" />
     <Compile Include="Syntax.fs" />
   </ItemGroup>

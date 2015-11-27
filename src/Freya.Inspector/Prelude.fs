@@ -32,35 +32,6 @@ open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
 
-(* Presets
-
-   Useful shorthand for commonly used properties/defaults
-   of Machine resources, to make definitions more concise. *)
-
-(* Charsets *)
-
-let utf8 =
-    Freya.init [ Charset.Utf8 ]
-
-(* Languages *)
-
-let en =
-    Freya.init [ LanguageTag.Parse "en" ]
-
-(* MediaTypes *)
-
-let css =
-    Freya.init [ MediaType.Css ]
-
-let html =
-    Freya.init [ MediaType.Html ]
-
-let js =
-    Freya.init [ MediaType.JavaScript ]
-
-let json =
-    Freya.init [ MediaType.Json ]
-
 (* Defaults *)
 
 let defaults =
@@ -68,12 +39,12 @@ let defaults =
         using http
         using httpCors
 
-        corsHeadersSupported (Freya.init [ "accept"; "content-type" ])
-        corsMethodsSupported (Freya.init [ GET; OPTIONS ])
-        corsOriginsSupported (Freya.init AccessControlAllowOriginRange.Any)
+        corsHeadersSupported [ "accept"; "content-type" ]
+        corsMethodsSupported [ GET; OPTIONS ]
+        corsOriginsSupported AccessControlAllowOriginRange.Any
 
-        charsetsSupported utf8
-        languagesSupported en }
+        charsetsSupported Charset.Utf8
+        languagesSupported (LanguageTag.Parse "en") }
 
 (* Functions
 

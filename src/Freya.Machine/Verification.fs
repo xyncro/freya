@@ -129,7 +129,7 @@ let private haveBinarySuccessors =
 type private ConstraintGroup =
     | Constraints of Constraint list
 
-and private Constraint =
+ and private Constraint =
     | Constraint of Projection * Assertion * string
 
 let private check graph (Constraint (Projection projection, assertion, error)) =

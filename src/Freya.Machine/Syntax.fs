@@ -23,6 +23,36 @@ module Freya.Machine.Syntax
 
 open Aether.Operators
 
+(* Builder
+
+   The Computation Expression builder to give Machine the declarative
+   computation expression syntax for specifying Machine Definitions.
+   Specific strongly typed custom operations are defined in Syntax.fs. *)
+
+type FreyaMachineBuilder () =
+
+    member __.Return _ =
+        FreyaMachine (fun spec -> (), spec)
+
+    member __.ReturnFrom m =
+        m
+
+    member __.Bind (m, k) =
+        FreyaMachine (fun spec ->
+            let (FreyaMachine m') = m
+            let (FreyaMachine k') = k ()
+
+            (), snd (k' (snd (m' spec))))
+
+    member x.Combine (m1, m2) =
+        x.Bind (m1, fun () -> m2)
+
+    member x.Map (m, f) =
+        x.Bind (FreyaMachine (fun spec -> (), f spec), (fun _ -> m))
+
+let freyaMachine =
+    FreyaMachineBuilder ()
+
 type FreyaMachineBuilder with
 
     /// Includes an existing Freya Machine expression, effectively inheriting the

@@ -18,10 +18,18 @@
 //
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Machine.FreyaMachine
+[<AutoOpen>]
+module Freya.Machine.Machine
 
 open Freya.Core
 
-let toPipeline (FreyaMachine x) : FreyaPipeline =
-    Reification.reify x
+(* Type *)
+
+type FreyaMachine =
+    | FreyaMachine of (FreyaMachineSpecification -> unit * FreyaMachineSpecification)
+
+    static member Freya (FreyaMachine x) : Freya<_> =
+        Reification.reify x
+
+    static member FreyaPipeline (FreyaMachine x) : FreyaPipeline =
+        Reification.reify x

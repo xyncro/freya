@@ -41,7 +41,7 @@ type CompilationGraph =
     static member Graph_ =
         (fun (Graph x) -> x), (fun x -> Graph x)
 
-and MetadataGraph =
+ and MetadataGraph =
     | Metadata of Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
 
 type CompilationResult =

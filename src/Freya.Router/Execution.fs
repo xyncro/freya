@@ -56,10 +56,10 @@ type private Traversal =
     static member State_ =
         (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
-and private TraversalInvariant =
+ and private TraversalInvariant =
     | Invariant of Method
 
-and private TraversalState =
+ and private TraversalState =
     | State of TraversalPosition * TraversalData
 
     static member Position_ =
@@ -68,7 +68,7 @@ and private TraversalState =
     static member Data_ =
         (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
-and private TraversalPosition =
+ and private TraversalPosition =
     | Position of string * Compilation.CompilationKey
 
     static member PathAndQuery_ =
@@ -77,7 +77,7 @@ and private TraversalPosition =
     static member Key_ =
         (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
 
-and private TraversalData =
+ and private TraversalData =
     | Data of UriTemplateData
 
     static member Data_ =
@@ -265,4 +265,4 @@ let private search graph =
 let execute graph =
         search graph
     >>= function | Matched (data, pipe) -> (Route.data_ .= data) *> pipe
-                 | Unmatched -> Freya.next
+                 | Unmatched -> Freya.Pipeline.next

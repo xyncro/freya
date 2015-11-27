@@ -47,30 +47,30 @@ type FreyaMachineRecord =
 
 (* Graph *)
 
-and FreyaMachineGraphRecord =
+ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-and FreyaMachineGraphNodeRecord =
+ and FreyaMachineGraphNodeRecord =
     { Id: string
       Type: string
       Configurable: bool
       Configured: bool }
 
-and FreyaMachineGraphEdgeRecord =
+ and FreyaMachineGraphEdgeRecord =
     { From: string
       To: string
       Value: bool option }
 
 (* Execution *)
 
-and FreyaMachineExecutionRecord =
+ and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
     static member Nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-and FreyaMachineExecutionNodeRecord =
+ and FreyaMachineExecutionNodeRecord =
     { Id: FreyaMachineNode }
 
 (* Construction *)

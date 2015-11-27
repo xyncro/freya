@@ -18,10 +18,18 @@
 //
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Router.FreyaRouter
+[<AutoOpen>]
+module Freya.Router.Router
 
 open Freya.Core
 
-let toPipeline (FreyaRouter x) : FreyaPipeline =
-    Reification.reify x
+(* Type *)
+
+type FreyaRouter = 
+    | FreyaRouter of (FreyaRoute list -> unit * FreyaRoute list)
+
+    static member Freya (FreyaRouter x) : Freya<_> =
+        Reification.reify x
+
+    static member FreyaPipeline (FreyaRouter x) : FreyaPipeline =
+        Reification.reify x

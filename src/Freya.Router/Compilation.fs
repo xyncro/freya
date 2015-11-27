@@ -39,18 +39,18 @@ type CompilationGraph =
     static member Graph_ =
         (fun (Graph g) -> g), (fun g -> Graph g)
 
-and CompilationKey =
+ and CompilationKey =
     | Root
     | Key of string
 
-and CompilationNode =
+ and CompilationNode =
     | Empty
     | Endpoints of CompilationEndpoint list
 
-and CompilationEndpoint =
+ and CompilationEndpoint =
     | Endpoint of int * FreyaRouteMethod * FreyaPipeline
 
-and CompilationEdge =
+ and CompilationEdge =
     | Edge of Parser<UriTemplateData, unit>
 
 (* Defaults
