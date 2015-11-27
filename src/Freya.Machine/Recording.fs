@@ -133,7 +133,7 @@ module Record =
     (* Functions *)
 
     let definition record =
-        FreyaRecorder.Current.map (record ^?= graph_)
+        FreyaRecorder.Current.map (record ^= graph_)
 
     let execution node =
-        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^?% execution_)
+        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^% execution_)

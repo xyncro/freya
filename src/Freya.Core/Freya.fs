@@ -20,7 +20,6 @@
 
 /// Core combinator definitions for <see cref="Freya{T}" /> computations.
 [<RequireQualifiedAccess>]
-[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Freya
 
 open System
@@ -109,6 +108,7 @@ module State =
     Aether based lenses. *)
 
 [<RequireQualifiedAccess>]
+[<Obsolete ("Use Optic instead.")>]
 module Lens =
 
     /// Gets part of the Core State within a Core monad using an Aether lens
@@ -128,6 +128,7 @@ module Lens =
 (* Prism *)
 
 [<RequireQualifiedAccess>]
+[<Obsolete ("Use Optic instead.")>]
 module Prism =
 
     /// Gets part of the Core State within a Core monad using a partial Aether lens
@@ -141,6 +142,18 @@ module Prism =
     /// Modifies part of the Core State within a Core monad using a partial Aether lens
     let map l f = 
         State.map (Prism.map l f)
+
+[<RequireQualifiedAccess>]
+module Optic =
+
+    let inline get o =
+        map (Optic.get o) State.get
+
+    let inline set o v =
+        State.map (Optic.set o v)
+
+    let inline map o f =
+        State.map (Optic.map o f)
 
 [<RequireQualifiedAccess>]
 module Pipeline =
@@ -188,13 +201,13 @@ module Memo =
 
         fun state ->
             async {
-                let! memo, state = Lens.get memo_ state
+                let! memo, state = Optic.get memo_ state
 
                 match memo with
                 | Some memo ->
                     return memo, state
                 | _ ->
                     let! memo, state = m state
-                    let! _, state = Lens.set memo_ (Some memo) state
+                    let! _, state = Optic.set memo_ (Some memo) state
 
                     return memo, state }

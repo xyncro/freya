@@ -40,130 +40,130 @@ let private userDecision key def =
 
 let private charsetNegotiable config =
     ContentNegotiation.Charset.negotiable
-        (Freya.Lens.get Request.Headers.acceptCharset_)
+        (Freya.Optic.get Request.Headers.acceptCharset_)
         ((Configuration.get Properties.CharsetsSupported >> Option.orElse Defaults.charsetsSupported) config)
 
 let private charsetRequested _ =
     ContentNegotiation.Charset.requested 
-        (Freya.Lens.get Request.Headers.acceptCharset_)
+        (Freya.Optic.get Request.Headers.acceptCharset_)
 
 let private encodingNegotiable config =
     ContentNegotiation.Encoding.negotiable
-        (Freya.Lens.get Request.Headers.acceptEncoding_)
+        (Freya.Optic.get Request.Headers.acceptEncoding_)
         ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
 let private encodingRequested _ =
     ContentNegotiation.Encoding.requested 
-        (Freya.Lens.get Request.Headers.acceptEncoding_)
+        (Freya.Optic.get Request.Headers.acceptEncoding_)
 
 let private ifMatchAny _ =
     CacheControl.IfMatch.any 
-        (Freya.Lens.get Request.Headers.ifMatch_)
+        (Freya.Optic.get Request.Headers.ifMatch_)
 
 let private ifMatchExistsForMissing _ =
     CacheControl.IfMatch.requested 
-        (Freya.Lens.get Request.Headers.ifMatch_)
+        (Freya.Optic.get Request.Headers.ifMatch_)
 
 let private ifMatchRequested _ =
     CacheControl.IfMatch.requested 
-        (Freya.Lens.get Request.Headers.ifMatch_)
+        (Freya.Optic.get Request.Headers.ifMatch_)
 
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
-        (Freya.Lens.get Request.Headers.ifModifiedSince_)
+        (Freya.Optic.get Request.Headers.ifModifiedSince_)
         ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
-        (Freya.Lens.get Request.Headers.ifModifiedSince_)
+        (Freya.Optic.get Request.Headers.ifModifiedSince_)
 
 let private ifModifiedSinceValid _ =
     CacheControl.IfModifiedSince.valid
-        (Freya.Lens.get Request.Headers.ifModifiedSince_)
+        (Freya.Optic.get Request.Headers.ifModifiedSince_)
 
 let private ifNoneMatchAny _ =
     CacheControl.IfNoneMatch.any
-        (Freya.Lens.get Request.Headers.ifNoneMatch_)
+        (Freya.Optic.get Request.Headers.ifNoneMatch_)
 
 let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
-        (Freya.Lens.get Request.Headers.ifNoneMatch_)
+        (Freya.Optic.get Request.Headers.ifNoneMatch_)
 
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
-        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
+        (Freya.Optic.get Request.Headers.ifUnmodifiedSince_)
         ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
-        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
+        (Freya.Optic.get Request.Headers.ifUnmodifiedSince_)
 
 let private ifUnmodifiedSinceValid _ =
     CacheControl.IfUnmodifiedSince.valid
-        (Freya.Lens.get Request.Headers.ifUnmodifiedSince_)
+        (Freya.Optic.get Request.Headers.ifUnmodifiedSince_)
 
 let private languageNegotiable config =
     ContentNegotiation.Language.negotiable
-        (Freya.Lens.get Request.Headers.acceptLanguage_)
+        (Freya.Optic.get Request.Headers.acceptLanguage_)
         ((Configuration.get Properties.LanguagesSupported >> Option.orElse Defaults.languagesSupported) config)
 
 let private languageRequested _ =
     ContentNegotiation.Language.requested
-        (Freya.Lens.get Request.Headers.acceptLanguage_)
+        (Freya.Optic.get Request.Headers.acceptLanguage_)
 
 let private mediaTypeNegotiable config =
     ContentNegotiation.MediaType.negotiable
-        (Freya.Lens.get Request.Headers.accept_)
+        (Freya.Optic.get Request.Headers.accept_)
         ((Configuration.get Properties.MediaTypesSupported >> Option.orElse Defaults.mediaTypesSupported) config)
 
 let private mediaTypeRequested _ =
     ContentNegotiation.MediaType.requested
-        (Freya.Lens.get Request.Headers.accept_)
+        (Freya.Optic.get Request.Headers.accept_)
 
 let private methodDelete _ =
     Method.delete
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodGetOrHead _ =
     Method.getOrHead
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodKnown config =
     Method.known
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
         ((Configuration.get Properties.MethodsKnown >> Option.orElse Defaults.methodsKnown) config)
 
 let private methodOptions _ =
     Method.options
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPatch _ =
     Method.patch
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPostToExisting _ =
     Method.post
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPostToGone _ =
     Method.post
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPostToMissing _ =
     Method.post
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPut _ =
     Method.put
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodPutToExisting _ =
     Method.put
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
 
 let private methodSupported config =
     Method.supported
-        (Freya.Lens.get Request.method_)
+        (Freya.Optic.get Request.method_)
         ((Configuration.get Properties.MethodsSupported >> Option.orElse Defaults.methodsSupported) config)
 
 (* Graph *)

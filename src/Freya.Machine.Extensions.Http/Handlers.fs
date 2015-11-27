@@ -33,22 +33,22 @@ open Freya.Machine
 
 let private charsetsNegotiated config =
     ContentNegotiation.Charset.negotiated
-        (Freya.Lens.get Request.Headers.acceptCharset_)
+        (Freya.Optic.get Request.Headers.acceptCharset_)
         ((Configuration.get Properties.CharsetsSupported >> Option.orElse Defaults.charsetsSupported) config)
 
 let private encodingsNegotiated config =
     ContentNegotiation.Encoding.negotiated
-        (Freya.Lens.get Request.Headers.acceptEncoding_)
+        (Freya.Optic.get Request.Headers.acceptEncoding_)
         ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
 let private mediaTypesNegotiated config =
     ContentNegotiation.MediaType.negotiated
-        (Freya.Lens.get Request.Headers.accept_)
+        (Freya.Optic.get Request.Headers.accept_)
         ((Configuration.get Properties.MediaTypesSupported >> Option.orElse Defaults.mediaTypesSupported) config)
 
 let private languagesNegotiated config =
     ContentNegotiation.Language.negotiated
-        (Freya.Lens.get Request.Headers.acceptLanguage_)
+        (Freya.Optic.get Request.Headers.acceptLanguage_)
         ((Configuration.get Properties.LanguagesSupported >> Option.orElse Defaults.languagesSupported) config)
 
 (* Specification *)
@@ -74,7 +74,7 @@ let private charset_ =
      >? Map.value_ "charset"
 
 let private charset =
-        Option.map (fun (Charset x) -> charset_ .?= Some x)
+        Option.map (fun (Charset x) -> charset_ .= Some x)
      >> Option.orElse (Freya.init ())
 
 let private encodings =
@@ -104,7 +104,7 @@ let private handle config m =
     let specification = specification config
 
     freya {
-        let! meth = Freya.Lens.get Request.method_
+        let! meth = Freya.Optic.get Request.method_
         let! specification = specification
         let! representation = m specification
 

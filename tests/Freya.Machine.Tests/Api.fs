@@ -50,7 +50,7 @@ open Freya.TodoBackend.Domain
 
 let id =
     freya {
-        let! id = Freya.Lens.get (Route.atom_ "id")
+        let! id = Freya.Optic.get (Route.atom_ "id")
         return (Option.get >> Guid.Parse) id } |> Freya.Memo.wrap
 
 (* Body Properties

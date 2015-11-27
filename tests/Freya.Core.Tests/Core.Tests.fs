@@ -11,11 +11,11 @@ let private answer_ =
 let ``Lens get, set and map behave correctly`` () =
     let m =
         freya {
-            do! Freya.Lens.set answer_ (Some 42)
-            let! v1 = Freya.Lens.get answer_
+            do! Freya.Optic.set answer_ (Some 42)
+            let! v1 = Freya.Optic.get answer_
 
-            do! Freya.Lens.map answer_ (Option.map ((*) 2))
-            let! v2 = Freya.Lens.get answer_
+            do! Freya.Optic.map answer_ (Option.map ((*) 2))
+            let! v2 = Freya.Optic.get answer_
 
             return v1, v2 }
 

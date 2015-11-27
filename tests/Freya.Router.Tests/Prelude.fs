@@ -35,15 +35,15 @@ let private get =
     Lens.get test_
 
 let private set i =
-    Freya.Lens.set test_ i *> Freya.Pipeline.next
+    Freya.Optic.set test_ i *> Freya.Pipeline.next
 
 let private run meth path query m =
     let router = FreyaRouter.FreyaPipeline m
     let state = freyaState ()
 
-    Async.RunSynchronously ((   Freya.Lens.set Request.method_ meth
-                             *> Freya.Lens.set Request.path_ path
-                             *> Freya.Lens.set Request.query_ query
+    Async.RunSynchronously ((   Freya.Optic.set Request.method_ meth
+                             *> Freya.Optic.set Request.path_ path
+                             *> Freya.Optic.set Request.query_ query
                              *> router) state)
 
 let result meth path query m =

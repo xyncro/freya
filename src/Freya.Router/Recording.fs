@@ -131,14 +131,14 @@ module Record =
                  | Compilation.Key k -> k
 
     let graph graph =
-        FreyaRecorder.Current.map ((fun _ -> graph) ^?% graph_)
+        FreyaRecorder.Current.map ((fun _ -> graph) ^% graph_)
 
     let completion status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Completion status } :: nodes) ^?% executionNodes_)
+              Action = Completion status } :: nodes) ^% executionNodes_)
 
     let match' status key =
         FreyaRecorder.Current.map ((fun nodes ->
             { Key = keyValue key
-              Action = Match status } :: nodes) ^?% executionNodes_)
+              Action = Match status } :: nodes) ^% executionNodes_)
