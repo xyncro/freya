@@ -72,6 +72,11 @@
       <Name>Freya.Machine.Inspector</Name>
       <Project>{63C07538-E910-4156-9C31-D7B6E9E5D85B}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Freya.Machine.Router\Freya.Machine.Router.fsproj">
+      <Name>Freya.Machine.Router</Name>
+      <Project>{b34d7bd9-09b5-4bfc-af0a-e3f02214111a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Freya.Machine\Freya.Machine.fsproj">
       <Name>Freya.Machine</Name>
       <Project>{01D9FFF1-396D-4A0B-9EFC-98A2F333C7CB}</Project>

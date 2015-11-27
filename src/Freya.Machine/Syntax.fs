@@ -25,10 +25,15 @@ open Aether.Operators
 
 type FreyaMachineBuilder with
 
+    /// Includes an existing Freya Machine expression, effectively inheriting the
+    /// properties of the existing expression.
     [<CustomOperation ("including", MaintainsVariableSpaceUsingBind = true)>]
     member x.Including (m, definition) = 
         x.Combine (m, definition)
 
+    /// Uses a Freya Machine Extension, used to implement different request handling
+    /// approaches. Multiple Extensions can be combined to form a suitable processing
+    /// pipeline.
     [<CustomOperation ("using", MaintainsVariableSpaceUsingBind = true)>]
     member x.Using (m, extension) =
         x.Map (m, Set.add extension ^% FreyaMachineSpecification.Extensions_)
