@@ -84,22 +84,3 @@ type FreyaPipeline =
 and FreyaPipelineChoice =
     | Next
     | Halt
-
-[<RequireQualifiedAccess>]
-[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
-module FreyaPipeline =
-
-    type Defaults =
-        | Defaults
-
-        static member inline FreyaPipeline (x: FreyaPipeline) =
-            x
-
-        static member inline FreyaPipeline (x: FreyaPipelineChoice) : FreyaPipeline =
-            fun s -> async.Return (x, s)
-
-    let inline defaults (a: ^a, _: ^b) =
-            ((^a or ^b) : (static member FreyaPipeline: ^a -> FreyaPipeline) a)
-
-    let inline set (x: 'a) =
-        defaults (x, Defaults)
