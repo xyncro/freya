@@ -43,8 +43,3 @@ and FreyaRouteSpecification =
 and FreyaRouteMethod =
     | All
     | Methods of Method list
-
-(* Computation Expression *)
-
-type FreyaRouter = 
-    FreyaRoute list -> unit * FreyaRoute list

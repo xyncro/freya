@@ -21,23 +21,40 @@
 [<AutoOpen>]
 module Freya.Router.Builder
 
-(* Builder *)
+(* Type *)
+
+type FreyaRouter = 
+    | FreyaRouter of (FreyaRoute list -> unit * FreyaRoute list)
+
+    static member Pipeline (FreyaRouter x) =
+        Reification.reify x
+
+(* Builder
+
+   The Computation Expression builder to give Router the declarative
+   computation expression syntax for specifying Routes.
+   Specific strongly typed custom operations are defined in Syntax.fs. *)
 
 type FreyaRouterBuilder () =
 
-    member __.Return v : FreyaRouter = 
-        fun r -> v, r
+    member __.Return _ =
+        FreyaRouter (fun routes -> (), routes)
 
-    member __.ReturnFrom f : FreyaRouter = 
-        f
+    member __.ReturnFrom m = 
+        m
 
-    member __.Bind (r, k) : FreyaRouter = 
-        r >> fun (result, trie) -> (k result) trie
+    member __.Bind (m, k) =
+        FreyaRouter (fun routes ->
+            let (FreyaRouter m') = m
+            let (FreyaRouter k') = k ()
 
-    member x.Combine (r1, r2) : FreyaRouter = 
-        x.Bind (r1, fun () -> r2)
+            (), snd (k' (snd (m' routes))))
 
-    member x.Update (r, update) = 
-        x.Bind ((fun res -> (), update res), fun _ -> x.ReturnFrom r)
+    member x.Combine (m1, m2) =
+        x.Bind (m1, fun () -> m2)
 
-let freyaRouter = FreyaRouterBuilder ()
+    member x.Map (m, f) = 
+        x.Bind (FreyaRouter (fun routes -> (), f routes), fun _ -> m)
+
+let freyaRouter =
+    FreyaRouterBuilder ()

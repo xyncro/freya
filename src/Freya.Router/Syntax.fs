@@ -81,7 +81,7 @@ type FreyaRouterBuilder with
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
     member inline x.Route (r, meth, template, pipeline) =
-        x.Update (r, (fun x ->
+        x.Map (r, (fun x ->
             { Method = FreyaRouteMethod.set meth
               Specification = Path
               Template = UriTemplate.set template
