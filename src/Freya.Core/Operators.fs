@@ -22,10 +22,7 @@ module Freya.Core.Operators
 
 open System
 
-(* Compositional
-
-   Operators for the composition of Freya<'T> functions in
-   various forms. *)
+(* Compositional *)
 
 let inline (>>=) m f =
     Freya.bind f m
@@ -54,10 +51,7 @@ let inline (>=>) m1 m2 =
 let inline (<=<) m1 m2 =
     fun x -> m2 x >>= m1
 
-(* Lens
-
-   Operators for lens based operations over the Freya<'T> state,
-   providing operator based alternatives to Freya.getLens, etc. *)
+(* Optic *)
 
 let inline (!.) o =
     Freya.Optic.get o
@@ -67,20 +61,6 @@ let inline (.=) o v =
 
 let inline (%=) o f =
     Freya.Optic.map o f
-
-(* Prism *)
-
-[<Obsolete ("Use !. instead.")>]
-let inline (!?.) p =
-    Freya.Optic.get p
-
-[<Obsolete ("Use .= instead.")>]
-let inline (.?=) p v =
-    Freya.Optic.set p v
-
-[<Obsolete ("Use %= instead.")>]
-let inline (%?=) p f =
-    Freya.Optic.map p f
 
 (* Pipeline *)
 

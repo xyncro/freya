@@ -102,46 +102,7 @@ module State =
     let map f =
         fun state -> async { return (), f state }
 
-(* Lens
-
-    Functions for working with the state within a Freya<'T> function, using
-    Aether based lenses. *)
-
-[<RequireQualifiedAccess>]
-[<Obsolete ("Use Optic instead.")>]
-module Lens =
-
-    /// Gets part of the Core State within a Core monad using an Aether lens
-    let get l = 
-        map (Lens.get l) State.get
-
-
-    /// Sets part of the Core State within a Core monad using an Aether lens
-    let set l v =
-        State.map (Lens.set l v)
-
-
-    /// Modifies part of the Core State within a Core monad using an Aether lens
-    let map l f = 
-        State.map (Lens.map l f)
-
-(* Prism *)
-
-[<RequireQualifiedAccess>]
-[<Obsolete ("Use Optic instead.")>]
-module Prism =
-
-    /// Gets part of the Core State within a Core monad using a partial Aether lens
-    let get l = 
-        map (Prism.get l) State.get
-
-    /// Sets part of the Core State within a Core monad using a partial Aether lens
-    let set l v = 
-        State.map (Prism.set l v)
-
-    /// Modifies part of the Core State within a Core monad using a partial Aether lens
-    let map l f = 
-        State.map (Prism.map l f)
+(* Optic *)
 
 [<RequireQualifiedAccess>]
 module Optic =
