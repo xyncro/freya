@@ -43,7 +43,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" Condition="Exists('AssemblyInfo.fs')" />
     <Compile Include="Types.fs" />
-    <Compile Include="Lenses.fs" />
+    <Compile Include="Optics.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Recorder.fs" />
   </ItemGroup>

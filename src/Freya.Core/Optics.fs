@@ -19,44 +19,24 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Lenses
+module Freya.Core.Optics
 
 open Aether
 open Aether.Operators
-open Arachne.Uri.Template
-open Freya.Core
-
-(* Keys *)
-
-let [<Literal>] private dataKey =
-    "freya.RouterData"
-
-(* Lenses
-
-   Access to values matched (as UriTemplateData) as part of
-   the routing process are accessible via these lenses in to
-   the OWIN state. *)
 
 [<RequireQualifiedAccess>]
-module Route =
+module Environment =
 
-    let data_ =
-            Environment.value_ dataKey
-         >- Option.unsafe_
+    let value_<'a> k =
+            FreyaState.Environment_
+         >- Dict.value_<string, obj> k
+         >- Option.mapIsomorphism box_<'a>
 
-    let value_ key =
-            data_ 
-         >- UriTemplateData.UriTemplateData_
-         >- Map.value_ (Key key)
+[<RequireQualifiedAccess>]
+module Memo =
 
-    let atom_ key =
-            value_ key
-         >- Option.mapEpimorphism UriTemplateValue.Atom_
-
-    let list_ key =
-            value_ key
-         >- Option.mapEpimorphism UriTemplateValue.List_
-
-    let keys_ key =
-            value_ key
-         >- Option.mapEpimorphism UriTemplateValue.Keys_
+    let id_<'a> i =
+            FreyaState.Meta_
+         >- FreyaMetaState.Memos_
+         >- Map.value_ i
+         >- Option.mapIsomorphism box_<'a>

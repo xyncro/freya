@@ -35,7 +35,7 @@ open Freya.Machine
 module Configuration =
 
     let add<'a> key a =
-        Lens.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
+        Optic.map FreyaMachineSpecification.Configuration_ (Configuration.set<'a> key (Some a))
 
 (* Type Classes
 

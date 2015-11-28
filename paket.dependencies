@@ -3,9 +3,9 @@ framework: >= net45
 
 nuget Arachne.Http.Cors
 nuget Arachne.Uri.Template
-nuget Aether 8.0.0-b7
-nuget Chiron 6.0.0-b6
-nuget Hekate 2.0.0-b4
+nuget Aether 8.0.0-b10
+nuget Chiron 6.0.0-b8
+nuget Hekate 2.0.0-b5
 
 group Build
 

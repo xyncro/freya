@@ -61,7 +61,7 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="Lenses.fs" />
+    <Compile Include="Optics.fs" />
     <Compile Include="Freya.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Syntax.fs" />

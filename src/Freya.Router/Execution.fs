@@ -214,9 +214,9 @@ let rec private traverse graph traversal =
                 match pathAndQuery with
                 | Match parser (data', pathAndQuery') ->
                     traversal
-                    |> Lens.map traversalData_ ((+) data')
-                    |> Lens.set traversalPathAndQuery_ pathAndQuery'
-                    |> Lens.set traversalKey_ key'
+                    |> Optic.map traversalData_ ((+) data')
+                    |> Optic.set traversalPathAndQuery_ pathAndQuery'
+                    |> Optic.set traversalKey_ key'
                     |> traverse graph
                 | _ ->
                     emptyM) successors

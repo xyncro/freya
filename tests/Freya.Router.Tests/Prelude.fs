@@ -32,7 +32,7 @@ let private test_ =
 (* Functions *)
 
 let private get =
-    Lens.get test_
+    Optic.get test_
 
 let private set i =
     Freya.Optic.set test_ i *> Freya.Pipeline.next

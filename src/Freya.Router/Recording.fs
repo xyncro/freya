@@ -116,11 +116,11 @@ module Record =
     (* Lenses *)
 
     let private graph_ =
-            Record.Record_<FreyaRouterRecord> "router"
+            Record.record_<FreyaRouterRecord> "router"
          >- Option.mapLens FreyaRouterRecord.Graph_
 
     let private executionNodes_ =
-            Record.Record_ "router"
+            Record.record_ "router"
          >- Option.mapLens FreyaRouterRecord.Execution_
          >? FreyaRouterExecutionRecord.Nodes_
 

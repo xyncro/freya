@@ -36,7 +36,7 @@ let private key =
 (* Lenses *)
 
 let private record_ =
-    Record.Record_ key
+    Record.record_ key
 
 (* Runtime *)
 

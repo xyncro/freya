@@ -122,11 +122,11 @@ module Record =
     (* Lenses *)
 
     let private graph_ =
-            Record.Record_ "machine" 
+            Record.record_ "machine" 
          >- Option.mapLens FreyaMachineRecord.Graph_
 
     let private execution_ =
-            Record.Record_ "machine" 
+            Record.record_ "machine" 
          >- Option.mapLens FreyaMachineRecord.Execution_
          >? FreyaMachineExecutionRecord.Nodes_
 

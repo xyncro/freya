@@ -39,7 +39,7 @@ let private config_<'a> key =
    overhead, but is only used at reification time in general cases. *)
 
 let get<'a> key =
-    Lens.get (config_<'a> key)
+    Optic.get (config_<'a> key)
 
 let set<'a> key =
-    Lens.set (config_<'a> key)
+    Optic.set (config_<'a> key)
