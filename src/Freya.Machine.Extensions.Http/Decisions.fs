@@ -22,6 +22,8 @@
 module internal Freya.Machine.Extensions.Http.Decisions
 
 open Arachne.Http
+open System
+
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
@@ -74,6 +76,8 @@ let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
         (Freya.Optic.get Request.Headers.ifModifiedSince_)
         ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
+        (!?. Request.Headers.IfModifiedSince_)
+        (Configuration.tryGetOrNone Properties.LastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
@@ -97,6 +101,8 @@ let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
         (Freya.Optic.get Request.Headers.ifUnmodifiedSince_)
         ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
+        (!?. Request.Headers.IfUnmodifiedSince_)
+        (Configuration.tryGetOrNone Properties.LastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested

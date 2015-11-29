@@ -28,6 +28,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open Freya.Core
 open Freya.Core.Integration
+open Freya.TodoBackend
 
 (* Katana
 
@@ -69,6 +70,37 @@ let ``todobackend returns empty array at first`` () =
     async {
         use request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
         use! response = Async.AwaitTask <| client.SendAsync request
+        let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
+        result =! "[]" }
+    |> Async.RunSynchronously
+
+(* If-Modified-Since tests *)
+
+let private requestWithIfModifiedSince dayDiff = 
+    let request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
+    let testModificationDate =
+        (DateTimeOffset Api.lastModificationDate).AddDays dayDiff
+    request.Headers.IfModifiedSince <- Nullable testModificationDate
+    request
+
+[<Test>]
+let ``todobackend returns 304 for If-Modified-Since`` () = 
+    async {
+        use request = requestWithIfModifiedSince 1.0
+        use! response = Async.AwaitTask <| client.SendAsync request
+        response.StatusCode =! Net.HttpStatusCode.NotModified
+
+        let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
+        result =! "" }
+    |> Async.RunSynchronously
+
+[<Test>]
+let ``todobackend not returns 304 for If-Modified-Since`` () = 
+    async {
+        use request = requestWithIfModifiedSince -1.0
+        use! response = Async.AwaitTask <| client.SendAsync request
+        response.StatusCode =! Net.HttpStatusCode.OK
+
         let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
         result =! "[]" }
     |> Async.RunSynchronously
