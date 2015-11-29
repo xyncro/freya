@@ -64,8 +64,7 @@ let private defaultCompilationGraph =
 (* Lenses *)
 
 let private compilationGraph_ =
-        id_
-     >- CompilationGraph.Graph_
+    Lens.ofIsomorphism CompilationGraph.Graph_
 
 (* Patterns
 

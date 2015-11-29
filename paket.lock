@@ -2,7 +2,7 @@ FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:
-    Aether (8.0.0-b10)
+    Aether (8.0.0-b11)
     Arachne.Core (2.3.25)
       FParsec (>= 1.0.2)
     Arachne.Http (2.3.25)
@@ -25,12 +25,12 @@ NUGET
       Arachne.Core (>= 2.3.25)
       Arachne.Uri (>= 2.3.25)
       FParsec (>= 1.0.2)
-    Chiron (6.0.0-b8)
-      Aether (8.0.0-b10)
+    Chiron (6.0.0-b9)
+      Aether (8.0.0-b11)
       FParsec
     FParsec (1.0.2)
-    Hekate (2.0.0-b5)
-      Aether (8.0.0-b10)
+    Hekate (2.0.0-b6)
+      Aether (8.0.0-b11)
 
 GROUP Build
 FRAMEWORK: >= NET45

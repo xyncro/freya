@@ -68,10 +68,10 @@ let private specification config =
 
 let private charset_ =
         Response.Headers.contentType_
-     >- Option.mapIsomorphism ContentType.MediaType_
-     >- Option.mapLens MediaType.Parameters_
-     >? Parameters.Parameters_
-     >? Map.value_ "charset"
+    >-> Option.mapIsomorphism ContentType.MediaType_
+    >-> Option.mapLens MediaType.Parameters_
+    >?> Parameters.Parameters_
+    >?> Map.value_ "charset"
 
 let private charset =
         Option.map (fun (Charset x) -> charset_ .= Some x)

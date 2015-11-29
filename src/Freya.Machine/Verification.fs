@@ -45,6 +45,11 @@ type VerificationResult =
     | Verification of Compilation.CompilationGraph
     | Error of string
 
+(* Optics *)
+
+let private compilationGraph_ =
+    Lens.ofIsomorphism Compilation.CompilationGraph.Graph_
+
 (* Projections
 
    Functions and a type signature to represent various projections
@@ -56,28 +61,28 @@ type private Projection =
 
 let private startNodes =
     Projection (
-            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
+            flip (^.) compilationGraph_
          >> Graph.nodes
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
-            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
+            flip (^.) compilationGraph_
          >> Graph.nodes
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
-            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
+            flip (^.) compilationGraph_
          >> Graph.nodes
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
-            flip (^.) (id_ >- Compilation.CompilationGraph.Graph_)
+            flip (^.) compilationGraph_
          >> Graph.nodes
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))

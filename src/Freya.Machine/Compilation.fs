@@ -51,8 +51,7 @@ type CompilationResult =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        id_
-     >- Precompilation.PrecompilationGraph.Graph_
+    Lens.ofIsomorphism Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation
 

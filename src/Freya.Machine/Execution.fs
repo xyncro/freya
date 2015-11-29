@@ -76,13 +76,11 @@ let private createTraversal node =
    isomorphism until the traversal state is potentially expanded. *)
 
 let private compilationGraph_ =
-        id_
-     >- Compilation.CompilationGraph.Graph_
+        Lens.ofIsomorphism Compilation.CompilationGraph.Graph_
 
 let private node_ =
-        id_
-     >- Traversal.State_
-     >- TraversalState.Node_
+        Lens.ofIsomorphism Traversal.State_
+    >-> TraversalState.Node_
 
 (* Patterns
 

@@ -38,7 +38,7 @@ module Request =
 
         let private value_ key e =
                 Request.header_ key
-             >- Option.mapEpimorphism e
+            >-> Option.mapEpimorphism e
 
         let accessControlRequestHeaders_ =
             value_
@@ -67,7 +67,7 @@ module Response =
 
         let private value_ key e =
                 Response.header_ key
-             >- Option.mapEpimorphism e
+            >-> Option.mapEpimorphism e
 
         let accessControlAllowCredentials_ =
             value_

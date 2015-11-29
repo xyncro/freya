@@ -111,18 +111,18 @@ let private traversal meth path query =
 
 let private traversalData_ =
         Traversal.State_
-     >- TraversalState.Data_
-     >- TraversalData.Data_
+    >-> TraversalState.Data_
+    >-> TraversalData.Data_
 
 let private traversalKey_ =
         Traversal.State_
-     >- TraversalState.Position_
-     >- TraversalPosition.Key_
+    >-> TraversalState.Position_
+    >-> TraversalPosition.Key_
 
 let private traversalPathAndQuery_ =
         Traversal.State_
-     >- TraversalState.Position_
-     >- TraversalPosition.PathAndQuery_
+    >-> TraversalState.Position_
+    >-> TraversalPosition.PathAndQuery_
 
 (* Patterns
 
@@ -248,7 +248,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >- Query.Query_)
+        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.Query_)
     >>= traverse graph
     >>= select
 

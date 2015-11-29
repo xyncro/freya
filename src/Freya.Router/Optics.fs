@@ -42,21 +42,21 @@ module Route =
 
     let data_ =
             Environment.value_ dataKey
-         >- Option.unsafe_
+        >-> Option.unsafe_
 
     let value_ key =
             data_ 
-         >- UriTemplateData.UriTemplateData_
-         >- Map.value_ (Key key)
+        >-> UriTemplateData.UriTemplateData_
+        >-> Map.value_ (Key key)
 
     let atom_ key =
             value_ key
-         >- Option.mapEpimorphism UriTemplateValue.Atom_
+        >-> Option.mapEpimorphism UriTemplateValue.Atom_
 
     let list_ key =
             value_ key
-         >- Option.mapEpimorphism UriTemplateValue.List_
+        >-> Option.mapEpimorphism UriTemplateValue.List_
 
     let keys_ key =
             value_ key
-         >- Option.mapEpimorphism UriTemplateValue.Keys_
+        >-> Option.mapEpimorphism UriTemplateValue.Keys_

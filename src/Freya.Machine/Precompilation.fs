@@ -59,8 +59,7 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        id_
-     >- PrecompilationGraph.Graph_
+    Lens.ofIsomorphism PrecompilationGraph.Graph_
 
 (* Ordering
 
