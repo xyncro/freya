@@ -64,8 +64,8 @@ module CacheControl =
             <!> ifModifiedSince
 
         let modified ifModifiedSince lastModified =
-                (fun x y -> (function | Some lm, Some (IfModifiedSince ms) -> lm > ms
-                                      | _ -> false) (x, y))
+                fun x y -> (function | Some lm, Some (IfModifiedSince ms) -> lm > ms
+                                     | _ -> false) (x, y)
             <!> lastModified
             <*> ifModifiedSince
 
@@ -101,8 +101,8 @@ module CacheControl =
             <!> ifUnmodifiedSince
 
         let unmodified ifUnmodifiedSince lastModified =
-                (fun x y -> (function | Some lm, Some (IfUnmodifiedSince us) -> lm < us
-                                      | _ -> true) (x, y))
+                fun x y -> (function | Some lm, Some (IfUnmodifiedSince us) -> lm < us
+                                     | _ -> true) (x, y)
             <!> lastModified
             <*> ifUnmodifiedSince
 
