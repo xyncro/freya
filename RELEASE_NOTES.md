@@ -1,3 +1,6 @@
+### New in 3.0.0 - (Released TBD)
+* A lot of stuff - TODO!
+
 ### New in 2.0.201 - (Released TBD)
 * Fixed Last Modified, If-Modified-Since and If-Unmodified-Since headers
 
