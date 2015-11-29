@@ -80,7 +80,7 @@ let lastModificationDate = DateTime (2015, 1, 1)
 
 let todoLastModified =
     freya {
-        return lastModificationDate } |> Freya.memo
+        return lastModificationDate } |> Freya.Memo.wrap
 
 let add =
     freya {
@@ -174,8 +174,7 @@ let common =
         corsHeadersSupported corsHeaders
         corsOriginsSupported corsOrigins
         languagesSupported en
-        mediaTypesSupported MediaType.Json }
-        mediaTypesSupported json
+        mediaTypesSupported MediaType.Json
         lastModified todoLastModified }
 
 let todosMethods =

@@ -60,10 +60,13 @@ client.BaseAddress <- baseAddress
 // Add common CORS headers
 client.DefaultRequestHeaders.Add("Origin", "http://example.org/")
 
-[<TestFixtureTearDown>]
-let dispose() =
-    client.Dispose()
-    server.Dispose()
+// This seems to cause interesting timing race conditions with more complex tests,
+// which are inherently async...
+
+//[<TestFixtureTearDown>]
+//let dispose() =
+//    client.Dispose()
+//    server.Dispose()
 
 [<Test>]
 let ``todobackend returns empty array at first`` () = 

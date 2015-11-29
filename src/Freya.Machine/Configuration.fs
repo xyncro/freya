@@ -41,10 +41,5 @@ let private config_<'a> key =
 let get<'a> key =
     Optic.get (config_<'a> key)
 
-let tryGetOrNone key =
-    tryGet key >> function
-    | Some x -> Freya.map Some x
-    | None   -> Freya.init None
-
 let set<'a> key =
     Optic.set (config_<'a> key)

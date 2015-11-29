@@ -40,11 +40,11 @@ module CacheControl =
         (* Decisions *)
 
         let requested ifMatch =
-                Option.isSome 
+                Option.isSome
             <!> ifMatch
 
         let any ifMatch =
-                (=) (Some (IfMatch IfMatchChoice.Any)) 
+                (=) (Some (IfMatch IfMatchChoice.Any))
             <!> ifMatch
 
     (* If-Modified-Since *)
@@ -55,7 +55,7 @@ module CacheControl =
         (* Decisions *)
 
         let requested ifModifiedSince =
-                Option.isSome 
+                Option.isSome
             <!> ifModifiedSince
 
         let valid ifModifiedSince =
@@ -64,9 +64,9 @@ module CacheControl =
             <!> ifModifiedSince
 
         let modified ifModifiedSince lastModified =
-                fun x y -> (function | Some lm, Some (IfModifiedSince ms) -> lm > ms
+                fun x y -> (function | lm, Some (IfModifiedSince ms) -> lm > ms
                                      | _ -> false) (x, y)
-            <!> lastModified
+            <!> Option.orElse (Freya.init DateTime.MinValue) lastModified
             <*> ifModifiedSince
 
     (* If-None-Match *)
@@ -101,9 +101,9 @@ module CacheControl =
             <!> ifUnmodifiedSince
 
         let unmodified ifUnmodifiedSince lastModified =
-                fun x y -> (function | Some lm, Some (IfUnmodifiedSince us) -> lm < us
+                fun x y -> (function | lm, Some (IfUnmodifiedSince us) -> lm < us
                                      | _ -> true) (x, y)
-            <!> lastModified
+            <!> Option.orElse (Freya.init DateTime.MaxValue) lastModified
             <*> ifUnmodifiedSince
 
 (* Content Negotiation *)

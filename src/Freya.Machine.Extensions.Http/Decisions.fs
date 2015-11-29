@@ -21,11 +21,7 @@
 [<RequireQualifiedAccess>]
 module internal Freya.Machine.Extensions.Http.Decisions
 
-open Arachne.Http
-open System
-
 open Freya.Core
-open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
 
@@ -70,14 +66,10 @@ let private ifMatchRequested _ =
     CacheControl.IfMatch.requested 
         (Freya.Optic.get Request.Headers.ifMatch_)
 
-// HERE!
-
 let private ifModifiedSinceModified config =
     CacheControl.IfModifiedSince.modified
         (Freya.Optic.get Request.Headers.ifModifiedSince_)
-        ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
-        (!?. Request.Headers.IfModifiedSince_)
-        (Configuration.tryGetOrNone Properties.LastModified config)
+        (Configuration.get Properties.LastModified config)
 
 let private ifModifiedSinceRequested _ =
     CacheControl.IfModifiedSince.requested
@@ -95,14 +87,10 @@ let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
         (Freya.Optic.get Request.Headers.ifNoneMatch_)
 
-// HERE!
-
 let private ifUnmodifiedSinceModified config =
     CacheControl.IfUnmodifiedSince.unmodified
         (Freya.Optic.get Request.Headers.ifUnmodifiedSince_)
-        ((Configuration.get Properties.LastModified >> Option.orElse Defaults.lastModified) config)
-        (!?. Request.Headers.IfUnmodifiedSince_)
-        (Configuration.tryGetOrNone Properties.LastModified config)
+        (Configuration.get Properties.LastModified config)
 
 let private ifUnmodifiedSinceRequested _ =
     CacheControl.IfUnmodifiedSince.requested
