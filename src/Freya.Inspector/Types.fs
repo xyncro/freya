@@ -21,9 +21,8 @@
 module Freya.Inspector.Types
 
 open System
-open System.Json
-open Fleece
-open Fleece.Operators
+open Chiron
+open Chiron.Operators
 open Freya.Core
 open Freya.Recorder
 
@@ -41,4 +40,24 @@ and FreyaInspectorRuntime =
     { Initialize: Freya<unit> }
 
 and FreyaInspectorInspection =
-    { Data: FreyaRecorderRecord -> JsonValue option }
+    { Extract: FreyaRecorderRecord -> Json option }
+
+(* Record Models *)
+
+type FreyaRecorderRecordHeader =
+    { Id: Guid
+      Timestamp: DateTime }
+
+    static member ToJson (x: FreyaRecorderRecordHeader) =
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
+
+type FreyaRecorderRecordDetail =
+    { Id: Guid
+      Timestamp: DateTime
+      Extensions: string list }
+
+    static member ToJson (x: FreyaRecorderRecordDetail) =
+            Json.write "id" x.Id
+         *> Json.write "timestamp" x.Timestamp
+         *> Json.write "extensions" x.Extensions

@@ -1,0 +1,23 @@
+version: '{build}'
+clone_depth: 10
+install:
+- cmd: git submodule update --init --recursive
+nuget:
+  project_feed: true
+  disable_publish_on_pr: true
+build:
+  verbosity: minimal
+build_script:
+  - build.cmd Default
+test: off
+artifacts:
+- path: bin/Freya.*.nupkg
+  name: nuget
+notifications:
+- provider: Webhook
+  url: https://webhooks.gitter.im/e/289b3f174c2b681ff11a
+deploy:
+- provider: Environment
+  name: NuGet
+  on:
+    branch: master

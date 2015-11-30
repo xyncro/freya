@@ -15,67 +15,66 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module internal Freya.Inspector.Data
 
 open System
-open System.Json
-open Fleece
-open Fleece.Operators
+open Chiron
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Machine
+open Freya.Machine.Extensions.Http
+open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
+open Arachne.Uri.Template
 
 (* Route *)
 
-let routeId =
-    memoM ((Option.get >> Guid.Parse ) <!> getPLM (Route.valuesKey "id"))
+let private id =
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.Atom_ "id"))
 
-let routeKey =
-    memoM ((Option.get) <!> getPLM (Route.valuesKey "key"))
+let private extension =
+    Freya.memo (Option.get <!> (!?.) (Route.Atom_ "ext"))
 
 (* Data *)
 
-let private recordsData =
-    freya {
-        let! records = listRecords
+let private recordHeaders =
+        List.map (fun (record: FreyaRecorderRecord) ->
+            { FreyaRecorderRecordHeader.Id = record.Id
+              Timestamp = record.Timestamp }) >> Json.serialize
+    <!> FreyaRecorder.History.list
 
-        return toJSON records }
-
-let private recordData =
-    freya {
-        let! id = routeId
-        let! record = getRecord id
-
-        return Option.map toJSON record }
+let private recordDetail =
+        Option.map (fun (record: FreyaRecorderRecord) ->
+            { Id = record.Id
+              Timestamp = record.Timestamp
+              Extensions = (Map.toList >> List.map fst) record.Data } |> Json.serialize)
+    <!> (FreyaRecorder.History.tryFind =<< id)
 
 let private inspectionData inspectors =
-    freya {
-        let! id = routeId
-        let! key = routeKey
-        let! record = getRecord id
-
-        match Map.tryFind key inspectors with
-        | Some inspector -> return Option.bind inspector.Inspection.Data record
-        | _ -> return None }
+        fun record ext ->
+            Map.tryFind ext inspectors
+            |> Option.bind (fun i -> Option.bind i.Inspection.Extract record)
+    <!> (FreyaRecorder.History.tryFind =<< id)
+    <*> extension
 
 (* Functions *)
 
 let private recordsGet _ =
-    representJSON <!> recordsData
+    representJson <!> recordHeaders
 
 let private recordGet _ =
-    (Option.get >> representJSON) <!> recordData
+    (Option.get >> representJson) <!> recordDetail
 
 let private recordExists =
-    Option.isSome <!> recordData
+    Option.isSome <!> recordDetail
 
 let private inspectionGet inspectors _=
-    (Option.get >> representJSON) <!> (inspectionData inspectors)
+    (Option.get >> representJson) <!> (inspectionData inspectors)
 
 let private inspectionExists inspectors =
     Option.isSome <!> (inspectionData inspectors)
@@ -85,27 +84,39 @@ let private inspectionExists inspectors =
 let private records =
     freyaMachine {
         including defaults
-        handleOk recordsGet } |> compileFreyaMachine
+        handleOk recordsGet
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
-        handleOk recordGet } |> compileFreyaMachine
+        handleOk recordGet
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
-        handleOk (inspectionGet inspectors) } |> compileFreyaMachine
+        handleOk (inspectionGet inspectors)
+        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
 
-(* Routes *)
+(* Routes
 
-let private map =
-    List.map (fun (x: FreyaInspector) -> x.Key, x) >> Map.ofList
+   Note: More thought should be given to a more expandable API
+   path namespacing approach in the near future. *)
+
+let private root =
+    UriTemplate.Parse "/freya/inspector/api/records"
 
 let data config =
+    let inspectors =
+        config.Inspectors
+        |> List.map (fun x -> x.Key, x)
+        |> Map.ofList
+        |> inspection
+
     freyaRouter {
-        route All "/freya/api/requests" records
-        route All "/freya/api/requests/:id" record
-        route All "/freya/api/requests/:id/:key" (inspection (map config.Inspectors)) } |> compileFreyaRouter
+        resource (root) records
+        resource (root + UriTemplate.Parse "/{id}") record
+        resource (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline

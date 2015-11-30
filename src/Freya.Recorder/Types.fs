@@ -15,17 +15,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module Freya.Recorder.Types
 
 open System
-open Aether
-open Aether.Operators
-open Fleece
-open Fleece.Operators
-open Freya.Core
 
 (* Types *)
 
@@ -34,16 +30,5 @@ type FreyaRecorderRecord =
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member ToJSON (x: FreyaRecorderRecord) =
-        jobj [
-            "id" .= x.Id
-            "timestamp" .= x.Timestamp
-            "inspections" .= (x.Data |> Map.toList |> List.map fst) ]
-
-(* Lenses *)
-
-let private dataLens =
-    (fun x -> x.Data), (fun d x -> { x with Data = d })
-
-let recordDataPLens<'a> key =
-    dataLens >-?> mapPLens key <?-> boxIso<'a>
+    static member Data_ =
+        (fun x -> x.Data), (fun d x -> { x with Data = d })

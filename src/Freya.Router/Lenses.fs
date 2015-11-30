@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -22,23 +23,39 @@ module Freya.Router.Lenses
 
 open Aether
 open Aether.Operators
+open Arachne.Uri.Template
 open Freya.Core
 
 (* Keys *)
 
-let [<Literal>] private valuesKey =
-    "freya.RouterValues"
+let [<Literal>] private dataKey =
+    "freya.RouterData"
 
 (* Lenses
 
-   Access to values stored as part of the routing process
-   are accessible via these lenses in to the OWIN state. *)
+   Access to values matched (as UriTemplateData) as part of
+   the routing process are accessible via these lenses in to
+   the OWIN state. *)
 
 [<RequireQualifiedAccess>]
 module Route =
 
-    let values =
-        environmentKeyPLens valuesKey <?-> boxIso<FreyaRouteData>
+    let Data_ =
+            Environment.Optional_ dataKey 
 
-    let valuesKey key = 
-        values >??> mapPLens key
+    let Value_ key =
+            Data_ 
+       <?-> UriTemplateData.UriTemplateData_
+       >??> key_ (Key key)
+
+    let Atom_ key =
+            Value_ key
+       <??> UriTemplateValue.Atom_
+
+    let List_ key =
+            Value_ key
+       <??> UriTemplateValue.List_
+
+    let Keys_ key =
+            Value_ key
+       <??> UriTemplateValue.Keys_

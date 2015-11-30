@@ -1,3 +1,6 @@
-﻿FSharp.Core
-NUnit
+Microsoft.Owin.Testing
 Unquote
+NUnit
+Chiron
+Arachne.Http.Cors
+Arachne.Uri.Template

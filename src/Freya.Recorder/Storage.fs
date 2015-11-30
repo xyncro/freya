@@ -17,7 +17,7 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
+[<RequireQualifiedAccess>]
 module internal Freya.Recorder.Storage
 
 open System
@@ -25,14 +25,9 @@ open Aether
 open Aether.Operators
 open Freya.Core
 
-(* Keys *)
-
-let [<Literal>] private requestIdKey = 
-    "freya.Inspector.RequestId"
-
 (* Types *)
 
-type StorageProtocol =
+type private StorageProtocol =
     | Create of AsyncReplyChannel<Guid>
     | Update of Guid * (FreyaRecorderRecord -> FreyaRecorderRecord)
     | Read of Guid * AsyncReplyChannel<FreyaRecorderRecord option>
@@ -41,26 +36,15 @@ type StorageProtocol =
 type private StorageState =
     { Records: FreyaRecorderRecord seq }
 
-(* Lenses *)
-
-let internal requestIdPLens =
-    environmentKeyPLens<Guid> requestIdKey
-
-let private recordsLens =
-    (fun x -> x.Records), (fun r x -> { x with Records = r })
-
-let private dataLens =
-    (fun x -> x.Data), (fun d x -> { x with Data = d })
-
-let internal recordPLens<'a> k =
-    dataLens >-?> mapPLens k <?-> boxIso<'a>
+    static member Records_ =
+        (fun x -> x.Records), (fun r x -> { x with Records = r })
 
 (* Constructors *)
 
 let private state =
     { Records = Seq.empty }
 
-let private entry id =
+let private record id =
     { Id = id
       Timestamp = DateTime.UtcNow
       Data = Map.empty }
@@ -71,18 +55,18 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = modL recordsLens (Seq.append [ entry id ] >> Seq.truncate 10) state
+        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^%= StorageState.Records_) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = modL recordsLens (Seq.map (function | l when l.Id = id -> f l | l -> l)) state
+        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^%= StorageState.Records_) state
         state
     | Read (id, chan) ->
-        let x = (getL recordsLens >> (Seq.tryFind (fun l -> l.Id = id))) state
+        let x = (flip (^.) StorageState.Records_ >> (Seq.tryFind (fun l -> l.Id = id))) state
         chan.Reply (x)
         state
     | List (chan) ->
-        let x = getL recordsLens state
+        let x = state ^. StorageState.Records_
         chan.Reply (List.ofSeq x)
         state
 
@@ -102,7 +86,7 @@ let private store =
 
 (* Functions *)
 
-let init () =
+let initialize () =
     store.PostAndAsyncReply (fun c -> Create (c))
 
 let read id =

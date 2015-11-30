@@ -15,172 +15,107 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module Freya.Machine.Types
 
-open Aether
-open Aether.Operators
+open System
 open Freya.Core
-open Freya.Core.Operators
-open Freya.Types.Http
-open Freya.Types.Language
 
-(* Negotiation/Representation *)
+(* Configuration *)
 
-type FreyaMachineNegotiation =
-    { Charsets: FreyaMachineNegotiationResult<Charset>
-      Encodings: FreyaMachineNegotiationResult<ContentCoding>
-      MediaTypes: FreyaMachineNegotiationResult<MediaType>
-      Languages: FreyaMachineNegotiationResult<LanguageTag> }
+type FreyaMachineConfiguration =
+    { Data: Map<string, obj> }
 
-and FreyaMachineNegotiationResult<'a> =
-    | Negotiated of 'a list
-    | Free
+    static member Data_ =
+        (fun x -> x.Data), (fun d x -> { x with Data = d })
 
-type FreyaMachineRepresentation =
-    { Metadata: FreyaMachineRepresentationMetadata
-      Data: byte [] }
+(* Nodes *)
 
-and FreyaMachineRepresentationMetadata =
-    { Charset: Charset option
-      Encodings: ContentCoding list option
-      MediaType: MediaType option
-      Languages: LanguageTag list option }
+type FreyaMachineNode =
+    | Start
+    | Operation of string
+    | Finish
 
-(* Definition
+(* Edges *)
 
-   A Definition of a Machine, encoded as the defaults to override
-   and the functions (given the previously defined Signatures) provided
-   to override them. *)
+type FreyaMachineEdge =
+    | Edge of bool
 
-type FreyaMachineDefinition =
-    Map<string, FreyaMachineOverride>
+(* Operations *)
 
-and FreyaMachineOverride =
-    | Action of FreyaMachineAction
-    | Configuration of obj
-    | Decision of FreyaMachineDecision
-    | Handler of FreyaMachineHandler
+type FreyaMachineOperation =
+    | Unary of Freya<unit>
+    | Binary of Freya<bool>
 
-    static member internal ActionPIso =
-        (function | Action a -> Some a | _ -> None), Action
+type FreyaMachineOperationMetadata =
+    { Configurable: bool
+      Configured: bool }
 
-    static member internal ConfigurationPIso =
-        (function | Configuration o -> Some o | _ -> None), Configuration
+(* Compilation *)
 
-    static member internal DecisionPIso =
-        (function | Decision d -> Some d | _ -> None), Decision
+type FreyaMachineCompiler =
+    | Compile of FreyaMachineCompile
 
-    static member internal HandlerPIso =
-        (function | Handler h -> Some h | _ -> None), Handler
+and FreyaMachineCompile =
+    FreyaMachineConfiguration -> FreyaMachineCompilation
 
-(* Signatures
+and FreyaMachineCompilation =
+    | Compiled of FreyaMachineOperation * FreyaMachineOperationMetadata
 
-    Common monadic signatures for the building blocks of Machine
-    Definitions. Represent functions that the user of Machine should implement
-    when overriding the defaults. *)
+(* Extension *)
 
-and FreyaMachineAction = 
-    Freya<unit>
+[<CustomEquality>]
+[<CustomComparison>]
+type FreyaMachineExtension =
+    { Name: string
+      Dependencies: Set<string>
+      Operations: FreyaMachineExtensionOperation list }
 
-and FreyaMachineDecision = 
-    Freya<bool>
+    static member private Comparable (x: FreyaMachineExtension) =
+        x.Name.ToLowerInvariant ()
 
-and FreyaMachineHandler = 
-    FreyaMachineNegotiation -> Freya<FreyaMachineRepresentation>
+    override x.Equals y =
+        equalsOn FreyaMachineExtension.Comparable x y
 
-and FreyaMachineOperation =
-    Freya<unit>
+    override x.GetHashCode () =
+        hashOn FreyaMachineExtension.Comparable x
 
-(* Monad *)
+    interface IComparable with
 
-type FreyaMachine = 
-    FreyaMachineDefinition -> unit * FreyaMachineDefinition
+        member x.CompareTo y =
+            compareOn FreyaMachineExtension.Comparable x y
 
-(* Graph
+and FreyaMachineExtensionOperation =
+    | AddNode of FreyaMachineNode * FreyaMachineCompiler option
+    | RemoveNode of FreyaMachineNode
+    | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdge option
+    | RemoveEdge of FreyaMachineNode * FreyaMachineNode
 
-   Execution runs as a graph of nodes of specific meaning,
-   Each node may (depending on type) run some kind of action and
-   then provide a way of indicating which node in the graph should
-   be invoked next (forming the essential characteristic of processing
-   requests as a statemachine). *)
+(* Computation Expression *)
 
-type internal FreyaMachineGraph =
-    Map<string, FreyaMachineNode>
+type FreyaMachine =
+    FreyaMachineSpecification -> unit * FreyaMachineSpecification
 
-and internal FreyaMachineNode =
-    | ActionNode of FreyaMachineActionNode
-    | DecisionNode of FreyaMachineDecisionNode
-    | HandlerNode of FreyaMachineHandlerNode
-    | OperationNode of FreyaMachineOperationNode
-    
-and internal FreyaMachineActionNode =
-    { Id: string
-      Override: FreyaMachineNodeOverride
-      Action: FreyaMachineAction
-      Next: string }
+and FreyaMachineSpecification =
+    { Configuration: FreyaMachineConfiguration
+      Extensions: Set<FreyaMachineExtension> }
 
-and internal FreyaMachineDecisionNode =
-    { Id: string
-      Override: FreyaMachineNodeOverride
-      Decision: FreyaMachineDecision
-      True: string
-      False: string }
+    static member Configuration_ =
+        (fun x -> x.Configuration), (fun c x -> { x with Configuration = c })
 
-and internal FreyaMachineHandlerNode =
-    { Id: string
-      Override: FreyaMachineNodeOverride
-      Handler: FreyaMachineHandler }
+    static member Extensions_ =
+        (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })
 
-and internal FreyaMachineOperationNode =
-    { Id: string
-      Operation: FreyaMachineOperation
-      Next: string }
+(* Defaults
 
-(* Override
+   Default instances of data types, in this case
+   an empty machine specification with no existing configuration
+   and no extensions (not a machine which will do much). *)
 
-   Override data is used to be able to provide sensible runtime
-   introspection and debugging capabilities,such as integration with future 
-   Freya tracing/inspection tools. *)
-
-and internal FreyaMachineNodeOverride =
-    { Allow: bool
-      Overridden: bool }
-
-(* Lenses
-
-   Partial lenses (Aether form - see https://github.com/xyncro/aether) 
-   to the Machine Definition within an OWIN monad (see Freya.Core),
-   and to aspects of the machine definition. *)
-
-let internal definitionPLens =
-    environmentKeyPLens "freya.MachineDefinition" <?-> boxIso<FreyaMachineDefinition>
-
-let internal actionKeyPLens k =
-    mapPLens k <??> FreyaMachineOverride.ActionPIso
-    
-let internal configurationKeyPLens<'a> k =
-    mapPLens k <??> FreyaMachineOverride.ConfigurationPIso <?-> boxIso<Freya<'a>>
-        
-let internal decisionKeyPLens k =
-    mapPLens k <??> FreyaMachineOverride.DecisionPIso
-
-let internal handlerKeyPLens k =
-    mapPLens k <??> FreyaMachineOverride.HandlerPIso
-
-(* Configuration
-
-   Typed access to dynamic configuration values at runtime. These are
-   evaluated on machine execution, and so may be varied based on the
-   specific resource in question (they are a general core Freya<'T>
-   expression). *)
-
-let internal configurationKey<'a> key : Freya<'a option> =
-    freya {
-        let! value = getPLM (definitionPLens >??> configurationKeyPLens<'a> key)
-
-        match value with
-        | Some value -> return! Some <!> value
-        | _ -> return None }
+let internal defaultFreyaMachineSpecification =
+    { Configuration = 
+        { Data = Map.empty }
+      Extensions = Set.empty }

@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -33,5 +34,5 @@ type FreyaRouterBuilder with
     (* Routes *)
 
     [<CustomOperation ("resource", MaintainsVariableSpaceUsingBind = true)>]
-    member x.Resource (r, path, pipeline) =
-        x.Route (r, All, path, pipeline)
+    member x.Resource (r, template, pipeline) =
+        x.Route (r, All, template, pipeline)

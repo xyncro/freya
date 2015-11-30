@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -22,23 +23,21 @@ module Freya.Inspector.Pipeline
 
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
-open Freya.Pipeline.Operators
 open Freya.Recorder
-open Freya.Types.Http
+open Arachne.Http
 
 (* Functions *)
 
 let private initialize =
-    freya {
-        return! initializeRecord *> next }
+        FreyaRecorder.Current.initialize
+     *> Freya.next
 
 let private record config =
     freya {
-        for inspector in (config.Inspectors) do
+        for inspector in config.Inspectors do
             do! inspector.Runtime.Initialize
 
-        return! next }
+        return Next }
 
 (* Pipelines *)
 

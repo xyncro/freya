@@ -15,67 +15,181 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Machine.Execution
+module internal Freya.Machine.Execution
 
+open Aether
+open Aether.Operators
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
+open Hekate
 
-(* Execution *)
+(* Errors
 
-let private action a =
-    freya {
-        do! a.Action
-        do! addFreyaMachineExecutionRecord a.Id
+   Execution may (although should not) fail at runtime. Though
+   the possibility of this for reasons captured by the type system
+   should be small due to the verification system, we raise a specific
+   error type in this instance. *)
 
-        return a.Next }
+exception ExecutionError of string
 
-let private decision d =
-    freya {
-        let! result = d.Decision
-        do! addFreyaMachineExecutionRecord d.Id
+let private fail e =
+    raise (ExecutionError e)
 
-        match result with
-        | true -> return d.True
-        | _ -> return d.False }
+(* Types
 
-let private handler (h: FreyaMachineHandlerNode) =
-    freya {
-        do! addFreyaMachineExecutionRecord h.Id
+   Types representing the outcome and traversal state of a machine
+   execution. We currently only store the next node within the traversal
+   state, but may expand this to capture more runtime data as part of
+   the traversal state, potentially allowing dynamic optimization later. *)
 
-        return h.Handler }
+type private ExecutionResult =
+    | Success
+    | Failure of string
 
-let private operation o =
-    freya {
-        do! o.Operation
-        do! addFreyaMachineExecutionRecord o.Id
+type private Traversal =
+    | Traversal of TraversalState
 
-        return o.Next }
+    static member State_ =
+        (fun (Traversal x) -> x), (fun x -> Traversal x)
 
-let private traverse (graph: FreyaMachineGraph) =
-    let rec eval from =
-        freya {
-            match Map.find from graph with
-            | ActionNode a -> return! action a >>= eval
-            | DecisionNode d -> return! decision d >>= eval
-            | HandlerNode h -> return! handler h
-            | OperationNode o -> return! operation o >>= eval }
+and private TraversalState =
+    | State of FreyaMachineNode
 
-    eval Decisions.ServiceAvailable
+    static member Node_ =
+        (fun (State x) -> x), (fun x -> State x)
 
-(* Compilation *)
+(* Constructors
 
-let compileFreyaMachine (machine: FreyaMachine) : FreyaPipeline =
-    let definition = snd (machine Map.empty)
-    let graph = freyaMachineGraph definition
-    let graphRecord = freyaMachineGraphRecord graph
+   Constructors for commonly created instances, in this case an initial
+   state for a traversal starting from the provided node. *)
 
-    freya {
-        do! setFreyaMachineGraphRecord graphRecord
-        do! setPLM definitionPLens definition
-        do! traverse graph >>= represent
+let private createTraversal node =
+    Traversal (State node)
 
-        return Halt }
+(* Lenses
+
+   A lens from the traversal state to the current node, purely a simple
+   isomorphism until the traversal state is potentially expanded. *)
+
+let private compilationGraph_ =
+        id_
+   <--> Compilation.CompilationGraph.Graph_
+
+let private node_ =
+        id_
+   <--> Traversal.State_
+   <--> TraversalState.Node_
+
+(* Patterns
+
+   Patterns for matching the currently active node during traversal
+   and extracting the relevant data to execute the next operation, in
+   this case the current node in the case where the node is an
+   operation. *)
+
+let private (|Start|_|) =
+    function | Traversal (State Start) -> Some ()
+             | _ -> None
+
+let private (|Operation|_|) =
+    function | Traversal (State (Operation x)) -> Some (FreyaMachineNode.Operation x)
+             | _ -> None
+
+let private (|Finish|_|) =
+    function | Traversal (State Finish) -> Some ()
+             | _ -> None
+
+(* Projection
+
+   Functions to extract data from the compiled execution graph, finding
+   a specific node, or the next node given a current node and a value
+   which is expected to exist on an edge connecting the current node
+   to the sought node. *)
+
+let private tryFindNode node =
+    Graph.tryFindNode node
+
+let private tryFindNext node op =
+        Graph.successors node
+     >> function | Some edges ->
+                    List.tryPick (fun edge ->
+                        match edge with
+                        | node', op' when op' = op -> Some node'
+                        | _ -> None) edges
+                 | _ ->
+                    None
+
+(* State
+
+   Modifying the traversal state to reflect the current node within
+   the traversal state. *)
+
+let private progress node =
+    node ^= node_
+
+(* Traversal
+
+   A traversal of the execution graph, running the unary or binary
+   computations on relevant nodes and traversing paths indicated by
+   the results of binary operations following binary edges where
+   relevant. *)
+
+let rec private traverse graph traversal =
+    match traversal with
+    | Operation node ->
+        match tryFindNode node (graph ^. compilationGraph_) with
+        | Some (_, Some (Unary op)) -> unary node op graph traversal
+        | Some (_, Some (Binary op)) -> binary node op graph traversal
+        | _ -> failwith ""
+    | Start ->
+        start graph traversal
+    | Finish ->
+        finish ()
+    | _ ->
+        failwith ""
+
+and private start graph traversal =
+        Recording.Record.execution { Id = Start }
+     *> ((fun _ -> tryFindNext Start None (graph ^. compilationGraph_)) <!> Freya.init ()
+      >>= function | Some next -> traverse graph (progress next traversal)
+                   | _ -> Freya.init (Failure ""))
+
+and private unary current op graph traversal =
+        Recording.Record.execution { Id = current }
+     *> ((fun _ -> tryFindNext current None (graph ^. compilationGraph_)) <!> op
+      >>= function | Some next -> traverse graph (progress next traversal)
+                   | _ -> failwith "")
+
+and private binary current op graph traversal =
+        Recording.Record.execution { Id = current }
+     *> ((fun x -> x, tryFindNext current (Some (Edge x)) (graph ^. compilationGraph_)) <!> op
+      >>= function | _, Some next -> traverse graph (progress next traversal)
+                   | _, _ -> failwith "")
+
+and private finish () =
+        Recording.Record.execution { Id = Finish }
+     *> Freya.init Success
+
+(* Run
+
+   Running an execution over a graph using a new traversal starting
+   at the Start node as the initial traversal state. *)
+
+let private run graph =
+        createTraversal <!> Freya.init Start
+    >>= traverse graph
+
+(* Execute
+
+   Function for executing a compiled graph, throwing on failure which
+   may need reconsideration or a more generalised handling approach
+   for genuinely runtime errors. *)
+
+let execute graph =
+        run graph
+    >>= function | Success -> Freya.halt
+                 | Failure e -> fail e

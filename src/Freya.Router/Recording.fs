@@ -15,112 +15,129 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Router.Recording
+[<RequireQualifiedAccess>]
+module internal Freya.Router.Recording
 
-open Aether
 open Aether.Operators
-open Fleece
-open Fleece.Operators
 open Freya.Recorder
-
-(* Keys *)
-
-let [<Literal>] freyaRouterRecordKey =
-    "router"
+open Hekate
 
 (* Types *)
 
 type FreyaRouterRecord =
-    { Execution: FreyaRouterExecutionRecord
-      Trie: FreyaRouterTrieRecord }
+    { Graph: FreyaRouterGraphRecord
+      Execution: FreyaRouterExecutionRecord }
 
-    static member ExecutionLens =
+    static member Graph_ =
+        (fun x -> x.Graph), (fun g x -> { x with Graph = g })
+
+    static member Execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
-    static member TrieLens =
-        (fun x -> x.Trie), (fun t x -> { x with Trie = t })
+and FreyaRouterGraphRecord =
+    { Nodes: FreyaRouterGraphNodeRecord list
+      Edges: FreyaRouterGraphEdgeRecord list }
 
-    static member ToJSON (x: FreyaRouterRecord) =
-        jobj [
-            "execution" .= x.Execution
-            "trie" .= x.Trie ]
+    static member Nodes_ =
+        (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterGraphRecord.Nodes = n })
 
-(* Trie *)
+    static member Edges_ =
+        (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
-and FreyaRouterTrieRecord =
+and FreyaRouterGraphNodeRecord =
     { Key: string
-      Children: FreyaRouterTrieRecord list }
+      Methods: string list }
 
-    static member ToJSON (x: FreyaRouterTrieRecord) =
-        jobj [
-            "key" .= x.Key
-            "children" .= x.Children ]
-
-(* Execution *)
+and FreyaRouterGraphEdgeRecord =
+    { From: string
+      To: string }
 
 and FreyaRouterExecutionRecord =
-    { Tries: FreyaRouterExecutionTrieRecord list }
+    { Nodes: FreyaRouterExecutionNodeRecord list }
 
-    static member TriesLens =
-        (fun x -> x.Tries), (fun t x -> { x with Tries = t })
+    static member Nodes_ =
+        (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterExecutionRecord.Nodes = n })
 
-    static member ToJSON (x: FreyaRouterExecutionRecord) =
-        jobj [
-            "tries" .= x.Tries ]
-
-and FreyaRouterExecutionTrieRecord =
+and FreyaRouterExecutionNodeRecord =
     { Key: string
-      Value: string
-      Result: FreyaRouterExecutionResult }
+      Action: FreyaRouterExecutionActionRecord }
 
-    static member ToJSON (x: FreyaRouterExecutionTrieRecord) =
-        jobj [
-            "key" .= x.Key
-            "value" .= x.Value
-            "result" .=
-                ((function | Captured -> "captured"
-                           | Failed -> "failed"
-                           | Matched -> "matched") x.Result) ]
+and FreyaRouterExecutionActionRecord =
+    | Completion of FreyaRouterExecutionStatusRecord
+    | Match of FreyaRouterExecutionStatusRecord
 
-and FreyaRouterExecutionResult =
-    | Captured
-    | Failed
-    | Matched
+and FreyaRouterExecutionStatusRecord =
+    | Success
+    | Failure
 
-(* Constructors *)
+    override x.ToString () =
+        match x with
+        | Success -> "Success"
+        | Failure -> "Failure"
 
-let private freyaRouterRecord =
-    { Trie =
-        { Key = ""
-          Children = List.empty }
-      Execution =
-        { Tries = List.empty } }
+(* Construction *)
 
-let rec internal freyaRouterTrieRecord (trie: FreyaRouterTrie) : FreyaRouterTrieRecord =
-    { Key = trie.Key
-      Children = trie.Children |> List.map freyaRouterTrieRecord }
-
-(* Lenses *)
-
-let freyaRouterRecordPLens =
-    recordDataPLens<FreyaRouterRecord> freyaRouterRecordKey
+let graphRecord (Compilation.Graph graph) =
+    { Nodes =
+        Graph.nodes graph
+        |> List.map (fun (v, l) ->
+            match v, l with
+            | Compilation.Root, _ ->
+                { Key = "root"
+                  Methods = [] }
+            | Compilation.Key k, Compilation.Empty ->
+                { Key = k
+                  Methods = [] }
+            | Compilation.Key k, Compilation.Endpoints es ->
+                { Key = k
+                  Methods = List.map (fun (Compilation.Endpoint (_, m, _)) -> m.ToString ()) es })
+      Edges =
+        Graph.edges graph
+        |> List.map (fun (k1, k2, _) ->
+            match k1, k2 with
+            | Compilation.Root, Compilation.Key k ->
+                { From = "root"
+                  To = k }
+            | Compilation.Key k1, Compilation.Key k2 ->
+                { From = k1
+                  To = k2 }
+            | _ ->
+                failwith "Edge Match Failure") }
 
 (* Recording *)
 
-let initializeFreyaRouterRecord =
-    updateRecord (setPL freyaRouterRecordPLens freyaRouterRecord)
+[<RequireQualifiedAccess>]
+module Record =
 
-let internal setFreyaRouterTrieRecord trie =
-    updateRecord (setPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.TrieLens) trie)
+    (* Lenses *)
 
-let internal addFreyaRouterExecutionRecord key value result =
-    updateRecord (modPL (     freyaRouterRecordPLens
-                         >?-> FreyaRouterRecord.ExecutionLens
-                         >?-> FreyaRouterExecutionRecord.TriesLens)
-                        (fun x -> x @ [ { Key = key
-                                          Value = value
-                                          Result = result } ]))
+    let private graph_ =
+            Record.Record_ "router"
+       >?-> FreyaRouterRecord.Graph_
+
+    let private executionNodes_ =
+            Record.Record_ "router"
+       >?-> FreyaRouterRecord.Execution_
+       >?-> FreyaRouterExecutionRecord.Nodes_
+
+    (* Functions *)
+
+    let private keyValue =
+        function | Compilation.Root -> "root"
+                 | Compilation.Key k -> k
+
+    let graph graph =
+        FreyaRecorder.Current.map ((fun _ -> graph) ^?%= graph_)
+
+    let completion status key =
+        FreyaRecorder.Current.map ((fun nodes ->
+            { Key = keyValue key
+              Action = Completion status } :: nodes) ^?%= executionNodes_)
+
+    let match' status key =
+        FreyaRecorder.Current.map ((fun nodes ->
+            { Key = keyValue key
+              Action = Match status } :: nodes) ^?%= executionNodes_)

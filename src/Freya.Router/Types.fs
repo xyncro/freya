@@ -15,49 +15,36 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
 module Freya.Router.Types
 
-open Freya.Pipeline
-open Freya.Types.Http
+open Arachne.Http
+open Arachne.Uri.Template
+open Freya.Core
 
 (* Routes *)
 
 type FreyaRoute =
     { Method: FreyaRouteMethod
-      Path: string
+      Specification: FreyaRouteSpecification
+      Template: UriTemplate
       Pipeline: FreyaPipeline }
+
+    static member Template_ =
+        (fun x -> x.Template), (fun t x -> { x with Template = t })
+
+and FreyaRouteSpecification =
+    | Path
+    | PathAndQuery
 
 and FreyaRouteMethod =
     | All
     | Methods of Method list
 
-type FreyaRouteData =
-    Map<string, string>
-
-(* Monad *)
+(* Computation Expression *)
 
 type FreyaRouter = 
     FreyaRoute list -> unit * FreyaRoute list
-
-(* Trie *)
-
-type internal FreyaRouterTrie =
-    { Children: FreyaRouterTrie list
-      Key: string
-      Pipelines: (FreyaRouteMethod * FreyaPipeline) list
-      Recognizer: FreyaRouterRecognizer }
-
-    static member ChildrenLens =
-        (fun x -> x.Children), 
-        (fun c x -> { x with Children = c })
-
-    static member PipelinesLens =
-        (fun x -> x.Pipelines), 
-        (fun p x -> { x with Pipelines = p })
-
-and internal FreyaRouterRecognizer =
-    | Ignore of string
-    | Capture of string

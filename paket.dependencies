@@ -1,11 +1,13 @@
 source https://nuget.org/api/v2
+framework: net45
 
+nuget Arachne.Http.Cors
+nuget Arachne.Uri.Template
 nuget Aether
-nuget Fleece
-nuget FParsec
-nuget FSharp.Core
-nuget Microsoft.Net.Http
+nuget Chiron
+nuget Hekate
 nuget Microsoft.Owin.SelfHost
+nuget Microsoft.Owin.Testing
 nuget NUnit
 nuget NUnit.Runners
 nuget Unquote

@@ -15,33 +15,55 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
-module Freya.Router.Inspector
+[<AutoOpen>]
+module Freya.Router.Inspector.Inspector
 
-open Aether
-open Fleece
+open Aether.Operators
+open Chiron
+open Freya.Core
 open Freya.Inspector
+open Freya.Recorder
+open Freya.Router
+
+(* Keys *)
+
+let private key =
+    "router"
+
+(* Lenses *)
+
+let private record_ =
+    Record.Record_ key
 
 (* Runtime *)
 
+let private record =
+    { Recording.Graph =
+        { Nodes = List.empty
+          Edges = List.empty }
+      Recording.Execution =
+        { Nodes = List.empty } }
+
 let private initialize =
-    initializeFreyaRouterRecord
+    FreyaRecorder.Current.map (record ^?= record_)
 
 let private runtime =
     { Initialize = initialize }
 
 (* Inspection *)
 
-let private data =
-    getPL freyaRouterRecordPLens >> Option.map toJSON
+let private extract =
+    flip (^?.) record_ >> Option.map (FreyaRouterInspection.OfRecord >> Json.serialize)
 
 let private inspection =
-    { Data = data }
+    { Extract = extract }
 
 (* Inspector *)
 
 let freyaRouterInspector =
-    { Key = freyaRouterRecordKey
+    { Key = key
       Runtime = runtime
       Inspection = inspection }

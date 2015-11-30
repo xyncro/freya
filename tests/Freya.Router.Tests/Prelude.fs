@@ -4,11 +4,12 @@ module internal Freya.Router.Tests.Prelude
 open System.Collections.Generic
 open Aether
 open Aether.Operators
+open Arachne.Http
+open Arachne.Uri
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
+open Freya.Lenses.Http
 open Freya.Router
-open Freya.Types.Http
 
 let private freyaState () =
     let env = 
@@ -25,29 +26,31 @@ let [<Literal>] testKey =
 
 (* Lenses *)
 
-let private testLens =
-    environmentKeyPLens testKey <?-> (unbox<int>, box)
+let private test_ =
+    Environment.Optional_ testKey
 
 (* Functions *)
 
 let private get =
-    getPL testLens
+    Lens.getPartial test_
 
 let private set i =
-    setPLM testLens i *> next
+    Freya.Lens.setPartial test_ i *> Freya.next
 
-let private run meth path m =
-    let router = compileFreyaRouter m
+let private run meth path query m =
+    let router = FreyaRouter.toPipeline m
+    let state = freyaState ()
 
-    Async.RunSynchronously ((   setLM Request.path path 
-                             *> setLM Request.meth meth 
-                             *> router) (freyaState ()))
+    Async.RunSynchronously ((   Freya.Lens.set Request.Method_ meth
+                             *> Freya.Lens.set Request.Path_ path
+                             *> Freya.Lens.set Request.Query_ query
+                             *> router) state)
 
-let result meth path m =
-    fst (run meth path m)
+let result meth path query m =
+    fst (run meth path query m)
 
-let value meth path m =
-    get (snd (run meth path m))
+let value meth path query m =
+    get (snd (run meth path query m))
 
 (* Methods *)
 

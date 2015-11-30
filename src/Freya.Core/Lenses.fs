@@ -15,6 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
@@ -23,10 +24,24 @@ module Freya.Core.Lenses
 open Aether
 open Aether.Operators
 
-(* Environment Lenses *)
+[<RequireQualifiedAccess>]
+module Environment =
 
-let environmentKeyLens<'a> key =
-    FreyaState.EnvironmentLens >--> mutDictLens<string, obj> key <--> boxIso<'a>
+    let Required_<'a> k =
+            FreyaState.Environment_
+       >--> mutKey_<string, obj> k
+       <--> box_<'a>
 
-let environmentKeyPLens<'a> key =
-    FreyaState.EnvironmentLens >-?> mutDictPLens<string, obj> key <?-> boxIso<'a>
+    let Optional_<'a> k =
+            FreyaState.Environment_
+       >-?> mutKeyP_<string, obj> k
+       <?-> box_<'a>
+
+[<RequireQualifiedAccess>]
+module Memo =
+
+    let Id_<'a> i =
+            FreyaState.Meta_
+       >--> FreyaMetaState.Memos_
+       >-?> key_ i
+       <?-> box_<'a>

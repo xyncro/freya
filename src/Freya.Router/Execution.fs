@@ -15,93 +15,266 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
-[<AutoOpen>]
-module Freya.Router.Execution
+[<RequireQualifiedAccess>]
+module internal Freya.Router.Execution
 
+open Aether
+open Aether.Operators
+open Arachne.Http
+open Arachne.Uri
+open Arachne.Uri.Template
+open FParsec
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Pipeline
-open Freya.Types.Http
+open Freya.Lenses.Http
+open Hekate
 
-(* Find *)
+(* Types
 
-let rec private findTrie path data (trie: FreyaRouterTrie)  =
-    freya {
-        match path with
-        | segment :: path -> return! (pick segment data >=> ret path) trie.Children
-        | _ -> return Some (trie.Pipelines, data) }
+   Types representing the potential outcome of a router execution,
+   as well as the intermediate state tracked throughout a traversal
+   of the compiled routing graph.
 
-and private ret path x =
-    freya {
-        match x with
-        | Some (trie, data) -> return! findTrie path data trie
-        | _ -> return None }
+   We take a n-furcating exhaustive search over the routing space,
+   closing edges as we go, producing a set of all possible matches and the
+   data captured, and then select the highest precedence match. *)
 
-and private pick segment data tries =
-    freya {
-        match tries with
-        | [] -> return None
-        | tries ->
-            let! env = getM
+(* Result *)
 
-            let x, env =
-                List.fold (fun (x, env) trie ->
-                    match x with
-                    | Some (trie, data) -> (Some (trie, data), env)
-                    | None -> Async.RunSynchronously (recognize segment data trie env)) (None, env) tries
+type private ExecutionResult =
+    | Matched of UriTemplateData * FreyaPipeline
+    | Unmatched
 
-            do! setM env
+(* Traversal *)
 
-            return x }
+type private Traversal =
+    | Traversal of TraversalInvariant * TraversalState
 
-and private recognize segment data trie =
-    freya {
-        let result = addFreyaRouterExecutionRecord trie.Key segment
+    static member State_ =
+        (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
-        match trie.Recognizer with
-        | Capture x -> return! result Captured *> returnM (Some (trie, Map.add x segment data))
-        | Ignore x when x = segment -> return! result Matched *> returnM (Some (trie, data))
-        | _ -> return! result Failed *> returnM None }
+and private TraversalInvariant =
+    | Invariant of Method
 
-(* Match *)
+and private TraversalState =
+    | State of TraversalPosition * TraversalData
 
-let private find meth x =
-    freya {
-        return List.tryFind (function | (Methods m, _) -> List.exists ((=) meth) m
-                                      | _ -> true) x }
+    static member Position_ =
+        (fun (State (p, _)) -> p), (fun p (State (_, d)) -> State (p, d))
 
-let private pair data x =
-    freya {
-        return Option.map (fun (_, pipeline) -> pipeline, data) x }
+    static member Data_ =
+        (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
-let private matchMethod meth x =
-    freya {
-        match x with
-        | Some (pipelines, data) -> return! (find meth >=> pair data) pipelines
-        | _ -> return None }
+and private TraversalPosition =
+    | Position of string * Compilation.CompilationKey
 
-(* Search *)
+    static member PathAndQuery_ =
+        (fun (Position (p, _)) -> p), (fun p (Position (_, k)) -> Position (p, k))
 
-let private search path meth data trie =
-    freya {
-        return! (findTrie path data >=> matchMethod meth) trie }
+    static member Key_ =
+        (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
 
-(* Compilation *)
+and private TraversalData =
+    | Data of UriTemplateData
 
-let compileFreyaRouter (router: FreyaRouter) : FreyaPipeline =
-    let routes = snd (router List.empty)
-    let trie = freyaRouterTrie routes
-    let trieRecord = freyaRouterTrieRecord trie
+    static member Data_ =
+        (fun (Data d) -> d), (fun d (Data (_)) -> Data (d))
 
-    freya {
-        do! setFreyaRouterTrieRecord trieRecord
+(* Constructors
 
-        let! meth = getLM Request.meth
-        let! path = segmentize <!> getLM Request.path
-        let! res = search path meth Map.empty trie
+   Construction functions for common types, in this case a simple default
+   traversal, starting at the tree root and capturing no data, with
+   a starting path, and an invariant method on which to match. *)
 
-        match res with
-        | Some (pipeline, data) -> return! setPLM Route.values data *> pipeline
-        | _ -> return Next }
+let private traversal meth path query =
+    let pathAndQuery =
+        match query with
+        | "" -> path
+        | query -> sprintf "%s?%s" path query
+
+    Traversal (
+        Invariant meth,
+        State (
+            Position (pathAndQuery, Compilation.Root),
+            Data (UriTemplateData (Map.empty))))
+
+(* Lenses
+
+   Lenses in to aspects of the traversal, chiefly the traversal state
+   elements, taking an immutable approach to descending state capture
+   throughout the graph traversal. *)
+
+(* Traversal *)
+
+let private traversalData_ =
+        Traversal.State_
+   >--> TraversalState.Data_
+   >--> TraversalData.Data_
+
+let private traversalKey_ =
+        Traversal.State_
+   >--> TraversalState.Position_
+   >--> TraversalPosition.Key_
+
+let private traversalPathAndQuery_ =
+        Traversal.State_
+   >--> TraversalState.Position_
+   >--> TraversalPosition.PathAndQuery_
+
+(* Request *)
+
+let private requestMethod_ =
+        Request.Method_
+
+let private requestPath_ =
+        Request.Path_
+
+let private requestQuery_ =
+        Request.Query_
+   <--> Query.Query_
+
+(* Patterns
+
+   Patterns used to match varying states throughout the traversal process,
+   beginning with the high level states that a traversal may occupy, i.e.
+   working with a candidate match (when the path is exhausted) or working
+   with a progression (the continuation of the current traversal).
+
+   A pattern for matching paths against the current parser, with data captured
+   and the result paths returned follows, before a filtering pattern to only
+   return candidate endpoints which match the invariant method stored as part
+   of the traversal. *)
+
+(* Traversal *)
+
+let private (|Candidate|_|) =
+    function | Traversal (Invariant m, State (Position ("", k), Data d)) -> Some (k, m, d)
+             | _ -> None
+
+let private (|Progression|_|) =
+    function | Traversal (Invariant _, State (Position (p, k), Data _)) -> Some (k, p)
+
+let private (|Successors|_|) key (Compilation.Graph graph) =
+    match Graph.successors key graph with
+    | Some x -> Some x
+    | _ -> None
+
+(* Matching *)
+
+let private (|Match|_|) parser pathAndQuery =
+    match run parser pathAndQuery with
+    | Success (data, _, p) -> Some (data, pathAndQuery.Substring (int p.Index))
+    | _ -> None
+
+(* Filtering *)
+
+let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
+    match Graph.tryFindNode key graph with
+    | Some (_, Compilation.Endpoints endpoints) ->
+        endpoints
+        |> List.filter (
+           function | Compilation.Endpoint (_, All, _) -> true
+                    | Compilation.Endpoint (_, Methods ms, _) when List.exists ((=) meth) ms -> true
+                    | _ -> false)
+        |> function | [] -> None
+                    | endpoints -> Some endpoints
+    | _ -> None
+
+(* Traversal
+
+   Traversal of the compiled routing graph, finding all matches for the
+   path and method in the traversal state. The search is exhaustive, as a
+   search which only finds the first match may not find the match which has
+   the highest declared precendence.
+
+   The exhaustive approach also allows for potential secondary selection
+   strategies in addition to simple precedence selection in future. *)
+
+let private emptyM =
+    Freya.init []
+
+let private foldM f xs state =
+    List.foldBack (fun x (xs, state) ->
+        Async.RunSynchronously (f x state) ||> fun x state ->
+            (x :: xs, state)) xs ([], state)
+
+let private  mapM f xs =
+        foldM f xs <!> Freya.State.get
+    >>= fun (xs, state) ->
+                Freya.State.set state
+             *> Freya.init xs
+
+let rec private traverse graph traversal =
+    match traversal with
+    | Candidate (key, meth, data) ->
+        match graph with
+        | Endpoints key meth endpoints ->
+            Freya.init (
+                endpoints
+                |> List.map (fun (Compilation.Endpoint (precedence, _, pipe)) ->
+                    precedence, data, pipe))
+        | _ ->
+            emptyM
+    | Progression (key, pathAndQuery) ->
+        match graph with
+        | Successors (key) successors ->
+                List.concat
+            <!> mapM (fun (key', Compilation.Edge parser) ->
+                match pathAndQuery with
+                | Match parser (data', pathAndQuery') ->
+                    traversal
+                    |> Lens.map traversalData_ ((+) data')
+                    |> Lens.set traversalPathAndQuery_ pathAndQuery'
+                    |> Lens.set traversalKey_ key'
+                    |> traverse graph
+                | _ ->
+                    emptyM) successors
+        | _ -> emptyM
+    | _ -> emptyM
+
+(* Selection
+
+   Select the highest precedence data and pipeline pair from the given set of
+   candidates, using the supplied precedence value. *)
+
+let private select =
+    function | [] ->
+                Freya.init (
+                    Unmatched)
+             | endpoints ->
+                Freya.init (
+                    Matched (
+                        endpoints
+                        |> List.minBy (fun (precedence, _, _) -> precedence)
+                        |> fun (_, data, pipe) -> data, pipe))
+
+(* Search
+
+   Combine a list of all possible route matches and associated captured data,
+   produced by a traversal of the compiled routing graph, with a selection of
+   the matched route (data and pipeline pair) with the highest precedence,
+   as measured by the order in which the routes were declared in the compilation
+   phase. *)
+
+let private search graph =
+        traversal <!> !. requestMethod_ <*> !. requestPath_ <*> !. requestQuery_
+    >>= traverse graph
+    >>= select
+
+(* Execution
+
+   Run a search on the routing graph. In the case of a match, write
+   any captured data to the state to be interrogated later through
+   the routing lenses, and return the value of executing the matched
+   pipeline.
+
+   In the case of a non-match, fall through to whatever follows the
+   router instance. *)
+
+let execute graph =
+        search graph
+    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
+                 | Unmatched -> Freya.next

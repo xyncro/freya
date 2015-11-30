@@ -17,46 +17,65 @@
 // limitations under the License.
 //----------------------------------------------------------------------------
 
+/// Custom operators for composing <see cref="Freya{T}" /> computations.
 module Freya.Core.Operators
 
-(* Operators *)
+(* Compositional
 
-let inline returnM x =
-    returnM freya x
+   Operators for the composition of Freya<'T> functions in
+   various forms. *)
 
-let inline asyncM f =
-    (fun f -> 
-        fun env -> 
-            async { 
-                let! v = f
-                return v, env }) << f
+let inline (>>=) m f =
+    Freya.bind f m
 
-let inline (>>=) m1 m2 =
-    bindM freya m1 m2
-
-let inline (=<<) m1 m2 =
-    bindM freya m2 m1
+let inline (=<<) f m =
+    Freya.bind f m
 
 let inline (<*>) f m =
-    applyM freya freya f m
+    Freya.apply f m
 
 let inline (<!>) f m =
-    liftM freya f m
-
-let inline lift2 f m1 m2 =
-    returnM f <*> m1 <*> m2 
+    Freya.map f m
 
 let inline ( *>) m1 m2 =
-    lift2 (fun _ x -> x) m1 m2
+    Freya.map2 (fun _ x -> x) m1 m2
 
 let inline ( <*) m1 m2 =
-    lift2 (fun x _ -> x) m1 m2
+    Freya.map2 (fun x _ -> x) m1 m2
 
 let inline (>>.) m f =
-    bindM freya m (fun _ -> f)
+    Freya.bind (fun _ -> f) m
 
 let inline (>=>) m1 m2 =
     fun x -> m1 x >>= m2
 
 let inline (<=<) m1 m2 =
     fun x -> m2 x >>= m1
+
+(* Lens
+
+   Operators for lens based operations over the Freya<'T> state,
+   providing operator based alternatives to Freya.getLens, etc. *)
+
+let inline (!.) l =
+    Freya.Lens.get l
+
+let inline (!?.) l =
+    Freya.Lens.getPartial l
+
+let inline (.=) l v =
+    Freya.Lens.set l v
+
+let inline (.?=) l v =
+    Freya.Lens.setPartial l v
+
+let inline (%=) l f =
+    Freya.Lens.map l f
+
+let inline (%?=) l f =
+    Freya.Lens.mapPartial l f
+
+(* Pipeline *)
+
+let inline (>?=) p1 p2 = 
+    Freya.pipe p1 p2
