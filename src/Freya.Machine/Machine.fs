@@ -21,6 +21,7 @@
 [<AutoOpen>]
 module Freya.Machine.Machine
 
+open System
 open Freya.Core
 
 (* Type *)
@@ -33,3 +34,18 @@ type FreyaMachine =
 
     static member FreyaPipeline (FreyaMachine x) : FreyaPipeline =
         Reification.reify x
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module FreyaMachine =
+
+    [<Obsolete ("Explicit conversion to FreyaPipeline is no longer required in Freya.")>]
+    let toPipeline =
+        id
