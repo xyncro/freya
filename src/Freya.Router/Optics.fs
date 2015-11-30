@@ -21,6 +21,7 @@
 [<AutoOpen>]
 module Freya.Router.Optics
 
+open System
 open Aether
 open Aether.Operators
 open Arachne.Uri.Template
@@ -60,3 +61,30 @@ module Route =
     let keys_ key =
             value_ key
         >-> Option.mapEpimorphism UriTemplateValue.Keys_
+
+    (* Obsolete
+
+       Backwards compatibility shims to make the 2.x-> 3.x transition
+       less painful, providing functionally equivalent options where possible.
+
+       To be removed for 4.x releases. *)
+
+    [<Obsolete ("Use data_ instead.")>]
+    let Data_ =
+        data_
+
+    [<Obsolete ("Use value_ instead.")>]
+    let Value_ =
+        value_
+
+    [<Obsolete ("Use atom_ instead.")>]
+    let Atom_ =
+        atom_
+
+    [<Obsolete ("Use list_ instead.")>]
+    let List_ =
+        list_
+
+    [<Obsolete ("Use keys_ instead.")>]
+    let Keys_ =
+        keys_

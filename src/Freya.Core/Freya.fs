@@ -172,3 +172,100 @@ module Memo =
                     let! _, state = Optic.set memo_ (Some memo) state
 
                     return memo, state }
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+(* Memoization *)
+
+[<Obsolete ("Use Freya.Memo.wrap instead.")>]
+let memo m =
+    Memo.wrap m
+
+(* Pipeline *)
+
+[<Obsolete ("Use Freya.Pipeline.next instead.")>]
+let next =
+    Pipeline.next
+
+[<Obsolete ("Use Freya.Pipeline.next instead.")>]
+let halt =
+    Pipeline.halt
+
+[<Obsolete ("Use Freya.Pipeline.compose instead.")>]
+let inline pipe p1 p2 =
+    Pipeline.compose p1 p2
+
+(* Unqualified State *)
+
+[<Obsolete ("Use Freya.State.get instead.")>]
+let getState =
+    State.get
+
+[<Obsolete ("Use Freya.State.set instead.")>]
+let setState =
+    State.set
+
+[<Obsolete ("Use Freya.State.map instead.")>]
+let mapState =
+    State.map
+
+(* Unqualified Lens *)
+
+[<Obsolete ("Use Freya.Optic.get instead.")>]
+let inline getLens l =
+    Optic.get l
+
+[<Obsolete ("Use Freya.Optic.get instead.")>]
+let inline getLensPartial l =
+    Optic.get l
+
+[<Obsolete ("Use Freya.Optic.set instead.")>]
+let inline setLens l b =
+    Optic.set l b
+
+[<Obsolete ("Use Freya.Optic.set instead.")>]
+let inline setLensPartial l b =
+    Optic.set l b
+
+[<Obsolete ("Use Freya.Optic.map instead.")>]
+let inline mapLens l f =
+    Optic.map l f
+
+[<Obsolete ("Use Freya.Optic.map instead.")>]
+let inline mapLensPartial l f =
+    Optic.map l f
+
+(* Qualified Lens *)
+
+[<RequireQualifiedAccess>]
+[<Obsolete ("Use Freya.Optic module functions instead.")>]
+module Lens =
+
+    [<Obsolete ("Use Freya.Optic.get instead.")>]
+    let inline get l =
+        Optic.get l
+
+    [<Obsolete ("Use Freya.Optic.get instead.")>]
+    let inline getPartial l =
+        Optic.get l
+
+    [<Obsolete ("Use Freya.Optic.set instead.")>]
+    let inline set l b =
+        Optic.set l b
+
+    [<Obsolete ("Use Freya.Optic.set instead.")>]
+    let inline setPartial l b =
+        Optic.set l b
+
+    [<Obsolete ("Use Freya.Optic.map instead.")>]
+    let inline map l f =
+        Optic.map l f
+
+    [<Obsolete ("Use Freya.Optic.map instead.")>]
+    let inline mapPartial l f =
+        Optic.map l f

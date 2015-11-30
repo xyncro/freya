@@ -21,10 +21,21 @@
 [<AutoOpen>]
 module Freya.Lenses.Http.Cors.Lenses
 
+open System
 open Aether.Operators
 open Arachne.Http.Cors
 open Freya.Core
 open Freya.Lenses.Http
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+let private option_ =
+    id, fun x -> Some x
 
 (* Request Lenses *)
 
@@ -54,6 +65,28 @@ module Request =
             value_
                 "Origin"
                 (Origin.TryParse, Origin.Format)
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+//
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Request.Headers.accessControlRequestHeaders_ instead.")>]
+        let AccessControlRequestHeaders_ =
+                accessControlRequestHeaders_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.accessControlRequestMethod_ instead.")>]
+        let AccessControlRequestMethod_ =
+                accessControlRequestMethod_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.origin_ instead.")>]
+        let Origin_ =
+                origin_
+            >-> option_
 
 (* Response Lenses *)
 
@@ -98,3 +131,40 @@ module Response =
             value_
                 "Access-Control-Max-Age"
                 (AccessControlMaxAge.TryParse, AccessControlMaxAge.Format)
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+//
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Response.Headers.accessControlAllowCredentials_ instead.")>]
+        let AccessControlAllowCredentials_ =
+                accessControlAllowCredentials_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.accessControlAllowHeaders_ instead.")>]
+        let AccessControlAllowHeaders_ =
+                accessControlAllowHeaders_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.accessControlAllowMethods_ instead.")>]
+        let AccessControlAllowMethods_ =
+                accessControlAllowMethods_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.accessControlAllowOrigin_ instead.")>]
+        let AccessControlAllowOrigin_ =
+                accessControlAllowOrigin_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.accessControlExposeHeaders_ instead.")>]
+        let AccessControlExposeHeaders_ =
+                accessControlExposeHeaders_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.accessControlMaxAge_ instead.")>]
+        let AccessControlMaxAge_ =
+                accessControlMaxAge_
+            >-> option_
