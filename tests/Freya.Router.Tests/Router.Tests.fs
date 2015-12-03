@@ -23,7 +23,7 @@ let ``Router With No Routes Returns Next`` () =
 let ``Router With Base Route Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All (UriTemplate.Parse "/") route1 }
+            route All "/" route1 }
 
     value GET "/" emptyQuery routes =! Some 1
 
@@ -31,9 +31,9 @@ let ``Router With Base Route Executes Correctly`` () =
 let ``Router With Multiple Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route All (UriTemplate.Parse "/") route1
-            route All (UriTemplate.Parse "/some/path") route2
-            route All (UriTemplate.Parse "/other/path") route3 }
+            route All "/" route1
+            route All "/some/path" route2
+            route All "/other/path" route3 }
 
     value GET "/" emptyQuery routes =! Some 1
     value GET "/some/path" emptyQuery routes =! Some 2
@@ -44,9 +44,9 @@ let ``Router With Multiple Routes Executes Correctly`` () =
 let ``Router With Method Specific Routes Executes Correctly`` () =
     let routes =
         freyaRouter {
-            route Get (UriTemplate.Parse "/") route1
-            route Get (UriTemplate.Parse "/some/path") route2
-            route Post (UriTemplate.Parse "/some/path") route3 }
+            route GET "/" route1
+            route GET "/some/path" route2
+            route POST "/some/path" route3 }
 
     value GET "/" emptyQuery routes =! Some 1
     value POST "/" emptyQuery routes =! None
@@ -57,8 +57,8 @@ let ``Router With Method Specific Routes Executes Correctly`` () =
 let ``Router Executes Pipeline Registered First`` () =
     let routes =
         freyaRouter {
-            route Get (UriTemplate.Parse "/") route1
-            route All (UriTemplate.Parse "/") route2 }
+            route GET "/" route1
+            route All "/" route2 }
 
     value GET "/" emptyQuery routes =! Some 1
 
@@ -66,8 +66,8 @@ let ``Router Executes Pipeline Registered First`` () =
 let ``Router Executes First Full Match`` () =
     let routes =
         freyaRouter {
-            route All (UriTemplate.Parse "/{one}/a") route1
-            route All (UriTemplate.Parse "/{two}/b") route2
-            route All (UriTemplate.Parse "/{one}/b") route3 }
+            route All "/{one}/a" route1
+            route All "/{two}/b" route2
+            route All "/{one}/b" route3 }
 
     value GET "/some/b" emptyQuery routes =! Some 2

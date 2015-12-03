@@ -19,8 +19,9 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Router.Lenses
+module Freya.Router.Optics
 
+open System
 open Aether
 open Aether.Operators
 open Arachne.Uri.Template
@@ -40,22 +41,50 @@ let [<Literal>] private dataKey =
 [<RequireQualifiedAccess>]
 module Route =
 
+    let data_ =
+            Environment.value_ dataKey
+        >-> Option.unsafe_
+
+    let value_ key =
+            data_ 
+        >-> UriTemplateData.UriTemplateData_
+        >-> Map.value_ (Key key)
+
+    let atom_ key =
+            value_ key
+        >-> Option.mapEpimorphism UriTemplateValue.Atom_
+
+    let list_ key =
+            value_ key
+        >-> Option.mapEpimorphism UriTemplateValue.List_
+
+    let keys_ key =
+            value_ key
+        >-> Option.mapEpimorphism UriTemplateValue.Keys_
+
+    (* Obsolete
+
+       Backwards compatibility shims to make the 2.x-> 3.x transition
+       less painful, providing functionally equivalent options where possible.
+
+       To be removed for 4.x releases. *)
+
+    [<Obsolete ("Use data_ instead.")>]
     let Data_ =
-            Environment.Optional_ dataKey 
+        data_
 
-    let Value_ key =
-            Data_ 
-       <?-> UriTemplateData.UriTemplateData_
-       >??> key_ (Key key)
+    [<Obsolete ("Use value_ instead.")>]
+    let Value_ =
+        value_
 
-    let Atom_ key =
-            Value_ key
-       <??> UriTemplateValue.Atom_
+    [<Obsolete ("Use atom_ instead.")>]
+    let Atom_ =
+        atom_
 
-    let List_ key =
-            Value_ key
-       <??> UriTemplateValue.List_
+    [<Obsolete ("Use list_ instead.")>]
+    let List_ =
+        list_
 
-    let Keys_ key =
-            Value_ key
-       <??> UriTemplateValue.Keys_
+    [<Obsolete ("Use keys_ instead.")>]
+    let Keys_ =
+        keys_

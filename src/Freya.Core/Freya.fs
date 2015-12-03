@@ -15,11 +15,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 //----------------------------------------------------------------------------
 
 /// Core combinator definitions for <see cref="Freya{T}" /> computations.
 [<RequireQualifiedAccess>]
-[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module Freya.Core.Freya
 
 open System
@@ -32,17 +32,17 @@ open Aether
 
 /// Wraps a value x in a <see cref="Freya{T}" /> computation.
 let inline init x : Freya<'T> = 
-    fun env -> 
-        async.Return (x, env)
+    fun state -> 
+        async.Return (x, state)
 
 /// Applies a function of a value to an <see cref="Async{T}" /> result
 /// into a <see cref="Freya{T}" /> computation.
 let inline fromAsync f =
     (fun f -> 
-        fun env -> 
+        fun state -> 
             async { 
                 let! v = f
-                return v, env }) << f
+                return v, state }) << f
 
 /// Binds a <see cref="Freya{T}" /> computation with a function that
 /// takes the value from the <see cref="Freya{T}" /> computation and
@@ -70,9 +70,22 @@ let inline map f m : Freya<'T> =
 let inline map2 f m1 m2 =
     apply (apply (init f) m1) m2
 
-(* State
+(* Typeclass *)
 
-   Functions for working with the state within a Freya<'T> function. *)
+type Defaults =
+    | Defaults
+
+    static member Freya (x: Freya<_>) =
+        x
+
+    static member Freya (_: unit) =
+        fun state -> async { return (), state }
+
+let inline defaults (a: ^a, _: ^b) =
+        ((^a or ^b) : (static member Freya: ^a -> Freya<_>) a)
+
+let inline infer (x: 'a) =
+    defaults (x, Defaults)
 
 [<RequireQualifiedAccess>]
 module State =
@@ -89,8 +102,105 @@ module State =
     let map f =
         fun state -> async { return (), f state }
 
-(* Deprecated state functionality, to be removed in a future
-   release. *)
+(* Optic *)
+
+[<RequireQualifiedAccess>]
+module Optic =
+
+    let inline get o =
+        map (Optic.get o) State.get
+
+    let inline set o v =
+        State.map (Optic.set o v)
+
+    let inline map o f =
+        State.map (Optic.map o f)
+
+[<RequireQualifiedAccess>]
+module Pipeline =
+
+    let next : FreyaPipeline =
+        init Next
+
+    let halt : FreyaPipeline =
+        init Halt
+
+    type Defaults =
+        | Defaults
+
+        static member FreyaPipeline (x: FreyaPipeline) =
+            x
+
+        static member FreyaPipeline (x: FreyaPipelineChoice) : FreyaPipeline =
+            init x
+
+        static member FreyaPipeline (x: Freya<_>) : FreyaPipeline =
+            map2 (fun _ x -> x) x (init Next)
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member FreyaPipeline: ^a -> FreyaPipeline) a)
+
+    let inline infer (x: 'a) =
+        defaults (x, Defaults)
+
+    let inline compose p1 p2 : FreyaPipeline =
+        bind (function | Next -> (infer p2) | _ -> halt) (infer p1)
+
+(* Memo
+
+    Functions for memoizing the result of a Freya<'T> function, storing
+    the computed result within the FreyaMetaState instance of the
+    Freya<'T> state, allowing for computations to be reliably executed
+    only once per state (commonly once per request in the usual Freya
+    usage model). *)
+
+[<RequireQualifiedAccess>]
+module Memo =
+
+    let wrap<'a> (m: Freya<'a>) : Freya<'a> =
+        let memo_ = Memo.id_<'a> (Guid.NewGuid ())
+
+        fun state ->
+            async {
+                let! memo, state = Optic.get memo_ state
+
+                match memo with
+                | Some memo ->
+                    return memo, state
+                | _ ->
+                    let! memo, state = m state
+                    let! _, state = Optic.set memo_ (Some memo) state
+
+                    return memo, state }
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+(* Memoization *)
+
+[<Obsolete ("Use Freya.Memo.wrap instead.")>]
+let memo m =
+    Memo.wrap m
+
+(* Pipeline *)
+
+[<Obsolete ("Use Freya.Pipeline.next instead.")>]
+let next =
+    Pipeline.next
+
+[<Obsolete ("Use Freya.Pipeline.next instead.")>]
+let halt =
+    Pipeline.halt
+
+[<Obsolete ("Use Freya.Pipeline.compose instead.")>]
+let inline pipe p1 p2 =
+    Pipeline.compose p1 p2
+
+(* Unqualified State *)
 
 [<Obsolete ("Use Freya.State.get instead.")>]
 let getState =
@@ -104,96 +214,58 @@ let setState =
 let mapState =
     State.map
 
-(* Lens
+(* Unqualified Lens *)
 
-   Functions for working with the state within a Freya<'T> function, using
-   Aether based lenses. *)
+[<Obsolete ("Use Freya.Optic.get instead.")>]
+let inline getLens l =
+    Optic.get l
+
+[<Obsolete ("Use Freya.Optic.get instead.")>]
+let inline getLensPartial l =
+    Optic.get l
+
+[<Obsolete ("Use Freya.Optic.set instead.")>]
+let inline setLens l b =
+    Optic.set l b
+
+[<Obsolete ("Use Freya.Optic.set instead.")>]
+let inline setLensPartial l b =
+    Optic.set l b
+
+[<Obsolete ("Use Freya.Optic.map instead.")>]
+let inline mapLens l f =
+    Optic.map l f
+
+[<Obsolete ("Use Freya.Optic.map instead.")>]
+let inline mapLensPartial l f =
+    Optic.map l f
+
+(* Qualified Lens *)
 
 [<RequireQualifiedAccess>]
+[<Obsolete ("Use Freya.Optic module functions instead.")>]
 module Lens =
 
-    /// Gets part of the Core State within a Core monad using an Aether lens
-    let get l = 
-        map (Lens.get l) State.get
+    [<Obsolete ("Use Freya.Optic.get instead.")>]
+    let inline get l =
+        Optic.get l
 
-    /// Gets part of the Core State within a Core monad using a partial Aether lens
-    let getPartial l = 
-        map (Lens.getPartial l) State.get
+    [<Obsolete ("Use Freya.Optic.get instead.")>]
+    let inline getPartial l =
+        Optic.get l
 
-    /// Sets part of the Core State within a Core monad using an Aether lens
-    let set l v =
-        State.map (Lens.set l v)
+    [<Obsolete ("Use Freya.Optic.set instead.")>]
+    let inline set l b =
+        Optic.set l b
 
-    /// Sets part of the Core State within a Core monad using a partial Aether lens
-    let setPartial l v = 
-        State.map (Lens.setPartial l v)
+    [<Obsolete ("Use Freya.Optic.set instead.")>]
+    let inline setPartial l b =
+        Optic.set l b
 
-    /// Modifies part of the Core State within a Core monad using an Aether lens
-    let map l f = 
-        State.map (Lens.map l f)
+    [<Obsolete ("Use Freya.Optic.map instead.")>]
+    let inline map l f =
+        Optic.map l f
 
-    /// Modifies part of the Core State within a Core monad using a partial Aether lens
-    let mapPartial l f = 
-        State.map (Lens.mapPartial l f)
-
-(* Deprecated lens functionality, to be removed in a future
-   release. *)
-
-[<Obsolete ("Use Freya.Lens.get instead.")>]
-let getLens =
-    Lens.get
-
-[<Obsolete ("Use Freya.Lens.getPartial instead.")>]
-let getLensPartial =
-    Lens.getPartial
-
-[<Obsolete ("Use Freya.Lens.set instead.")>]
-let setLens =
-    Lens.set
-
-[<Obsolete ("Use Freya.Lens.setPartial instead.")>]
-let setLensPartial =
-    Lens.setPartial
-
-[<Obsolete ("Use Freya.Lens.map instead.")>]
-let mapLens =
-    Lens.map
-
-[<Obsolete ("Use Freya.Lens.mapPartial instead.")>]
-let mapLensPartial =
-    Lens.mapPartial
-
-(* Memo
-
-   Functions for memoizing the result of a Freya<'T> function, storing
-   the computed result within the FreyaMetaState instance of the
-   Freya<'T> state, allowing for computations to be reliably executed
-   only once per state (commonly once per request in the usual Freya
-   usage model). *)
-
-let memo<'a> (m: Freya<'a>) : Freya<'a> =
-    let memo_ = Memo.Id_<'a> (Guid.NewGuid ())
-
-    fun state ->
-        async {
-            let! memo, state = Lens.getPartial memo_ state
-
-            match memo with
-            | Some memo ->
-                return memo, state
-            | _ ->
-                let! memo, state = m state
-                let! _, state = Lens.setPartial memo_ memo state
-
-                return memo, state }
-
-(* Pipeline *)
-
-let next : FreyaPipeline =
-    init Next
-
-let halt : FreyaPipeline =
-    init Halt
-
-let pipe (p1: FreyaPipeline) (p2: FreyaPipeline) : FreyaPipeline =
-    bind (function | Next -> p2 | _ -> halt) p1
+    [<Obsolete ("Use Freya.Optic.map instead.")>]
+    let inline mapPartial l f =
+        Optic.map l f

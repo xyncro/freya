@@ -41,7 +41,7 @@ type CompilationGraph =
     static member Graph_ =
         (fun (Graph x) -> x), (fun x -> Graph x)
 
-and MetadataGraph =
+ and MetadataGraph =
     | Metadata of Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
 
 type CompilationResult =
@@ -51,8 +51,7 @@ type CompilationResult =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        id_
-   <--> Precompilation.PrecompilationGraph.Graph_
+    Lens.ofIsomorphism Precompilation.PrecompilationGraph.Graph_
 
 (* Compilation
 

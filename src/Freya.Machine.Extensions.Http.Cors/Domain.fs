@@ -80,27 +80,27 @@ module Cors =
         <*> corsMethodsSupported
 
     let private accessControlAllowMethods corsMethodsAllowed =
-            AccessControlAllowMethods <!> corsMethodsAllowed
-        >>= Freya.Lens.setPartial Response.Headers.AccessControlAllowMethods_
+            (AccessControlAllowMethods >> Some) <!> corsMethodsAllowed
+        >>= Freya.Optic.set Response.Headers.accessControlAllowMethods_
 
     let private accessControlExposeHeaders corsHeadersExposed =
-            AccessControlExposeHeaders <!> corsHeadersExposed
-        >>= Freya.Lens.setPartial Response.Headers.AccessControlExposeHeaders_
+            (AccessControlExposeHeaders >> Some) <!> corsHeadersExposed
+        >>= Freya.Optic.set Response.Headers.accessControlExposeHeaders_
 
     let private accessControlAllowHeaders corsHeadersAllowed =
-            AccessControlAllowHeaders <!> corsHeadersAllowed
-        >>= Freya.Lens.setPartial Response.Headers.AccessControlAllowHeaders_
+            (AccessControlAllowHeaders >> Some) <!> corsHeadersAllowed
+        >>= Freya.Optic.set Response.Headers.accessControlAllowHeaders_
 
     let private accessControlAllowOrigin origin =
-            (Origins >> AccessControlAllowOrigin) <!> origin
-        >>= Freya.Lens.setPartial Response.Headers.AccessControlAllowOrigin_ 
+            (Origins >> AccessControlAllowOrigin >> Some) <!> origin
+        >>= Freya.Optic.set Response.Headers.accessControlAllowOrigin_ 
 
     let actual =
         accessControlExposeHeaders
 
     let origin =
-        accessControlAllowOrigin
+            accessControlAllowOrigin
 
     let preflight corsHeadersAllowed corsMethodsAllowed =
             accessControlAllowMethods corsMethodsAllowed
-            *> accessControlAllowHeaders corsHeadersAllowed
+         *> accessControlAllowHeaders corsHeadersAllowed

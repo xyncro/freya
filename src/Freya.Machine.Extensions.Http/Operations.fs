@@ -27,43 +27,42 @@ open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
-open Freya.Machine.Operators
 
 (* Helpers *)
 
 let private allow =
-       Configuration.tryGet Properties.MethodsSupported
-    >> Option.map (fun x -> (.?=) Response.Headers.Allow_ =<< (Allow <!> x))
-    >> Option.orElse ((.?=) Response.Headers.Allow_ =<< (Allow <!> Defaults.methodsSupported))
+       Configuration.get Properties.MethodsSupported
+    >> Option.map (fun x -> (.=) Response.Headers.allow_ =<< ((Allow >> Some) <!> x))
+    >> Option.orElse ((.=) Response.Headers.allow_ =<< ((Allow >> Some) <!> Defaults.methodsSupported))
 
 let private date =
-    (.?=) Response.Headers.Date_ (Date.Date DateTime.UtcNow)
+    (.=) Response.Headers.date_ (Some (Date.Date DateTime.UtcNow))
 
 let private eTag =
-       Configuration.tryGet Properties.ETag
-    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
+       Configuration.get Properties.ETag
+    >> Option.map (fun x -> (ETag >> Some) <!> x >>= (.=) Response.Headers.eTag_)
     >> Option.orElse (Freya.init ())
 
 let private expires =
-       Configuration.tryGet Properties.Expires 
-    >> Option.map (fun x -> (.?=) Response.Headers.Expires_ =<< (Expires <!> x))
+       Configuration.get Properties.Expires 
+    >> Option.map (fun x -> (Expires >> Some) <!> x >>= (.=) Response.Headers.expires_)
     >> Option.orElse (Freya.init ())
 
 let private lastModified =
-       Configuration.tryGet Properties.LastModified 
-    >> Option.map (fun x -> (.?=) Response.Headers.LastModified_ =<< (LastModified <!> x))
+       Configuration.get Properties.LastModified 
+    >> Option.map (fun x -> (LastModified >> Some) <!> x >>= (.=) Response.Headers.lastModified_)
     >> Option.orElse (Freya.init ())
 
 let private location =
-       Configuration.tryGet Properties.Location
-    >> Option.map (fun x -> (.?=) Response.Headers.Location_ =<< (Location <!> x))
+       Configuration.get Properties.Location
+    >> Option.map (fun x -> (Location >> Some) <!> x >>= (.=) Response.Headers.location_)
     >> Option.orElse (Freya.init ())
 
 let private phrase =
-    (.?=) Response.ReasonPhrase_
+    Some >> (.=) Response.reasonPhrase_
 
 let private status =
-    (.?=) Response.StatusCode_
+    Some >> (.=) Response.statusCode_
 
 (* Operations *)
 
@@ -216,6 +215,8 @@ let private uriTooLong _ =
      *> date
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Operations.Accepted                    =.        systemOperation accepted

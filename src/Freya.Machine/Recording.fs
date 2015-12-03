@@ -22,6 +22,7 @@
 module internal Freya.Machine.Recording
 
 open Aether.Operators
+open Freya.Core
 open Freya.Recorder
 open Hekate
 
@@ -46,30 +47,30 @@ type FreyaMachineRecord =
 
 (* Graph *)
 
-and FreyaMachineGraphRecord =
+ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-and FreyaMachineGraphNodeRecord =
+ and FreyaMachineGraphNodeRecord =
     { Id: string
       Type: string
       Configurable: bool
       Configured: bool }
 
-and FreyaMachineGraphEdgeRecord =
+ and FreyaMachineGraphEdgeRecord =
     { From: string
       To: string
       Value: bool option }
 
 (* Execution *)
 
-and FreyaMachineExecutionRecord =
+ and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
     static member Nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-and FreyaMachineExecutionNodeRecord =
+ and FreyaMachineExecutionNodeRecord =
     { Id: FreyaMachineNode }
 
 (* Construction *)
@@ -121,18 +122,18 @@ module Record =
     (* Lenses *)
 
     let private graph_ =
-            Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Graph_
+            Record.record_ "machine" 
+        >-> Option.mapLens FreyaMachineRecord.Graph_
 
     let private execution_ =
-            Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Execution_
-       >?-> FreyaMachineExecutionRecord.Nodes_
+            Record.record_ "machine" 
+        >-> Option.mapLens FreyaMachineRecord.Execution_
+        >?> FreyaMachineExecutionRecord.Nodes_
 
     (* Functions *)
 
     let definition record =
-        FreyaRecorder.Current.map (record ^?= graph_)
+        FreyaRecorder.Current.map (record ^= graph_)
 
     let execution node =
-        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^?%= execution_)
+        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^% execution_)

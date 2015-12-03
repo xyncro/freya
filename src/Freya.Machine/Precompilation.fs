@@ -59,8 +59,7 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        id_
-   <--> PrecompilationGraph.Graph_
+    Lens.ofIsomorphism PrecompilationGraph.Graph_
 
 (* Ordering
 
@@ -128,7 +127,7 @@ let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
 let private extend extensions graph =
-    Extension ((applyExtensions extensions ^%= precompilationGraph_) graph)
+    Extension ((applyExtensions extensions ^% precompilationGraph_) graph)
 
 (* Precompile
 

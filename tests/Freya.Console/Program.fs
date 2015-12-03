@@ -1,6 +1,7 @@
 open System.Text
 open Arachne.Http
 open Arachne.Language
+﻿open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
@@ -24,14 +25,19 @@ let inline represent (x : string) =
 let ok _ =
         Freya.Lens.setPartial Response.ReasonPhrase_ "Hey, folks!"
      *> Freya.init (represent "Hey, folks!")
+open Freya.Machine.Router
+open Freya.Router
+open Microsoft.Owin.Hosting
 
-let resource =
+let ok =
+        Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
+     *> Freya.init Representation.empty
+
+let home =
     freyaMachine {
         using http
-        methodsSupported (Freya.init [ GET ])
-        handleOk ok } |> FreyaMachine.toPipeline
-
-// App
+        methodsSupported GET
+        handleOk ok }
 
 let config =
     { defaultConfig with
@@ -39,6 +45,13 @@ let config =
         logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
 let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya resource)
+let routes =
+    freyaRouter {
+        resource "/" home }
+
+type App () =
+    member __.Configuration () =
+        OwinAppFunc.ofFreya routes
 
 // Main
 

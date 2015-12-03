@@ -188,10 +188,6 @@ module Operations =
 module Properties =
 
     let [<Literal>] CharsetsSupported = "charsetsSupported"
-    let [<Literal>] CorsHeadersExposed = "corsHeadersExposed"
-    let [<Literal>] CorsHeadersSupported = "corsHeadersSupported"
-    let [<Literal>] CorsMethodsSupported = "corsMethodsSupported"
-    let [<Literal>] CorsOriginsSupported = "corsOriginsSupported"
     let [<Literal>] EncodingsSupported = "encodingsSupported"
     let [<Literal>] ETag = "etag"
     let [<Literal>] Expires = "expires"

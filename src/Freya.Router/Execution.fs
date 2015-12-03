@@ -56,10 +56,10 @@ type private Traversal =
     static member State_ =
         (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
-and private TraversalInvariant =
+ and private TraversalInvariant =
     | Invariant of Method
 
-and private TraversalState =
+ and private TraversalState =
     | State of TraversalPosition * TraversalData
 
     static member Position_ =
@@ -68,7 +68,7 @@ and private TraversalState =
     static member Data_ =
         (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
-and private TraversalPosition =
+ and private TraversalPosition =
     | Position of string * Compilation.CompilationKey
 
     static member PathAndQuery_ =
@@ -77,7 +77,7 @@ and private TraversalPosition =
     static member Key_ =
         (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
 
-and private TraversalData =
+ and private TraversalData =
     | Data of UriTemplateData
 
     static member Data_ =
@@ -111,30 +111,18 @@ let private traversal meth path query =
 
 let private traversalData_ =
         Traversal.State_
-   >--> TraversalState.Data_
-   >--> TraversalData.Data_
+    >-> TraversalState.Data_
+    >-> TraversalData.Data_
 
 let private traversalKey_ =
         Traversal.State_
-   >--> TraversalState.Position_
-   >--> TraversalPosition.Key_
+    >-> TraversalState.Position_
+    >-> TraversalPosition.Key_
 
 let private traversalPathAndQuery_ =
         Traversal.State_
-   >--> TraversalState.Position_
-   >--> TraversalPosition.PathAndQuery_
-
-(* Request *)
-
-let private requestMethod_ =
-        Request.Method_
-
-let private requestPath_ =
-        Request.Path_
-
-let private requestQuery_ =
-        Request.Query_
-   <--> Query.Query_
+    >-> TraversalState.Position_
+    >-> TraversalPosition.PathAndQuery_
 
 (* Patterns
 
@@ -226,9 +214,9 @@ let rec private traverse graph traversal =
                 match pathAndQuery with
                 | Match parser (data', pathAndQuery') ->
                     traversal
-                    |> Lens.map traversalData_ ((+) data')
-                    |> Lens.set traversalPathAndQuery_ pathAndQuery'
-                    |> Lens.set traversalKey_ key'
+                    |> Optic.map traversalData_ ((+) data')
+                    |> Optic.set traversalPathAndQuery_ pathAndQuery'
+                    |> Optic.set traversalKey_ key'
                     |> traverse graph
                 | _ ->
                     emptyM) successors
@@ -260,7 +248,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> !. requestMethod_ <*> !. requestPath_ <*> !. requestQuery_
+        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.Query_)
     >>= traverse graph
     >>= select
 
@@ -276,5 +264,5 @@ let private search graph =
 
 let execute graph =
         search graph
-    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
-                 | Unmatched -> Freya.next
+    >>= function | Matched (data, pipe) -> (Route.data_ .= data) *> pipe
+                 | Unmatched -> Freya.Pipeline.next

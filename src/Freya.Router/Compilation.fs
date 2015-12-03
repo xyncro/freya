@@ -39,18 +39,18 @@ type CompilationGraph =
     static member Graph_ =
         (fun (Graph g) -> g), (fun g -> Graph g)
 
-and CompilationKey =
+ and CompilationKey =
     | Root
     | Key of string
 
-and CompilationNode =
+ and CompilationNode =
     | Empty
     | Endpoints of CompilationEndpoint list
 
-and CompilationEndpoint =
+ and CompilationEndpoint =
     | Endpoint of int * FreyaRouteMethod * FreyaPipeline
 
-and CompilationEdge =
+ and CompilationEdge =
     | Edge of Parser<UriTemplateData, unit>
 
 (* Defaults
@@ -64,8 +64,7 @@ let private defaultCompilationGraph =
 (* Lenses *)
 
 let private compilationGraph_ =
-        id_
-   <--> CompilationGraph.Graph_
+    Lens.ofIsomorphism CompilationGraph.Graph_
 
 (* Patterns
 
@@ -135,7 +134,7 @@ let rec private addRoute current graph (precedence, route) =
             ((fun graph ->
                 (match Graph.containsNode last graph with
                  | false -> addNode last >> updateNode last precedence meth pipe >> addEdge current last part
-                 | _ -> updateNode last precedence meth pipe) graph) ^%= compilationGraph_) graph
+                 | _ -> updateNode last precedence meth pipe) graph) ^% compilationGraph_) graph
 
         graph
     | Next (part, route) ->
@@ -146,7 +145,7 @@ let rec private addRoute current graph (precedence, route) =
             ((fun graph ->
                 (match Graph.containsNode next graph with
                  | false -> addNode next >> addEdge current next part
-                 | _ -> id) graph) ^%= compilationGraph_) graph
+                 | _ -> id) graph) ^% compilationGraph_) graph
 
         addRoute next graph (precedence, route)
     | _ ->

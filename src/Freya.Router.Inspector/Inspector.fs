@@ -36,7 +36,7 @@ let private key =
 (* Lenses *)
 
 let private record_ =
-    Record.Record_ key
+    Record.record_ key
 
 (* Runtime *)
 
@@ -48,7 +48,7 @@ let private record =
         { Nodes = List.empty } }
 
 let private initialize =
-    FreyaRecorder.Current.map (record ^?= record_)
+    FreyaRecorder.Current.map (Some record ^= record_)
 
 let private runtime =
     { Initialize = initialize }
@@ -56,7 +56,7 @@ let private runtime =
 (* Inspection *)
 
 let private extract =
-    flip (^?.) record_ >> Option.map (FreyaRouterInspection.OfRecord >> Json.serialize)
+    flip (^.) record_ >> Option.map (FreyaRouterInspection.OfRecord >> Json.serialize)
 
 let private inspection =
     { Extract = extract }

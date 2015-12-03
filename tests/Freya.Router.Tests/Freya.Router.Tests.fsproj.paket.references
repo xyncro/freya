@@ -1,5 +1,8 @@
 Aether
-NUnit
-Unquote
 Arachne.Http
 Arachne.Uri.Template
+
+group Test
+
+  NUnit
+  Unquote

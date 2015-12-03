@@ -18,10 +18,34 @@
 //
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Machine.FreyaMachine
+[<AutoOpen>]
+module Freya.Machine.Machine
 
+open System
 open Freya.Core
 
-let toPipeline : FreyaMachine -> FreyaPipeline =
-    Reification.reify
+(* Type *)
+
+type FreyaMachine =
+    | FreyaMachine of (FreyaMachineSpecification -> unit * FreyaMachineSpecification)
+
+    static member Freya (FreyaMachine x) : Freya<_> =
+        Reification.reify x
+
+    static member FreyaPipeline (FreyaMachine x) : FreyaPipeline =
+        Reification.reify x
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module FreyaMachine =
+
+    [<Obsolete ("Explicit conversion to FreyaPipeline is no longer required in Freya.")>]
+    let toPipeline =
+        id

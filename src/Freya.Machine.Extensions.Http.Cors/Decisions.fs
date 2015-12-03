@@ -29,7 +29,6 @@ open Freya.Lenses.Http
 open Freya.Lenses.Http.Cors
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Machine.Operators
 
 (* Decisions *)
 
@@ -39,22 +38,24 @@ let private systemDecision f =
 
 let private corsEnabled config =
     Cors.enabled
-        (Configuration.tryGet Properties.CorsOriginsSupported config)
+        (Configuration.get Properties.CorsOriginsSupported config)
 
 let private corsOriginAllowed config =
     Cors.originAllowed
-        (!?. Request.Headers.Origin_)
-        (Configuration.tryGetOrElse Properties.CorsOriginsSupported Defaults.corsOriginsSupported config)
+        (!. Request.Headers.origin_)
+        ((Configuration.get Properties.CorsOriginsSupported >> Option.orElse Defaults.corsOriginsSupported) config)
 
 let private corsOptions _ =
     Cors.options
-        (!. Request.Method_)
+        (!. Request.method_)
 
 let private corsPreflight _ =
     Cors.isPreflight
-        (!?. Request.Headers.AccessControlRequestMethod_)
+        (!. Request.Headers.accessControlRequestMethod_)
 
 (* Graph *)
+
+open Freya.Machine.Operators
 
 let operations =
     [ Operation Decisions.CorsEnabled                  =.        systemDecision corsEnabled

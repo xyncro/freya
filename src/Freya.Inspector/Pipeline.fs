@@ -30,7 +30,7 @@ open Arachne.Http
 
 let private initialize =
         FreyaRecorder.Current.initialize
-     *> Freya.next
+     *> Freya.Pipeline.next
 
 let private record config =
     freya {

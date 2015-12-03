@@ -19,30 +19,24 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Machine.Builder
+module Freya.Core.Optics
 
-(* Builder
+open Aether
+open Aether.Operators
 
-   The Computation Expression builder to give Machine the declarative
-   computation expression syntax for specifying Machine Definitions.
-   Specific strongly typed custom operations are defined in
-   Machine.Syntax.fs. *)
+[<RequireQualifiedAccess>]
+module Environment =
 
-type FreyaMachineBuilder () =
+    let value_<'a> k =
+            FreyaState.Environment_
+        >-> Dict.value_<string, obj> k
+        >-> Option.mapIsomorphism box_<'a>
 
-    member __.Return _ : FreyaMachine =
-        fun spec -> (), spec
+[<RequireQualifiedAccess>]
+module Memo =
 
-    member __.ReturnFrom m : FreyaMachine = 
-        m
-
-    member __.Bind (m, k) : FreyaMachine = 
-        m >> fun (result, definition) -> (k result) definition
-
-    member x.Combine (m1, m2) : FreyaMachine = 
-        x.Bind (m1, fun () -> m2)
-
-    member x.Map (m, f) =
-        x.Bind ((fun spec -> (), f spec), (fun _ -> x.ReturnFrom m))
-
-let freyaMachine = FreyaMachineBuilder ()
+    let id_<'a> i =
+            FreyaState.Meta_
+        >-> FreyaMetaState.Memos_
+        >-> Map.value_ i
+        >-> Option.mapIsomorphism box_<'a>

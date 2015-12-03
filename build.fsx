@@ -1,4 +1,4 @@
-#I "packages/FAKE/tools"
+#I "packages/build/FAKE/tools"
 #r "FakeLib.dll"
 
 open System
@@ -255,7 +255,7 @@ let projectFile (x: SourceProject) =
 
 #if MONO
 #else
-#load "packages/SourceLink.Fake/tools/SourceLink.fsx"
+#load "packages/build/SourceLink.Fake/tools/SourceLink.fsx"
 
 open SourceLink
 

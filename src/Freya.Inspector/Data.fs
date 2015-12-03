@@ -22,6 +22,8 @@
 module internal Freya.Inspector.Data
 
 open System
+open Arachne.Http
+open Arachne.Uri.Template
 open Chiron
 open Freya.Core
 open Freya.Core.Operators
@@ -30,15 +32,14 @@ open Freya.Machine.Extensions.Http
 open Freya.Machine.Router
 open Freya.Recorder
 open Freya.Router
-open Arachne.Uri.Template
 
 (* Route *)
 
 let private id =
-    Freya.memo ((Option.get >> Guid.Parse) <!> (!?.) (Route.Atom_ "id"))
+    Freya.Memo.wrap ((Option.get >> Guid.Parse) <!> (!.) (Route.atom_ "id"))
 
 let private extension =
-    Freya.memo (Option.get <!> (!?.) (Route.Atom_ "ext"))
+    Freya.Memo.wrap (Option.get <!> (!.) (Route.atom_ "ext"))
 
 (* Data *)
 
@@ -85,21 +86,21 @@ let private records =
     freyaMachine {
         including defaults
         handleOk recordsGet
-        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
+        mediaTypesSupported MediaType.Json }
 
 let private record =
     freyaMachine {
         including defaults
         exists recordExists
         handleOk recordGet
-        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
+        mediaTypesSupported MediaType.Json }
 
 let private inspection inspectors =
     freyaMachine {
         including defaults
         exists (inspectionExists inspectors)
         handleOk (inspectionGet inspectors)
-        mediaTypesSupported Prelude.json } |> FreyaMachine.toPipeline
+        mediaTypesSupported MediaType.Json }
 
 (* Routes
 
@@ -107,7 +108,7 @@ let private inspection inspectors =
    path namespacing approach in the near future. *)
 
 let private root =
-    UriTemplate.Parse "/freya/inspector/api/records"
+    "/freya/inspector/api/records"
 
 let data config =
     let inspectors =
@@ -118,5 +119,5 @@ let data config =
 
     freyaRouter {
         resource (root) records
-        resource (root + UriTemplate.Parse "/{id}") record
-        resource (root + UriTemplate.Parse "/{id}/extensions/{ext}") inspectors } |> FreyaRouter.toPipeline
+        resource (root + "/{id}") record
+        resource (root + "/{id}/extensions/{ext}") inspectors }

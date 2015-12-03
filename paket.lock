@@ -1,8 +1,8 @@
-FRAMEWORK: NET45
+FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:
-    Aether (7.0.1)
+    Aether (8.0.0-rc2)
     Arachne.Core (2.3.25)
       FParsec (>= 1.0.2)
     Arachne.Http (2.3.25)
@@ -25,14 +25,29 @@ NUGET
       Arachne.Core (>= 2.3.25)
       Arachne.Uri (>= 2.3.25)
       FParsec (>= 1.0.2)
-    Chiron (5.2.1)
-      Aether (>= 7.0.1)
-      FParsec (>= 1.0.2)
-    FAKE (4.7.1)
+    Chiron (6.0.0-rc2)
+      Aether (8.0.0-rc2)
+      FParsec
     FParsec (1.0.2)
     FSharp.Core (4.0.0.1)
     Hekate (1.0.1)
       Aether (>= 7.0.1)
+    Hekate (2.0.0-rc2)
+      Aether (8.0.0-rc2)
+
+GROUP Build
+FRAMEWORK: >= NET45
+NUGET
+  remote: https://nuget.org/api/v2
+  specs:
+    FAKE (4.9.1)
+    SourceLink.Fake (1.1.0)
+
+GROUP Test
+FRAMEWORK: >= NET45
+NUGET
+  remote: https://nuget.org/api/v2
+  specs:
     Microsoft.Owin (3.0.1)
       Owin (>= 1.0)
     Microsoft.Owin.Hosting (3.0.1)
@@ -41,11 +56,11 @@ NUGET
     Microsoft.Owin.Testing (3.0.1)
       Microsoft.Owin.Hosting (>= 3.0.1)
       Owin (>= 1.0)
-    NuGet.CommandLine (2.8.6)
     NUnit (2.6.4)
     NUnit.Runners (2.6.4)
     Owin (1.0)
     SourceLink.Fake (1.1.0)
     Suave (0.33.0)
       FSharp.Core (>= 3.1.2.5)
+    Owin (1.0.0)
     Unquote (3.1.0)
