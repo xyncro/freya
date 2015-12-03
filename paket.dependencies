@@ -6,14 +6,6 @@ nuget Arachne.Uri.Template
 nuget Aether
 nuget Chiron
 nuget Hekate
-nuget Microsoft.Owin.Testing
-nuget NUnit
-nuget NUnit.Runners
-nuget Suave
-nuget Unquote
-nuget FAKE
-nuget SourceLink.Fake
-nuget Nuget.CommandLine
 nuget Aether 8.0.0-rc2
 nuget Chiron 6.0.0-rc2
 nuget Hekate 2.0.0-rc2
@@ -25,6 +17,7 @@ group Build
 
   nuget FAKE
   nuget SourceLink.Fake
+  nuget Nuget.CommandLine
 
 group Test
 
@@ -35,4 +28,5 @@ group Test
   nuget Microsoft.Owin.Testing
   nuget NUnit
   nuget NUnit.Runners
+  nuget Suave
   nuget Unquote

@@ -1,12 +1,14 @@
 open System.Text
 open Arachne.Http
 open Arachne.Language
-﻿open Arachne.Http
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Freya.Machine.Router
+open Freya.Router
 open Suave.Logging
 open Suave.Owin
 open Suave.Types
@@ -22,16 +24,9 @@ let inline represent (x : string) =
           Languages = Some [ LanguageTag.Parse "en" ] }
       Data = Encoding.UTF8.GetBytes x }
 
-let ok _ =
-        Freya.Lens.setPartial Response.ReasonPhrase_ "Hey, folks!"
-     *> Freya.init (represent "Hey, folks!")
-open Freya.Machine.Router
-open Freya.Router
-open Microsoft.Owin.Hosting
-
 let ok =
-        Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-     *> Freya.init Representation.empty
+    Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
+    *> Freya.init (represent "Hey, folks!")
 
 let home =
     freyaMachine {
@@ -39,19 +34,16 @@ let home =
         methodsSupported GET
         handleOk ok }
 
+let routes =
+    freyaRouter {
+        resource "/" home }
+
 let config =
     { defaultConfig with
         bindings = [ HttpBinding.mk' HTTP "0.0.0.0" 7000 ]
         logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
-let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya resource)
-let routes =
-    freyaRouter {
-        resource "/" home }
-
-type App () =
-    member __.Configuration () =
-        OwinAppFunc.ofFreya routes
+let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya routes)
 
 // Main
 
