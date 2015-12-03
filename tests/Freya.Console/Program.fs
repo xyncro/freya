@@ -25,8 +25,8 @@ let inline represent (x : string) =
       Data = Encoding.UTF8.GetBytes x }
 
 let ok =
-    Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-    *> Freya.init (represent "Hey, folks!")
+        Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
+     *> Freya.init (represent "Hey, folks!")
 
 let home =
     freyaMachine {
