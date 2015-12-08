@@ -29,6 +29,13 @@ let inline represent (x : string) =
           Languages = Some [ en ] }
       Data = Encoding.UTF8.GetBytes x }
 
+let hello =
+    freya {
+        do! Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
+        let! stream = Freya.Optic.get Response.body_
+        let out = "Hey, folks!"B
+        stream.Write(out, 0, out.Length) }
+
 let ok =
         Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
      *> Freya.init (represent "Hey, folks!")
@@ -49,7 +56,8 @@ let home =
 
 let routes =
     freyaRouter {
-        resource "/" home }
+        resource "/" home
+        resource "/hello" hello }
 
 (* Inspectors *)
 
