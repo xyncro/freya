@@ -1,7 +1,10 @@
 ### New in 3.0.0 - (Released TBD)
 * A lot of stuff - TODO!
 
-### New in 2.0.201 - (Released 2015-11-30)
+### New in 2.0.202 - (Released 2015-12-11)
+* Reset dependencies to correct versions. 2.0.201 accidentally included changes that were not intended for the 2.0.* release.
+
+### New in 2.0.201 - (Released 2015-12-01)
 * Fixed Last Modified, If-Modified-Since and If-Unmodified-Since headers
 
 ### New in 2.0.200 - (Released 2015-10-12)
