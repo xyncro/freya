@@ -1,11 +1,10 @@
 source https://nuget.org/api/v2
 framework: >= net45
 
-nuget Arachne.Http.Cors
-nuget Arachne.Uri.Template
-nuget Aether 8.0.0-rc2
-nuget Chiron 6.0.0-rc2
-nuget Hekate 2.0.0-rc2
+nuget Aether  ~> 8
+nuget Arachne ~> 2
+nuget Chiron  ~> 6
+nuget Hekate  ~> 2
 
 group Build
 
