@@ -3,9 +3,9 @@ framework: net45
 
 nuget Arachne.Http.Cors
 nuget Arachne.Uri.Template
-nuget Aether
-nuget Chiron
-nuget Hekate
+nuget Aether ~> 7
+nuget Chiron ~> 5
+nuget Hekate ~> 1
 nuget Microsoft.Owin.SelfHost
 nuget Microsoft.Owin.Testing
 nuget NUnit

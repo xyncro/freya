@@ -1,3 +1,6 @@
+### New in 2.0.203 - (Released 2015-12-15)
+* Set correct dependency versions for the 2.0.* release.
+
 ### New in 2.0.202 - (Released 2015-12-11)
 * Reset dependencies to correct versions. 2.0.201 accidentally included changes that were not intended for the 2.0.* release.
 
