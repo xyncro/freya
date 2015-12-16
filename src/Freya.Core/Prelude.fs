@@ -52,9 +52,10 @@ let box_<'a> : Isomorphism<obj, 'a> =
 [<RequireQualifiedAccess>]
 module Dict =
 
-    let value_<'k,'v> k : Lens<IDictionary<'k,'v>, 'v option> =
+    let value_<'k,'v when 'v : null> k : Lens<IDictionary<'k,'v>, 'v option> =
         (fun d ->
             match d.TryGetValue k with
+            | true, null -> None
             | true, v -> Some v
             | _ -> None),
         (fun v d ->

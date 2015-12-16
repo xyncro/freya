@@ -9,6 +9,10 @@ nuget Hekate
 nuget Aether 8.0.0-rc2
 nuget Chiron 6.0.0-rc2
 nuget Hekate 2.0.0-rc2
+nuget Aether  ~> 8
+nuget Arachne ~> 2
+nuget Chiron  ~> 6
+nuget Hekate  ~> 2
 
 group Build
 
@@ -30,3 +34,16 @@ group Test
   nuget NUnit.Runners
   nuget Suave
   nuget Unquote
+nuget Arachne.Http.Cors
+nuget Arachne.Uri.Template
+nuget Aether ~> 7
+nuget Chiron ~> 5
+nuget Hekate ~> 1
+nuget Microsoft.Owin.SelfHost
+nuget Microsoft.Owin.Testing
+nuget NUnit
+nuget NUnit.Runners
+nuget Unquote
+nuget FAKE
+nuget SourceLink.Fake
+nuget Nuget.CommandLine
