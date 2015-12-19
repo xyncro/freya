@@ -54,17 +54,17 @@ module Request =
         let accessControlRequestHeaders_ =
             value_
                 "Access-Control-Request-Headers"
-                (AccessControlRequestHeaders.TryParse, AccessControlRequestHeaders.Format)
+                (AccessControlRequestHeaders.tryParse, AccessControlRequestHeaders.format)
 
         let accessControlRequestMethod_ =
             value_
                 "Access-Control-Request-Method"
-                (AccessControlRequestMethod.TryParse, AccessControlRequestMethod.Format)
+                (AccessControlRequestMethod.tryParse, AccessControlRequestMethod.format)
 
         let origin_ =
             value_
                 "Origin"
-                (Origin.TryParse, Origin.Format)
+                (Origin.tryParse, Origin.format)
 
         (* Obsolete
 
@@ -105,32 +105,32 @@ module Response =
         let accessControlAllowCredentials_ =
             value_
                 "Access-Control-Allow-Credentials"
-                (AccessControlAllowCredentials.TryParse, AccessControlAllowCredentials.Format)
+                (AccessControlAllowCredentials.tryParse, AccessControlAllowCredentials.format)
 
         let accessControlAllowHeaders_ =
             value_
                 "Access-Control-Allow-Headers"
-                (AccessControlAllowHeaders.TryParse, AccessControlAllowHeaders.Format)
+                (AccessControlAllowHeaders.tryParse, AccessControlAllowHeaders.format)
 
         let accessControlAllowMethods_ =
             value_
                 "Access-Control-Allow-Methods"
-                (AccessControlAllowMethods.TryParse, AccessControlAllowMethods.Format)
+                (AccessControlAllowMethods.tryParse, AccessControlAllowMethods.format)
 
         let accessControlAllowOrigin_ =
             value_
                 "Access-Control-Allow-Origin"
-                (AccessControlAllowOrigin.TryParse, AccessControlAllowOrigin.Format)
+                (AccessControlAllowOrigin.tryParse, AccessControlAllowOrigin.format)
 
         let accessControlExposeHeaders_ =
             value_
                 "Access-Control-Expose-Headers"
-                (AccessControlExposeHeaders.TryParse, AccessControlExposeHeaders.Format)
+                (AccessControlExposeHeaders.tryParse, AccessControlExposeHeaders.format)
 
         let accessControlMaxAge_ =
             value_
                 "Access-Control-Max-Age"
-                (AccessControlMaxAge.TryParse, AccessControlMaxAge.Format)
+                (AccessControlMaxAge.tryParse, AccessControlMaxAge.format)
 
         (* Obsolete
 

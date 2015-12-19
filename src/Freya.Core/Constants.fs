@@ -20,6 +20,8 @@
 [<RequireQualifiedAccess>]
 module Freya.Core.Constants
 
+#nowarn "3190"
+
 (* OWIN 1.1.0
 
    Taken from [https://github.com/owin/owin/blob/master/spec/owin-1.1.0.md] *)
@@ -165,7 +167,7 @@ module Opaque =
     [<CompiledName ("Stream")>]
     let [<Literal>] stream = "opaque.Stream"
 
-    [<CompiledName ("CallCanceled")>]
+    [<CompiledName ("CallCancelled")>]
     let [<Literal>] callCancelled = "opaque.CallCancelled"
 
 (* Web Socket Extensions
@@ -191,6 +193,7 @@ module WebSocket =
     let [<Literal>] subProtocol = "websocket.SubProtocol"
 
     (* 5. Consumption *)
+
     [<CompiledName ("SendAsync")>]
     let [<Literal>] sendAsync = "websocket.SendAsync"
 

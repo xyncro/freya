@@ -28,7 +28,7 @@ open Aether.Operators
 module Environment =
 
     let value_<'a> k =
-            FreyaState.Environment_
+            FreyaState.environment_
         >-> Dict.value_<string, obj> k
         >-> Option.mapIsomorphism box_<'a>
 
@@ -36,7 +36,7 @@ module Environment =
 module Memo =
 
     let id_<'a> i =
-            FreyaState.Meta_
-        >-> FreyaMetaState.Memos_
+            FreyaState.meta_
+        >-> FreyaMetaState.memos_
         >-> Map.value_ i
         >-> Option.mapIsomorphism box_<'a>

@@ -37,7 +37,7 @@ open Freya.Core
    To be removed for 4.x releases. *)
 
 let private option_ =
-    id, fun x -> Some x
+    id, Some
 
 (* Request Lenses *)
 
@@ -60,7 +60,7 @@ module Request =
     let method_ = 
             Environment.value_<string> Constants.requestMethod
         >-> Option.unsafe_
-        >-> (Method.Parse, Method.Format)
+        >-> (Method.parse, Method.format)
 
     let path_ =
             Environment.value_<string> Constants.requestPath
@@ -73,17 +73,17 @@ module Request =
     let httpVersion_ =
             Environment.value_<string> Constants.requestProtocol
         >-> Option.unsafe_
-        >-> (HttpVersion.Parse, HttpVersion.Format)
+        >-> (HttpVersion.parse, HttpVersion.format)
 
     let scheme_ =
             Environment.value_<string> Constants.requestScheme
         >-> Option.unsafe_
-        >-> (Scheme.Parse, Scheme.Format)
+        >-> (Scheme.parse, Scheme.format)
 
     let query_ =
             Environment.value_<string> Constants.requestQueryString
         >-> Option.unsafe_
-        >-> (Query.Parse, Query.Format)
+        >-> (Query.parse, Query.format)
 
     (* Obsolete
 
@@ -141,22 +141,22 @@ module Request =
         let accept_ =
             value_
                 "Accept"
-                (Accept.TryParse, Accept.Format)
+                (Accept.tryParse, Accept.format)
 
         let acceptCharset_ =
             value_
                 "Accept-Charset"
-                (AcceptCharset.TryParse, AcceptCharset.Format)
+                (AcceptCharset.tryParse, AcceptCharset.format)
 
         let acceptEncoding_ =
             value_
                 "Accept-Encoding"
-                (AcceptEncoding.TryParse, AcceptEncoding.Format)
+                (AcceptEncoding.tryParse, AcceptEncoding.format)
 
         let acceptLanguage_ =
             value_
                 "Accept-Language"
-                (AcceptLanguage.TryParse, AcceptLanguage.Format)
+                (AcceptLanguage.tryParse, AcceptLanguage.format)
 
         // TODO: typed Authorization
 
@@ -166,47 +166,47 @@ module Request =
         let cacheControl_ =
             value_
                 "Cache-Control"
-                (CacheControl.TryParse, CacheControl.Format)
+                (CacheControl.tryParse, CacheControl.format)
 
         let connection_ =
             value_
                 "Connection"
-                (Connection.TryParse, Connection.Format)
+                (Connection.tryParse, Connection.format)
 
         let contentEncoding_ =
             value_
                 "Content-Encoding"
-                (ContentEncoding.TryParse, ContentEncoding.Format)
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
         let contentLanguage_ =
             value_
                 "Content-Language"
-                (ContentLanguage.TryParse, ContentLanguage.Format)
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
         let contentLength_ =
             value_
                 "Content-Length"
-                (ContentLength.TryParse, ContentLength.Format)
+                (ContentLength.tryParse, ContentLength.format)
 
         let contentLocation_ =
             value_
                 "Content-Location"
-                (ContentLocation.TryParse, ContentLocation.Format)
+                (ContentLocation.tryParse, ContentLocation.format)
 
         let contentType_ =
             value_
                 "Content-Type"
-                (ContentType.TryParse, ContentType.Format)
+                (ContentType.tryParse, ContentType.format)
 
         let date_ =
             value_
                 "Date"
-                (Date.TryParse, Date.Format)
+                (Date.tryParse, Date.format)
 
         let expect_ =
             value_
                 "Expect"
-                (Expect.TryParse, Expect.Format)
+                (Expect.tryParse, Expect.format)
 
         // TODO: typed From
 
@@ -216,37 +216,37 @@ module Request =
         let host_ =
             value_
                 "Host"
-                (Host.TryParse, Host.Format)
+                (Host.tryParse, Host.format)
 
         let ifMatch_ =
             value_
                 "If-Match"
-                (IfMatch.TryParse, IfMatch.Format)
+                (IfMatch.tryParse, IfMatch.format)
 
         let ifModifiedSince_ =
             value_
                 "If-Modified-Since"
-                (IfModifiedSince.TryParse, IfModifiedSince.Format)
+                (IfModifiedSince.tryParse, IfModifiedSince.format)
 
         let ifNoneMatch_ =
             value_
                 "If-None-Match"
-                (IfNoneMatch.TryParse, IfNoneMatch.Format)
+                (IfNoneMatch.tryParse, IfNoneMatch.format)
 
         let ifRange_ =
             value_
                 "If-Range"
-                (IfRange.TryParse, IfRange.Format)
+                (IfRange.tryParse, IfRange.format)
 
         let ifUnmodifiedSince_ =
             value_
                 "If-Unmodified-Since"
-                (IfUnmodifiedSince.TryParse, IfUnmodifiedSince.Format)
+                (IfUnmodifiedSince.tryParse, IfUnmodifiedSince.format)
 
         let maxForwards_ =
             value_
                 "Max-Forwards"
-                (MaxForwards.TryParse, MaxForwards.Format)
+                (MaxForwards.tryParse, MaxForwards.format)
 
         // TODO: typed Pragma
 
@@ -266,7 +266,7 @@ module Request =
         let referer_ =
             value_
                 "Referer"
-                (Referer.TryParse, Referer.Format)
+                (Referer.tryParse, Referer.format)
 
         // TODO: typed TE
 
@@ -485,7 +485,7 @@ module Response =
 
     let httpVersion_ =
             Environment.value_<string> Constants.responseProtocol
-        >-> Option.mapIsomorphism (HttpVersion.Parse, HttpVersion.Format)
+        >-> Option.mapIsomorphism (HttpVersion.parse, HttpVersion.format)
 
     let reasonPhrase_ =
             Environment.value_<string> Constants.responseReasonPhrase
@@ -545,42 +545,42 @@ module Response =
         let age_ =
             value_
                 "Age"
-                (Age.TryParse, Age.Format)
+                (Age.tryParse, Age.format)
 
         let allow_ =
             value_
                 "Allow"
-                (Allow.TryParse, Allow.Format)
+                (Allow.tryParse, Allow.format)
 
         let cacheControl_ =
             value_
                 "Cache-Control"
-                (CacheControl.TryParse, CacheControl.Format)
+                (CacheControl.tryParse, CacheControl.format)
 
         let connection_ =
             value_
                 "Connection"
-                (Connection.TryParse, Connection.Format)
+                (Connection.tryParse, Connection.format)
 
         let contentEncoding_ =
             value_
                 "Content-Encoding"
-                (ContentEncoding.TryParse, ContentEncoding.Format)
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
         let contentLanguage_ =
             value_
                 "Content-Language"
-                (ContentLanguage.TryParse, ContentLanguage.Format)
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
         let contentLength_ =
             value_
                 "Content-Length"
-                (ContentLength.TryParse, ContentLength.Format)
+                (ContentLength.tryParse, ContentLength.format)
 
         let contentLocation_ =
             value_
                 "Content-Location"
-                (ContentLocation.TryParse, ContentLocation.Format)
+                (ContentLocation.tryParse, ContentLocation.format)
 
         // TODO: typed ContentRange
 
@@ -590,32 +590,32 @@ module Response =
         let contentType_ =
             value_
                 "Content-Type"
-                (ContentType.TryParse, ContentType.Format)
+                (ContentType.tryParse, ContentType.format)
 
         let date_ =
             value_
                 "Date"
-                (Date.TryParse, Date.Format)
+                (Date.tryParse, Date.format)
 
         let eTag_ =
             value_
                 "ETag"
-                (ETag.TryParse, ETag.Format)
+                (ETag.tryParse, ETag.format)
 
         let expires_ =
             value_
                 "Expires"
-                (Expires.TryParse, Expires.Format)
+                (Expires.tryParse, Expires.format)
 
         let lastModified_ =
             value_
                 "Last-Modified"
-                (LastModified.TryParse, LastModified.Format)
+                (LastModified.tryParse, LastModified.format)
 
         let location_ =
             value_
                 "Location"
-                (Location.TryParse, Location.Format)
+                (Location.tryParse, Location.format)
 
         // TODO: typed ProxyAuthenticate
 
@@ -627,7 +627,7 @@ module Response =
         let retryAfter_ =
             value_
                 "Retry-After"
-                (RetryAfter.TryParse, RetryAfter.Format)
+                (RetryAfter.tryParse, RetryAfter.format)
 
         // TODO: typed Server
 
