@@ -32,20 +32,20 @@ type FreyaRouterRecord =
     { Graph: FreyaRouterGraphRecord
       Execution: FreyaRouterExecutionRecord }
 
-    static member Graph_ =
+    static member graph_ =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member Execution_ =
+    static member execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
  and FreyaRouterGraphRecord =
     { Nodes: FreyaRouterGraphNodeRecord list
       Edges: FreyaRouterGraphEdgeRecord list }
 
-    static member Nodes_ =
+    static member nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterGraphRecord.Nodes = n })
 
-    static member Edges_ =
+    static member edges_ =
         (fun x -> x.Edges), (fun e x -> { x with Edges = e })
 
  and FreyaRouterGraphNodeRecord =
@@ -59,7 +59,7 @@ type FreyaRouterRecord =
  and FreyaRouterExecutionRecord =
     { Nodes: FreyaRouterExecutionNodeRecord list }
 
-    static member Nodes_ =
+    static member nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaRouterExecutionRecord.Nodes = n })
 
  and FreyaRouterExecutionNodeRecord =
@@ -117,12 +117,12 @@ module Record =
 
     let private graph_ =
             Record.record_<FreyaRouterRecord> "router"
-        >-> Option.mapLens FreyaRouterRecord.Graph_
+        >-> Option.mapLens FreyaRouterRecord.graph_
 
     let private executionNodes_ =
             Record.record_ "router"
-        >-> Option.mapLens FreyaRouterRecord.Execution_
-        >?> FreyaRouterExecutionRecord.Nodes_
+        >-> Option.mapLens FreyaRouterRecord.execution_
+        >?> FreyaRouterExecutionRecord.nodes_
 
     (* Functions *)
 

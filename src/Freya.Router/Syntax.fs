@@ -91,7 +91,7 @@ module UriTemplate =
             x
 
         static member inline UriTemplate (x: string) =
-            UriTemplate.Parse x
+            UriTemplate.parse x
 
     let inline defaults (a: ^a, _: ^b) =
             ((^a or ^b) : (static member UriTemplate: ^a -> UriTemplate) a)

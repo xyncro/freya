@@ -49,7 +49,7 @@ let tuple x y =
 
 let en =
     freya {
-        return [ LanguageTag.Parse "en" ] }
+        return [ LanguageTag.parse "en" ] }
 
 let json =
     freya {
@@ -104,5 +104,5 @@ let inline represent x =
         { Charset = Some Charset.Utf8
           Encodings = None
           MediaType = Some MediaType.Json
-          Languages = Some [ LanguageTag.Parse "en" ] }
+          Languages = Some [ LanguageTag.parse "en" ] }
       Data = (Json.serialize >> Json.format >> Encoding.UTF8.GetBytes) x }

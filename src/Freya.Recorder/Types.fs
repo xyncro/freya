@@ -30,5 +30,5 @@ type FreyaRecorderRecord =
       Timestamp: DateTime
       Data: Map<string, obj> }
 
-    static member Data_ =
+    static member data_ =
         (fun x -> x.Data), (fun d x -> { x with Data = d })

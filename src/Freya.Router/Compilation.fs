@@ -36,8 +36,8 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
 
-    static member Graph_ =
-        (fun (Graph g) -> g), (fun g -> Graph g)
+    static member graph_ =
+        (fun (Graph g) -> g), (Graph)
 
  and CompilationKey =
     | Root
@@ -64,7 +64,7 @@ let private defaultCompilationGraph =
 (* Lenses *)
 
 let private compilationGraph_ =
-    Lens.ofIsomorphism CompilationGraph.Graph_
+    Lens.ofIsomorphism CompilationGraph.graph_
 
 (* Patterns
 

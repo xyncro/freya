@@ -47,20 +47,20 @@ module Route =
 
     let value_ key =
             data_ 
-        >-> UriTemplateData.UriTemplateData_
+        >-> UriTemplateData.uriTemplateData_
         >-> Map.value_ (Key key)
 
     let atom_ key =
             value_ key
-        >-> Option.mapEpimorphism UriTemplateValue.Atom_
+        >-> Option.mapEpimorphism UriTemplateValue.atom_
 
     let list_ key =
             value_ key
-        >-> Option.mapEpimorphism UriTemplateValue.List_
+        >-> Option.mapEpimorphism UriTemplateValue.list_
 
     let keys_ key =
             value_ key
-        >-> Option.mapEpimorphism UriTemplateValue.Keys_
+        >-> Option.mapEpimorphism UriTemplateValue.keys_
 
     (* Obsolete
 

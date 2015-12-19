@@ -33,9 +33,6 @@ type FreyaRoute =
       Template: UriTemplate
       Pipeline: FreyaPipeline }
 
-    static member Template_ =
-        (fun x -> x.Template), (fun t x -> { x with Template = t })
-
  and FreyaRouteSpecification =
     | Path
     | PathAndQuery

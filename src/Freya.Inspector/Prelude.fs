@@ -44,7 +44,7 @@ let defaults =
         corsOriginsSupported AccessControlAllowOriginRange.Any
 
         charsetsSupported Charset.Utf8
-        languagesSupported (LanguageTag.Parse "en") }
+        languagesSupported (LanguageTag.parse "en") }
 
 (* Functions
 
@@ -78,7 +78,7 @@ let represent n x =
         { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.Utf8)
           Encodings = None
           MediaType = Some (n.MediaTypes |> firstNegotiatedOrElse MediaType.Text)
-          Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
+          Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.parse "en") ] }
       Data = x }
 
 let representJson x =
@@ -86,5 +86,5 @@ let representJson x =
         { Charset = Some Charset.Utf8
           Encodings = None
           MediaType = Some MediaType.Json
-          Languages = Some [ LanguageTag.Parse "en" ] }
+          Languages = Some [ LanguageTag.parse "en" ] }
       Data = encode x }

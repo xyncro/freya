@@ -53,7 +53,7 @@ type private ExecutionResult =
 type private Traversal =
     | Traversal of TraversalInvariant * TraversalState
 
-    static member State_ =
+    static member state_ =
         (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
  and private TraversalInvariant =
@@ -62,25 +62,25 @@ type private Traversal =
  and private TraversalState =
     | State of TraversalPosition * TraversalData
 
-    static member Position_ =
+    static member position_ =
         (fun (State (p, _)) -> p), (fun p (State (_, d)) -> State (p, d))
 
-    static member Data_ =
+    static member data_ =
         (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
  and private TraversalPosition =
     | Position of string * Compilation.CompilationKey
 
-    static member PathAndQuery_ =
+    static member pathAndQuery_ =
         (fun (Position (p, _)) -> p), (fun p (Position (_, k)) -> Position (p, k))
 
-    static member Key_ =
+    static member key_ =
         (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
 
  and private TraversalData =
     | Data of UriTemplateData
 
-    static member Data_ =
+    static member data_ =
         (fun (Data d) -> d), (fun d (Data (_)) -> Data (d))
 
 (* Constructors
@@ -110,19 +110,19 @@ let private traversal meth path query =
 (* Traversal *)
 
 let private traversalData_ =
-        Traversal.State_
-    >-> TraversalState.Data_
-    >-> TraversalData.Data_
+        Traversal.state_
+    >-> TraversalState.data_
+    >-> TraversalData.data_
 
 let private traversalKey_ =
-        Traversal.State_
-    >-> TraversalState.Position_
-    >-> TraversalPosition.Key_
+        Traversal.state_
+    >-> TraversalState.position_
+    >-> TraversalPosition.key_
 
 let private traversalPathAndQuery_ =
-        Traversal.State_
-    >-> TraversalState.Position_
-    >-> TraversalPosition.PathAndQuery_
+        Traversal.state_
+    >-> TraversalState.position_
+    >-> TraversalPosition.pathAndQuery_
 
 (* Patterns
 
@@ -248,7 +248,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.Query_)
+        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.query_)
     >>= traverse graph
     >>= select
 

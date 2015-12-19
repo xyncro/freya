@@ -68,9 +68,9 @@ let private specification config =
 
 let private charset_ =
         Response.Headers.contentType_
-    >-> Option.mapIsomorphism ContentType.MediaType_
-    >-> Option.mapLens MediaType.Parameters_
-    >?> Parameters.Parameters_
+    >-> Option.mapIsomorphism ContentType.mediaType_
+    >-> Option.mapLens MediaType.parameters_
+    >?> Parameters.parameters_
     >?> Map.value_ "charset"
 
 let private charset =
