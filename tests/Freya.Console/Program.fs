@@ -1,37 +1,94 @@
-﻿open Arachne.Http
+open System.Text
+open Arachne.Http
+open Arachne.Language
+open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
+open Freya.Inspector
 open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Extensions.Http
+open Freya.Machine.Inspector
 open Freya.Machine.Router
 open Freya.Router
-open Microsoft.Owin.Hosting
+open Freya.Router.Inspector
+open Suave.Logging
+open Suave.Owin
+open Suave.Types
+open Suave.Web
+
+(* Resources *)
+
+let en = LanguageTag.Parse "en"
+
+let inline represent (x : string) =
+    { Description =
+        { Charset = Some Charset.Utf8
+          Encodings = None
+          MediaType = Some MediaType.Text
+          Languages = Some [ en ] }
+      Data = Encoding.UTF8.GetBytes x }
+
+let hello =
+    freya {
+        do! Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
+        let! stream = Freya.Optic.get Response.body_
+        let out = "Hey, folks!"B
+        stream.Write(out, 0, out.Length) }
 
 let ok =
         Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-     *> Freya.init Representation.empty
+     *> Freya.init (represent "Hey, folks!")
+
+let common =
+    freyaMachine {
+        using http
+        charsetsSupported Charset.Utf8
+        languagesSupported en
+        mediaTypesSupported MediaType.Text }
 
 let home =
     freyaMachine {
         using http
+        //including common
         methodsSupported GET
         handleOk ok }
 
 let routes =
     freyaRouter {
-        resource "/" home }
+        resource "/" home
+        resource "/hello" hello }
 
-type App () =
-    member __.Configuration () =
-        OwinAppFunc.ofFreya routes
+(* Inspectors *)
+
+let inspectorConfig =
+    { Inspectors =
+        [ freyaMachineInspector
+          freyaRouterInspector ] }
+
+let inspect =
+    freyaInspector inspectorConfig
+
+(* API *)
+
+let api =
+    inspect >?= routes
+
+(* Suave *)
+
+let config =
+    { defaultConfig with
+        bindings = [ HttpBinding.mk' HTTP "0.0.0.0" 7000 ]
+        logger = Loggers.saneDefaultsFor LogLevel.Verbose }
+
+let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya api)
 
 // Main
 
 [<EntryPoint>]
 let main _ =
 
-    let _ = WebApp.Start<App> "http://localhost:8080"
-    let _ = System.Console.ReadLine ()
+    printfn "Listening on port 7000"
+    startWebServer config owin
 
     0

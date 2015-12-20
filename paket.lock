@@ -50,6 +50,7 @@ NUGET
   remote: https://nuget.org/api/v2
   specs:
     FAKE (4.9.1)
+    NuGet.CommandLine (3.3.0)
     SourceLink.Fake (1.1.0)
 
 GROUP Test
@@ -57,6 +58,7 @@ FRAMEWORK: >= NET45
 NUGET
   remote: https://nuget.org/api/v2
   specs:
+    FSharp.Core (4.0.0.1)
     Microsoft.Owin (3.0.1)
       Owin (>= 1.0)
     Microsoft.Owin.Diagnostics (3.0.1)
@@ -77,5 +79,7 @@ NUGET
       Owin (>= 1.0)
     NUnit (2.6.4)
     NUnit.Runners (2.6.4)
-    Owin (1.0.0)
+    Owin (1.0)
+    Suave (0.33.0)
+      FSharp.Core (>= 3.1.2.5)
     Unquote (3.1.0)
