@@ -1,27 +1,21 @@
 open System.Text
+
+// Freya (and Arachne)
+
 open Arachne.Http
 open Arachne.Language
-open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
-open Freya.Inspector
 open Freya.Lenses.Http
 open Freya.Machine
 open Freya.Machine.Extensions.Http
-open Freya.Machine.Inspector
 open Freya.Machine.Router
 open Freya.Router
-open Freya.Router.Inspector
-open Suave.Logging
-open Suave.Owin
-open Suave.Types
-open Suave.Web
 
-(* Resources *)
+let en =
+    LanguageTag.parse "en"
 
-let en = LanguageTag.Parse "en"
-
-let inline represent (x : string) =
+let inline represent (x: string) =
     { Description =
         { Charset = Some Charset.Utf8
           Encodings = None
@@ -30,15 +24,13 @@ let inline represent (x : string) =
       Data = Encoding.UTF8.GetBytes x }
 
 let hello =
-    freya {
-        do! Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-        let! stream = Freya.Optic.get Response.body_
-        let out = "Hey, folks!"B
-        stream.Write(out, 0, out.Length) }
-
-let ok =
         Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-     *> Freya.init (represent "Hey, folks!")
+     *> Freya.Optic.map Response.body_ (fun b ->
+            let out = "Hey Folks!"B
+            b.Write (out, 0, out.Length)
+            b)
+let ok =
+    represent "Hey, folks!"
 
 let common =
     freyaMachine {
@@ -50,7 +42,7 @@ let common =
 let home =
     freyaMachine {
         using http
-        //including common
+        including common
         methodsSupported GET
         handleOk ok }
 
@@ -59,29 +51,20 @@ let routes =
         resource "/" home
         resource "/hello" hello }
 
-(* Inspectors *)
+// Suave
 
-let inspectorConfig =
-    { Inspectors =
-        [ freyaMachineInspector
-          freyaRouterInspector ] }
-
-let inspect =
-    freyaInspector inspectorConfig
-
-(* API *)
-
-let api =
-    inspect >?= routes
-
-(* Suave *)
+open Suave.Http
+open Suave.Logging
+open Suave.Owin
+open Suave.Web
 
 let config =
     { defaultConfig with
-        bindings = [ HttpBinding.mk' HTTP "0.0.0.0" 7000 ]
+        bindings = [ HttpBinding.mkSimple HTTP "0.0.0.0" 7000 ]
         logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
-let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya api)
+let app =
+    OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya routes)
 
 // Main
 
@@ -89,6 +72,6 @@ let owin = OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya api)
 let main _ =
 
     printfn "Listening on port 7000"
-    startWebServer config owin
+    startWebServer config app
 
     0
