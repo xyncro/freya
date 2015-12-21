@@ -96,9 +96,7 @@ let private description x =
      *> languages x.Languages
 
 let private data x =
-    freya {
-        let! body = Freya.Optic.get Response.body_
-        body.Write (x, 0, x.Length) }
+        Response.body_ %= (fun body -> body.Write (x, 0, x.Length); body)
 
 (* Handlers *)
 
