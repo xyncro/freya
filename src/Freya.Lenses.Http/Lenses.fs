@@ -134,9 +134,9 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accept_ =
             value_
@@ -533,9 +533,9 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         // TODO: typed AcceptRanges
 

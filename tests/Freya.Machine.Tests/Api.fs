@@ -160,7 +160,18 @@ let updateAction =
         return () }
 
 let corsOrigins =
-    AccessControlAllowOriginRange.Any
+    AccessControlAllowOriginRange.Origins (
+        OriginListOrNull.Origins
+            [
+                SerializedOrigin(
+                    Arachne.Uri.Scheme "http",
+                    Arachne.Uri.Name (Arachne.Uri.RegName "example.org"),
+                    None)
+                SerializedOrigin(
+                    Arachne.Uri.Scheme "https",
+                    Arachne.Uri.Name (Arachne.Uri.RegName "example.org"),
+                    None)
+            ])
 
 let corsHeaders =
     [ "accept"

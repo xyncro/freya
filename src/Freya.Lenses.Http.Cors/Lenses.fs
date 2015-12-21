@@ -35,7 +35,7 @@ open Freya.Lenses.Http
    To be removed for 4.x releases. *)
 
 let private option_ =
-    id, fun x -> Some x
+    id, Some
 
 (* Request Lenses *)
 
@@ -47,9 +47,9 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 Request.header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accessControlRequestHeaders_ =
             value_
@@ -98,9 +98,9 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 Response.header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accessControlAllowCredentials_ =
             value_

@@ -248,7 +248,7 @@ let private select =
    phase. *)
 
 let private search graph =
-        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.query_)
+        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.raw_)
     >>= traverse graph
     >>= select
 

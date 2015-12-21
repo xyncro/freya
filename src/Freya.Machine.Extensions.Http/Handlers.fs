@@ -96,7 +96,7 @@ let private description x =
      *> languages x.Languages
 
 let private data x =
-    Response.body_ %= (fun body -> body.Write (x, 0, x.Length); body)
+        Response.body_ %= (fun body -> body.Write (x, 0, x.Length); body)
 
 (* Handlers *)
 
@@ -119,7 +119,7 @@ let private handle config m =
            graphs. *)
 
         match meth with
-        | HEAD -> return ()
+        | HEAD -> ()
         | _ -> do! data representation.Data }
 
 let private userHandler key =
