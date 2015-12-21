@@ -47,24 +47,24 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 Request.header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accessControlRequestHeaders_ =
             value_
                 "Access-Control-Request-Headers"
-                (AccessControlRequestHeaders.tryParse >> Option.ofChoice, AccessControlRequestHeaders.format)
+                (AccessControlRequestHeaders.tryParse, AccessControlRequestHeaders.format)
 
         let accessControlRequestMethod_ =
             value_
                 "Access-Control-Request-Method"
-                (AccessControlRequestMethod.tryParse >> Option.ofChoice, AccessControlRequestMethod.format)
+                (AccessControlRequestMethod.tryParse, AccessControlRequestMethod.format)
 
         let origin_ =
             value_
                 "Origin"
-                (Origin.tryParse >> Option.ofChoice, Origin.format)
+                (Origin.tryParse, Origin.format)
 
         (* Obsolete
 
@@ -98,39 +98,39 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 Response.header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accessControlAllowCredentials_ =
             value_
                 "Access-Control-Allow-Credentials"
-                (AccessControlAllowCredentials.tryParse >> Option.ofChoice, AccessControlAllowCredentials.format)
+                (AccessControlAllowCredentials.tryParse, AccessControlAllowCredentials.format)
 
         let accessControlAllowHeaders_ =
             value_
                 "Access-Control-Allow-Headers"
-                (AccessControlAllowHeaders.tryParse >> Option.ofChoice, AccessControlAllowHeaders.format)
+                (AccessControlAllowHeaders.tryParse, AccessControlAllowHeaders.format)
 
         let accessControlAllowMethods_ =
             value_
                 "Access-Control-Allow-Methods"
-                (AccessControlAllowMethods.tryParse >> Option.ofChoice, AccessControlAllowMethods.format)
+                (AccessControlAllowMethods.tryParse, AccessControlAllowMethods.format)
 
         let accessControlAllowOrigin_ =
             value_
                 "Access-Control-Allow-Origin"
-                (AccessControlAllowOrigin.tryParse >> Option.ofChoice, AccessControlAllowOrigin.format)
+                (AccessControlAllowOrigin.tryParse, AccessControlAllowOrigin.format)
 
         let accessControlExposeHeaders_ =
             value_
                 "Access-Control-Expose-Headers"
-                (AccessControlExposeHeaders.tryParse >> Option.ofChoice, AccessControlExposeHeaders.format)
+                (AccessControlExposeHeaders.tryParse, AccessControlExposeHeaders.format)
 
         let accessControlMaxAge_ =
             value_
                 "Access-Control-Max-Age"
-                (AccessControlMaxAge.tryParse >> Option.ofChoice, AccessControlMaxAge.format)
+                (AccessControlMaxAge.tryParse, AccessControlMaxAge.format)
 
         (* Obsolete
 

@@ -134,29 +134,29 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         let accept_ =
             value_
                 "Accept"
-                (Accept.tryParse >> Option.ofChoice, Accept.format)
+                (Accept.tryParse, Accept.format)
 
         let acceptCharset_ =
             value_
                 "Accept-Charset"
-                (AcceptCharset.tryParse >> Option.ofChoice, AcceptCharset.format)
+                (AcceptCharset.tryParse, AcceptCharset.format)
 
         let acceptEncoding_ =
             value_
                 "Accept-Encoding"
-                (AcceptEncoding.tryParse >> Option.ofChoice, AcceptEncoding.format)
+                (AcceptEncoding.tryParse, AcceptEncoding.format)
 
         let acceptLanguage_ =
             value_
                 "Accept-Language"
-                (AcceptLanguage.tryParse >> Option.ofChoice, AcceptLanguage.format)
+                (AcceptLanguage.tryParse, AcceptLanguage.format)
 
         // TODO: typed Authorization
 
@@ -166,47 +166,47 @@ module Request =
         let cacheControl_ =
             value_
                 "Cache-Control"
-                (CacheControl.tryParse >> Option.ofChoice, CacheControl.format)
+                (CacheControl.tryParse, CacheControl.format)
 
         let connection_ =
             value_
                 "Connection"
-                (Connection.tryParse >> Option.ofChoice, Connection.format)
+                (Connection.tryParse, Connection.format)
 
         let contentEncoding_ =
             value_
                 "Content-Encoding"
-                (ContentEncoding.tryParse >> Option.ofChoice, ContentEncoding.format)
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
         let contentLanguage_ =
             value_
                 "Content-Language"
-                (ContentLanguage.tryParse >> Option.ofChoice, ContentLanguage.format)
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
         let contentLength_ =
             value_
                 "Content-Length"
-                (ContentLength.tryParse >> Option.ofChoice, ContentLength.format)
+                (ContentLength.tryParse, ContentLength.format)
 
         let contentLocation_ =
             value_
                 "Content-Location"
-                (ContentLocation.tryParse >> Option.ofChoice, ContentLocation.format)
+                (ContentLocation.tryParse, ContentLocation.format)
 
         let contentType_ =
             value_
                 "Content-Type"
-                (ContentType.tryParse >> Option.ofChoice, ContentType.format)
+                (ContentType.tryParse, ContentType.format)
 
         let date_ =
             value_
                 "Date"
-                (Date.tryParse >> Option.ofChoice, Date.format)
+                (Date.tryParse, Date.format)
 
         let expect_ =
             value_
                 "Expect"
-                (Expect.tryParse >> Option.ofChoice, Expect.format)
+                (Expect.tryParse, Expect.format)
 
         // TODO: typed From
 
@@ -216,37 +216,37 @@ module Request =
         let host_ =
             value_
                 "Host"
-                (Host.tryParse >> Option.ofChoice, Host.format)
+                (Host.tryParse, Host.format)
 
         let ifMatch_ =
             value_
                 "If-Match"
-                (IfMatch.tryParse >> Option.ofChoice, IfMatch.format)
+                (IfMatch.tryParse, IfMatch.format)
 
         let ifModifiedSince_ =
             value_
                 "If-Modified-Since"
-                (IfModifiedSince.tryParse >> Option.ofChoice, IfModifiedSince.format)
+                (IfModifiedSince.tryParse, IfModifiedSince.format)
 
         let ifNoneMatch_ =
             value_
                 "If-None-Match"
-                (IfNoneMatch.tryParse >> Option.ofChoice, IfNoneMatch.format)
+                (IfNoneMatch.tryParse, IfNoneMatch.format)
 
         let ifRange_ =
             value_
                 "If-Range"
-                (IfRange.tryParse >> Option.ofChoice, IfRange.format)
+                (IfRange.tryParse, IfRange.format)
 
         let ifUnmodifiedSince_ =
             value_
                 "If-Unmodified-Since"
-                (IfUnmodifiedSince.tryParse >> Option.ofChoice, IfUnmodifiedSince.format)
+                (IfUnmodifiedSince.tryParse, IfUnmodifiedSince.format)
 
         let maxForwards_ =
             value_
                 "Max-Forwards"
-                (MaxForwards.tryParse >> Option.ofChoice, MaxForwards.format)
+                (MaxForwards.tryParse, MaxForwards.format)
 
         // TODO: typed Pragma
 
@@ -266,7 +266,7 @@ module Request =
         let referer_ =
             value_
                 "Referer"
-                (Referer.tryParse >> Option.ofChoice, Referer.format)
+                (Referer.tryParse, Referer.format)
 
         // TODO: typed TE
 
@@ -533,9 +533,9 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private value_ key e =
+        let private value_ key (tryParse, format) =
                 header_ key
-            >-> Option.mapEpimorphism e
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         // TODO: typed AcceptRanges
 
@@ -545,42 +545,42 @@ module Response =
         let age_ =
             value_
                 "Age"
-                (Age.tryParse >> Option.ofChoice, Age.format)
+                (Age.tryParse, Age.format)
 
         let allow_ =
             value_
                 "Allow"
-                (Allow.tryParse >> Option.ofChoice, Allow.format)
+                (Allow.tryParse, Allow.format)
 
         let cacheControl_ =
             value_
                 "Cache-Control"
-                (CacheControl.tryParse >> Option.ofChoice, CacheControl.format)
+                (CacheControl.tryParse, CacheControl.format)
 
         let connection_ =
             value_
                 "Connection"
-                (Connection.tryParse >> Option.ofChoice, Connection.format)
+                (Connection.tryParse, Connection.format)
 
         let contentEncoding_ =
             value_
                 "Content-Encoding"
-                (ContentEncoding.tryParse >> Option.ofChoice, ContentEncoding.format)
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
         let contentLanguage_ =
             value_
                 "Content-Language"
-                (ContentLanguage.tryParse >> Option.ofChoice, ContentLanguage.format)
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
         let contentLength_ =
             value_
                 "Content-Length"
-                (ContentLength.tryParse >> Option.ofChoice, ContentLength.format)
+                (ContentLength.tryParse, ContentLength.format)
 
         let contentLocation_ =
             value_
                 "Content-Location"
-                (ContentLocation.tryParse >> Option.ofChoice, ContentLocation.format)
+                (ContentLocation.tryParse, ContentLocation.format)
 
         // TODO: typed ContentRange
 
@@ -590,32 +590,32 @@ module Response =
         let contentType_ =
             value_
                 "Content-Type"
-                (ContentType.tryParse >> Option.ofChoice, ContentType.format)
+                (ContentType.tryParse, ContentType.format)
 
         let date_ =
             value_
                 "Date"
-                (Date.tryParse >> Option.ofChoice, Date.format)
+                (Date.tryParse, Date.format)
 
         let eTag_ =
             value_
                 "ETag"
-                (ETag.tryParse >> Option.ofChoice, ETag.format)
+                (ETag.tryParse, ETag.format)
 
         let expires_ =
             value_
                 "Expires"
-                (Expires.tryParse >> Option.ofChoice, Expires.format)
+                (Expires.tryParse, Expires.format)
 
         let lastModified_ =
             value_
                 "Last-Modified"
-                (LastModified.tryParse >> Option.ofChoice, LastModified.format)
+                (LastModified.tryParse, LastModified.format)
 
         let location_ =
             value_
                 "Location"
-                (Location.tryParse >> Option.ofChoice, Location.format)
+                (Location.tryParse, Location.format)
 
         // TODO: typed ProxyAuthenticate
 
@@ -627,7 +627,7 @@ module Response =
         let retryAfter_ =
             value_
                 "Retry-After"
-                (RetryAfter.tryParse >> Option.ofChoice, RetryAfter.format)
+                (RetryAfter.tryParse, RetryAfter.format)
 
         // TODO: typed Server
 
