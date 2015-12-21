@@ -35,7 +35,7 @@ open Freya.Lenses.Http
    To be removed for 4.x releases. *)
 
 let private option_ =
-    id, fun x -> Some x
+    id, Some
 
 (* Request Lenses *)
 
@@ -54,17 +54,17 @@ module Request =
         let accessControlRequestHeaders_ =
             value_
                 "Access-Control-Request-Headers"
-                (AccessControlRequestHeaders.tryParse, AccessControlRequestHeaders.format)
+                (AccessControlRequestHeaders.tryParse >> Option.ofChoice, AccessControlRequestHeaders.format)
 
         let accessControlRequestMethod_ =
             value_
                 "Access-Control-Request-Method"
-                (AccessControlRequestMethod.tryParse, AccessControlRequestMethod.format)
+                (AccessControlRequestMethod.tryParse >> Option.ofChoice, AccessControlRequestMethod.format)
 
         let origin_ =
             value_
                 "Origin"
-                (Origin.tryParse, Origin.format)
+                (Origin.tryParse >> Option.ofChoice, Origin.format)
 
         (* Obsolete
 
@@ -105,32 +105,32 @@ module Response =
         let accessControlAllowCredentials_ =
             value_
                 "Access-Control-Allow-Credentials"
-                (AccessControlAllowCredentials.tryParse, AccessControlAllowCredentials.format)
+                (AccessControlAllowCredentials.tryParse >> Option.ofChoice, AccessControlAllowCredentials.format)
 
         let accessControlAllowHeaders_ =
             value_
                 "Access-Control-Allow-Headers"
-                (AccessControlAllowHeaders.tryParse, AccessControlAllowHeaders.format)
+                (AccessControlAllowHeaders.tryParse >> Option.ofChoice, AccessControlAllowHeaders.format)
 
         let accessControlAllowMethods_ =
             value_
                 "Access-Control-Allow-Methods"
-                (AccessControlAllowMethods.tryParse, AccessControlAllowMethods.format)
+                (AccessControlAllowMethods.tryParse >> Option.ofChoice, AccessControlAllowMethods.format)
 
         let accessControlAllowOrigin_ =
             value_
                 "Access-Control-Allow-Origin"
-                (AccessControlAllowOrigin.tryParse, AccessControlAllowOrigin.format)
+                (AccessControlAllowOrigin.tryParse >> Option.ofChoice, AccessControlAllowOrigin.format)
 
         let accessControlExposeHeaders_ =
             value_
                 "Access-Control-Expose-Headers"
-                (AccessControlExposeHeaders.tryParse, AccessControlExposeHeaders.format)
+                (AccessControlExposeHeaders.tryParse >> Option.ofChoice, AccessControlExposeHeaders.format)
 
         let accessControlMaxAge_ =
             value_
                 "Access-Control-Max-Age"
-                (AccessControlMaxAge.tryParse, AccessControlMaxAge.format)
+                (AccessControlMaxAge.tryParse >> Option.ofChoice, AccessControlMaxAge.format)
 
         (* Obsolete
 

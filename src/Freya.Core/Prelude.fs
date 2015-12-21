@@ -85,6 +85,10 @@ module Option =
     let mapLens (l: Lens<'a,'b>) : Prism<'a option,'b> =
         Option.map (fst l), fun b -> Option.map (snd l b)
 
+    let ofChoice =
+        function | Choice1Of2 x -> Some x
+                 | _ -> None
+
     let orElse def =
         function | Some x -> x
                  | _ -> def
