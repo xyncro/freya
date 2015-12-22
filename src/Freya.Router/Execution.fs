@@ -164,8 +164,8 @@ let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
     | Some (_, Compilation.Endpoints endpoints) ->
         endpoints
         |> List.filter (
-           function | Compilation.Endpoint (_, All, _) -> true
-                    | Compilation.Endpoint (_, Methods ms, _) when List.exists ((=) meth) ms -> true
+           function | Compilation.Endpoint (_, Method (All), _) -> true
+                    | Compilation.Endpoint (_, Method (Methods ms), _) when List.exists ((=) meth) ms -> true
                     | _ -> false)
         |> function | [] -> None
                     | endpoints -> Some endpoints

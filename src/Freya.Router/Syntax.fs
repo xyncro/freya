@@ -111,9 +111,9 @@ type FreyaRouterBuilder with
     (* Paths *)
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
-    member inline x.Route (r, meth, template, pipeline) =
+    member inline x.Route (r, m, template, pipeline) =
         x.Map (r, (fun x ->
-            { Method = FreyaRouteMethod.infer meth
+            { Predicate = Method (FreyaRouteMethod.infer m)
               Specification = Path
               Template = UriTemplate.infer template
               Pipeline = Freya.Pipeline.infer pipeline } :: x))
