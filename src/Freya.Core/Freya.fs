@@ -154,24 +154,21 @@ module Pipeline =
     only once per state (commonly once per request in the usual Freya
     usage model). *)
 
-[<RequireQualifiedAccess>]
-module Memo =
+let memo<'a> (m: Freya<'a>) : Freya<'a> =
+    let memo_ = Memo.id_<'a> (Guid.NewGuid ())
 
-    let wrap<'a> (m: Freya<'a>) : Freya<'a> =
-        let memo_ = Memo.id_<'a> (Guid.NewGuid ())
+    fun state ->
+        async {
+            let! memo, state = Optic.get memo_ state
 
-        fun state ->
-            async {
-                let! memo, state = Optic.get memo_ state
+            match memo with
+            | Some memo ->
+                return memo, state
+            | _ ->
+                let! memo, state = m state
+                let! _, state = Optic.set memo_ (Some memo) state
 
-                match memo with
-                | Some memo ->
-                    return memo, state
-                | _ ->
-                    let! memo, state = m state
-                    let! _, state = Optic.set memo_ (Some memo) state
-
-                    return memo, state }
+                return memo, state }
 
 (* Obsolete
 
@@ -179,12 +176,6 @@ module Memo =
    less painful, providing functionally equivalent options where possible.
 
    To be removed for 4.x releases. *)
-
-(* Memoization *)
-
-[<Obsolete ("Use Freya.Memo.wrap instead.")>]
-let memo m =
-    Memo.wrap m
 
 (* Pipeline *)
 

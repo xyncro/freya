@@ -36,10 +36,10 @@ open Freya.Router
 (* Route *)
 
 let private id =
-    Freya.Memo.wrap ((Option.get >> Guid.Parse) <!> (!.) (Route.atom_ "id"))
+    Freya.memo ((Option.get >> Guid.Parse) <!> (!.) (Route.atom_ "id"))
 
 let private extension =
-    Freya.Memo.wrap (Option.get <!> (!.) (Route.atom_ "ext"))
+    Freya.memo (Option.get <!> (!.) (Route.atom_ "ext"))
 
 (* Data *)
 
