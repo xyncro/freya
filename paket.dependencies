@@ -24,16 +24,3 @@ group Test
   nuget NUnit.Runners
   nuget Suave 1.0.0-beta2
   nuget Unquote
-nuget Arachne.Http.Cors
-nuget Arachne.Uri.Template
-nuget Aether ~> 7
-nuget Chiron ~> 5
-nuget Hekate ~> 1
-nuget Microsoft.Owin.SelfHost
-nuget Microsoft.Owin.Testing
-nuget NUnit
-nuget NUnit.Runners
-nuget Unquote
-nuget FAKE
-nuget SourceLink.Fake
-nuget Nuget.CommandLine
