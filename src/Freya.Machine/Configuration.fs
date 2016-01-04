@@ -28,7 +28,7 @@ open Freya.Core
 (* Lenses *)
 
 let private config_<'a> key =
-        FreyaMachineConfiguration.Data_
+        FreyaMachineConfiguration.data_
     >-> Map.value_ key
     >-> Option.mapIsomorphism box_<'a>
 

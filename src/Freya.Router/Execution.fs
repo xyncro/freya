@@ -146,7 +146,7 @@ let private (|Progression|_|) =
     function | Traversal (Invariant _, State (Position (p, k), Data _)) -> Some (k, p)
 
 let private (|Successors|_|) key (Compilation.Graph graph) =
-    match Graph.successors key graph with
+    match Graph.Nodes.successors key graph with
     | Some x -> Some x
     | _ -> None
 
@@ -160,7 +160,7 @@ let private (|Match|_|) parser pathAndQuery =
 (* Filtering *)
 
 let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
-    match Graph.tryFindNode key graph with
+    match Graph.Nodes.tryFind key graph with
     | Some (_, Compilation.Endpoints endpoints) ->
         endpoints
         |> List.filter (

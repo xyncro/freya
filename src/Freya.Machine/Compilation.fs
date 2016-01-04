@@ -38,8 +38,8 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineOperation option, FreyaMachineEdge option>
 
-    static member Graph_ =
-        (fun (Graph x) -> x), (fun x -> Graph x)
+    static member graph_ =
+        (fun (Graph x) -> x), (Graph)
 
  and MetadataGraph =
     | Metadata of Graph<FreyaMachineNode, FreyaMachineOperationMetadata option, FreyaMachineEdge option>
@@ -51,7 +51,7 @@ type CompilationResult =
 (* Lenses *)
 
 let private precompilationGraph_ =
-    Lens.ofIsomorphism Precompilation.PrecompilationGraph.Graph_
+    Lens.ofIsomorphism Precompilation.PrecompilationGraph.graph_
 
 (* Compilation
 
@@ -63,9 +63,9 @@ let private app f =
 
 let private build config graph =
     (fun graph ->
-        let g1 = Graph.mapNodes (app (fun (Compile n) -> n config)) graph
-        let g2 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
-        let g3 = Graph.mapNodes (app (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
+        let g1 = Graph.Nodes.map (app (fun (Compile n) -> n config)) graph
+        let g2 = Graph.Nodes.map (app (fun (FreyaMachineCompilation.Compiled (o, _)) -> o)) g1
+        let g3 = Graph.Nodes.map (app (fun (FreyaMachineCompilation.Compiled (_, m)) -> m)) g1
 
         Graph g2, Metadata g3) (graph ^. precompilationGraph_)
 

@@ -107,12 +107,15 @@ module State =
 [<RequireQualifiedAccess>]
 module Optic =
 
+    /// Gets a value from the Freya State using an Optic
     let inline get o =
         map (Optic.get o) State.get
 
+    /// Sets a value within the Freya State using an Optic
     let inline set o v =
         State.map (Optic.set o v)
 
+    /// Maps a value within the Freya State using an Optic
     let inline map o f =
         State.map (Optic.map o f)
 
@@ -143,6 +146,7 @@ module Pipeline =
     let inline infer (x: 'a) =
         defaults (x, Defaults)
 
+    /// Composes two pipelines, the second being executed iff the first returns Next
     let inline compose p1 p2 : FreyaPipeline =
         bind (function | Next -> (infer p2) | _ -> halt) (infer p1)
 
@@ -154,6 +158,7 @@ module Pipeline =
     only once per state (commonly once per request in the usual Freya
     usage model). *)
 
+/// Memoizes a Freya function, executing the function only once per request
 let memo<'a> (m: Freya<'a>) : Freya<'a> =
     let memo_ = Memo.id_<'a> (Guid.NewGuid ())
 

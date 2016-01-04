@@ -108,10 +108,10 @@ let private composeKeys k1 k2 =
     | _ -> Root
 
 let private addNode key =
-    Graph.addNode (key, Empty)
+    Graph.Nodes.add (key, Empty)
 
 let private updateNode key precedence predicate pipe =
-    Graph.mapNodes (fun key' node ->
+    Graph.Nodes.map (fun key' node ->
         match key = key' with
         | true ->
             match node with
@@ -121,7 +121,7 @@ let private updateNode key precedence predicate pipe =
             node)
 
 let private addEdge key1 key2 part graph =
-    Graph.addEdge (key1, key2,
+    Graph.Edges.add (key1, key2,
         Edge (UriTemplatePart.Matching.Match part)) graph
 
 let rec private addRoute current graph (precedence, route) =
@@ -132,7 +132,7 @@ let rec private addRoute current graph (precedence, route) =
 
         let graph =
             ((fun graph ->
-                (match Graph.containsNode last graph with
+                (match Graph.Nodes.contains last graph with
                  | false -> addNode last >> updateNode last precedence predicate pipe >> addEdge current last part
                  | _ -> updateNode last precedence predicate pipe) graph) ^% compilationGraph_) graph
 
@@ -143,7 +143,7 @@ let rec private addRoute current graph (precedence, route) =
 
         let graph =
             ((fun graph ->
-                (match Graph.containsNode next graph with
+                (match Graph.Nodes.contains next graph with
                  | false -> addNode next >> addEdge current next part
                  | _ -> id) graph) ^% compilationGraph_) graph
 

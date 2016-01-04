@@ -28,10 +28,10 @@ open Hekate
 
 (* Errors *)
 
-exception RecordingError of string
+exception RecordingException of string
 
 let private fail e =
-    raise (RecordingError e)
+    raise (RecordingException e)
 
 (* Types *)
 
@@ -39,10 +39,10 @@ type FreyaMachineRecord =
     { Graph: FreyaMachineGraphRecord
       Execution: FreyaMachineExecutionRecord }
 
-    static member Graph_ =
+    static member graph_ =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member Execution_ =
+    static member execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Graph *)
@@ -67,7 +67,7 @@ type FreyaMachineRecord =
  and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
-    static member Nodes_ =
+    static member nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
  and FreyaMachineExecutionNodeRecord =
@@ -94,7 +94,7 @@ let private (|Binary|_|) =
 
 let graphRecord (Compilation.Metadata meta) =
     { Nodes =
-        Graph.nodes meta
+        Graph.Nodes.toList meta
         |> List.map (fun (v, l) ->
             let id, t, c1, c2 =
                 match v, l with
@@ -108,7 +108,7 @@ let graphRecord (Compilation.Metadata meta) =
               Configurable = c1
               Configured = c2 })
       Edges =
-        Graph.edges meta
+        Graph.Edges.toList meta
         |> List.map (fun (Name v1, Name v2, l) ->
             { From =  v1
               To = v2
@@ -123,12 +123,12 @@ module Record =
 
     let private graph_ =
             Record.record_ "machine" 
-        >-> Option.mapLens FreyaMachineRecord.Graph_
+        >-> Option.mapLens FreyaMachineRecord.graph_
 
     let private execution_ =
             Record.record_ "machine" 
-        >-> Option.mapLens FreyaMachineRecord.Execution_
-        >?> FreyaMachineExecutionRecord.Nodes_
+        >-> Option.mapLens FreyaMachineRecord.execution_
+        >?> FreyaMachineExecutionRecord.nodes_
 
     (* Functions *)
 

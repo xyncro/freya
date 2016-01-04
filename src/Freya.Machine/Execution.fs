@@ -34,10 +34,10 @@ open Hekate
    should be small due to the verification system, we raise a specific
    error type in this instance. *)
 
-exception ExecutionError of string
+exception ExecutionException of string
 
 let private fail e =
-    raise (ExecutionError e)
+    raise (ExecutionException e)
 
 (* Types
 
@@ -53,14 +53,14 @@ type private ExecutionResult =
 type private Traversal =
     | Traversal of TraversalState
 
-    static member State_ =
-        (fun (Traversal x) -> x), (fun x -> Traversal x)
+    static member state_ =
+        (fun (Traversal x) -> x), (Traversal)
 
  and private TraversalState =
     | State of FreyaMachineNode
 
-    static member Node_ =
-        (fun (State x) -> x), (fun x -> State x)
+    static member node_ =
+        (fun (State x) -> x), (State)
 
 (* Constructors
 
@@ -76,11 +76,11 @@ let private createTraversal node =
    isomorphism until the traversal state is potentially expanded. *)
 
 let private compilationGraph_ =
-        Lens.ofIsomorphism Compilation.CompilationGraph.Graph_
+        Lens.ofIsomorphism Compilation.CompilationGraph.graph_
 
 let private node_ =
-        Lens.ofIsomorphism Traversal.State_
-    >-> TraversalState.Node_
+        Lens.ofIsomorphism Traversal.state_
+    >-> TraversalState.node_
 
 (* Patterns
 
@@ -109,10 +109,10 @@ let private (|Finish|_|) =
    to the sought node. *)
 
 let private tryFindNode node =
-    Graph.tryFindNode node
+        Graph.Nodes.tryFind node
 
 let private tryFindNext node op =
-        Graph.successors node
+        Graph.Nodes.successors node
      >> function | Some edges ->
                     List.tryPick (fun edge ->
                         match edge with
