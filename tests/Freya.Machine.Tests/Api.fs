@@ -51,7 +51,7 @@ open Freya.TodoBackend.Domain
 let id =
     freya {
         let! id = Freya.Optic.get (Route.atom_ "id")
-        return (Option.get >> Guid.Parse) id } |> Freya.Memo.wrap
+        return (Option.get >> Guid.Parse) id } |> Freya.memo
 
 (* Body Properties
 
@@ -60,10 +60,10 @@ let id =
    inferring the type to be returned from the context in which they're used. *)
 
 let newTodo =
-    Freya.Memo.wrap (body ())
+    Freya.memo (body ())
 
 let patchTodo =
-    Freya.Memo.wrap (body ())
+    Freya.memo (body ())
 
 (* Domain Operations
 
@@ -80,36 +80,36 @@ let lastModificationDate = DateTime (2015, 1, 1)
 
 let todoLastModified =
     freya {
-        return lastModificationDate } |> Freya.Memo.wrap
+        return lastModificationDate } |> Freya.memo
 
 let add =
     freya {
         let! newTodo = newTodo
-        return! (Freya.fromAsync addTodo) newTodo.Value } |> Freya.Memo.wrap
+        return! (Freya.fromAsync addTodo) newTodo.Value } |> Freya.memo
 
 let clear =
     freya {
-        return! (Freya.fromAsync clearTodos) () } |> Freya.Memo.wrap
+        return! (Freya.fromAsync clearTodos) () } |> Freya.memo
 
 let delete =
     freya {
         let! id = id
-        return! (Freya.fromAsync deleteTodo) id } |> Freya.Memo.wrap
+        return! (Freya.fromAsync deleteTodo) id } |> Freya.memo
 
 let get =
     freya {
         let! id = id
-        return! (Freya.fromAsync getTodo) id } |> Freya.Memo.wrap
+        return! (Freya.fromAsync getTodo) id } |> Freya.memo
 
 let list =
     freya {
-        return! (Freya.fromAsync listTodos) () } |> Freya.Memo.wrap
+        return! (Freya.fromAsync listTodos) () } |> Freya.memo
 
 let update =
     freya {
         let! id = id
         let! patchTodo = patchTodo
-        return! (Freya.fromAsync updateTodo) (id, patchTodo.Value) } |> Freya.Memo.wrap
+        return! (Freya.fromAsync updateTodo) (id, patchTodo.Value) } |> Freya.memo
 
 (* Machine
 
