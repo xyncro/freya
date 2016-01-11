@@ -48,7 +48,7 @@ type VerificationResult =
 (* Optics *)
 
 let private compilationGraph_ =
-    Lens.ofIsomorphism Compilation.CompilationGraph.Graph_
+    Lens.ofIsomorphism Compilation.CompilationGraph.graph_
 
 (* Projections
 
@@ -62,28 +62,28 @@ type private Projection =
 let private startNodes =
     Projection (
             flip (^.) compilationGraph_
-         >> Graph.nodes
+         >> Graph.Nodes.toList
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
             flip (^.) compilationGraph_
-         >> Graph.nodes
+         >> Graph.Nodes.toList
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
             flip (^.) compilationGraph_
-         >> Graph.nodes
+         >> Graph.Nodes.toList
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
             flip (^.) compilationGraph_
-         >> Graph.nodes
+         >> Graph.Nodes.toList
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))
 
@@ -104,19 +104,19 @@ let private size i =
 
 let private haveNoSuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some [] -> true
         | _ -> false)
 
 let private haveUnarySuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some s when List.length s = 1 -> true
         | _ -> false)
 
 let private haveBinarySuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some s when List.length s = 2 -> true
         | _ -> false)
 

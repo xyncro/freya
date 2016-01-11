@@ -36,10 +36,10 @@ open Freya.Core.Operators
 
    Errors in execution are dealt with separately.*)
 
-exception ReificationError of string
+exception ReificationException of string
 
 let private fail e =
-    raise (ReificationError e)
+    raise (ReificationException e)
 
 (* Run
 

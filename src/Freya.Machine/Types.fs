@@ -29,7 +29,7 @@ open Freya.Core
 type FreyaMachineConfiguration =
     { Data: Map<string, obj> }
 
-    static member Data_ =
+    static member data_ =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
 (* Nodes *)
@@ -100,10 +100,10 @@ type FreyaMachineSpecification =
     { Configuration: FreyaMachineConfiguration
       Extensions: Set<FreyaMachineExtension> }
 
-    static member Configuration_ =
+    static member configuration_ =
         (fun x -> x.Configuration), (fun c x -> { x with Configuration = c })
 
-    static member Extensions_ =
+    static member extensions_ =
         (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })
 
 (* Defaults

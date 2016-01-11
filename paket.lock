@@ -41,7 +41,7 @@ NUGET
       Aether (>= 8.0.2 < 9.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
     FParsec (1.0.2)
-    Hekate (2.0.1)
+    Hekate (3.0.0)
       Aether (>= 8.0.2 < 9.0.0)
 
 GROUP Build
