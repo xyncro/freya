@@ -26,7 +26,6 @@ open Arachne.Http
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
-open Freya.Machine
 
 (* Helpers *)
 
@@ -43,9 +42,7 @@ let private expires =
     Option.map Expires >> ((.=) Response.Headers.expires_)
 
 let private lastModified =
-       Configuration.get Properties.LastModified 
-    >> Option.map (fun x -> (LastModified >> Some) <!> x >>= (.=) Response.Headers.lastModified_)
-    >> Option.orElse (Freya.init ())
+    Option.map LastModified >> ((.=) Response.Headers.lastModified_)
 
 let private location =
     Option.map Location >> (.=) Response.Headers.location_
@@ -132,26 +129,26 @@ let private notImplemented =
      *> phrase "Not Implemented"
      *> date
 
-let private notModified config entityTag expiryDate =
+let private notModified modificationDate entityTag expiryDate =
         status 304
      *> phrase "Not Modified"
-     *> lastModified config
+     *> lastModified modificationDate
      *> date
      *> eTag entityTag
      *> expires expiryDate
 
-let private ok config entityTag expiryDate =
+let private ok modificationDate entityTag expiryDate =
         status 200
      *> phrase "OK"
-     *> lastModified config
+     *> lastModified modificationDate
      *> date
      *> eTag entityTag
      *> expires expiryDate
 
-let private options config entityTag expiryDate =
+let private options modificationDate entityTag expiryDate =
         status 200
      *> phrase "Options"
-     *> lastModified config
+     *> lastModified modificationDate
      *> date
      *> eTag entityTag
      *> expires expiryDate
@@ -204,6 +201,8 @@ let private uriTooLong =
 
 (* System operations *)
 
+open Freya.Machine
+
 let private systemOperation f =
     Some (Compile (fun config ->
         Compiled (Unary (f config), unconfigurable)))
@@ -224,18 +223,16 @@ module internal SystemOperation =
         getOptional Properties.ETag
 
     let private expires =
-        getOptional Properties.Expires 
+        getOptional Properties.Expires
+
+    let private lastModified =
+        getOptional Properties.LastModified
 
     let private location =
         getOptional Properties.Location
 
     let private methodsSupported =
         getMappedOrDefault id Defaults.methodsSupported Properties.MethodsSupported
-
-    let inline private (+*>) m1 m2 =
-        Freya.bind (fun f' ->
-            Freya.map (fun m' ->
-                f', m') m2) m1
 
     let created =
             location
@@ -254,19 +251,22 @@ module internal SystemOperation =
         >=> movedTemporarily
 
     let notModified config =
-            Freya.init (notModified config)
+            notModified
+        <!> lastModified config
         <*> eTag config
         <*> expires config
         >>= id
 
     let ok config =
-            Freya.init (ok config)
+            ok
+        <!> lastModified config
         <*> eTag config
         <*> expires config
         >>= id
 
     let options config =
-            Freya.init (options config)
+            options
+        <!> lastModified config
         <*> eTag config
         <*> expires config
         >>= id
