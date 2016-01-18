@@ -19,7 +19,7 @@
 //----------------------------------------------------------------------------
 
 [<RequireQualifiedAccess>]
-module internal Freya.Machine.Extensions.Http.Operations
+module Freya.Machine.Extensions.Http.Operations
 
 open System
 open Arachne.Http
@@ -55,81 +55,81 @@ let private status =
 
 (* Operations *)
 
-let private accepted =
+let accepted =
         status 202
      *> phrase "Accepted"
      *> date
 
-let private badRequest =
+let badRequest =
         status 400
      *> phrase "Bad Request"
      *> date
 
-let private conflict =
+let conflict =
         status 409
      *> phrase "Conflict"
      *> date
 
-let private created uri =
+let created uri =
         status 201
      *> phrase "Created"
      *> date
      *> location uri
 
-let private forbidden =
+let forbidden =
         status 403
      *> phrase "Forbidden"
      *> date
 
-let private gone =
+let gone =
         status 410 
      *> phrase "Gone"
      *> date
 
-let private methodNotAllowed allowedMethods =
+let methodNotAllowed allowedMethods =
         status 405
      *> phrase "Method Not Allowed"
      *> allow allowedMethods
      *> date
 
-let private movedPermanently uri =
+let movedPermanently uri =
         status 301
      *> phrase "Moved Permanently"
      *> date
      *> location uri
 
-let private movedTemporarily uri =
+let movedTemporarily uri =
         status 307
      *> phrase "Moved Temporarily"
      *> date
      *> location uri
 
-let private multipleRepresentations =
+let multipleRepresentations =
         status 310
      *> phrase "Multiple Representations"
      *> date
 
-let private noContent =
+let noContent =
         status 204
      *> phrase "No Content"
      *> date
 
-let private notAcceptable =
+let notAcceptable =
         status 406
      *> phrase "Not Acceptable"
      *> date
 
-let private notFound =
+let notFound =
         status 404
      *> phrase "Not Found"
      *> date
 
-let private notImplemented =
+let notImplemented =
         status 501
      *> phrase "Not Implemented"
      *> date
 
-let private notModified modificationDate entityTag expiryDate =
+let notModified modificationDate entityTag expiryDate =
         status 304
      *> phrase "Not Modified"
      *> lastModified modificationDate
@@ -137,7 +137,7 @@ let private notModified modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
-let private ok modificationDate entityTag expiryDate =
+let ok modificationDate entityTag expiryDate =
         status 200
      *> phrase "OK"
      *> lastModified modificationDate
@@ -145,7 +145,7 @@ let private ok modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
-let private options modificationDate entityTag expiryDate =
+let options modificationDate entityTag expiryDate =
         status 200
      *> phrase "Options"
      *> lastModified modificationDate
@@ -153,48 +153,48 @@ let private options modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
-let private preconditionFailed =
+let preconditionFailed =
         status 412
      *> phrase "Precondition Failed"
      *> date
 
-let private requestEntityTooLarge =
+let requestEntityTooLarge =
         status 413
      *> phrase "Request Entity Too Large"
      *> date
 
-let private seeOther uri =
+let seeOther uri =
         status 303
      *> phrase "See Other"
      *> date
      *> location uri
 
-let private serviceUnavailable =
+let serviceUnavailable =
         status 503
      *> phrase "Service Unavailable"
      *> date
 
-let private unauthorized =
+let unauthorized =
         status 401
      *> phrase "Unauthorized"
      *> date
 
-let private unknownMethod =
+let unknownMethod =
         status 501
      *> phrase "Unknown Method"
      *> date
 
-let private unprocessableEntity =
+let unprocessableEntity =
         status 422
      *> phrase "Unprocessable Entity"
      *> date
 
-let private unsupportedMediaType =
+let unsupportedMediaType =
         status 415
      *> phrase "UnsupportedMediaType"
      *> date
 
-let private uriTooLong =
+let uriTooLong =
         status 414
      *> phrase "URI Too Long"
      *> date
@@ -290,7 +290,7 @@ module internal SystemOperation =
 
 open Freya.Machine.Operators
 
-let operations =
+let internal operations =
     [ Operation Operations.Accepted                    =.        SystemOperation.noConfig accepted
       Operation Operations.BadRequest                  =.        SystemOperation.noConfig badRequest
       Operation Operations.Conflict                    =.        SystemOperation.noConfig conflict
