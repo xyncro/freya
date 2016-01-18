@@ -40,9 +40,7 @@ let private eTag =
     Option.map ETag >> ((.=) Response.Headers.eTag_)
 
 let private expires =
-       Configuration.get Properties.Expires 
-    >> Option.map (fun x -> (Expires >> Some) <!> x >>= (.=) Response.Headers.expires_)
-    >> Option.orElse (Freya.init ())
+    Option.map Expires >> ((.=) Response.Headers.expires_)
 
 let private lastModified =
        Configuration.get Properties.LastModified 
@@ -134,29 +132,29 @@ let private notImplemented =
      *> phrase "Not Implemented"
      *> date
 
-let private notModified config entityTag =
+let private notModified config entityTag expiryDate =
         status 304
      *> phrase "Not Modified"
      *> lastModified config
      *> date
      *> eTag entityTag
-     *> expires config
+     *> expires expiryDate
 
-let private ok config entityTag =
+let private ok config entityTag expiryDate =
         status 200
      *> phrase "OK"
      *> lastModified config
      *> date
      *> eTag entityTag
-     *> expires config
+     *> expires expiryDate
 
-let private options config entityTag =
+let private options config entityTag expiryDate =
         status 200
      *> phrase "Options"
      *> lastModified config
      *> date
      *> eTag entityTag
-     *> expires config
+     *> expires expiryDate
 
 let private preconditionFailed =
         status 412
@@ -225,11 +223,19 @@ module internal SystemOperation =
     let private eTag =
         getOptional Properties.ETag
 
+    let private expires =
+        getOptional Properties.Expires 
+
     let private location =
         getOptional Properties.Location
 
     let private methodsSupported =
         getMappedOrDefault id Defaults.methodsSupported Properties.MethodsSupported
+
+    let inline private (+*>) m1 m2 =
+        Freya.bind (fun f' ->
+            Freya.map (fun m' ->
+                f', m') m2) m1
 
     let created =
             location
@@ -248,16 +254,22 @@ module internal SystemOperation =
         >=> movedTemporarily
 
     let notModified config =
-            eTag config
-        >>= notModified config
+            Freya.init (notModified config)
+        <*> eTag config
+        <*> expires config
+        >>= id
 
     let ok config =
-            eTag config
-        >>= ok config
+            Freya.init (ok config)
+        <*> eTag config
+        <*> expires config
+        >>= id
 
     let options config =
-            eTag config
-        >>= options config
+            Freya.init (options config)
+        <*> eTag config
+        <*> expires config
+        >>= id
 
     let seeOther =
             location
