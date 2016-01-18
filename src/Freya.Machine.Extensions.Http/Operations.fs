@@ -37,9 +37,7 @@ let private date =
     (.=) Response.Headers.date_ (Some (Date.Date DateTime.UtcNow))
 
 let private eTag =
-       Configuration.get Properties.ETag
-    >> Option.map (fun x -> (ETag >> Some) <!> x >>= (.=) Response.Headers.eTag_)
-    >> Option.orElse (Freya.init ())
+    Option.map ETag >> ((.=) Response.Headers.eTag_)
 
 let private expires =
        Configuration.get Properties.Expires 
@@ -136,28 +134,28 @@ let private notImplemented =
      *> phrase "Not Implemented"
      *> date
 
-let private notModified config =
+let private notModified config entityTag =
         status 304
      *> phrase "Not Modified"
      *> lastModified config
      *> date
-     *> eTag config
+     *> eTag entityTag
      *> expires config
 
-let private ok config =
+let private ok config entityTag =
         status 200
      *> phrase "OK"
      *> lastModified config
      *> date
-     *> eTag config
+     *> eTag entityTag
      *> expires config
 
-let private options config =
+let private options config entityTag =
         status 200
      *> phrase "Options"
      *> lastModified config
      *> date
-     *> eTag config
+     *> eTag entityTag
      *> expires config
 
 let private preconditionFailed =
@@ -221,27 +219,48 @@ module internal SystemOperation =
         >> Option.map f
         >> Option.orElse (defaultValue)
 
-    let private getOptional =
-        getMappedOrDefault ((<!>) Some) (Freya.init None)
+    let private getOptional key =
+        getMappedOrDefault ((<!>) Some) (Freya.init None) key
+
+    let private eTag =
+        getOptional Properties.ETag
+
+    let private location =
+        getOptional Properties.Location
+
+    let private methodsSupported =
+        getMappedOrDefault id Defaults.methodsSupported Properties.MethodsSupported
 
     let created =
-            getOptional Properties.Location
+            location
         >=> created
 
     let methodNotAllowed =
-            getMappedOrDefault id Defaults.methodsSupported Properties.MethodsSupported
+            methodsSupported
         >=> methodNotAllowed
 
     let movedPermanently =
-            getOptional Properties.Location
+            location
         >=> movedPermanently
 
     let movedTemporarily =
-            getOptional Properties.Location
+            location
         >=> movedTemporarily
 
+    let notModified config =
+            eTag config
+        >>= notModified config
+
+    let ok config =
+            eTag config
+        >>= ok config
+
+    let options config =
+            eTag config
+        >>= options config
+
     let seeOther =
-            getOptional Properties.Location
+            location
         >=> seeOther
 
 (* Graph *)
@@ -263,9 +282,9 @@ let operations =
       Operation Operations.NotAcceptable               =.        systemOperation (ignoreConfig notAcceptable)
       Operation Operations.NotFound                    =.        systemOperation (ignoreConfig notFound)
       Operation Operations.NotImplemented              =.        systemOperation (ignoreConfig notImplemented)
-      Operation Operations.NotModified                 =.        systemOperation notModified
-      Operation Operations.OK                          =.        systemOperation ok
-      Operation Operations.Options                     =.        systemOperation options
+      Operation Operations.NotModified                 =.        systemOperation SystemOperation.notModified
+      Operation Operations.OK                          =.        systemOperation SystemOperation.ok
+      Operation Operations.Options                     =.        systemOperation SystemOperation.options
       Operation Operations.PreconditionFailed          =.        systemOperation (ignoreConfig preconditionFailed)
       Operation Operations.RequestEntityTooLarge       =.        systemOperation (ignoreConfig requestEntityTooLarge)
       Operation Operations.SeeOther                    =.        systemOperation SystemOperation.seeOther
