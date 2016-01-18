@@ -70,17 +70,19 @@ let private systemOperation f =
     Some (Compile (fun config ->
         Compiled (Unary (f config), unconfigurable)))
 
-let private accepted _ =
+let inline private ignoreConfig f _ x = f x
+
+let private accepted =
         status 202
      *> phrase "Accepted"
      *> date
 
-let private badRequest _ =
+let private badRequest =
         status 400
      *> phrase "Bad Request"
      *> date
 
-let private conflict _ =
+let private conflict =
         status 409
      *> phrase "Conflict"
      *> date
@@ -91,12 +93,12 @@ let private created config =
      *> date
      *> location config
 
-let private forbidden _ =
+let private forbidden =
         status 403
      *> phrase "Forbidden"
      *> date
 
-let private gone _ =
+let private gone =
         status 410 
      *> phrase "Gone"
      *> date
@@ -119,27 +121,27 @@ let private movedTemporarily config =
      *> date
      *> location config
 
-let private multipleRepresentations _ =
+let private multipleRepresentations =
         status 310
      *> phrase "Multiple Representations"
      *> date
 
-let private noContent _ =
+let private noContent =
         status 204
      *> phrase "No Content"
      *> date
 
-let private notAcceptable _ =
+let private notAcceptable =
         status 406
      *> phrase "Not Acceptable"
      *> date
 
-let private notFound _ =
+let private notFound =
         status 404
      *> phrase "Not Found"
      *> date
 
-let private notImplemented _ =
+let private notImplemented =
         status 501
      *> phrase "Not Implemented"
      *> date
@@ -168,12 +170,12 @@ let private options config =
      *> eTag config
      *> expires config
 
-let private preconditionFailed _ =
+let private preconditionFailed =
         status 412
      *> phrase "Precondition Failed"
      *> date
 
-let private requestEntityTooLarge _ =
+let private requestEntityTooLarge =
         status 413
      *> phrase "Request Entity Too Large"
      *> date
@@ -184,32 +186,32 @@ let private seeOther config =
      *> date
      *> location config
 
-let private serviceUnavailable _ =
+let private serviceUnavailable =
         status 503
      *> phrase "Service Unavailable"
      *> date
 
-let private unauthorized _ =
+let private unauthorized =
         status 401
      *> phrase "Unauthorized"
      *> date
 
-let private unknownMethod _ =
+let private unknownMethod =
         status 501
      *> phrase "Unknown Method"
      *> date
 
-let private unprocessableEntity _ =
+let private unprocessableEntity =
         status 422
      *> phrase "Unprocessable Entity"
      *> date
 
-let private unsupportedMediaType _ =
+let private unsupportedMediaType =
         status 415
      *> phrase "UnsupportedMediaType"
      *> date
 
-let private uriTooLong _ =
+let private uriTooLong =
         status 414
      *> phrase "URI Too Long"
      *> date
@@ -219,32 +221,32 @@ let private uriTooLong _ =
 open Freya.Machine.Operators
 
 let operations =
-    [ Operation Operations.Accepted                    =.        systemOperation accepted
-      Operation Operations.BadRequest                  =.        systemOperation badRequest
-      Operation Operations.Conflict                    =.        systemOperation conflict
+    [ Operation Operations.Accepted                    =.        systemOperation (ignoreConfig accepted)
+      Operation Operations.BadRequest                  =.        systemOperation (ignoreConfig badRequest)
+      Operation Operations.Conflict                    =.        systemOperation (ignoreConfig conflict)
       Operation Operations.Created                     =.        systemOperation created
-      Operation Operations.Forbidden                   =.        systemOperation forbidden
-      Operation Operations.Gone                        =.        systemOperation gone
+      Operation Operations.Forbidden                   =.        systemOperation (ignoreConfig forbidden)
+      Operation Operations.Gone                        =.        systemOperation (ignoreConfig gone)
       Operation Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
       Operation Operations.MovedPermanently            =.        systemOperation movedPermanently
       Operation Operations.MovedTemporarily            =.        systemOperation movedTemporarily
-      Operation Operations.MultipleRepresentations     =.        systemOperation multipleRepresentations
-      Operation Operations.NoContent                   =.        systemOperation noContent
-      Operation Operations.NotAcceptable               =.        systemOperation notAcceptable
-      Operation Operations.NotFound                    =.        systemOperation notFound
-      Operation Operations.NotImplemented              =.        systemOperation notImplemented
+      Operation Operations.MultipleRepresentations     =.        systemOperation (ignoreConfig multipleRepresentations)
+      Operation Operations.NoContent                   =.        systemOperation (ignoreConfig noContent)
+      Operation Operations.NotAcceptable               =.        systemOperation (ignoreConfig notAcceptable)
+      Operation Operations.NotFound                    =.        systemOperation (ignoreConfig notFound)
+      Operation Operations.NotImplemented              =.        systemOperation (ignoreConfig notImplemented)
       Operation Operations.NotModified                 =.        systemOperation notModified
       Operation Operations.OK                          =.        systemOperation ok
       Operation Operations.Options                     =.        systemOperation options
-      Operation Operations.PreconditionFailed          =.        systemOperation preconditionFailed
-      Operation Operations.RequestEntityTooLarge       =.        systemOperation requestEntityTooLarge
+      Operation Operations.PreconditionFailed          =.        systemOperation (ignoreConfig preconditionFailed)
+      Operation Operations.RequestEntityTooLarge       =.        systemOperation (ignoreConfig requestEntityTooLarge)
       Operation Operations.SeeOther                    =.        systemOperation seeOther
-      Operation Operations.ServiceUnavailable          =.        systemOperation serviceUnavailable
-      Operation Operations.Unauthorized                =.        systemOperation unauthorized
-      Operation Operations.UnknownMethod               =.        systemOperation unknownMethod
-      Operation Operations.UnprocessableEntity         =.        systemOperation unprocessableEntity
-      Operation Operations.UnsupportedMediaType        =.        systemOperation unsupportedMediaType
-      Operation Operations.UriTooLong                  =.        systemOperation uriTooLong
+      Operation Operations.ServiceUnavailable          =.        systemOperation (ignoreConfig serviceUnavailable)
+      Operation Operations.Unauthorized                =.        systemOperation (ignoreConfig unauthorized)
+      Operation Operations.UnknownMethod               =.        systemOperation (ignoreConfig unknownMethod)
+      Operation Operations.UnprocessableEntity         =.        systemOperation (ignoreConfig unprocessableEntity)
+      Operation Operations.UnsupportedMediaType        =.        systemOperation (ignoreConfig unsupportedMediaType)
+      Operation Operations.UriTooLong                  =.        systemOperation (ignoreConfig uriTooLong)
 
       Operation Operations.Accepted                    >.        Operation Handlers.Accepted
       Operation Operations.BadRequest                  >.        Operation Handlers.BadRequest
