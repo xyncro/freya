@@ -31,9 +31,7 @@ open Freya.Machine
 (* Helpers *)
 
 let private allow =
-       Configuration.get Properties.MethodsSupported
-    >> Option.map (fun x -> (.=) Response.Headers.allow_ =<< ((Allow >> Some) <!> x))
-    >> Option.orElse ((.=) Response.Headers.allow_ =<< ((Allow >> Some) <!> Defaults.methodsSupported))
+    Allow >> Some >> (.=) Response.Headers.allow_
 
 let private date =
     (.=) Response.Headers.date_ (Some (Date.Date DateTime.UtcNow))
@@ -95,10 +93,10 @@ let private gone =
      *> phrase "Gone"
      *> date
 
-let private methodNotAllowed config =
+let private methodNotAllowed allowedMethods =
         status 405
      *> phrase "Method Not Allowed"
-     *> allow config
+     *> allow allowedMethods
      *> date
 
 let private movedPermanently uri =
@@ -218,22 +216,33 @@ let inline private ignoreConfig f _ x = f x
 
 module internal SystemOperation =
 
-    let private location f =
-           Configuration.get Properties.Location
-        >> Option.map (fun x -> Some <!> x >>= f)
-        >> Option.orElse (Freya.init ())
+    let private getMappedOrDefault f defaultValue key =
+           Configuration.get key
+        >> Option.map f
+        >> Option.orElse (defaultValue)
+
+    let private getOptional =
+        getMappedOrDefault ((<!>) Some) (Freya.init None)
 
     let created =
-        location created
+            getOptional Properties.Location
+        >=> created
+
+    let methodNotAllowed =
+            getMappedOrDefault id Defaults.methodsSupported Properties.MethodsSupported
+        >=> methodNotAllowed
 
     let movedPermanently =
-        location movedPermanently
+            getOptional Properties.Location
+        >=> movedPermanently
 
     let movedTemporarily =
-        location movedTemporarily
+            getOptional Properties.Location
+        >=> movedTemporarily
 
     let seeOther =
-        location seeOther
+            getOptional Properties.Location
+        >=> seeOther
 
 (* Graph *)
 
@@ -246,7 +255,7 @@ let operations =
       Operation Operations.Created                     =.        systemOperation SystemOperation.created
       Operation Operations.Forbidden                   =.        systemOperation (ignoreConfig forbidden)
       Operation Operations.Gone                        =.        systemOperation (ignoreConfig gone)
-      Operation Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
+      Operation Operations.MethodNotAllowed            =.        systemOperation SystemOperation.methodNotAllowed
       Operation Operations.MovedPermanently            =.        systemOperation SystemOperation.movedPermanently
       Operation Operations.MovedTemporarily            =.        systemOperation SystemOperation.movedTemporarily
       Operation Operations.MultipleRepresentations     =.        systemOperation (ignoreConfig multipleRepresentations)
