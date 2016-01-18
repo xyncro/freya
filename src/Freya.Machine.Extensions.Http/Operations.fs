@@ -54,9 +54,7 @@ let private lastModified =
     >> Option.orElse (Freya.init ())
 
 let private location =
-       Configuration.get Properties.Location
-    >> Option.map (fun x -> (Location >> Some) <!> x >>= (.=) Response.Headers.location_)
-    >> Option.orElse (Freya.init ())
+    Option.map Location >> (.=) Response.Headers.location_
 
 let private phrase =
     Some >> (.=) Response.reasonPhrase_
@@ -65,12 +63,6 @@ let private status =
     Some >> (.=) Response.statusCode_
 
 (* Operations *)
-
-let private systemOperation f =
-    Some (Compile (fun config ->
-        Compiled (Unary (f config), unconfigurable)))
-
-let inline private ignoreConfig f _ x = f x
 
 let private accepted =
         status 202
@@ -87,11 +79,11 @@ let private conflict =
      *> phrase "Conflict"
      *> date
 
-let private created config =
+let private created uri =
         status 201
      *> phrase "Created"
      *> date
-     *> location config
+     *> location uri
 
 let private forbidden =
         status 403
@@ -109,17 +101,17 @@ let private methodNotAllowed config =
      *> allow config
      *> date
 
-let private movedPermanently config =
+let private movedPermanently uri =
         status 301
      *> phrase "Moved Permanently"
      *> date
-     *> location config
+     *> location uri
 
-let private movedTemporarily config =
+let private movedTemporarily uri =
         status 307
      *> phrase "Moved Temporarily"
      *> date
-     *> location config
+     *> location uri
 
 let private multipleRepresentations =
         status 310
@@ -180,11 +172,11 @@ let private requestEntityTooLarge =
      *> phrase "Request Entity Too Large"
      *> date
 
-let private seeOther config =
+let private seeOther uri =
         status 303
      *> phrase "See Other"
      *> date
-     *> location config
+     *> location uri
 
 let private serviceUnavailable =
         status 503
@@ -216,6 +208,33 @@ let private uriTooLong =
      *> phrase "URI Too Long"
      *> date
 
+(* System operations *)
+
+let private systemOperation f =
+    Some (Compile (fun config ->
+        Compiled (Unary (f config), unconfigurable)))
+
+let inline private ignoreConfig f _ x = f x
+
+module internal SystemOperation =
+
+    let private location f =
+           Configuration.get Properties.Location
+        >> Option.map (fun x -> Some <!> x >>= f)
+        >> Option.orElse (Freya.init ())
+
+    let created =
+        location created
+
+    let movedPermanently =
+        location movedPermanently
+
+    let movedTemporarily =
+        location movedTemporarily
+
+    let seeOther =
+        location seeOther
+
 (* Graph *)
 
 open Freya.Machine.Operators
@@ -224,12 +243,12 @@ let operations =
     [ Operation Operations.Accepted                    =.        systemOperation (ignoreConfig accepted)
       Operation Operations.BadRequest                  =.        systemOperation (ignoreConfig badRequest)
       Operation Operations.Conflict                    =.        systemOperation (ignoreConfig conflict)
-      Operation Operations.Created                     =.        systemOperation created
+      Operation Operations.Created                     =.        systemOperation SystemOperation.created
       Operation Operations.Forbidden                   =.        systemOperation (ignoreConfig forbidden)
       Operation Operations.Gone                        =.        systemOperation (ignoreConfig gone)
       Operation Operations.MethodNotAllowed            =.        systemOperation methodNotAllowed
-      Operation Operations.MovedPermanently            =.        systemOperation movedPermanently
-      Operation Operations.MovedTemporarily            =.        systemOperation movedTemporarily
+      Operation Operations.MovedPermanently            =.        systemOperation SystemOperation.movedPermanently
+      Operation Operations.MovedTemporarily            =.        systemOperation SystemOperation.movedTemporarily
       Operation Operations.MultipleRepresentations     =.        systemOperation (ignoreConfig multipleRepresentations)
       Operation Operations.NoContent                   =.        systemOperation (ignoreConfig noContent)
       Operation Operations.NotAcceptable               =.        systemOperation (ignoreConfig notAcceptable)
@@ -240,7 +259,7 @@ let operations =
       Operation Operations.Options                     =.        systemOperation options
       Operation Operations.PreconditionFailed          =.        systemOperation (ignoreConfig preconditionFailed)
       Operation Operations.RequestEntityTooLarge       =.        systemOperation (ignoreConfig requestEntityTooLarge)
-      Operation Operations.SeeOther                    =.        systemOperation seeOther
+      Operation Operations.SeeOther                    =.        systemOperation SystemOperation.seeOther
       Operation Operations.ServiceUnavailable          =.        systemOperation (ignoreConfig serviceUnavailable)
       Operation Operations.Unauthorized                =.        systemOperation (ignoreConfig unauthorized)
       Operation Operations.UnknownMethod               =.        systemOperation (ignoreConfig unknownMethod)
