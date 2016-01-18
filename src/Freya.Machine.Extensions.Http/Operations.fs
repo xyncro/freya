@@ -33,16 +33,16 @@ let private allow =
     Allow >> Some >> (.=) Response.Headers.allow_
 
 let private date =
-    (.=) Response.Headers.date_ (Some (Date.Date DateTime.UtcNow))
+    Date.Date >> Some >> (.=) Response.Headers.date_ <| DateTime.UtcNow
 
 let private eTag =
-    Option.map ETag >> ((.=) Response.Headers.eTag_)
+    Option.map ETag >> (.=) Response.Headers.eTag_
 
 let private expires =
-    Option.map Expires >> ((.=) Response.Headers.expires_)
+    Option.map Expires >> (.=) Response.Headers.expires_
 
 let private lastModified =
-    Option.map LastModified >> ((.=) Response.Headers.lastModified_)
+    Option.map LastModified >> (.=) Response.Headers.lastModified_
 
 let private location =
     Option.map Location >> (.=) Response.Headers.location_
@@ -203,13 +203,11 @@ let private uriTooLong =
 
 open Freya.Machine
 
-let private systemOperation f =
-    Some (Compile (fun config ->
-        Compiled (Unary (f config), unconfigurable)))
-
-let inline private ignoreConfig f _ x = f x
-
 module internal SystemOperation =
+
+    let private systemOperation f =
+        Some (Compile (fun config ->
+            Compiled (Unary (f config), unconfigurable)))
 
     let private getMappedOrDefault f defaultValue key =
            Configuration.get key
@@ -237,75 +235,88 @@ module internal SystemOperation =
     let created =
             location
         >=> created
+         |> systemOperation
 
     let methodNotAllowed =
             methodsSupported
         >=> methodNotAllowed
+         |> systemOperation
 
     let movedPermanently =
             location
         >=> movedPermanently
+         |> systemOperation
 
     let movedTemporarily =
             location
         >=> movedTemporarily
+         |> systemOperation
 
-    let notModified config =
+    let notModified =
+        (fun config ->
             notModified
         <!> lastModified config
         <*> eTag config
         <*> expires config
-        >>= id
+        >>= id)
+         |> systemOperation
 
-    let ok config =
+    let ok =
+        (fun config ->
             ok
         <!> lastModified config
         <*> eTag config
         <*> expires config
-        >>= id
+        >>= id)
+         |> systemOperation
 
-    let options config =
+    let options =
+        (fun config ->
             options
         <!> lastModified config
         <*> eTag config
         <*> expires config
-        >>= id
+        >>= id)
+         |> systemOperation
 
     let seeOther =
             location
         >=> seeOther
+         |> systemOperation
+
+    let noConfig x = systemOperation (fun _ -> x)
 
 (* Graph *)
 
 open Freya.Machine.Operators
 
 let operations =
-    [ Operation Operations.Accepted                    =.        systemOperation (ignoreConfig accepted)
-      Operation Operations.BadRequest                  =.        systemOperation (ignoreConfig badRequest)
-      Operation Operations.Conflict                    =.        systemOperation (ignoreConfig conflict)
-      Operation Operations.Created                     =.        systemOperation SystemOperation.created
-      Operation Operations.Forbidden                   =.        systemOperation (ignoreConfig forbidden)
-      Operation Operations.Gone                        =.        systemOperation (ignoreConfig gone)
-      Operation Operations.MethodNotAllowed            =.        systemOperation SystemOperation.methodNotAllowed
-      Operation Operations.MovedPermanently            =.        systemOperation SystemOperation.movedPermanently
-      Operation Operations.MovedTemporarily            =.        systemOperation SystemOperation.movedTemporarily
-      Operation Operations.MultipleRepresentations     =.        systemOperation (ignoreConfig multipleRepresentations)
-      Operation Operations.NoContent                   =.        systemOperation (ignoreConfig noContent)
-      Operation Operations.NotAcceptable               =.        systemOperation (ignoreConfig notAcceptable)
-      Operation Operations.NotFound                    =.        systemOperation (ignoreConfig notFound)
-      Operation Operations.NotImplemented              =.        systemOperation (ignoreConfig notImplemented)
-      Operation Operations.NotModified                 =.        systemOperation SystemOperation.notModified
-      Operation Operations.OK                          =.        systemOperation SystemOperation.ok
-      Operation Operations.Options                     =.        systemOperation SystemOperation.options
-      Operation Operations.PreconditionFailed          =.        systemOperation (ignoreConfig preconditionFailed)
-      Operation Operations.RequestEntityTooLarge       =.        systemOperation (ignoreConfig requestEntityTooLarge)
-      Operation Operations.SeeOther                    =.        systemOperation SystemOperation.seeOther
-      Operation Operations.ServiceUnavailable          =.        systemOperation (ignoreConfig serviceUnavailable)
-      Operation Operations.Unauthorized                =.        systemOperation (ignoreConfig unauthorized)
-      Operation Operations.UnknownMethod               =.        systemOperation (ignoreConfig unknownMethod)
-      Operation Operations.UnprocessableEntity         =.        systemOperation (ignoreConfig unprocessableEntity)
-      Operation Operations.UnsupportedMediaType        =.        systemOperation (ignoreConfig unsupportedMediaType)
-      Operation Operations.UriTooLong                  =.        systemOperation (ignoreConfig uriTooLong)
+    [ Operation Operations.Accepted                    =.        SystemOperation.noConfig accepted
+      Operation Operations.BadRequest                  =.        SystemOperation.noConfig badRequest
+      Operation Operations.Conflict                    =.        SystemOperation.noConfig conflict
+      Operation Operations.Created                     =.        SystemOperation.created
+      Operation Operations.Forbidden                   =.        SystemOperation.noConfig forbidden
+      Operation Operations.Gone                        =.        SystemOperation.noConfig gone
+      Operation Operations.MethodNotAllowed            =.        SystemOperation.methodNotAllowed
+      Operation Operations.MovedPermanently            =.        SystemOperation.movedPermanently
+      Operation Operations.MovedTemporarily            =.        SystemOperation.movedTemporarily
+      Operation Operations.MultipleRepresentations     =.        SystemOperation.noConfig multipleRepresentations
+      Operation Operations.NoContent                   =.        SystemOperation.noConfig noContent
+      Operation Operations.NotAcceptable               =.        SystemOperation.noConfig notAcceptable
+      Operation Operations.NotFound                    =.        SystemOperation.noConfig notFound
+      Operation Operations.NotImplemented              =.        SystemOperation.noConfig notImplemented
+      Operation Operations.NotModified                 =.        SystemOperation.notModified
+      Operation Operations.OK                          =.        SystemOperation.ok
+      Operation Operations.Options                     =.        SystemOperation.options
+      Operation Operations.PreconditionFailed          =.        SystemOperation.noConfig preconditionFailed
+      Operation Operations.RequestEntityTooLarge       =.        SystemOperation.noConfig requestEntityTooLarge
+      Operation Operations.SeeOther                    =.        SystemOperation.seeOther
+      Operation Operations.ServiceUnavailable          =.        SystemOperation.noConfig serviceUnavailable
+      Operation Operations.Unauthorized                =.        SystemOperation.noConfig unauthorized
+      Operation Operations.UnknownMethod               =.        SystemOperation.noConfig unknownMethod
+      Operation Operations.UnprocessableEntity         =.        SystemOperation.noConfig unprocessableEntity
+      Operation Operations.UnsupportedMediaType        =.        SystemOperation.noConfig unsupportedMediaType
+      Operation Operations.UriTooLong                  =.        SystemOperation.noConfig uriTooLong
 
       Operation Operations.Accepted                    >.        Operation Handlers.Accepted
       Operation Operations.BadRequest                  >.        Operation Handlers.BadRequest
