@@ -18,6 +18,7 @@
 //
 //----------------------------------------------------------------------------
 
+/// Provides basic http operations for reuse also without machine graph.
 [<RequireQualifiedAccess>]
 module Freya.Machine.Extensions.Http.Operations
 
@@ -55,80 +56,96 @@ let private status =
 
 (* Operations *)
 
+/// Sets status code to 202, reason phrase to 'Accepted', and date to UTC now.
 let accepted =
         status 202
      *> phrase "Accepted"
      *> date
 
+/// Sets status code to 404, reason phrase to 'Bad Request', and date to UTC now.
 let badRequest =
         status 400
      *> phrase "Bad Request"
      *> date
 
+/// Sets status code to 409, reason phrase to 'Conflict', and date to UTC now.
 let conflict =
         status 409
      *> phrase "Conflict"
      *> date
 
+/// Sets status code to 201, reason phrase to 'Created', location to given uri, and date to UTC now.
 let created uri =
         status 201
      *> phrase "Created"
      *> date
      *> location uri
 
+/// Sets status code to 403, reason phrase to 'Forbidden', and date to UTC now.
 let forbidden =
         status 403
      *> phrase "Forbidden"
      *> date
 
+/// Sets status code to 410, reason phrase to 'Gone', and date to UTC now.
 let gone =
         status 410 
      *> phrase "Gone"
      *> date
 
+/// Sets status code to 405, reason phrase to 'Method Not Allowed', allow to given allowed methods, and date to UTC now.
 let methodNotAllowed allowedMethods =
         status 405
      *> phrase "Method Not Allowed"
      *> allow allowedMethods
      *> date
 
+/// Sets status code to 301, reason phrase to 'Moved Permanently', location to given uri, and date to UTC now.
 let movedPermanently uri =
         status 301
      *> phrase "Moved Permanently"
      *> date
      *> location uri
 
+/// Sets status code to 307, reason phrase to 'Moved Temporarily', location to given uri, and date to UTC now.
 let movedTemporarily uri =
         status 307
      *> phrase "Moved Temporarily"
      *> date
      *> location uri
 
+/// Sets status code to 310, reason phrase to 'Multiple Representations', and date to UTC now.
 let multipleRepresentations =
         status 310
      *> phrase "Multiple Representations"
      *> date
 
+/// Sets status code to 204, reason phrase to 'No Content', and date to UTC now.
 let noContent =
         status 204
      *> phrase "No Content"
      *> date
 
+/// Sets status code to 406, reason phrase to 'Not Acceptable', and date to UTC now.
 let notAcceptable =
         status 406
      *> phrase "Not Acceptable"
      *> date
 
+/// Sets status code to 404, reason phrase to 'Not Found', and date to UTC now.
 let notFound =
         status 404
      *> phrase "Not Found"
      *> date
 
+/// Sets status code to 501, reason phrase to 'Not Implemented', and date to UTC now.
 let notImplemented =
         status 501
      *> phrase "Not Implemented"
      *> date
 
+/// Sets status code to 304, reason phrase to 'Not Modified', lastModified to given modification date,
+/// eTag to given entity tag, expires to given expiry date, and date to UTC now.
 let notModified modificationDate entityTag expiryDate =
         status 304
      *> phrase "Not Modified"
@@ -137,6 +154,8 @@ let notModified modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
+/// Sets status code to 200, reason phrase to 'OK', lastModified to given modification date,
+/// eTag to given entity tag, expires to given expiry date, and date to UTC now.
 let ok modificationDate entityTag expiryDate =
         status 200
      *> phrase "OK"
@@ -145,6 +164,8 @@ let ok modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
+/// Sets status code to 200, reason phrase to 'Options', lastModified to given modification date,
+/// eTag to given entity tag, expires to given expiry date, and date to UTC now.
 let options modificationDate entityTag expiryDate =
         status 200
      *> phrase "Options"
@@ -153,47 +174,56 @@ let options modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
+/// Sets status code to 412, reason phrase to 'Precondition Failed', and date to UTC now.
 let preconditionFailed =
         status 412
      *> phrase "Precondition Failed"
      *> date
 
+/// Sets status code to 413, reason phrase to 'Request Entity Too Large', and date to UTC now.
 let requestEntityTooLarge =
         status 413
      *> phrase "Request Entity Too Large"
      *> date
 
+/// Sets status code to 303, reason phrase to 'See Other', location to given uri, and date to UTC now.
 let seeOther uri =
         status 303
      *> phrase "See Other"
      *> date
      *> location uri
 
+/// Sets status code to 503, reason phrase to 'Service Unavailable', and date to UTC now.
 let serviceUnavailable =
         status 503
      *> phrase "Service Unavailable"
      *> date
 
+/// Sets status code to 401, reason phrase to 'Unauthorized', and date to UTC now.
 let unauthorized =
         status 401
      *> phrase "Unauthorized"
      *> date
 
+/// Sets status code to 501, reason phrase to 'Unknown Method', and date to UTC now.
 let unknownMethod =
         status 501
      *> phrase "Unknown Method"
      *> date
 
+/// Sets status code to 422, reason phrase to 'Unprocessable Entity', and date to UTC now.
 let unprocessableEntity =
         status 422
      *> phrase "Unprocessable Entity"
      *> date
 
+/// Sets status code to 415, reason phrase to 'UnsupportedMediaType', and date to UTC now.
 let unsupportedMediaType =
         status 415
      *> phrase "UnsupportedMediaType"
      *> date
 
+/// Sets status code to 414, reason phrase to 'URI Too Long', and date to UTC now.
 let uriTooLong =
         status 414
      *> phrase "URI Too Long"
