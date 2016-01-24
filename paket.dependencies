@@ -1,7 +1,7 @@
 source https://nuget.org/api/v2
 
 nuget Aether  >= 8.0.2 < 9.0.0
-nuget Arachne 3.0.0-b083
+nuget Arachne 3.0.0-b093
 nuget Chiron  >= 6.0.1 < 7.0.0
 nuget Hekate  ~> 3
 
@@ -22,5 +22,5 @@ group Test
   nuget Microsoft.Owin.Testing
   nuget NUnit
   nuget NUnit.Runners
-  nuget Suave 1.0.0-beta2
+  nuget Suave ~> 1
   nuget Unquote
