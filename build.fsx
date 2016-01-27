@@ -219,7 +219,6 @@ let generateMetaPaketTemplate (projects : SourceProject list) =
             for project in projects do
                 yield (sprintf "    %s >= %s" project.Name nugetVersion)
             yield "language en-US"
-            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
             yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
             yield "projectUrl " + freya.VersionControl.Source
             yield "tags"
