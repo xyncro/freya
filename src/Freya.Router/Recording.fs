@@ -83,7 +83,7 @@ type FreyaRouterRecord =
 
 let graphRecord (Compilation.Graph graph) =
     { Nodes =
-        Graph.nodes graph
+        Graph.Nodes.toList graph
         |> List.map (fun (v, l) ->
             match v, l with
             | Compilation.Root, _ ->
@@ -96,7 +96,7 @@ let graphRecord (Compilation.Graph graph) =
                 { Key = k
                   Methods = List.map (fun (Compilation.Endpoint (_, m, _)) -> m.ToString ()) es })
       Edges =
-        Graph.edges graph
+        Graph.Edges.toList graph
         |> List.map (fun (k1, k2, _) ->
             match k1, k2 with
             | Compilation.Root, Compilation.Key k ->

@@ -23,7 +23,6 @@ module Freya.Machine.Extensions.Http.Domain
 
 open System
 open Arachne.Http
-open Arachne.Language
 open Freya.Core
 open Freya.Core.Operators
 
@@ -111,61 +110,22 @@ module CacheControl =
 [<RequireQualifiedAccess>]
 module ContentNegotiation =
 
-    (* Operators *)
-
-    let (==) s1 s2 =
-        String.Equals (s1, s2, StringComparison.OrdinalIgnoreCase)
-
-    (* List Extensions *)
-
-    [<RequireQualifiedAccess>]
-    module List =
-
-        let chooseMaxBy projection =
-                List.map (fun x -> x, projection x)
-             >> List.choose (function | (x, Some y) -> Some (x, y) | _ -> None)
-             >> List.sortBy (fun (_, y) -> y)
-             >> List.map fst
-             >> function | [] -> None | x :: _ -> Some x
+    let private negotiated =
+        function | Some x -> Negotiated x
+                 | _ -> Free
 
     (* Charset *)
 
     [<RequireQualifiedAccess>]
     module Charset =
 
-        (* Negotiation *)
-
-        let private max (Charset c) =
-            function | AcceptableCharset (CharsetRange.Charset (Charset c'), _) when c == c' -> Some 0
-                     | AcceptableCharset (CharsetRange.Any, _) -> Some 1
-                     | _ -> None
-
-        let private map requested =
-            List.map (fun (x: Charset) ->
-                x, List.chooseMaxBy (max x) requested)
-
-        let private sort =
-            List.sortBy (fun (_, y) ->
-                (function | Some (AcceptableCharset (_, Some (Weight w))) -> 1. - w
-                          | _ -> 0.) y)
-
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some (AcceptableCharset (_, Some (Weight w))) when w > 0. -> Some x
-                          | Some (AcceptableCharset (_, None)) -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-                map requested 
-             >> sort
-             >> choose
-
-        let negotiate supported =
-            function | Some (AcceptCharset x) -> Negotiated (run x supported)
-                     | _ -> Free
+        let negotiate supported acceptable =
+            Option.map (function | AcceptCharset x -> x) acceptable
+            |> Charset.negotiate supported
+            |> negotiated
 
         let negotiated acceptCharset supported =
-                negotiate 
+                negotiate
             <!> supported
             <*> acceptCharset
 
@@ -180,43 +140,15 @@ module ContentNegotiation =
                          | _ -> false
             <!> negotiated acceptCharset supported
 
-    (* Encoding *)
+    (* ContentCoding *)
 
     [<RequireQualifiedAccess>]
-    module Encoding =
+    module ContentCoding =
 
-        // TODO: Better Content-Coding Negotiation - proper support of identity, etc.
-
-        (* Negotiation *)
-
-        let private max (ContentCoding c) =
-            function | AcceptableEncoding (EncodingRange.Coding (ContentCoding c'), _) when c == c' -> Some 0
-                     | AcceptableEncoding (EncodingRange.Any, _) -> Some 1
-                     | _ -> None
-
-        let private map requested =
-            List.map (fun (x: ContentCoding) ->
-                x, List.chooseMaxBy (max x) requested)
-
-        let private sort =
-            List.sortBy (fun (_, y) ->
-                (function | Some (AcceptableEncoding (_, Some (Weight w))) -> 1. - w
-                          | _ -> 0.) y)
-
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some (AcceptableEncoding (_, Some (Weight w))) when w > 0. -> Some x
-                          | Some (AcceptableEncoding (_, None)) -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-                map requested 
-             >> sort
-             >> choose
-
-        let negotiate supported =
-            function | Some (AcceptEncoding x) -> Negotiated (run x supported)
-                     | _ -> Free
+        let negotiate supported acceptable =
+            Option.map (function | AcceptEncoding x -> x) acceptable
+            |> ContentCoding.negotiate supported
+            |> negotiated
 
         let negotiated acceptEncoding supported =
                 negotiate
@@ -234,69 +166,42 @@ module ContentNegotiation =
                          | _ -> false
             <!> negotiated acceptEncoding supported
 
+    (* Obsolete
+
+       To be removed in 4.0 *)
+
+    [<Obsolete ("Use Content Coding instead.")>]
+    [<RequireQualifiedAccess>]
+    module Encoding =
+
+        [<Obsolete ("Use ContentCoding.negotiate instead.")>]
+        let negotiate =
+            ContentCoding.negotiate
+
+        [<Obsolete ("Use ContentCoding.negotiated instead.")>]
+        let negotiated =
+            ContentCoding.negotiated
+
+        [<Obsolete ("Use ContentCoding.requested instead.")>]
+        let requested =
+            ContentCoding.requested
+
+        [<Obsolete ("Use ContentCoding.negotiable instead.")>]
+        let negotiable =
+            ContentCoding.negotiable
+
     (* Language *)
 
     [<RequireQualifiedAccess>]
     module Language =
 
-        (* Note: This is intended to approximate the semantics
-           of Basic Filtering as specified in Section 3.3.1 of RFC 4647.
-
-           See [http://tools.ietf.org/html/rfc4647#section-3.3.1] *)
-
-        (* Negotiation *)
-
-        let private reify tag =
-            let language, extensions =
-                (function | LanguageTag (Language (l, Some e), _, _, _) -> [ l ], e
-                          | LanguageTag (Language (l, _), _, _, _) -> [ l ], []) tag
-
-            let script =
-                (function | LanguageTag (_, Some (Script s), _, _) -> [ s ]
-                          | _ -> []) tag
-
-            let region =
-                (function | LanguageTag (_, _, Some (Region r), _) -> [ r ]
-                          | _ -> []) tag
-            let variant =
-                (function | LanguageTag (_, _, _, Variant variant) -> variant) tag
-
-            List.concat [
-                language
-                extensions
-                script
-                region
-                variant ]
-
-        let private eq tag =
-            Seq.zip (reify tag) >> Seq.forall ((<||) (==))
-
-        let private sort =
-            List.sortBy (function | AcceptableLanguage (_, Some (Weight w)) -> 1. - w
-                                  | _ -> 0.)
-
-        let private filter =
-            List.filter (function | AcceptableLanguage (_, Some (Weight 0.)) -> false
-                                  | _ -> true)
-
-        let private map supported =
-            List.map (function | AcceptableLanguage (Range x, _) -> List.filter (flip eq x) supported
-                               | AcceptableLanguage (Any, _) -> supported)
-    
-        let private run supported =
-                sort
-             >> filter
-             >> map supported
-             >> Seq.concat
-             >> Seq.distinct
-             >> Seq.toList
-
-        let negotiate supported =
-            function | Some (AcceptLanguage x) -> Negotiated (run supported x)
-                     | _ -> Free
+        let negotiate supported acceptable =
+            Option.map (function | AcceptLanguage x -> x) acceptable
+            |> Language.negotiate supported
+            |> negotiated
 
         let negotiated acceptLanguage supported =
-                negotiate 
+                negotiate
             <!> supported
             <*> acceptLanguage
 
@@ -316,40 +221,13 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module MediaType =
 
-        (* Negotiation *)
-
-        let private max (MediaType (Type t, SubType s, _)) =
-            function | AcceptableMedia (MediaRange.Closed (Type t', SubType s', _), _) when t == t' && s == s' -> Some 0
-                     | AcceptableMedia (MediaRange.Partial (Type t', _), _) when t == t' -> Some 1
-                     | AcceptableMedia (MediaRange.Open (_), _) -> Some 2
-                     | _ -> None
-
-        let private map requested =
-            List.map (fun (x: MediaType) ->
-                x, List.chooseMaxBy (max x) requested)
-
-        let private sort =
-            List.sortBy (fun (_, y) ->
-                (function | Some (AcceptableMedia (_, Some (AcceptParameters (Weight w, _)))) -> 1. - w
-                          | _ -> 0.) y)
-
-        let private choose =
-            List.choose (fun (x, y) ->
-                (function | Some (AcceptableMedia (_, Some (AcceptParameters (Weight w, _)))) when w > 0. -> Some x
-                          | Some (AcceptableMedia (_, None)) -> Some x
-                          | _ -> None) y)
-
-        let private run requested =
-                map requested 
-             >> sort
-             >> choose
-
-        let negotiate supported =
-            function | Some (Accept x) -> Negotiated (run x supported)
-                     | _ -> Free
+        let negotiate supported acceptable =
+            Option.map (function | Accept x -> x) acceptable
+            |> MediaType.negotiate supported
+            |> negotiated
 
         let negotiated accept supported =
-                negotiate 
+                negotiate
             <!> supported
             <*> accept
 

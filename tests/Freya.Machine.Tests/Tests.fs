@@ -63,7 +63,7 @@ let addOriginHeader (domain:string) (request:System.Net.Http.HttpRequestMessage)
     request
 
 let addDefaultOrigin request =
-    addOriginHeader "http://example.org/" request
+    addOriginHeader "http://example.org" request
 
 // This seems to cause interesting timing race conditions with more complex tests,
 // which are inherently async...

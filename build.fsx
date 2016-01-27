@@ -29,8 +29,7 @@ and Metadata =
 and Info =
     { ReadMe: string
       License: string
-      Notes: string
-      IconUrl: string }
+      Notes: string }
 
 and Structure =
     { Solution: string
@@ -81,8 +80,7 @@ let freya =
           Info =
             { ReadMe = "README.md"
               License = "LICENSE.md"
-              Notes = "RELEASE_NOTES.md"
-              IconUrl = "docs/files/img/logo.png" } }
+              Notes = "RELEASE_NOTES.md" } }
       Structure =
         { Solution = "Freya.sln"
           Projects =
@@ -193,7 +191,6 @@ let generatePaketTemplate (project : SourceProject) =
             for owner in freya.Metadata.Owners do
                 yield "    " + owner
             yield "language en-US"
-            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
             yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
             yield "projectUrl " + freya.VersionControl.Source
             yield "tags"
@@ -222,7 +219,6 @@ let generateMetaPaketTemplate (projects : SourceProject list) =
             for project in projects do
                 yield (sprintf "    %s >= %s" project.Name nugetVersion)
             yield "language en-US"
-            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
             yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
             yield "projectUrl " + freya.VersionControl.Source
             yield "tags"

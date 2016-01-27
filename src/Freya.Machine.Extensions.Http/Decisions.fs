@@ -46,12 +46,12 @@ let private charsetRequested _ =
         (Freya.Optic.get Request.Headers.acceptCharset_)
 
 let private encodingNegotiable config =
-    ContentNegotiation.Encoding.negotiable
+    ContentNegotiation.ContentCoding.negotiable
         (Freya.Optic.get Request.Headers.acceptEncoding_)
         ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
 let private encodingRequested _ =
-    ContentNegotiation.Encoding.requested 
+    ContentNegotiation.ContentCoding.requested 
         (Freya.Optic.get Request.Headers.acceptEncoding_)
 
 let private ifMatchAny _ =

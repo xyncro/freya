@@ -37,7 +37,7 @@ let private charsetsNegotiated config =
         ((Configuration.get Properties.CharsetsSupported >> Option.orElse Defaults.charsetsSupported) config)
 
 let private encodingsNegotiated config =
-    ContentNegotiation.Encoding.negotiated
+    ContentNegotiation.ContentCoding.negotiated
         (Freya.Optic.get Request.Headers.acceptEncoding_)
         ((Configuration.get Properties.EncodingsSupported >> Option.orElse Defaults.encodingsSupported) config)
 
