@@ -29,8 +29,7 @@ and Metadata =
 and Info =
     { ReadMe: string
       License: string
-      Notes: string
-      IconUrl: string }
+      Notes: string }
 
 and Structure =
     { Solution: string
@@ -192,7 +191,6 @@ let generatePaketTemplate (project : SourceProject) =
             for owner in freya.Metadata.Owners do
                 yield "    " + owner
             yield "language en-US"
-            yield "iconUrl " + (githubRawUrl "master" freya.Metadata.Info.IconUrl)
             yield "licenseUrl " + (githubRawUrl "master" freya.Metadata.Info.License)
             yield "projectUrl " + freya.VersionControl.Source
             yield "tags"
