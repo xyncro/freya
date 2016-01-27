@@ -119,11 +119,13 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module Charset =
 
+        let negotiate supported acceptable =
+            Option.map (function | AcceptCharset x -> x) acceptable
+            |> Charset.negotiate supported
+            |> negotiated
+
         let negotiated acceptCharset supported =
-                fun supported acceptable ->
-                    Option.map (function | AcceptCharset x -> x) acceptable
-                    |> Charset.negotiate supported
-                    |> negotiated
+                negotiate
             <!> supported
             <*> acceptCharset
 
@@ -143,11 +145,13 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module ContentCoding =
 
+        let negotiate supported acceptable =
+            Option.map (function | AcceptEncoding x -> x) acceptable
+            |> ContentCoding.negotiate supported
+            |> negotiated
+
         let negotiated acceptEncoding supported =
-                fun supported acceptable ->
-                    Option.map (function | AcceptEncoding x -> x) acceptable
-                    |> ContentCoding.negotiate supported
-                    |> negotiated
+                negotiate
             <!> supported
             <*> acceptEncoding
 
@@ -162,16 +166,42 @@ module ContentNegotiation =
                          | _ -> false
             <!> negotiated acceptEncoding supported
 
+    (* Obsolete
+
+       To be removed in 4.0 *)
+
+    [<Obsolete ("Use Content Coding instead.")>]
+    [<RequireQualifiedAccess>]
+    module Encoding =
+
+        [<Obsolete ("Use ContentCoding.negotiate instead.")>]
+        let negotiate =
+            ContentCoding.negotiate
+
+        [<Obsolete ("Use ContentCoding.negotiated instead.")>]
+        let negotiated =
+            ContentCoding.negotiated
+
+        [<Obsolete ("Use ContentCoding.requested instead.")>]
+        let requested =
+            ContentCoding.requested
+
+        [<Obsolete ("Use ContentCoding.negotiable instead.")>]
+        let negotiable =
+            ContentCoding.negotiable
+
     (* Language *)
 
     [<RequireQualifiedAccess>]
     module Language =
 
+        let negotiate supported acceptable =
+            Option.map (function | AcceptLanguage x -> x) acceptable
+            |> Language.negotiate supported
+            |> negotiated
+
         let negotiated acceptLanguage supported =
-                fun supported acceptable ->
-                    Option.map (function | AcceptLanguage x -> x) acceptable
-                    |> Language.negotiate supported
-                    |> negotiated
+                negotiate
             <!> supported
             <*> acceptLanguage
 
@@ -191,11 +221,13 @@ module ContentNegotiation =
     [<RequireQualifiedAccess>]
     module MediaType =
 
+        let negotiate supported acceptable =
+            Option.map (function | Accept x -> x) acceptable
+            |> MediaType.negotiate supported
+            |> negotiated
+
         let negotiated accept supported =
-                fun supported acceptable ->
-                    Option.map (function | Accept x -> x) acceptable
-                    |> MediaType.negotiate supported
-                    |> negotiated
+                negotiate
             <!> supported
             <*> accept
 
