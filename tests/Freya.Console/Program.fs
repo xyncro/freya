@@ -51,6 +51,9 @@ let routes =
         resource "/" home
         resource "/hello" hello }
 
+let app =
+    OwinAppFunc.ofFreya routes
+
 // Suave
 
 open Suave.Http
@@ -63,15 +66,29 @@ let config =
         bindings = [ HttpBinding.mkSimple HTTP "0.0.0.0" 7000 ]
         logger = Loggers.saneDefaultsFor LogLevel.Verbose }
 
-let app =
-    OwinApp.ofAppFunc "/" (OwinAppFunc.ofFreya routes)
+let suave () =
+    startWebServer config (OwinApp.ofAppFunc "/" app)
+
+// Katana
+
+open Microsoft.Owin.Hosting
+
+type Katana () =
+    member __.Configuration () =
+        app
+
+let katana () =
+    WebApp.Start<Katana> "http://localhost:7000"
 
 // Main
 
 [<EntryPoint>]
 let main _ =
 
-    printfn "Listening on port 7000"
-    startWebServer config app
+// Uncomment the wished for server!
+
+//    let _ = katana ()
+//    let _ = suave ()
+    let _ = System.Console.ReadLine ()
 
     0
