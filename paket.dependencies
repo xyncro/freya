@@ -1,6 +1,6 @@
 source https://nuget.org/api/v2
 
-nuget Aether  >= 8.0.2 < 9.0.0
+nuget Aether  >= 8.1.0 < 9.0.0
 nuget Arachne ~> 3.0.0-b
 nuget Chiron  >= 6.0.1 < 7.0.0
 nuget Hekate  ~> 3
@@ -20,6 +20,7 @@ group Test
   framework: >= net45
 
   nuget Microsoft.Owin.Testing
+  nuget Microsoft.Owin.SelfHost
   nuget NUnit ~> 2
   nuget NUnit.Runners ~> 2
   nuget Suave ~> 1
