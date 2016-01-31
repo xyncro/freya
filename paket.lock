@@ -82,6 +82,6 @@ NUGET
     NUnit (2.6.4)
     NUnit.Runners (2.6.4)
     Owin (1.0)
-    Suave (1.0.0)
+    Suave (1.1.0)
       FSharp.Core (>= 3.1.2.5)
     Unquote (3.1.1)

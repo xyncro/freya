@@ -23,5 +23,5 @@ group Test
   nuget Microsoft.Owin.SelfHost
   nuget NUnit ~> 2
   nuget NUnit.Runners ~> 2
-  nuget Suave 1.0.0
+  nuget Suave ~> 1
   nuget Unquote
