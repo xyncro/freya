@@ -188,7 +188,7 @@ let memo<'a> (m: Freya<'a>) : Freya<'a> =
 let next =
     Pipeline.next
 
-[<Obsolete ("Use Freya.Pipeline.next instead.")>]
+[<Obsolete ("Use Freya.Pipeline.halt instead.")>]
 let halt =
     Pipeline.halt
 
