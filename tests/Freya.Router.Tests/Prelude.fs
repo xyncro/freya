@@ -3,9 +3,6 @@ module internal Freya.Router.Tests.Prelude
 
 open System.Collections.Generic
 open Aether
-open Aether.Operators
-open Arachne.Http
-open Arachne.Uri
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
@@ -24,18 +21,13 @@ let private freyaState () =
 let [<Literal>] testKey =
     "freya.Test"
 
-(* Lenses *)
-
-let private test_ =
-    Environment.value_ testKey
-
 (* Functions *)
 
-let private get =
-    Optic.get test_
+let private get s =
+    Optic.get (Environment.value_ testKey) s
 
 let private set i =
-    Freya.Optic.set test_ i *> Freya.Pipeline.next
+    Freya.Optic.set (Environment.value_ testKey) i
 
 let private run meth path query m =
     let router = FreyaRouter.FreyaPipeline m
@@ -54,11 +46,17 @@ let value meth path query m =
 
 (* Routes *)
 
+let routeF f =
+    (f >>= set) *> Freya.Pipeline.next
+
+let private save v =
+    routeF (Freya.init v)
+
 let route1 =
-    set (Some 1)
+    save (Some 1)
 
 let route2 =
-    set (Some 2)
+    save (Some 2)
 
 let route3 =
-    set (Some 3)
+    save (Some 3)
