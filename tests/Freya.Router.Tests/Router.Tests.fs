@@ -71,3 +71,30 @@ let ``Router Executes First Full Match`` () =
             route All "/{one}/b" route3 }
 
     value GET "/some/b" emptyQuery routes =! Some 2
+
+[<Test>]
+let ``Router matches decoded uri`` () =
+    let segment = Freya.Optic.get (Route.atom_ "segment")
+    let routes =
+        freyaRouter {
+            route All "/{segment}/a" (routeF segment) }
+
+    value GET "/a b/a" emptyQuery routes =! Some "a b"
+    value GET "/a:b/a" emptyQuery routes =! Some "a:b"
+    value GET "/a?b/a" emptyQuery routes =! Some "a?b"
+    value GET "/a#b/a" emptyQuery routes =! Some "a#b"
+    value GET "/a[b/a" emptyQuery routes =! Some "a[b"
+    value GET "/a]b/a" emptyQuery routes =! Some "a]b"
+    value GET "/a@b/a" emptyQuery routes =! Some "a@b"
+    value GET "/a!b/a" emptyQuery routes =! Some "a!b"
+    value GET "/a$b/a" emptyQuery routes =! Some "a$b"
+    value GET "/a&b/a" emptyQuery routes =! Some "a&b"
+    value GET "/a'b/a" emptyQuery routes =! Some "a'b"
+    value GET "/a(b/a" emptyQuery routes =! Some "a(b"
+    value GET "/a)b/a" emptyQuery routes =! Some "a)b"
+    value GET "/a*b/a" emptyQuery routes =! Some "a*b"
+    value GET "/a+b/a" emptyQuery routes =! Some "a+b"
+    value GET "/a,b/a" emptyQuery routes =! Some "a,b"
+    value GET "/a;b/a" emptyQuery routes =! Some "a;b"
+    value GET "/a=b/a" emptyQuery routes =! Some "a=b"
+    value GET "/a b:c?d#e[f]g@h!i$j&k'l(m)n*o+p,q;r=s/a" emptyQuery routes =! Some "a b:c?d#e[f]g@h!i$j&k'l(m)n*o+p,q;r=s"

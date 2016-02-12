@@ -247,8 +247,19 @@ let private select =
    as measured by the order in which the routes were declared in the compilation
    phase. *)
 
+module private Path =
+    module G = Grammar
+
+    let private allowed i =
+            G.isUnreserved i
+         || i = 0x2f // /
+
+    let raw_ =
+        PercentEncoding.makeEncoder allowed,
+        id
+
 let private search graph =
-        traversal <!> !. Request.method_ <*> !. Request.path_ <*> !. (Request.query_ >-> Query.raw_)
+        traversal <!> !. Request.method_ <*> !. (Request.path_ >-> Path.raw_) <*> !. (Request.query_ >-> Query.raw_)
     >>= traverse graph
     >>= select
 
