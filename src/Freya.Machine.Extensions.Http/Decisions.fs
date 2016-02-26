@@ -58,6 +58,11 @@ let private ifMatchAny _ =
     CacheControl.IfMatch.any 
         (Freya.Optic.get Request.Headers.ifMatch_)
 
+let private ifMatchMatches config =
+    CacheControl.IfMatch.matches
+        (Freya.Optic.get Request.Headers.ifMatch_)
+        (Configuration.get Properties.ETag config)
+
 let private ifMatchExistsForMissing _ =
     CacheControl.IfMatch.requested 
         (Freya.Optic.get Request.Headers.ifMatch_)
@@ -82,6 +87,11 @@ let private ifModifiedSinceValid _ =
 let private ifNoneMatchAny _ =
     CacheControl.IfNoneMatch.any
         (Freya.Optic.get Request.Headers.ifNoneMatch_)
+
+let private ifNoneMatchMatches config =
+    CacheControl.IfNoneMatch.matches
+        (Freya.Optic.get Request.Headers.ifNoneMatch_)
+        (Configuration.get Properties.ETag config)
 
 let private ifNoneMatchRequested _ =
     CacheControl.IfNoneMatch.requested
@@ -228,8 +238,8 @@ let operations =
       Operation Decisions.MethodPutToExisting          =.        systemDecision methodPutToExisting
       Operation Decisions.MethodSupported              =.        systemDecision methodSupported
 
-      Operation Decisions.ETagMatchesIf                =.        systemDecision (fun _ -> Freya.init true)
-      Operation Decisions.ETagMatchesIfNone            =.        systemDecision (fun _ -> Freya.init true)
+      Operation Decisions.ETagMatchesIf                =.        systemDecision ifMatchMatches
+      Operation Decisions.ETagMatchesIfNone            =.        systemDecision ifNoneMatchMatches
 
       Operation Decisions.CharsetNegotiable            >+        Operation Decisions.EncodingRequested
       Operation Decisions.CharsetNegotiable            >-        Operation Decisions.CharsetsStrict

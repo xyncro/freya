@@ -36,6 +36,12 @@ module CacheControl =
     [<RequireQualifiedAccess>]
     module IfMatch =
 
+        (* Helpers *)
+
+        let private strong =
+            function | Strong x -> List.exists (function | Strong y when x = y -> true | _ -> false)
+                     | _ -> fun _ -> false
+
         (* Decisions *)
 
         let requested ifMatch =
@@ -45,6 +51,14 @@ module CacheControl =
         let any ifMatch =
                 (=) (Some (IfMatch IfMatchChoice.Any))
             <!> ifMatch
+
+        let matches ifMatch eTag =
+                fun x y ->
+                    (function | Some _, Some (IfMatch IfMatchChoice.Any) -> false
+                              | Some eTag, Some (IfMatch (IfMatchChoice.EntityTags eTags)) when strong eTag eTags -> true
+                              | _ -> false) (x, y)
+            <!> Option.orElse (Freya.init None) (Option.map (fun x -> Some <!> x) eTag)
+            <*> ifMatch
 
     (* If-Modified-Since *)
 
@@ -73,6 +87,11 @@ module CacheControl =
     [<RequireQualifiedAccess>]
     module IfNoneMatch =
 
+        (* Helpers *)
+
+        let private weak =
+            function | Strong x | Weak x -> List.exists (function | Strong y | Weak y when x = y -> true | _ -> false)
+
         (* Decisions *)
 
         let requested ifNoneMatch =
@@ -82,6 +101,15 @@ module CacheControl =
         let any ifNoneMatch =
                 (=) (Some (IfNoneMatch IfNoneMatchChoice.Any)) 
             <!> ifNoneMatch
+
+        let matches ifNoneMatch eTag =
+                fun x y ->
+                    (function | Some _, Some (IfNoneMatch IfNoneMatchChoice.Any) -> false
+                              | Some eTag, Some (IfNoneMatch (IfNoneMatchChoice.EntityTags eTags)) when weak eTag eTags -> true
+                              | _ -> false) (x, y)
+            <!> Option.orElse (Freya.init None) (Option.map (fun x -> Some <!> x) eTag)
+            <*> ifNoneMatch
+
 
     (* If-Unmodified-Since *)
 
