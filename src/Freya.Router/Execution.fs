@@ -53,34 +53,34 @@ type private ExecutionResult =
 type private Traversal =
     | Traversal of TraversalInvariant * TraversalState
 
-    static member State_ =
+    static member state_ =
         (fun (Traversal (_, s)) -> s), (fun s (Traversal (i, _)) -> Traversal (i, s))
 
-and private TraversalInvariant =
+ and private TraversalInvariant =
     | Invariant of Method
 
-and private TraversalState =
+ and private TraversalState =
     | State of TraversalPosition * TraversalData
 
-    static member Position_ =
+    static member position_ =
         (fun (State (p, _)) -> p), (fun p (State (_, d)) -> State (p, d))
 
-    static member Data_ =
+    static member data_ =
         (fun (State (_, d)) -> d), (fun d (State (p, _)) -> State (p, d))
 
-and private TraversalPosition =
+ and private TraversalPosition =
     | Position of string * Compilation.CompilationKey
 
-    static member PathAndQuery_ =
+    static member pathAndQuery_ =
         (fun (Position (p, _)) -> p), (fun p (Position (_, k)) -> Position (p, k))
 
-    static member Key_ =
+    static member key_ =
         (fun (Position (_, k)) -> k), (fun k (Position (p, _)) -> Position (p, k))
 
-and private TraversalData =
+ and private TraversalData =
     | Data of UriTemplateData
 
-    static member Data_ =
+    static member data_ =
         (fun (Data d) -> d), (fun d (Data (_)) -> Data (d))
 
 (* Constructors
@@ -110,31 +110,19 @@ let private traversal meth path query =
 (* Traversal *)
 
 let private traversalData_ =
-        Traversal.State_
-   >--> TraversalState.Data_
-   >--> TraversalData.Data_
+        Traversal.state_
+    >-> TraversalState.data_
+    >-> TraversalData.data_
 
 let private traversalKey_ =
-        Traversal.State_
-   >--> TraversalState.Position_
-   >--> TraversalPosition.Key_
+        Traversal.state_
+    >-> TraversalState.position_
+    >-> TraversalPosition.key_
 
 let private traversalPathAndQuery_ =
-        Traversal.State_
-   >--> TraversalState.Position_
-   >--> TraversalPosition.PathAndQuery_
-
-(* Request *)
-
-let private requestMethod_ =
-        Request.Method_
-
-let private requestPath_ =
-        Request.Path_
-
-let private requestQuery_ =
-        Request.Query_
-   <--> Query.Query_
+        Traversal.state_
+    >-> TraversalState.position_
+    >-> TraversalPosition.pathAndQuery_
 
 (* Patterns
 
@@ -158,7 +146,7 @@ let private (|Progression|_|) =
     function | Traversal (Invariant _, State (Position (p, k), Data _)) -> Some (k, p)
 
 let private (|Successors|_|) key (Compilation.Graph graph) =
-    match Graph.successors key graph with
+    match Graph.Nodes.successors key graph with
     | Some x -> Some x
     | _ -> None
 
@@ -172,12 +160,12 @@ let private (|Match|_|) parser pathAndQuery =
 (* Filtering *)
 
 let private (|Endpoints|_|) key meth (Compilation.Graph graph) =
-    match Graph.tryFindNode key graph with
+    match Graph.Nodes.tryFind key graph with
     | Some (_, Compilation.Endpoints endpoints) ->
         endpoints
         |> List.filter (
-           function | Compilation.Endpoint (_, All, _) -> true
-                    | Compilation.Endpoint (_, Methods ms, _) when List.exists ((=) meth) ms -> true
+           function | Compilation.Endpoint (_, Method (All), _) -> true
+                    | Compilation.Endpoint (_, Method (Methods ms), _) when List.exists ((=) meth) ms -> true
                     | _ -> false)
         |> function | [] -> None
                     | endpoints -> Some endpoints
@@ -226,9 +214,9 @@ let rec private traverse graph traversal =
                 match pathAndQuery with
                 | Match parser (data', pathAndQuery') ->
                     traversal
-                    |> Lens.map traversalData_ ((+) data')
-                    |> Lens.set traversalPathAndQuery_ pathAndQuery'
-                    |> Lens.set traversalKey_ key'
+                    |> Optic.map traversalData_ ((+) data')
+                    |> Optic.set traversalPathAndQuery_ pathAndQuery'
+                    |> Optic.set traversalKey_ key'
                     |> traverse graph
                 | _ ->
                     emptyM) successors
@@ -259,8 +247,19 @@ let private select =
    as measured by the order in which the routes were declared in the compilation
    phase. *)
 
+module private Path =
+    module G = Grammar
+
+    let private allowed i =
+            G.isUnreserved i
+         || i = 0x2f // /
+
+    let raw_ =
+        PercentEncoding.makeEncoder allowed,
+        id
+
 let private search graph =
-        traversal <!> !. requestMethod_ <*> !. requestPath_ <*> !. requestQuery_
+        traversal <!> !. Request.method_ <*> !. (Request.path_ >-> Path.raw_) <*> !. (Request.query_ >-> Query.raw_)
     >>= traverse graph
     >>= select
 
@@ -276,5 +275,5 @@ let private search graph =
 
 let execute graph =
         search graph
-    >>= function | Matched (data, pipe) -> (Route.Data_ .?= data) *> pipe
-                 | Unmatched -> Freya.next
+    >>= function | Matched (data, pipe) -> (Route.data_ .= data) *> pipe
+                 | Unmatched -> Freya.Pipeline.next

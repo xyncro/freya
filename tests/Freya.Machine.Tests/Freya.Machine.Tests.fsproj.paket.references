@@ -1,6 +1,9 @@
-Microsoft.Owin.Testing
-Unquote
-NUnit
-Chiron
 Arachne.Http.Cors
 Arachne.Uri.Template
+Chiron
+
+group Test
+
+  Microsoft.Owin.Testing
+  NUnit
+  Unquote

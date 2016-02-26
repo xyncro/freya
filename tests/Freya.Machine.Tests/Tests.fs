@@ -58,26 +58,76 @@ let client = server.HttpClient
 client.BaseAddress <- baseAddress
 
 // Add common CORS headers
-client.DefaultRequestHeaders.Add("Origin", "http://example.org/")
+let addOriginHeader (domain:string) (request:System.Net.Http.HttpRequestMessage) =
+    request.Headers.Add("Origin", domain)
+    request
 
-[<TestFixtureTearDown>]
-let dispose() =
-    client.Dispose()
-    server.Dispose()
+let addDefaultOrigin request =
+    addOriginHeader "http://example.org" request
+
+// This seems to cause interesting timing race conditions with more complex tests,
+// which are inherently async...
+
+//[<TestFixtureTearDown>]
+//let dispose() =
+//    client.Dispose()
+//    server.Dispose()
 
 [<Test>]
 let ``todobackend returns empty array at first`` () = 
     async {
-        use request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
+        use request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/") |> addDefaultOrigin
         use! response = Async.AwaitTask <| client.SendAsync request
         let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
+        response.StatusCode =! Net.HttpStatusCode.OK
+        let headers =
+            response.Headers
+            |> Seq.map (fun (KeyValue(k,v)) -> k, List.ofSeq v)
+            |> Map.ofSeq
+        response.Headers.Date.HasValue   =! true
+        response.Headers.Date.Value.Date =! DateTimeOffset.UtcNow.Date
+        headers.["Access-Control-Expose-Headers"] =! [""]
+        headers.["Access-Control-Allow-Origin"]   =! ["http://example.org"]
         result =! "[]" }
+    |> Async.RunSynchronously
+
+[<Test>]
+let ``todobackend returns expected headers for OPTIONS request`` () =
+    async {
+        use request = new HttpRequestMessage(HttpMethod.Options, Uri "http://localhost/") |> addDefaultOrigin
+        use! response = Async.AwaitTask <| client.SendAsync request
+        response.StatusCode =! Net.HttpStatusCode.OK
+        let headers =
+            response.Headers
+            |> Seq.map (fun (KeyValue(k,v)) -> k, List.ofSeq v)
+            |> Map.ofSeq
+        response.Headers.Date.HasValue   =! true
+        response.Headers.Date.Value.Date =! DateTimeOffset.UtcNow.Date
+        headers.["Access-Control-Expose-Headers"] =! [""]
+        headers.["Access-Control-Allow-Origin"]   =! ["http://example.org"] }
+    |> Async.RunSynchronously
+
+[<Test>]
+let ``todobackend blocks CORS request from unacceptable origin`` () =
+    async {
+        use request = new HttpRequestMessage(HttpMethod.Options, Uri "http://localhost/") |> addOriginHeader "http://evil.org/"
+        use! response = Async.AwaitTask <| client.SendAsync request
+        // TODO: is this correct?
+        response.StatusCode =! Net.HttpStatusCode.OK
+        let headers =
+            response.Headers
+            |> Seq.map (fun (KeyValue(k,v)) -> k, List.ofSeq v)
+            |> Map.ofSeq
+        response.Headers.Date.HasValue   =! true
+        response.Headers.Date.Value.Date =! DateTimeOffset.UtcNow.Date
+        headers.ContainsKey("Access-Control-Expose-Headers") =! false
+        headers.ContainsKey("Access-Control-Allow-Origin")   =! false }
     |> Async.RunSynchronously
 
 (* If-Modified-Since tests *)
 
 let private requestWithIfModifiedSince dayDiff = 
-    let request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/")
+    let request = new HttpRequestMessage(HttpMethod.Get, Uri "http://localhost/") |> addDefaultOrigin
     let testModificationDate =
         (DateTimeOffset Api.lastModificationDate).AddDays dayDiff
     request.Headers.IfModifiedSince <- Nullable testModificationDate
@@ -95,7 +145,7 @@ let ``todobackend returns 304 for If-Modified-Since`` () =
     |> Async.RunSynchronously
 
 [<Test>]
-let ``todobackend not returns 304 for If-Modified-Since`` () = 
+let ``todobackend not returns 200 for If-Modified-Since`` () = 
     async {
         use request = requestWithIfModifiedSince -1.0
         use! response = Async.AwaitTask <| client.SendAsync request

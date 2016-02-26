@@ -9,13 +9,13 @@ open Freya.Core.Operators
 (* AppFunc *)
 
 let private answer_ =
-    Environment.Optional_ "Answer"
+    Environment.value_ "Answer"
 
 let private o1_ =
-    Environment.Required_ "o1"
+    Environment.value_ "o1"
 
 let private o2_ =
-    Environment.Required_ "o2"
+    Environment.value_ "o2"
 
 [<Test>]
 let ``freya computation can compose with an OwinAppFunc`` () =
@@ -29,7 +29,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = Freya.Lens.getPartial answer_
+            let! v1 = Freya.Optic.get answer_
             return Option.get v1 }
     
     let result = run m
@@ -37,7 +37,7 @@ let ``freya computation can compose with an OwinAppFunc`` () =
 
 [<Test>]
 let ``freya computation can roundtrip to and from OwinAppFunc`` () =
-    let app = Freya.Lens.setPartial answer_ "42"
+    let app = Freya.Optic.set answer_ (Some "42")
 
     let converted =
         app
@@ -47,7 +47,7 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
     let m =
         freya {
             do! converted
-            let! v1 = Freya.Lens.getPartial answer_
+            let! v1 = Freya.Optic.get answer_
             return Option.get v1 }
     
     let result = run m
@@ -57,20 +57,20 @@ let ``freya computation can roundtrip to and from OwinAppFunc`` () =
 
 let o1 =
     freya {
-        do! Freya.Lens.set o1_ true
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "1" prev) }
+        do! Freya.Optic.set o1_ (Some true)
+        let! prev = Freya.Optic.get answer_
+        do! Freya.Optic.set answer_ (Some (appendString "1" prev)) }
 
 let o2 =
     freya {
-        do! Freya.Lens.set o2_ true
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "2" prev) }
+        do! Freya.Optic.set o2_ (Some true)
+        let! prev = Freya.Optic.get answer_
+        do! Freya.Optic.set answer_ (Some (appendString "2" prev)) }
 
 let app =
     freya {
-        let! prev = Freya.Lens.getPartial answer_
-        do! Freya.Lens.setPartial answer_ (appendString "42" prev) }
+        let! prev = Freya.Optic.get answer_
+        do! Freya.Optic.set answer_ (Some (appendString "42" prev)) }
     |> OwinAppFunc.ofFreya
 
 [<Test>]
@@ -82,8 +82,8 @@ let ``test app works`` () =
 
 [<Test>]
 let ``pipeline executes both monads if first returns next`` () =
-    let o1 = o1 *> Freya.next |> OwinMidFunc.ofFreya
-    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreya
+    let o1 = o1 *> Freya.Pipeline.next |> OwinMidFunc.ofFreya
+    let o2 = o2 *> Freya.Pipeline.next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -94,8 +94,8 @@ let ``pipeline executes both monads if first returns next`` () =
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns halt`` () =
-    let o1 = o1 *> Freya.halt |> OwinMidFunc.ofFreya
-    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreya
+    let o1 = o1 *> Freya.Pipeline.halt |> OwinMidFunc.ofFreya
+    let o2 = o2 *> Freya.Pipeline.next |> OwinMidFunc.ofFreya
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -106,8 +106,8 @@ let ``pipeline executes only the first monad if first returns halt`` () =
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app`` () =
-    let o1 = o1 *> Freya.next |> OwinMidFunc.ofFreyaAfter
-    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreyaAfter
+    let o1 = o1 *> Freya.Pipeline.next |> OwinMidFunc.ofFreyaAfter
+    let o2 = o2 *> Freya.Pipeline.next |> OwinMidFunc.ofFreyaAfter
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -118,8 +118,8 @@ let ``pipeline executes app and both monads if first returns next after running 
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns halt after running the app`` () =
-    let o1 = o1 *> Freya.halt |> OwinMidFunc.ofFreyaAfter
-    let o2 = o2 *> Freya.next |> OwinMidFunc.ofFreyaAfter
+    let o1 = o1 *> Freya.Pipeline.halt |> OwinMidFunc.ofFreyaAfter
+    let o2 = o2 *> Freya.Pipeline.next |> OwinMidFunc.ofFreyaAfter
     let composed = o1.Invoke(o2.Invoke(app))
 
     let env = invoke composed
@@ -130,8 +130,8 @@ let ``pipeline executes app and both monads if first returns halt after running 
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with composed pipeline`` () =
-    let o1 = o1 *> Freya.next
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.next
+    let o2 = o2 *> Freya.Pipeline.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -143,8 +143,8 @@ let ``pipeline executes both monads if first returns next with composed pipeline
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with composed pipeline`` () =
-    let o1 = o1 *> Freya.halt
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.halt
+    let o2 = o2 *> Freya.Pipeline.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreya
     let composed = pipe.Invoke app
 
@@ -156,8 +156,8 @@ let ``pipeline executes only the first monad if first returns terminate with com
 
 [<Test>]
 let ``pipeline executes app and both monads if first returns next after running the app with composed pipeline`` () =
-    let o1 = o1 *> Freya.next
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.next
+    let o2 = o2 *> Freya.Pipeline.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreyaAfter
     let composed = pipe.Invoke app
 
@@ -169,8 +169,8 @@ let ``pipeline executes app and both monads if first returns next after running 
 
 [<Test>]
 let ``pipeline executes app and only the first monad if first returns halt after running the app with composed pipeline`` () =
-    let o1 = o1 *> Freya.halt
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.halt
+    let o2 = o2 *> Freya.Pipeline.next
     let pipe = o1 >?= o2 |> OwinMidFunc.ofFreyaAfter
     let composed = pipe.Invoke app
 
@@ -182,8 +182,8 @@ let ``pipeline executes app and only the first monad if first returns halt after
 
 [<Test>]
 let ``pipeline executes both monads if first returns next with wrapped pipeline OwinMidFunc`` () =
-    let o1 = o1 *> Freya.next
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.next
+    let o2 = o2 *> Freya.Pipeline.next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -195,8 +195,8 @@ let ``pipeline executes both monads if first returns next with wrapped pipeline 
 
 [<Test>]
 let ``pipeline executes only the first monad if first returns terminate with wrapped pipeline OwinMidFunc`` () =
-    let o1 = o1 *> Freya.halt
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.halt
+    let o2 = o2 *> Freya.Pipeline.next
     let midFunc = OwinMidFunc.ofFreyaWrapped o1 o2
     let composed = midFunc.Invoke app
 
@@ -275,8 +275,8 @@ let ``MidFunc that throws early and doesn't call next Halts correctly as a Freya
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines`` () =
-    let o1 = o1 *> Freya.next
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.next
+    let o2 = o2 *> Freya.Pipeline.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -303,8 +303,8 @@ let ``MidFunc can work with other Freya Pipelines`` () =
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when first halts`` () =
-    let o1 = o1 *> Freya.halt
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.halt
+    let o2 = o2 *> Freya.Pipeline.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -330,8 +330,8 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when first 
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when midFunc returns early`` () =
-    let o1 = o1 *> Freya.halt
-    let o2 = o2 *> Freya.next
+    let o1 = o1 *> Freya.Pipeline.halt
+    let o2 = o2 *> Freya.Pipeline.next
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->
@@ -354,8 +354,8 @@ let ``MidFunc can work with other Freya Pipelines and correctly halt when midFun
 
 [<Test>]
 let ``MidFunc can work with other Freya Pipelines and correctly halt when second halts`` () =
-    let o1 = o1 *> Freya.next
-    let o2 = o2 *> Freya.halt
+    let o1 = o1 *> Freya.Pipeline.next
+    let o2 = o2 *> Freya.Pipeline.halt
     let midFunc =
         OwinMidFunc(fun next ->
             OwinAppFunc(fun env ->

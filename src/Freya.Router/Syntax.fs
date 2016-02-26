@@ -21,6 +21,84 @@
 [<AutoOpen>]
 module Freya.Router.Syntax
 
+open Arachne.Http
+open Arachne.Uri.Template
+open Freya.Core
+
+(* Expression
+
+   The Computation Expression builder to give Router the declarative
+   computation expression syntax for specifying Routes.
+   Specific strongly typed custom operations are defined in Syntax.fs. *)
+
+type FreyaRouterBuilder () =
+
+    member __.Return _ =
+        FreyaRouter (fun routes -> (), routes)
+
+    member __.ReturnFrom m = 
+        m
+
+    member __.Bind (m, k) =
+        FreyaRouter (fun routes ->
+            let (FreyaRouter m') = m
+            let (FreyaRouter k') = k ()
+
+            (), snd (k' (snd (m' routes))))
+
+    member x.Combine (m1, m2) =
+        x.Bind (m1, fun () -> m2)
+
+    member x.Map (m, f) = 
+        x.Bind (FreyaRouter (fun routes -> (), f routes), fun _ -> m)
+
+let freyaRouter =
+    FreyaRouterBuilder ()
+
+(* Type Classes
+
+   Static inference functions to allow for type-safe overloading of arguments
+   to custom syntax operations. *)
+
+[<RequireQualifiedAccess>]
+module FreyaRouteMethod =
+
+    type Defaults =
+        | Defaults
+
+        static member inline FreyaRouteMethod (x: FreyaRouteMethod) =
+            x
+
+        static member inline FreyaRouteMethod (x: Method list) =
+            Methods x
+
+        static member inline FreyaRouteMethod (x: Method) =
+            Methods [ x ]
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member FreyaRouteMethod: ^a -> FreyaRouteMethod) a)
+
+    let inline infer (x: 'a) =
+        defaults (x, Defaults)
+
+[<RequireQualifiedAccess>]
+module UriTemplate =
+
+    type Defaults =
+        | Defaults
+
+        static member inline UriTemplate (x: UriTemplate) =
+            x
+
+        static member inline UriTemplate (x: string) =
+            UriTemplate.parse x
+
+    let inline defaults (a: ^a, _: ^b) =
+            ((^a or ^b) : (static member UriTemplate: ^a -> UriTemplate) a)
+
+    let inline infer (x: 'a) =
+        defaults (x, Defaults)
+
 (* Custom Operations
 
    Custom syntax operators used in the FreyaRouter computation
@@ -33,20 +111,12 @@ type FreyaRouterBuilder with
     (* Paths *)
 
     [<CustomOperation ("route", MaintainsVariableSpaceUsingBind = true)>]
-    member x.Route (r, meth, template, pipeline) =
-        x.Update (r, (fun x ->
-            { Method = meth
+    member inline x.Route (r, m, template, pipeline) =
+        x.Map (r, (fun x ->
+            { Predicate = Method (FreyaRouteMethod.infer m)
               Specification = Path
-              Template = template
-              Pipeline = pipeline } :: x))
-
-    [<CustomOperation ("routeWithQuery", MaintainsVariableSpaceUsingBind = true)>]
-    member x.RouteWithQuery (r, meth, template, pipeline) =
-        x.Update (r, (fun x ->
-            { Method = meth
-              Specification = PathAndQuery
-              Template = template
-              Pipeline = pipeline } :: x))
+              Template = UriTemplate.infer template
+              Pipeline = Freya.Pipeline.infer pipeline } :: x))
 
     (* Utility *)
 

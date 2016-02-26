@@ -28,23 +28,19 @@ open Freya.Core
 (* Routes *)
 
 type FreyaRoute =
-    { Method: FreyaRouteMethod
+    { Predicate: FreyaRoutePredicate
       Specification: FreyaRouteSpecification
       Template: UriTemplate
       Pipeline: FreyaPipeline }
 
-    static member Template_ =
-        (fun x -> x.Template), (fun t x -> { x with Template = t })
+ and FreyaRoutePredicate =
+    | Method of FreyaRouteMethod
+    | Custom of Freya<bool>
 
-and FreyaRouteSpecification =
-    | Path
-    | PathAndQuery
-
-and FreyaRouteMethod =
+ and FreyaRouteMethod =
     | All
     | Methods of Method list
 
-(* Computation Expression *)
-
-type FreyaRouter = 
-    FreyaRoute list -> unit * FreyaRoute list
+ and FreyaRouteSpecification =
+    | Path
+    | PathAndQuery

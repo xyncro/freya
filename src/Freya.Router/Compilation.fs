@@ -36,21 +36,21 @@ open Hekate
 type CompilationGraph =
     | Graph of Graph<CompilationKey, CompilationNode, CompilationEdge>
 
-    static member Graph_ =
-        (fun (Graph g) -> g), (fun g -> Graph g)
+    static member graph_ =
+        (fun (Graph g) -> g), (Graph)
 
-and CompilationKey =
+ and CompilationKey =
     | Root
     | Key of string
 
-and CompilationNode =
+ and CompilationNode =
     | Empty
     | Endpoints of CompilationEndpoint list
 
-and CompilationEndpoint =
-    | Endpoint of int * FreyaRouteMethod * FreyaPipeline
+ and CompilationEndpoint =
+    | Endpoint of int * FreyaRoutePredicate * FreyaPipeline
 
-and CompilationEdge =
+ and CompilationEdge =
     | Edge of Parser<UriTemplateData, unit>
 
 (* Defaults
@@ -64,8 +64,7 @@ let private defaultCompilationGraph =
 (* Lenses *)
 
 let private compilationGraph_ =
-        id_
-   <--> CompilationGraph.Graph_
+    Lens.ofIsomorphism CompilationGraph.graph_
 
 (* Patterns
 
@@ -77,20 +76,20 @@ let private compilationGraph_ =
    of Endpoint types). *)
 
 let private (|Next|_|) =
-    function | { Method = meth
+    function | { Predicate = predicate
                  Specification = spec
                  Template = UriTemplate (part :: parts)
-                 Pipeline = pipe } -> Some (part, { Method = meth
+                 Pipeline = pipe } -> Some (part, { Predicate = predicate
                                                     Specification = spec
                                                     Template = UriTemplate (parts)
                                                     Pipeline = pipe })
              | _ -> None
 
 let private (|Last|_|) =
-    function | { Method = meth
+    function | { Predicate = predicate
                  Specification = spec
-                 Template = UriTemplate (part :: [])
-                 Pipeline = pipe } -> Some (meth, spec, part, pipe)
+                 Template = UriTemplate ([ part ])
+                 Pipeline = pipe } -> Some (predicate, spec, part, pipe)
              | _ -> None
 
 (* Modification
@@ -109,33 +108,33 @@ let private composeKeys k1 k2 =
     | _ -> Root
 
 let private addNode key =
-    Graph.addNode (key, Empty)
+    Graph.Nodes.add (key, Empty)
 
-let private updateNode key precedence meth pipe =
-    Graph.mapNodes (fun key' node ->
+let private updateNode key precedence predicate pipe =
+    Graph.Nodes.map (fun key' node ->
         match key = key' with
         | true ->
             match node with
-            | Empty -> Endpoints [ Endpoint (precedence, meth, pipe) ]
-            | Endpoints (endpoints) -> Endpoints (endpoints @ [ Endpoint (precedence, meth, pipe) ])
+            | Empty -> Endpoints [ Endpoint (precedence, predicate, pipe) ]
+            | Endpoints (endpoints) -> Endpoints (endpoints @ [ Endpoint (precedence, predicate, pipe) ])
         | _ ->
             node)
 
 let private addEdge key1 key2 part graph =
-    Graph.addEdge (key1, key2,
+    Graph.Edges.add (key1, key2,
         Edge (UriTemplatePart.Matching.Match part)) graph
 
 let rec private addRoute current graph (precedence, route) =
     match route with
-    | Last (meth, _, part, pipe) ->
+    | Last (predicate, _, part, pipe) ->
         let last =
             composeKeys current (Key (part.ToString ()))
 
         let graph =
             ((fun graph ->
-                (match Graph.containsNode last graph with
-                 | false -> addNode last >> updateNode last precedence meth pipe >> addEdge current last part
-                 | _ -> updateNode last precedence meth pipe) graph) ^%= compilationGraph_) graph
+                (match Graph.Nodes.contains last graph with
+                 | false -> addNode last >> updateNode last precedence predicate pipe >> addEdge current last part
+                 | _ -> updateNode last precedence predicate pipe) graph) ^% compilationGraph_) graph
 
         graph
     | Next (part, route) ->
@@ -144,9 +143,9 @@ let rec private addRoute current graph (precedence, route) =
 
         let graph =
             ((fun graph ->
-                (match Graph.containsNode next graph with
+                (match Graph.Nodes.contains next graph with
                  | false -> addNode next >> addEdge current next part
-                 | _ -> id) graph) ^%= compilationGraph_) graph
+                 | _ -> id) graph) ^% compilationGraph_) graph
 
         addRoute next graph (precedence, route)
     | _ ->

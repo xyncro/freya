@@ -20,10 +20,9 @@
 /// Custom operators for composing <see cref="Freya{T}" /> computations.
 module Freya.Core.Operators
 
-(* Compositional
+open System
 
-   Operators for the composition of Freya<'T> functions in
-   various forms. *)
+(* Compositional *)
 
 let inline (>>=) m f =
     Freya.bind f m
@@ -52,30 +51,37 @@ let inline (>=>) m1 m2 =
 let inline (<=<) m1 m2 =
     fun x -> m2 x >>= m1
 
-(* Lens
+(* Optic *)
 
-   Operators for lens based operations over the Freya<'T> state,
-   providing operator based alternatives to Freya.getLens, etc. *)
+let inline (!.) o =
+    Freya.Optic.get o
 
-let inline (!.) l =
-    Freya.Lens.get l
+let inline (.=) o v =
+    Freya.Optic.set o v
 
-let inline (!?.) l =
-    Freya.Lens.getPartial l
-
-let inline (.=) l v =
-    Freya.Lens.set l v
-
-let inline (.?=) l v =
-    Freya.Lens.setPartial l v
-
-let inline (%=) l f =
-    Freya.Lens.map l f
-
-let inline (%?=) l f =
-    Freya.Lens.mapPartial l f
+let inline (%=) o f =
+    Freya.Optic.map o f
 
 (* Pipeline *)
 
 let inline (>?=) p1 p2 = 
-    Freya.pipe p1 p2
+    Freya.Pipeline.compose p1 p2
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+[<Obsolete ("Use !. instead.")>]
+let inline (!?.) o =
+    Freya.Optic.get o
+
+[<Obsolete ("Use .= instead.")>]
+let inline (.?=) o v =
+    Freya.Optic.set o v
+
+[<Obsolete ("Use %= instead.")>]
+let inline (%?=) o f =
+    Freya.Optic.map o f

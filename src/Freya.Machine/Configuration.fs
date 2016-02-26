@@ -28,9 +28,9 @@ open Freya.Core
 (* Lenses *)
 
 let private config_<'a> key =
-         FreyaMachineConfiguration.Data_
-    >-?> key_ key
-    <?-> box_<'a>
+        FreyaMachineConfiguration.data_
+    >-> Map.value_ key
+    >-> Option.mapIsomorphism box_<'a>
 
 (* Configuration
 
@@ -38,16 +38,8 @@ let private config_<'a> key =
    machine specifications, in a typed way (imposes a boxing and unboxing
    overhead, but is only used at reification time in general cases. *)
 
-let tryGet<'a> key =
-    flip (^?.) (config_<'a> key)
-
-let tryGetOrElse key def =
-    tryGet key >> Option.orElse def
-
-let tryGetOrNone key =
-    tryGet key >> function
-    | Some x -> Freya.map Some x
-    | None   -> Freya.init None
+let get<'a> key =
+    Optic.get (config_<'a> key)
 
 let set<'a> key =
-    flip (^?=) (config_<'a> key)
+    Optic.set (config_<'a> key)

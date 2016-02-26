@@ -1,16 +1,27 @@
 source https://nuget.org/api/v2
-framework: net45
 
-nuget Arachne.Http.Cors
-nuget Arachne.Uri.Template
-nuget Aether
-nuget Chiron
-nuget Hekate
-nuget Microsoft.Owin.SelfHost
-nuget Microsoft.Owin.Testing
-nuget NUnit
-nuget NUnit.Runners
-nuget Unquote
-nuget FAKE
-nuget SourceLink.Fake
-nuget Nuget.CommandLine
+nuget Aether  >= 8.1.0 < 9.0.0
+nuget Arachne ~> 3.0.0-b
+nuget Chiron  >= 6.0.1 < 7.0.0
+nuget Hekate  ~> 3
+
+group Build
+
+  source https://nuget.org/api/v2
+  framework: >= net45
+
+  nuget FAKE
+  nuget SourceLink.Fake
+  nuget Nuget.CommandLine
+
+group Test
+
+  source https://nuget.org/api/v2
+  framework: >= net45
+
+  nuget Microsoft.Owin.Testing
+  nuget Microsoft.Owin.SelfHost
+  nuget NUnit ~> 2
+  nuget NUnit.Runners ~> 2
+  nuget Suave ~> 1
+  nuget Unquote

@@ -29,7 +29,7 @@ let private run graph record =
      *> Execution.execute graph
 
 let reify router =
-    let _, routes = router List.empty
+    let routes = snd (router [])
     let graph = Compilation.compile routes
 
     run graph (Recording.graphRecord graph)

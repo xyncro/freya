@@ -23,43 +23,14 @@ module internal Freya.Inspector.Prelude
 open System.IO
 open System.Reflection
 open System.Text
+open Arachne.Http
+open Arachne.Http.Cors
+open Arachne.Language
 open Chiron
 open Freya.Core
 open Freya.Machine
 open Freya.Machine.Extensions.Http
 open Freya.Machine.Extensions.Http.Cors
-open Arachne.Http
-open Arachne.Http.Cors
-open Arachne.Language
-
-(* Presets
-
-   Useful shorthand for commonly used properties/defaults
-   of Machine resources, to make definitions more concise. *)
-
-(* Charsets *)
-
-let utf8 =
-    Freya.init [ Charset.Utf8 ]
-
-(* Languages *)
-
-let en =
-    Freya.init [ LanguageTag.Parse "en" ]
-
-(* MediaTypes *)
-
-let css =
-    Freya.init [ MediaType.Css ]
-
-let html =
-    Freya.init [ MediaType.Html ]
-
-let js =
-    Freya.init [ MediaType.JavaScript ]
-
-let json =
-    Freya.init [ MediaType.Json ]
 
 (* Defaults *)
 
@@ -68,12 +39,12 @@ let defaults =
         using http
         using httpCors
 
-        corsHeadersSupported (Freya.init [ "accept"; "content-type" ])
-        corsMethodsSupported (Freya.init [ GET; OPTIONS ])
-        corsOriginsSupported (Freya.init AccessControlAllowOriginRange.Any)
+        corsHeadersSupported [ "accept"; "content-type" ]
+        corsMethodsSupported [ GET; OPTIONS ]
+        corsOriginsSupported AccessControlAllowOriginRange.Any
 
-        charsetsSupported utf8
-        languagesSupported en }
+        charsetsSupported Charset.Utf8
+        languagesSupported (LanguageTag.parse "en") }
 
 (* Functions
 
@@ -107,7 +78,7 @@ let represent n x =
         { Charset = Some (n.Charsets |> firstNegotiatedOrElse Charset.Utf8)
           Encodings = None
           MediaType = Some (n.MediaTypes |> firstNegotiatedOrElse MediaType.Text)
-          Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.Parse "en") ] }
+          Languages = Some [ n.Languages |> firstNegotiatedOrElse (LanguageTag.parse "en") ] }
       Data = x }
 
 let representJson x =
@@ -115,5 +86,5 @@ let representJson x =
         { Charset = Some Charset.Utf8
           Encodings = None
           MediaType = Some MediaType.Json
-          Languages = Some [ LanguageTag.Parse "en" ] }
+          Languages = Some [ LanguageTag.parse "en" ] }
       Data = encode x }

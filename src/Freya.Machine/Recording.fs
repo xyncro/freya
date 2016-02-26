@@ -22,15 +22,16 @@
 module internal Freya.Machine.Recording
 
 open Aether.Operators
+open Freya.Core
 open Freya.Recorder
 open Hekate
 
 (* Errors *)
 
-exception RecordingError of string
+exception RecordingException of string
 
 let private fail e =
-    raise (RecordingError e)
+    raise (RecordingException e)
 
 (* Types *)
 
@@ -38,38 +39,38 @@ type FreyaMachineRecord =
     { Graph: FreyaMachineGraphRecord
       Execution: FreyaMachineExecutionRecord }
 
-    static member Graph_ =
+    static member graph_ =
         (fun x -> x.Graph), (fun g x -> { x with Graph = g })
 
-    static member Execution_ =
+    static member execution_ =
         (fun x -> x.Execution), (fun e x -> { x with Execution = e })
 
 (* Graph *)
 
-and FreyaMachineGraphRecord =
+ and FreyaMachineGraphRecord =
     { Nodes: FreyaMachineGraphNodeRecord list
       Edges: FreyaMachineGraphEdgeRecord list }
 
-and FreyaMachineGraphNodeRecord =
+ and FreyaMachineGraphNodeRecord =
     { Id: string
       Type: string
       Configurable: bool
       Configured: bool }
 
-and FreyaMachineGraphEdgeRecord =
+ and FreyaMachineGraphEdgeRecord =
     { From: string
       To: string
       Value: bool option }
 
 (* Execution *)
 
-and FreyaMachineExecutionRecord =
+ and FreyaMachineExecutionRecord =
     { Nodes: FreyaMachineExecutionNodeRecord list }
 
-    static member Nodes_ =
+    static member nodes_ =
         (fun x -> x.Nodes), (fun n x -> { x with FreyaMachineExecutionRecord.Nodes = n })
 
-and FreyaMachineExecutionNodeRecord =
+ and FreyaMachineExecutionNodeRecord =
     { Id: FreyaMachineNode }
 
 (* Construction *)
@@ -93,7 +94,7 @@ let private (|Binary|_|) =
 
 let graphRecord (Compilation.Metadata meta) =
     { Nodes =
-        Graph.nodes meta
+        Graph.Nodes.toList meta
         |> List.map (fun (v, l) ->
             let id, t, c1, c2 =
                 match v, l with
@@ -107,7 +108,7 @@ let graphRecord (Compilation.Metadata meta) =
               Configurable = c1
               Configured = c2 })
       Edges =
-        Graph.edges meta
+        Graph.Edges.toList meta
         |> List.map (fun (Name v1, Name v2, l) ->
             { From =  v1
               To = v2
@@ -121,18 +122,18 @@ module Record =
     (* Lenses *)
 
     let private graph_ =
-            Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Graph_
+            Record.record_ "machine" 
+        >-> Option.mapLens FreyaMachineRecord.graph_
 
     let private execution_ =
-            Record.Record_ "machine" 
-       >?-> FreyaMachineRecord.Execution_
-       >?-> FreyaMachineExecutionRecord.Nodes_
+            Record.record_ "machine" 
+        >-> Option.mapLens FreyaMachineRecord.execution_
+        >?> FreyaMachineExecutionRecord.nodes_
 
     (* Functions *)
 
     let definition record =
-        FreyaRecorder.Current.map (record ^?= graph_)
+        FreyaRecorder.Current.map (record ^= graph_)
 
     let execution node =
-        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^?%= execution_)
+        FreyaRecorder.Current.map ((fun es -> es @ [ node ]) ^% execution_)

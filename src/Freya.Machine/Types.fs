@@ -29,7 +29,7 @@ open Freya.Core
 type FreyaMachineConfiguration =
     { Data: Map<string, obj> }
 
-    static member Data_ =
+    static member data_ =
         (fun x -> x.Data), (fun d x -> { x with Data = d })
 
 (* Nodes *)
@@ -50,7 +50,7 @@ type FreyaMachineOperation =
     | Unary of Freya<unit>
     | Binary of Freya<bool>
 
-type FreyaMachineOperationMetadata =
+ and FreyaMachineOperationMetadata =
     { Configurable: bool
       Configured: bool }
 
@@ -59,10 +59,10 @@ type FreyaMachineOperationMetadata =
 type FreyaMachineCompiler =
     | Compile of FreyaMachineCompile
 
-and FreyaMachineCompile =
+ and FreyaMachineCompile =
     FreyaMachineConfiguration -> FreyaMachineCompilation
 
-and FreyaMachineCompilation =
+ and FreyaMachineCompilation =
     | Compiled of FreyaMachineOperation * FreyaMachineOperationMetadata
 
 (* Extension *)
@@ -88,25 +88,22 @@ type FreyaMachineExtension =
         member x.CompareTo y =
             compareOn FreyaMachineExtension.Comparable x y
 
-and FreyaMachineExtensionOperation =
+ and FreyaMachineExtensionOperation =
     | AddNode of FreyaMachineNode * FreyaMachineCompiler option
     | RemoveNode of FreyaMachineNode
     | AddEdge of FreyaMachineNode * FreyaMachineNode * FreyaMachineEdge option
     | RemoveEdge of FreyaMachineNode * FreyaMachineNode
 
-(* Computation Expression *)
+(* Specification *)
 
-type FreyaMachine =
-    FreyaMachineSpecification -> unit * FreyaMachineSpecification
-
-and FreyaMachineSpecification =
+type FreyaMachineSpecification =
     { Configuration: FreyaMachineConfiguration
       Extensions: Set<FreyaMachineExtension> }
 
-    static member Configuration_ =
+    static member configuration_ =
         (fun x -> x.Configuration), (fun c x -> { x with Configuration = c })
 
-    static member Extensions_ =
+    static member extensions_ =
         (fun x -> x.Extensions), (fun e x -> { x with Extensions = e })
 
 (* Defaults
@@ -115,7 +112,7 @@ and FreyaMachineSpecification =
    an empty machine specification with no existing configuration
    and no extensions (not a machine which will do much). *)
 
-let internal defaultFreyaMachineSpecification =
+let internal freyaMachineSpecification =
     { Configuration = 
         { Data = Map.empty }
       Extensions = Set.empty }

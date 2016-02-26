@@ -36,10 +36,10 @@ open Freya.Core.Operators
 
    Errors in execution are dealt with separately.*)
 
-exception ReificationError of string
+exception ReificationException of string
 
 let private fail e =
-    raise (ReificationError e)
+    raise (ReificationException e)
 
 (* Run
 
@@ -50,7 +50,7 @@ let private fail e =
 let private run graph record =
         Recording.Record.definition record
      *> Execution.execute graph
-     *> Freya.halt
+     *> Freya.Pipeline.halt
 
 (* Reification
 
@@ -59,7 +59,7 @@ let private run graph record =
    and metadata graphs. *)
 
 let reify machine =
-    let _, spec = machine defaultFreyaMachineSpecification
+    let spec = snd (machine freyaMachineSpecification)
 
     match Precompilation.precompile spec.Extensions with
     | Precompilation.Precompilation precompilation ->

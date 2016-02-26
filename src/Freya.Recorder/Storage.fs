@@ -36,7 +36,7 @@ type private StorageProtocol =
 type private StorageState =
     { Records: FreyaRecorderRecord seq }
 
-    static member Records_ =
+    static member records_ =
         (fun x -> x.Records), (fun r x -> { x with Records = r })
 
 (* Constructors *)
@@ -55,18 +55,18 @@ let private handle proto (state: StorageState) =
     match proto with
     | Create (chan) ->
         let id = Guid.NewGuid ()
-        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^%= StorageState.Records_) state
+        let state = ((Seq.append [ record id ] >> Seq.truncate 10) ^% StorageState.records_) state
         chan.Reply (id)
         state
     | Update (id, f) ->
-        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^%= StorageState.Records_) state
+        let state = ((Seq.map (function | l when l.Id = id -> f l | l -> l)) ^% StorageState.records_) state
         state
     | Read (id, chan) ->
-        let x = (flip (^.) StorageState.Records_ >> (Seq.tryFind (fun l -> l.Id = id))) state
+        let x = (flip (^.) StorageState.records_ >> (Seq.tryFind (fun l -> l.Id = id))) state
         chan.Reply (x)
         state
     | List (chan) ->
-        let x = state ^. StorageState.Records_
+        let x = state ^. StorageState.records_
         chan.Reply (List.ofSeq x)
         state
 

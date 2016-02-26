@@ -3,9 +3,6 @@ module internal Freya.Router.Tests.Prelude
 
 open System.Collections.Generic
 open Aether
-open Aether.Operators
-open Arachne.Http
-open Arachne.Uri
 open Freya.Core
 open Freya.Core.Operators
 open Freya.Lenses.Http
@@ -24,26 +21,21 @@ let private freyaState () =
 let [<Literal>] testKey =
     "freya.Test"
 
-(* Lenses *)
-
-let private test_ =
-    Environment.Optional_ testKey
-
 (* Functions *)
 
-let private get =
-    Lens.getPartial test_
+let private get s =
+    Optic.get (Environment.value_ testKey) s
 
 let private set i =
-    Freya.Lens.setPartial test_ i *> Freya.next
+    Freya.Optic.set (Environment.value_ testKey) i
 
 let private run meth path query m =
-    let router = FreyaRouter.toPipeline m
+    let router = FreyaRouter.FreyaPipeline m
     let state = freyaState ()
 
-    Async.RunSynchronously ((   Freya.Lens.set Request.Method_ meth
-                             *> Freya.Lens.set Request.Path_ path
-                             *> Freya.Lens.set Request.Query_ query
+    Async.RunSynchronously ((   Freya.Optic.set Request.method_ meth
+                             *> Freya.Optic.set Request.path_ path
+                             *> Freya.Optic.set Request.query_ query
                              *> router) state)
 
 let result meth path query m =
@@ -52,21 +44,19 @@ let result meth path query m =
 let value meth path query m =
     get (snd (run meth path query m))
 
-(* Methods *)
-
-let Get =
-    Methods [ GET ]
-
-let Post =
-    Methods [ POST ]
-
 (* Routes *)
 
+let routeF f =
+    (f >>= set) *> Freya.Pipeline.next
+
+let private save v =
+    routeF (Freya.init v)
+
 let route1 =
-    set 1
+    save (Some 1)
 
 let route2 =
-    set 2
+    save (Some 2)
 
 let route3 =
-    set 3
+    save (Some 3)

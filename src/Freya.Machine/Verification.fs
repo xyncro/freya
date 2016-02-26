@@ -45,6 +45,11 @@ type VerificationResult =
     | Verification of Compilation.CompilationGraph
     | Error of string
 
+(* Optics *)
+
+let private compilationGraph_ =
+    Lens.ofIsomorphism Compilation.CompilationGraph.graph_
+
 (* Projections
 
    Functions and a type signature to represent various projections
@@ -56,29 +61,29 @@ type private Projection =
 
 let private startNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
-         >> Graph.nodes
+            flip (^.) compilationGraph_
+         >> Graph.Nodes.toList
          >> List.choose (function | (Start, _) -> Some Start
                                   | _ -> None))
 
 let private finishNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
-         >> Graph.nodes
+            flip (^.) compilationGraph_
+         >> Graph.Nodes.toList
          >> List.choose (function | (Finish, _) -> Some Finish
                                   | _ -> None))
 
 let private unaryNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
-         >> Graph.nodes
+            flip (^.) compilationGraph_
+         >> Graph.Nodes.toList
          >> List.choose (function | (v, Some (Unary _)) -> Some v
                                   | _ -> None))
 
 let private binaryNodes =
     Projection (
-            flip (^.) (id_ <--> Compilation.CompilationGraph.Graph_)
-         >> Graph.nodes
+            flip (^.) compilationGraph_
+         >> Graph.Nodes.toList
          >> List.choose (function | (v, Some (Binary _)) -> Some v
                                   | _ -> None))
 
@@ -99,19 +104,19 @@ let private size i =
 
 let private haveNoSuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some [] -> true
         | _ -> false)
 
 let private haveUnarySuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some s when List.length s = 1 -> true
         | _ -> false)
 
 let private haveBinarySuccessors =
     Individual (fun (Compilation.CompilationGraph.Graph graph) node ->
-        match Graph.successors node graph with
+        match Graph.Nodes.successors node graph with
         | Some s when List.length s = 2 -> true
         | _ -> false)
 
@@ -129,7 +134,7 @@ let private haveBinarySuccessors =
 type private ConstraintGroup =
     | Constraints of Constraint list
 
-and private Constraint =
+ and private Constraint =
     | Constraint of Projection * Assertion * string
 
 let private check graph (Constraint (Projection projection, assertion, error)) =

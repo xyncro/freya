@@ -21,9 +21,21 @@
 [<AutoOpen>]
 module Freya.Lenses.Http.Cors.Lenses
 
+open System
 open Aether.Operators
 open Arachne.Http.Cors
+open Freya.Core
 open Freya.Lenses.Http
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+let private option_ =
+    id, Some
 
 (* Request Lenses *)
 
@@ -35,17 +47,46 @@ module Request =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Request.Header_ key <??> (tryParse, format)
+        let private value_ key (tryParse, format) =
+                Request.header_ key
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
+        let accessControlRequestHeaders_ =
+            value_
+                "Access-Control-Request-Headers"
+                (AccessControlRequestHeaders.tryParse, AccessControlRequestHeaders.format)
+
+        let accessControlRequestMethod_ =
+            value_
+                "Access-Control-Request-Method"
+                (AccessControlRequestMethod.tryParse, AccessControlRequestMethod.format)
+
+        let origin_ =
+            value_
+                "Origin"
+                (Origin.tryParse, Origin.format)
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+//
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Request.Headers.accessControlRequestHeaders_ instead.")>]
         let AccessControlRequestHeaders_ =
-            header_ "Access-Control-Request-Headers" AccessControlRequestHeaders.TryParse AccessControlRequestHeaders.Format
+                accessControlRequestHeaders_
+            >-> option_
 
+        [<Obsolete ("Use Request.Headers.accessControlRequestMethod_ instead.")>]
         let AccessControlRequestMethod_ =
-            header_ "Access-Control-Request-Method" AccessControlRequestMethod.TryParse AccessControlRequestMethod.Format
+                accessControlRequestMethod_
+            >-> option_
 
+        [<Obsolete ("Use Request.Headers.origin_ instead.")>]
         let Origin_ =
-            header_ "Origin" Origin.TryParse Origin.Format
+                origin_
+            >-> option_
 
 (* Response Lenses *)
 
@@ -57,23 +98,73 @@ module Response =
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Response.Header_ key <??> (tryParse, format)
+        let private value_ key (tryParse, format) =
+                Response.header_ key
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
+        let accessControlAllowCredentials_ =
+            value_
+                "Access-Control-Allow-Credentials"
+                (AccessControlAllowCredentials.tryParse, AccessControlAllowCredentials.format)
+
+        let accessControlAllowHeaders_ =
+            value_
+                "Access-Control-Allow-Headers"
+                (AccessControlAllowHeaders.tryParse, AccessControlAllowHeaders.format)
+
+        let accessControlAllowMethods_ =
+            value_
+                "Access-Control-Allow-Methods"
+                (AccessControlAllowMethods.tryParse, AccessControlAllowMethods.format)
+
+        let accessControlAllowOrigin_ =
+            value_
+                "Access-Control-Allow-Origin"
+                (AccessControlAllowOrigin.tryParse, AccessControlAllowOrigin.format)
+
+        let accessControlExposeHeaders_ =
+            value_
+                "Access-Control-Expose-Headers"
+                (AccessControlExposeHeaders.tryParse, AccessControlExposeHeaders.format)
+
+        let accessControlMaxAge_ =
+            value_
+                "Access-Control-Max-Age"
+                (AccessControlMaxAge.tryParse, AccessControlMaxAge.format)
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+//
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Response.Headers.accessControlAllowCredentials_ instead.")>]
         let AccessControlAllowCredentials_ =
-            header_ "Access-Control-Allow-Credentials" AccessControlAllowCredentials.TryParse AccessControlAllowCredentials.Format
+                accessControlAllowCredentials_
+            >-> option_
 
+        [<Obsolete ("Use Response.Headers.accessControlAllowHeaders_ instead.")>]
         let AccessControlAllowHeaders_ =
-            header_ "Access-Control-Allow-Headers" AccessControlAllowHeaders.TryParse AccessControlAllowHeaders.Format
+                accessControlAllowHeaders_
+            >-> option_
 
+        [<Obsolete ("Use Response.Headers.accessControlAllowMethods_ instead.")>]
         let AccessControlAllowMethods_ =
-            header_ "Access-Control-Allow-Methods" AccessControlAllowMethods.TryParse AccessControlAllowMethods.Format
+                accessControlAllowMethods_
+            >-> option_
 
+        [<Obsolete ("Use Response.Headers.accessControlAllowOrigin_ instead.")>]
         let AccessControlAllowOrigin_ =
-            header_ "Access-Control-Allow-Origin" AccessControlAllowOrigin.TryParse AccessControlAllowOrigin.Format
+                accessControlAllowOrigin_
+            >-> option_
 
+        [<Obsolete ("Use Response.Headers.accessControlExposeHeaders_ instead.")>]
         let AccessControlExposeHeaders_ =
-            header_ "Access-Control-Expose-Headers" AccessControlExposeHeaders.TryParse AccessControlExposeHeaders.Format
+                accessControlExposeHeaders_
+            >-> option_
 
+        [<Obsolete ("Use Response.Headers.accessControlMaxAge_ instead.")>]
         let AccessControlMaxAge_ =
-            header_ "Access-Control-Max-Age" AccessControlMaxAge.TryParse AccessControlMaxAge.Format
+                accessControlMaxAge_
+            >-> option_

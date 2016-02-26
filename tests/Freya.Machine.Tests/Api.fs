@@ -50,7 +50,7 @@ open Freya.TodoBackend.Domain
 
 let id =
     freya {
-        let! id = Freya.Lens.getPartial (Route.Atom_ "id")
+        let! id = Freya.Optic.get (Route.atom_ "id")
         return (Option.get >> Guid.Parse) id } |> Freya.memo
 
 (* Body Properties
@@ -160,13 +160,22 @@ let updateAction =
         return () }
 
 let corsOrigins =
-    freya {
-        return AccessControlAllowOriginRange.Any }
+    AccessControlAllowOriginRange.Origins (
+        OriginListOrNull.Origins
+            [
+                SerializedOrigin(
+                    Arachne.Uri.Scheme "http",
+                    Arachne.Uri.Name (Arachne.Uri.RegName "example.org"),
+                    None)
+                SerializedOrigin(
+                    Arachne.Uri.Scheme "https",
+                    Arachne.Uri.Name (Arachne.Uri.RegName "example.org"),
+                    None)
+            ])
 
 let corsHeaders =
-    freya {
-        return [ "accept"
-                 "content-type" ] }
+    [ "accept"
+      "content-type" ]
 
 let common =
     freyaMachine {
@@ -176,16 +185,14 @@ let common =
         corsHeadersSupported corsHeaders
         corsOriginsSupported corsOrigins
         languagesSupported en
-        mediaTypesSupported json
+        mediaTypesSupported MediaType.Json
         lastModified todoLastModified }
 
 let todosMethods =
-    freya {
-        return [ 
-            DELETE
-            GET
-            OPTIONS
-            POST ] }
+    [ DELETE
+      GET
+      OPTIONS
+      POST ]
 
 let todos =
     freyaMachine {
@@ -195,15 +202,13 @@ let todos =
         doDelete clearAction
         doPost addAction
         handleCreated addedHandler
-        handleOk listHandler } |> FreyaMachine.toPipeline
+        handleOk listHandler }
 
 let todoMethods =
-    freya {
-        return [
-            DELETE
-            GET
-            OPTIONS
-            Method.Custom "PATCH" ] }
+    [ DELETE
+      GET
+      OPTIONS
+      Method.Custom "PATCH" ]
 
 let todo =
     freyaMachine {
@@ -212,7 +217,7 @@ let todo =
         methodsSupported todoMethods
         doDelete deleteAction
         doPatch updateAction
-        handleOk getHandler } |> FreyaMachine.toPipeline
+        handleOk getHandler }
 
 (* Router
 
@@ -223,8 +228,8 @@ let todo =
 
 let todoRoutes =
     freyaRouter {
-        resource (UriTemplate.Parse "/") todos
-        resource (UriTemplate.Parse "/{id}") todo } |> FreyaRouter.toPipeline
+        resource "/" todos
+        resource "/{id}" todo }
 
 (* Inspectors *)
 

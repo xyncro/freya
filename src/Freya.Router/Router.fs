@@ -18,10 +18,34 @@
 //
 //----------------------------------------------------------------------------
 
-[<RequireQualifiedAccess>]
-module Freya.Router.FreyaRouter
+[<AutoOpen>]
+module Freya.Router.Router
 
+open System
 open Freya.Core
 
-let toPipeline : FreyaRouter -> FreyaPipeline =
-    Reification.reify
+(* Type *)
+
+type FreyaRouter = 
+    | FreyaRouter of (FreyaRoute list -> unit * FreyaRoute list)
+
+    static member Freya (FreyaRouter x) : Freya<_> =
+        Reification.reify x
+
+    static member FreyaPipeline (FreyaRouter x) : FreyaPipeline =
+        Reification.reify x
+
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module FreyaRouter =
+
+    [<Obsolete ("Explicit conversion to FreyaPipeline is no longer required in Freya.")>]
+    let toPipeline =
+        id

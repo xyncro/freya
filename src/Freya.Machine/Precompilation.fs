@@ -40,7 +40,7 @@ open Hekate
 type PrecompilationGraph =
     | Graph of Graph<FreyaMachineNode, FreyaMachineCompiler option, FreyaMachineEdge option>
 
-    static member Graph_ =
+    static member graph_ =
         (fun (Graph x) -> x), (fun x -> Graph (x))
 
 type PrecompilationResult =
@@ -59,8 +59,7 @@ let private defaultPrecompilationGraph : PrecompilationGraph =
 (* Lenses *)
 
 let private precompilationGraph_ =
-        id_
-   <--> PrecompilationGraph.Graph_
+    Lens.ofIsomorphism PrecompilationGraph.graph_
 
 (* Ordering
 
@@ -88,9 +87,9 @@ let private graph extensions =
     Graph.create (nodes extensions) (edges extensions)
 
 let private independent graph =
-    Graph.nodes graph
-    |> List.tryFind (fun (v, _) -> Graph.inwardDegree v graph = Some 0)
-    |> Option.map (fun (v, l) -> l, Graph.removeNode v graph)
+    Graph.Nodes.toList graph
+    |> List.tryFind (fun (v, _) -> Graph.Nodes.inwardDegree v graph = Some 0)
+    |> Option.map (fun (v, l) -> l, Graph.Nodes.remove v graph)
 
 let rec private sort extensions graph =
     match independent graph with
@@ -116,10 +115,10 @@ type private Extension =
     | Error of string
 
 let private applyOperation =
-    function | AddNode (v, l) -> Graph.addNode (v, l)
-             | RemoveNode (v) -> Graph.removeNode (v)
-             | AddEdge (v1, v2, l) -> Graph.addEdge (v1, v2, l)
-             | RemoveEdge (v1, v2) -> Graph.removeEdge (v1, v2)
+    function | AddNode (v, l) -> Graph.Nodes.add (v, l)
+             | RemoveNode (v) -> Graph.Nodes.remove (v)
+             | AddEdge (v1, v2, l) -> Graph.Edges.add (v1, v2, l)
+             | RemoveEdge (v1, v2) -> Graph.Edges.remove (v1, v2)
 
 let private applyExtension extension =
     flip (List.fold (flip applyOperation)) extension.Operations
@@ -128,7 +127,7 @@ let private applyExtensions =
     flip (List.fold (flip applyExtension))
 
 let private extend extensions graph =
-    Extension ((applyExtensions extensions ^%= precompilationGraph_) graph)
+    Extension ((applyExtensions extensions ^% precompilationGraph_) graph)
 
 (* Precompile
 

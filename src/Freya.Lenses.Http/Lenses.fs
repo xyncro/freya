@@ -21,6 +21,7 @@
 [<AutoOpen>]
 module Freya.Lenses.Http.Lenses
 
+open System
 open System.Collections.Generic
 open System.IO
 open Aether.Operators
@@ -28,288 +29,769 @@ open Arachne.Http
 open Arachne.Uri
 open Freya.Core
 
+(* Obsolete
+
+   Backwards compatibility shims to make the 2.x-> 3.x transition
+   less painful, providing functionally equivalent options where possible.
+
+   To be removed for 4.x releases. *)
+
+let private option_ =
+    id, Some
+
 (* Request Lenses *)
 
 [<RequireQualifiedAccess>]
 module Request =
 
+    let body_ =
+            Environment.value_<Stream> Constants.requestBody
+        >-> Option.unsafe_
+
+    let headers_ =
+            Environment.value_<IDictionary<string, string []>> Constants.requestHeaders
+        >-> Option.unsafe_
+
+    let header_ key =
+            headers_
+        >-> Dict.value_<string, string []> key
+        >-> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
+
+    let method_ = 
+            Environment.value_<string> Constants.requestMethod
+        >-> Option.unsafe_
+        >-> (Method.parse, Method.format)
+
+    let path_ =
+            Environment.value_<string> Constants.requestPath
+        >-> Option.unsafe_
+
+    let pathBase_ =
+            Environment.value_<string> Constants.requestPathBase
+        >-> Option.unsafe_
+
+    let httpVersion_ =
+            Environment.value_<string> Constants.requestProtocol
+        >-> Option.unsafe_
+        >-> (HttpVersion.parse, HttpVersion.format)
+
+    let scheme_ =
+            Environment.value_<string> Constants.requestScheme
+        >-> Option.unsafe_
+        >-> (Scheme.parse, Scheme.format)
+
+    let query_ =
+            Environment.value_<string> Constants.requestQueryString
+        >-> Option.unsafe_
+        >-> (Query.parse, Query.format)
+
+    (* Obsolete
+
+       Backwards compatibility shims to make the 2.x-> 3.x transition
+       less painful, providing functionally equivalent options where possible.
+
+       To be removed for 4.x releases. *)
+
+    [<Obsolete ("Use Request.body_ instead.")>]
     let Body_ =
-        Environment.Required_<Stream> Constants.requestBody
+        body_
 
+    [<Obsolete ("Use Request.headers_ instead.")>]
     let Headers_ =
-        Environment.Required_<IDictionary<string, string []>> Constants.requestHeaders
+        headers_
 
+    [<Obsolete ("Use Request.header_ instead.")>]
     let Header_ key =
-        Headers_ >-?> mutKeyP_<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+            header_ key
+        >-> option_
 
-    let Method_ = 
-        Environment.Required_<string> Constants.requestMethod <--> (Method.Parse, Method.Format)
+    [<Obsolete ("Use Request.method_ instead.")>]
+    let Method_ =
+        method_
 
+    [<Obsolete ("Use Request.path_ instead.")>]
     let Path_ =
-        Environment.Required_<string> Constants.requestPath
+        path_
 
+    [<Obsolete ("Use Request.pathBase_ instead.")>]
     let PathBase_ =
-        Environment.Required_<string> Constants.requestPathBase
+        pathBase_
 
+    [<Obsolete ("Use Request.httpVersion_ instead.")>]
     let HttpVersion_ =
-        Environment.Required_<string> Constants.requestProtocol <--> (HttpVersion.Parse, HttpVersion.Format)
+        httpVersion_
 
+    [<Obsolete ("Use Request.scheme_ instead.")>]
     let Scheme_ =
-        Environment.Required_<string> Constants.requestScheme <--> (Scheme.Parse, Scheme.Format)
+        scheme_
 
+    [<Obsolete ("Use Request.query_ instead.")>]
     let Query_ =
-        Environment.Required_<string> Constants.requestQueryString <--> (Query.Parse, Query.Format)
+        query_
 
     (* Request Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Header_ key <??> (tryParse, format)
+        let private value_ key (tryParse, format) =
+                header_ key
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
-        let Accept_ =
-            header_ "Accept" Accept.TryParse Accept.Format
+        let accept_ =
+            value_
+                "Accept"
+                (Accept.tryParse, Accept.format)
 
-        let AcceptCharset_ =
-            header_ "Accept-Charset" AcceptCharset.TryParse AcceptCharset.Format
+        let acceptCharset_ =
+            value_
+                "Accept-Charset"
+                (AcceptCharset.tryParse, AcceptCharset.format)
 
-        let AcceptEncoding_ =
-            header_ "Accept-Encoding" AcceptEncoding.TryParse AcceptEncoding.Format
+        let acceptEncoding_ =
+            value_
+                "Accept-Encoding"
+                (AcceptEncoding.tryParse, AcceptEncoding.format)
 
-        let AcceptLanguage_ =
-            header_ "Accept-Language" AcceptLanguage.TryParse AcceptLanguage.Format
+        let acceptLanguage_ =
+            value_
+                "Accept-Language"
+                (AcceptLanguage.tryParse, AcceptLanguage.format)
 
         // TODO: typed Authorization
 
-        let Authorization_ =
-            Header_ "Authorization"
+        let authorization_ =
+            header_ "Authorization"
 
-        let CacheControl_ =
-            header_ "Cache-Control" CacheControl.TryParse CacheControl.Format
+        let cacheControl_ =
+            value_
+                "Cache-Control"
+                (CacheControl.tryParse, CacheControl.format)
 
-        let Connection_ =
-            header_ "Connection" Connection.TryParse Connection.Format
+        let connection_ =
+            value_
+                "Connection"
+                (Connection.tryParse, Connection.format)
 
-        let ContentEncoding_ =
-            header_ "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
+        let contentEncoding_ =
+            value_
+                "Content-Encoding"
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
-        let ContentLanguage_ =
-            header_ "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
+        let contentLanguage_ =
+            value_
+                "Content-Language"
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
-        let ContentLength_ =
-            header_ "Content-Length" ContentLength.TryParse, ContentLength.Format
+        let contentLength_ =
+            value_
+                "Content-Length"
+                (ContentLength.tryParse, ContentLength.format)
 
-        let ContentLocation_ =
-            header_ "Content-Location" ContentLocation.TryParse, ContentLocation.Format
+        let contentLocation_ =
+            value_
+                "Content-Location"
+                (ContentLocation.tryParse, ContentLocation.format)
 
-        let ContentType_ =
-            header_ "Content-Type" ContentType.TryParse ContentType.Format
+        let contentType_ =
+            value_
+                "Content-Type"
+                (ContentType.tryParse, ContentType.format)
 
-        let Date_ =
-            header_ "Date" Date.TryParse Date.Format
+        let date_ =
+            value_
+                "Date"
+                (Date.tryParse, Date.format)
 
-        let Expect_ =
-            header_ "Expect" Expect.TryParse Expect.Format
+        let expect_ =
+            value_
+                "Expect"
+                (Expect.tryParse, Expect.format)
 
         // TODO: typed From
 
-        let From_ =
-            Header_ "From"
+        let from_ =
+            header_ "From"
 
-        let Host_ =
-            header_ "Host" Host.TryParse Host.Format
+        let host_ =
+            value_
+                "Host"
+                (Host.tryParse, Host.format)
 
-        let IfMatch_ =
-            header_ "If-Match" IfMatch.TryParse IfMatch.Format
+        let ifMatch_ =
+            value_
+                "If-Match"
+                (IfMatch.tryParse, IfMatch.format)
 
-        let IfModifiedSince_ =
-            header_ "If-Modified-Since" IfModifiedSince.TryParse IfModifiedSince.Format
+        let ifModifiedSince_ =
+            value_
+                "If-Modified-Since"
+                (IfModifiedSince.tryParse, IfModifiedSince.format)
 
-        let IfNoneMatch_ =
-            header_ "If-None-Match" IfNoneMatch.TryParse IfNoneMatch.Format
+        let ifNoneMatch_ =
+            value_
+                "If-None-Match"
+                (IfNoneMatch.tryParse, IfNoneMatch.format)
 
-        let IfRange_ =
-            header_ "If-Range" IfRange.TryParse IfRange.Format
+        let ifRange_ =
+            value_
+                "If-Range"
+                (IfRange.tryParse, IfRange.format)
 
-        let IfUnmodifiedSince_ =
-            header_ "If-Unmodified-Since" IfUnmodifiedSince.TryParse IfUnmodifiedSince.Format
+        let ifUnmodifiedSince_ =
+            value_
+                "If-Unmodified-Since"
+                (IfUnmodifiedSince.tryParse, IfUnmodifiedSince.format)
 
-        let MaxForwards_ =
-            header_ "Max-Forwards" MaxForwards.TryParse MaxForwards.Format
+        let maxForwards_ =
+            value_
+                "Max-Forwards"
+                (MaxForwards.tryParse, MaxForwards.format)
 
         // TODO: typed Pragma
 
-        let Pragma_ =
-            Header_ "Pragma"
+        let pragma_ =
+            header_ "Pragma"
 
         // TODO: typed ProxyAuthorization
 
-        let ProxyAuthorization_ =
-            Header_ "Proxy-Authorization"
+        let proxyAuthorization_ =
+            header_ "Proxy-Authorization"
 
         // TODO: typed Range
 
-        let Range_ =
-            Header_ "Range"
+        let range_ =
+            header_ "Range"
 
-        let Referer_ =
-            header_ "Referer" Referer.TryParse Referer.Format
+        let referer_ =
+            value_
+                "Referer"
+                (Referer.tryParse, Referer.format)
 
         // TODO: typed TE
 
-        let TE_ =
-            Header_ "TE"
+        let te_ =
+            header_ "TE"
 
         // TODO: typed Trailer
 
-        let Trailer_ =
-            Header_ "Trailer"
+        let trailer_ =
+            header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let TransferEncoding_ =
-            Header_ "Transfer-Encoding"
+        let transferEncoding_ =
+            header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let Upgrade_ =
-            Header_ "Upgrade"
+        let upgrade_ =
+            header_ "Upgrade"
 
         // TODO: typed UserAgent
 
-        let UserAgent_ =
-            Header_ "User-Agent"
+        let userAgent_ =
+            header_ "User-Agent"
 
         // TODO: typed Via
 
+        let via_ =
+            header_ "Via"
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Request.Headers.accept_ instead.")>]
+        let Accept_ =
+                accept_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.acceptCharset_ instead.")>]
+        let AcceptCharset_ =
+                acceptCharset_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.acceptEncoding_ instead.")>]
+        let AcceptEncoding_ =
+                acceptEncoding_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.acceptLanguage_ instead.")>]
+        let AcceptLanguage_ =
+                acceptLanguage_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.authorization_ instead.")>]
+        let Authorization_ =
+                authorization_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.cacheControl_ instead.")>]
+        let CacheControl_ =
+                cacheControl_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.connection_ instead.")>]
+        let Connection_ =
+                connection_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.contentEncoding_ instead.")>]
+        let ContentEncoding_ =
+                contentEncoding_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.contentLanguage_ instead.")>]
+        let ContentLanguage_ =
+                contentLanguage_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.contentLength_ instead.")>]
+        let ContentLength_ =
+                contentLength_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.contentLocation_ instead.")>]
+        let ContentLocation_ =
+                contentLocation_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.contentType_ instead.")>]
+        let ContentType_ =
+                contentType_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.date_ instead.")>]
+        let Date_ =
+                date_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.expect_ instead.")>]
+        let Expect_ =
+                expect_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.from_ instead.")>]
+        let From_ =
+                from_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.host_ instead.")>]
+        let Host_ =
+                host_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.ifMatch_ instead.")>]
+        let IfMatch_ =
+                ifMatch_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.ifModifiedSince_ instead.")>]
+        let IfModifiedSince_ =
+                ifModifiedSince_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.ifNoneMatch_ instead.")>]
+        let IfNoneMatch_ =
+                ifNoneMatch_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.ifRange_ instead.")>]
+        let IfRange_ =
+                ifRange_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.ifUnmodifiedSince_ instead.")>]
+        let IfUnmodifiedSince_ =
+                ifUnmodifiedSince_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.maxForwards_ instead.")>]
+        let MaxForwards_ =
+                maxForwards_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.pragma_ instead.")>]
+        let Pragma_ =
+                pragma_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.proxyAuthorization_ instead.")>]
+        let ProxyAuthorization_ =
+                proxyAuthorization_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.range_ instead.")>]
+        let Range_ =
+                range_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.referer_ instead.")>]
+        let Referer_ =
+                referer_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.te_ instead.")>]
+        let TE_ =
+                te_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.trailer_ instead.")>]
+        let Trailer_ =
+                trailer_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.transferEncoding_ instead.")>]
+        let TransferEncoding_ =
+                transferEncoding_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.upgrade_ instead.")>]
+        let Upgrade_ =
+                upgrade_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.userAgent_ instead.")>]
+        let UserAgent_ =
+                userAgent_
+            >-> option_
+
+        [<Obsolete ("Use Request.Headers.via_ instead.")>]
         let Via_ =
-            Header_ "Via"
+                via_
+            >-> option_
 
 (* Response Lenses *)
 
 [<RequireQualifiedAccess>]
 module Response =
 
+    let body_ =
+            Environment.value_<Stream> Constants.responseBody
+        >-> Option.unsafe_
+
+    let headers_ =
+            Environment.value_<IDictionary<string, string []>> Constants.responseHeaders
+        >-> Option.unsafe_
+
+    let header_ key =
+            headers_
+        >-> Dict.value_<string, string []> key
+        >-> Option.mapIsomorphism ((String.concat ","), (Array.create 1))
+
+    let httpVersion_ =
+            Environment.value_<string> Constants.responseProtocol
+        >-> Option.mapIsomorphism (HttpVersion.parse, HttpVersion.format)
+
+    let reasonPhrase_ =
+            Environment.value_<string> Constants.responseReasonPhrase
+
+    let statusCode_ =
+            Environment.value_<int> Constants.responseStatusCode
+
+    (* Obsolete
+
+       Backwards compatibility shims to make the 2.x-> 3.x transition
+       less painful, providing functionally equivalent options where possible.
+
+       To be removed for 4.x releases. *)
+
+    [<Obsolete ("Use Response.body_ instead.")>]
     let Body_ =
-        Environment.Required_<Stream> Constants.responseBody
+        body_
 
+    [<Obsolete ("Use Response.headers_ instead.")>]
     let Headers_ =
-        Environment.Required_<IDictionary<string, string []>> Constants.responseHeaders
+        headers_
 
+    [<Obsolete ("Use Response.header_ instead.")>]
     let Header_ key =
-        Headers_ >-?> mutKeyP_<string, string []> key <?-> ((String.concat ","), (Array.create 1))
+            header_ key
+        >-> option_
 
+    [<Obsolete ("Use Response.httpVersion_ instead.")>]
     let HttpVersion_ =
-        Environment.Optional_<string> Constants.responseProtocol <?-> (HttpVersion.Parse, HttpVersion.Format)
+            httpVersion_
+        >-> option_
 
+    [<Obsolete ("Use Response.reasonPhrase_ instead.")>]
     let ReasonPhrase_ =
-        Environment.Optional_<string> Constants.responseReasonPhrase
+            reasonPhrase_
+        >-> option_
 
+    [<Obsolete ("Use Response.statusCode_ instead.")>]
     let StatusCode_ =
-        Environment.Optional_<int> Constants.responseStatusCode
+            statusCode_
+        >-> option_
 
     (* Response Header Lenses *)
 
     [<RequireQualifiedAccess>]
     module Headers =
 
-        let private header_ key tryParse format =
-            Header_ key <??> (tryParse, format)
+        let private value_ key (tryParse, format) =
+                header_ key
+            >-> Option.mapEpimorphism (tryParse >> Option.ofChoice, format)
 
         // TODO: typed AcceptRanges
 
-        let AcceptRanges_ =
-            Header_ "Accept-Ranges"
+        let acceptRanges_ =
+            header_ "Accept-Ranges"
 
-        let Age_ =
-            header_ "Age" Age.TryParse Age.Format
+        let age_ =
+            value_
+                "Age"
+                (Age.tryParse, Age.format)
 
-        let Allow_ =
-            header_ "Allow" Allow.TryParse Allow.Format
+        let allow_ =
+            value_
+                "Allow"
+                (Allow.tryParse, Allow.format)
 
-        let CacheControl_ =
-            header_ "Cache-Control" CacheControl.TryParse CacheControl.Format
+        let cacheControl_ =
+            value_
+                "Cache-Control"
+                (CacheControl.tryParse, CacheControl.format)
 
-        let Connection_ =
-            header_ "Connection" Connection.TryParse Connection.Format
+        let connection_ =
+            value_
+                "Connection"
+                (Connection.tryParse, Connection.format)
 
-        let ContentEncoding_ =
-            header_ "Content-Encoding" ContentEncoding.TryParse ContentEncoding.Format
+        let contentEncoding_ =
+            value_
+                "Content-Encoding"
+                (ContentEncoding.tryParse, ContentEncoding.format)
 
-        let ContentLanguage_ =
-            header_ "Content-Language" ContentLanguage.TryParse ContentLanguage.Format
+        let contentLanguage_ =
+            value_
+                "Content-Language"
+                (ContentLanguage.tryParse, ContentLanguage.format)
 
-        let ContentLength_ =
-            header_ "Content-Length" ContentLength.TryParse ContentLength.Format
+        let contentLength_ =
+            value_
+                "Content-Length"
+                (ContentLength.tryParse, ContentLength.format)
 
-        let ContentLocation_ =
-            header_ "Content-Location" ContentLocation.TryParse ContentLocation.Format
+        let contentLocation_ =
+            value_
+                "Content-Location"
+                (ContentLocation.tryParse, ContentLocation.format)
 
         // TODO: typed ContentRange
 
-        let ContentRange_ =
-            Header_ "Content-Range"
+        let contentRange_ =
+            header_ "Content-Range"
 
-        let ContentType_ =
-            header_ "Content-Type" ContentType.TryParse ContentType.Format
+        let contentType_ =
+            value_
+                "Content-Type"
+                (ContentType.tryParse, ContentType.format)
 
-        let Date_ =
-            header_ "Date" Date.TryParse Date.Format
+        let date_ =
+            value_
+                "Date"
+                (Date.tryParse, Date.format)
 
-        let ETag_ =
-            header_ "ETag" ETag.TryParse ETag.Format
+        let eTag_ =
+            value_
+                "ETag"
+                (ETag.tryParse, ETag.format)
 
-        let Expires_ =
-            header_ "Expires" Expires.TryParse Expires.Format
+        let expires_ =
+            value_
+                "Expires"
+                (Expires.tryParse, Expires.format)
 
-        let LastModified_ =
-            header_ "Last-Modified" LastModified.TryParse LastModified.Format
+        let lastModified_ =
+            value_
+                "Last-Modified"
+                (LastModified.tryParse, LastModified.format)
 
-        let Location_ =
-            header_ "Location" Location.TryParse Location.Format
+        let location_ =
+            value_
+                "Location"
+                (Location.tryParse, Location.format)
 
         // TODO: typed ProxyAuthenticate
 
-        let ProxyAuthenticate_ =
-            Header_ "Proxy-Authenticate"
+        let proxyAuthenticate_ =
+            header_ "Proxy-Authenticate"
 
         // TODO: typed RetryAfter
 
-        let RetryAfter_ =
-            header_ "Retry-After" RetryAfter.TryParse RetryAfter.Format
+        let retryAfter_ =
+            value_
+                "Retry-After"
+                (RetryAfter.tryParse, RetryAfter.format)
 
         // TODO: typed Server
 
-        let Server_ =
-            Header_ "Server"
+        let server_ =
+            header_ "Server"
 
         // TODO: typed Trailer
 
-        let Trailer_ =
-            Header_ "Trailer"
+        let trailer_ =
+            header_ "Trailer"
 
         // TODO: typed TransferEncoding
 
-        let TransferEncoding_ =
-            Header_ "Transfer-Encoding"
+        let transferEncoding_ =
+            header_ "Transfer-Encoding"
 
         // TODO: typed Upgrade
 
-        let Upgrade_ =
-            Header_ "Upgrade"
+        let upgrade_ =
+            header_ "Upgrade"
 
         // TODO: typed Vary
 
-        let Vary_ =
-            Header_ "Vary"
+        let vary_ =
+            header_ "Vary"
 
         // TODO: typed Warning
 
-        let Warning_ =
-            Header_ "Warning"
+        let warning_ =
+            header_ "Warning"
 
         // TODO: typed WWWAuthenticate
 
+        let wwwAuthenticate_ =
+            header_ "WWW-Authenticate"
+
+        (* Obsolete
+
+           Backwards compatibility shims to make the 2.x-> 3.x transition
+           less painful, providing functionally equivalent options where possible.
+
+           To be removed for 4.x releases. *)
+
+        [<Obsolete ("Use Response.Headers.acceptRanges_ instead.")>]
+        let AcceptRanges_ =
+                acceptRanges_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.age_ instead.")>]
+        let Age_ =
+                age_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.allow_ instead.")>]
+        let Allow_ =
+                allow_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.cacheControl_ instead.")>]
+        let CacheControl_ =
+                cacheControl_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.connection_ instead.")>]
+        let Connection_ =
+                connection_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentEncoding_ instead.")>]
+        let ContentEncoding_ =
+                contentEncoding_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentLanguage_ instead.")>]
+        let ContentLanguage_ =
+                contentLanguage_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentLength_ instead.")>]
+        let ContentLength_ =
+                contentLength_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentLocation_ instead.")>]
+        let ContentLocation_ =
+                contentLocation_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentRange_ instead.")>]
+        let ContentRange_ =
+                contentRange_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.contentType_ instead.")>]
+        let ContentType_ =
+                contentType_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.date_ instead.")>]
+        let Date_ =
+                date_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.eTag_ instead.")>]
+        let ETag_ =
+                eTag_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.expires_ instead.")>]
+        let Expires_ =
+                expires_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.lastModified_ instead.")>]
+        let LastModified_ =
+                lastModified_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.location_ instead.")>]
+        let Location_ =
+                location_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.proxyAuthenticate_ instead.")>]
+        let ProxyAuthenticate_ =
+                proxyAuthenticate_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.retryAfter_ instead.")>]
+        let RetryAfter_ =
+                retryAfter_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.server_ instead.")>]
+        let Server_ =
+                server_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.trailer_ instead.")>]
+        let Trailer_ =
+                trailer_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.transferEncoding_ instead.")>]
+        let TransferEncoding_ =
+                transferEncoding_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.upgrade_ instead.")>]
+        let Upgrade_ =
+                upgrade_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.vary_ instead.")>]
+        let Vary_ =
+                vary_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.warning_ instead.")>]
+        let Warning_ =
+                warning_
+            >-> option_
+
+        [<Obsolete ("Use Response.Headers.wwwAuthenticate_ instead.")>]
         let WwwAuthenticate_ =
-            Header_ "WWW-Authenticate"
+                wwwAuthenticate_
+            >-> option_

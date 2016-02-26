@@ -19,29 +19,16 @@
 //----------------------------------------------------------------------------
 
 [<AutoOpen>]
-module Freya.Core.Lenses
+module Freya.Recorder.Optics
 
 open Aether
 open Aether.Operators
+open Freya.Core
 
 [<RequireQualifiedAccess>]
-module Environment =
+module Record =
 
-    let Required_<'a> k =
-            FreyaState.Environment_
-       >--> mutKey_<string, obj> k
-       <--> box_<'a>
-
-    let Optional_<'a> k =
-            FreyaState.Environment_
-       >-?> mutKeyP_<string, obj> k
-       <?-> box_<'a>
-
-[<RequireQualifiedAccess>]
-module Memo =
-
-    let Id_<'a> i =
-            FreyaState.Meta_
-       >--> FreyaMetaState.Memos_
-       >-?> key_ i
-       <?-> box_<'a>
+    let record_<'a> key =
+            FreyaRecorderRecord.data_
+        >-> Map.value_ key
+        >-> Option.mapIsomorphism box_<'a>

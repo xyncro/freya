@@ -25,14 +25,14 @@ open Freya.Machine
 
 (* Configuration Metadata *)
 
-let configured =
-    { FreyaMachineOperationMetadata.Configurable = true
-      Configured = true }
-
-let unconfigured =
-    { FreyaMachineOperationMetadata.Configurable = true
-      Configured = false }
-
-let unconfigurable =
-    { FreyaMachineOperationMetadata.Configurable = false
-      Configured = false }
+//let configured =
+//    { FreyaMachineOperationMetadata.Configurable = true
+//      Configured = true }
+//
+//let unconfigured =
+//    { FreyaMachineOperationMetadata.Configurable = true
+//      Configured = false }
+//
+//let unconfigurable =
+//    { FreyaMachineOperationMetadata.Configurable = false
+//      Configured = false }
