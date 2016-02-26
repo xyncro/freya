@@ -154,14 +154,14 @@ module ETag =
     type Defaults =
         | Defaults
 
-        static member inline ETag (x: Freya<ETag>) =
+        static member inline ETag (x: Freya<EntityTag>) =
             x
 
-        static member inline ETag (x: ETag) =
+        static member inline ETag (x: EntityTag) =
             Freya.init x
 
     let inline defaults (a: ^a, _: ^b) =
-            ((^a or ^b) : (static member ETag: ^a -> Freya<ETag>) a)
+            ((^a or ^b) : (static member ETag: ^a -> Freya<EntityTag>) a)
 
     let inline infer (x: 'a) =
         defaults (x, Defaults)
