@@ -48,6 +48,7 @@
     <Compile Include="Domain.fs" />
     <Compile Include="Api.fs" />
     <Compile Include="Tests.fs" />
+    <Compile Include="Cache.Tests.fs" />
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
