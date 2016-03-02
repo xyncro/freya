@@ -92,6 +92,7 @@ module CacheControl =
         let private weak =
             function | Strong x | Weak x -> List.exists (function | Strong y | Weak y when x = y -> true | _ -> false)
 
+
         (* Decisions *)
 
         let requested ifNoneMatch =
@@ -105,6 +106,7 @@ module CacheControl =
         let matches ifNoneMatch eTag =
                 fun x y ->
                     (function | Some _, Some (IfNoneMatch IfNoneMatchChoice.Any) -> false
+                              | Some eTag, Some (IfNoneMatch (IfNoneMatchChoice.EntityTags eTags)) when not (weak eTag eTags) -> true
                               | Some eTag, Some (IfNoneMatch (IfNoneMatchChoice.EntityTags eTags)) when weak eTag eTags -> true
                               | _ -> false) (x, y)
             <!> Option.orElse (Freya.init None) (Option.map (fun x -> Some <!> x) eTag)
