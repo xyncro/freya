@@ -37,6 +37,7 @@ module Sut =
             using http
             methodsSupported [OPTIONS;GET;PUT;]
             handleOk (represent "hello")
+            respondWithEntity true
             etag (Strong("test"))
         } 
     let caching =  
@@ -85,7 +86,8 @@ module Tests =
             request.Headers.Add("If-None-Match", ["\"test-no-match\""])
             use! response = Async.AwaitTask <| client.SendAsync request
             let! result = Async.AwaitTask <| response.Content.ReadAsStringAsync()
-            response.StatusCode =! Net.HttpStatusCode.NotModified }
+            response.StatusCode =! Net.HttpStatusCode.NotModified 
+            result =! "hello" }      
         |> Async.RunSynchronously
 
     [<Test>]
