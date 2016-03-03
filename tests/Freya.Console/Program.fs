@@ -1,3 +1,4 @@
+open System
 open System.Text
 
 // Freya (and Arachne)
@@ -23,12 +24,6 @@ let inline represent (x: string) =
           Languages = Some [ en ] }
       Data = Encoding.UTF8.GetBytes x }
 
-let hello =
-        Freya.Optic.set Response.reasonPhrase_ (Some "Hey Folks!")
-     *> Freya.Optic.map Response.body_ (fun b ->
-            let out = "Hey Folks!"B
-            b.Write (out, 0, out.Length)
-            b)
 let ok =
     represent "Hey, folks!"
 
@@ -44,12 +39,14 @@ let home =
         using http
         including common
         methodsSupported GET
-        handleOk ok }
+        handleOk ok
+        expires (Freya.init (DateTime.UtcNow.AddDays 1.0))
+        lastModified (Freya.init (DateTime.UtcNow))
+        etag (Freya.init (Strong "abc")) }
 
 let routes =
     freyaRouter {
-        resource "/" home
-        resource "/hello" hello }
+        resource "/" home }
 
 let app =
     OwinAppFunc.ofFreya routes
@@ -87,7 +84,7 @@ let main _ =
 
 // Uncomment the wished for server!
 
-//    let _ = katana ()
+    let _ = katana ()
 //    let _ = suave ()
     let _ = System.Console.ReadLine ()
 
