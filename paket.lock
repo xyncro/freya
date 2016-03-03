@@ -1,43 +1,43 @@
 NUGET
-  remote: https://nuget.org/api/v2
+  remote: https://www.nuget.org/api/v2
   specs:
     Aether (8.1.1)
-    Arachne (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
-      Arachne.Http (>= 3.0.0-b104)
-      Arachne.Http.Cors (>= 3.0.0-b104)
-      Arachne.Http.State (>= 3.0.0-b104)
-      Arachne.Language (>= 3.0.0-b104)
-      Arachne.Uri (>= 3.0.0-b104)
-      Arachne.Uri.Template (>= 3.0.0-b104)
-    Arachne.Core (3.0.0-b104)
+    Arachne (3.0.0)
+      Arachne.Core (>= 3.0.0)
+      Arachne.Http (>= 3.0.0)
+      Arachne.Http.Cors (>= 3.0.0)
+      Arachne.Http.State (>= 3.0.0)
+      Arachne.Language (>= 3.0.0)
+      Arachne.Uri (>= 3.0.0)
+      Arachne.Uri.Template (>= 3.0.0)
+    Arachne.Core (3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Http (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
-      Arachne.Language (>= 3.0.0-b104)
-      Arachne.Uri (>= 3.0.0-b104)
+    Arachne.Http (3.0.0)
+      Arachne.Core (>= 3.0.0)
+      Arachne.Language (>= 3.0.0)
+      Arachne.Uri (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Http.Cors (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
-      Arachne.Http (>= 3.0.0-b104)
-      Arachne.Language (>= 3.0.0-b104)
-      Arachne.Uri (>= 3.0.0-b104)
+    Arachne.Http.Cors (3.0.0)
+      Arachne.Core (>= 3.0.0)
+      Arachne.Http (>= 3.0.0)
+      Arachne.Language (>= 3.0.0)
+      Arachne.Uri (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Http.State (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
-      Arachne.Http (>= 3.0.0-b104)
-      Arachne.Language (>= 3.0.0-b104)
-      Arachne.Uri (>= 3.0.0-b104)
+    Arachne.Http.State (3.0.0)
+      Arachne.Core (>= 3.0.0)
+      Arachne.Http (>= 3.0.0)
+      Arachne.Language (>= 3.0.0)
+      Arachne.Uri (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Language (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
+    Arachne.Language (3.0.0)
+      Arachne.Core (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Uri (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
+    Arachne.Uri (3.0.0)
+      Arachne.Core (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Arachne.Uri.Template (3.0.0-b104)
-      Arachne.Core (>= 3.0.0-b104)
-      Arachne.Uri (>= 3.0.0-b104)
+    Arachne.Uri.Template (3.0.0)
+      Arachne.Core (>= 3.0.0)
+      Arachne.Uri (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
     Chiron (6.0.1)
       Aether (>= 8.0.2 < 9.0.0)
@@ -49,7 +49,7 @@ NUGET
 GROUP Build
 FRAMEWORK: >= NET45
 NUGET
-  remote: https://nuget.org/api/v2
+  remote: https://www.nuget.org/api/v2
   specs:
     FAKE (4.17.1)
     NuGet.CommandLine (3.3.0)
@@ -58,7 +58,7 @@ NUGET
 GROUP Test
 FRAMEWORK: >= NET45
 NUGET
-  remote: https://nuget.org/api/v2
+  remote: https://www.nuget.org/api/v2
   specs:
     FSharp.Core (4.0.0.1)
     Microsoft.Owin (3.0.1)

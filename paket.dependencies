@@ -1,7 +1,7 @@
 source https://nuget.org/api/v2
 
 nuget Aether  >= 8.1.0 < 9.0.0
-nuget Arachne ~> 3.0.0-b
+nuget Arachne ~> 3
 nuget Chiron  >= 6.0.1 < 7.0.0
 nuget Hekate  ~> 3
 
