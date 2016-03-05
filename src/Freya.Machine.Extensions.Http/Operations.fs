@@ -164,15 +164,12 @@ let ok modificationDate entityTag expiryDate =
      *> eTag entityTag
      *> expires expiryDate
 
-/// Sets status code to 200, reason phrase to 'Options', lastModified to given modification date,
-/// eTag to given entity tag, expires to given expiry date, and date to UTC now.
-let options modificationDate entityTag expiryDate =
+/// Sets status code to 200, reason phrase to 'Options', allow to given allowed methods, and date to UTC now.
+let options allowedMethods =
         status 200
      *> phrase "Options"
-     *> lastModified modificationDate
+     *> allow allowedMethods
      *> date
-     *> eTag entityTag
-     *> expires expiryDate
 
 /// Sets status code to 412, reason phrase to 'Precondition Failed', and date to UTC now.
 let preconditionFailed =
@@ -301,12 +298,8 @@ module internal SystemOperation =
          |> systemOperation
 
     let options =
-        (fun config ->
-            options
-        <!> lastModified config
-        <*> eTag config
-        <*> expires config
-        >>= id)
+            methodsSupported
+        >=> options
          |> systemOperation
 
     let seeOther =
