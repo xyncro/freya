@@ -1,7 +1,7 @@
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
-    Aether (8.1.1)
+    Aether (8.1.2)
     Arachne (3.0.0)
       Arachne.Core (>= 3.0.0)
       Arachne.Http (>= 3.0.0)
@@ -39,7 +39,7 @@ NUGET
       Arachne.Core (>= 3.0.0)
       Arachne.Uri (>= 3.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
-    Chiron (6.0.1)
+    Chiron (6.0.2)
       Aether (>= 8.0.2 < 9.0.0)
       FParsec (>= 1.0.0 < 2.0.0)
     FParsec (1.0.2)
@@ -51,7 +51,7 @@ FRAMEWORK: >= NET45
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
-    FAKE (4.17.1)
+    FAKE (4.21.4)
     NuGet.CommandLine (3.3.0)
     SourceLink.Fake (1.1.0)
 
@@ -82,6 +82,6 @@ NUGET
     NUnit (2.6.4)
     NUnit.Runners (2.6.4)
     Owin (1.0)
-    Suave (1.1.0)
+    Suave (1.1.1)
       FSharp.Core (>= 3.1.2.5)
     Unquote (3.1.1)
