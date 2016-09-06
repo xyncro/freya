@@ -1,0 +1,25 @@
+﻿type project
+id
+    Freya
+title
+    Freya
+description
+    Batteries-included Freya Stack
+tags
+    functional, web, f#, freya
+version
+    3.0.0-rc01
+owners
+    Andrew Cherry, Ryan Riley
+authors
+    Andrew Cherry, Ryan Riley
+copyright
+    Copyright Xyncro Ltd 2016
+projectUrl
+    https://xyncro.tech/freya
+licenseUrl
+    https://github.com/xyncro/freya-meta/blob/master/LICENSE.md
+requireLicenseAcceptance
+    false
+files
+    !./bin/*.*

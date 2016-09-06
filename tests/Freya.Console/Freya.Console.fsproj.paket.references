@@ -1,8 +1,0 @@
-Aether
-Arachne.Http.Cors
-Arachne.Uri.Template
-
-group Test
-
-  Microsoft.Owin.SelfHost
-  Suave

@@ -1,27 +1,31 @@
-source https://nuget.org/api/v2
+// Code
 
-nuget Aether  >= 8.1.0 < 9.0.0
-nuget Arachne ~> 3
-nuget Chiron  >= 6.0.1 < 7.0.0
-nuget Hekate  ~> 3
+group Async
+
+  source http://nuget.org/api/v2
+  source https://www.myget.org/F/freya/api/v2
+
+  nuget Freya.Machines.Http        ~> 3.0.0-rc
+  nuget Freya.Machines.Http.Cors   ~> 3.0.0-rc
+  nuget Freya.Machines.Http.Patch  ~> 3.0.0-rc
+  nuget Freya.Routers.Uri.Template ~> 3.0.0-rc
+
+group Hopac
+
+  source http://nuget.org/api/v2
+  source https://www.myget.org/F/freya/api/v2
+
+  nuget Freya.Machines.Http.Hopac        ~> 3.0.0-rc
+  nuget Freya.Machines.Http.Cors.Hopac   ~> 3.0.0-rc
+  nuget Freya.Machines.Http.Patch.Hopac  ~> 3.0.0-rc
+  nuget Freya.Routers.Uri.Template.Hopac ~> 3.0.0-rc
+
+// Build
 
 group Build
 
-  source https://nuget.org/api/v2
-  framework: >= net45
+  source http://nuget.org/api/v2
 
-  nuget FAKE
-  nuget SourceLink.Fake
-  nuget Nuget.CommandLine
+  nuget Fake
+  github xyncro/build build.fsx
 
-group Test
-
-  source https://nuget.org/api/v2
-  framework: >= net45
-
-  nuget Microsoft.Owin.Testing
-  nuget Microsoft.Owin.SelfHost
-  nuget NUnit ~> 2
-  nuget NUnit.Runners ~> 2
-  nuget Suave ~> 1
-  nuget Unquote

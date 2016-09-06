@@ -1,3 +1,0 @@
-[submodule "ui/inspector"]
-	path = ui/inspector
-	url = https://github.com/freya-fs/freya.ui.inspector.git

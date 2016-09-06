@@ -1,0 +1,6 @@
+group Async
+
+  Freya.Machines.Http
+  Freya.Machines.Http.Cors
+  Freya.Machines.Http.Patch
+  Freya.Routers.Uri.Template
