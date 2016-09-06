@@ -3,7 +3,6 @@
 group Async
 
   source http://nuget.org/api/v2
-  source https://www.myget.org/F/freya/api/v2
 
   nuget Freya.Machines.Http        ~> 3.0.0-rc
   nuget Freya.Machines.Http.Cors   ~> 3.0.0-rc
@@ -13,7 +12,6 @@ group Async
 group Hopac
 
   source http://nuget.org/api/v2
-  source https://www.myget.org/F/freya/api/v2
 
   nuget Freya.Machines.Http.Hopac        ~> 3.0.0-rc
   nuget Freya.Machines.Http.Cors.Hopac   ~> 3.0.0-rc
