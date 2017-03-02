@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Freya.Common.targets" />
+  <ItemGroup>
+    <!-- set PrivateAssets=None to ensure that all assets, including Build and Analyzer, are included in the nuspec -->
+    <PackageReference Include="Freya.Machines.Http" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Machines.Http.Cors" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Machines.Http.Patch" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Routers.Uri.Template" Version="4.0.0-alpha-*" PrivateAssets="None" />
+  </ItemGroup>
+</Project>

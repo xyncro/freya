@@ -1,61 +1,54 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{FFB3924E-0CB4-4FE2-8643-E114445FA168}"
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E4D0231C-82FF-4554-B6AD-A193D8679EED}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dependencies", "dependencies", "{80B9DE71-9FC3-48F5-9B9E-66A0D08A7261}"
-	ProjectSection(SolutionItems) = preProject
-		paket.dependencies = paket.dependencies
-		paket.lock = paket.lock
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Freya", "src\Freya\Freya.csproj", "{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{FDFA6623-65B8-4569-97E2-23766946A94A}"
-	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D752DE3C-8740-4C02-BD15-D139D5B171B8}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya", "src\Freya\Freya.fsproj", "{C2EAAC0B-4B52-4943-8ED2-D8328F59686C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "variants", "variants", "{E5B7D788-0C6B-4367-B227-ED6273658AC8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "async", "async", "{46C23DBF-C6CE-45DA-A1DC-7F12301AB638}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hopac", "hopac", "{5D3C2E4B-2A7B-4E6D-BB42-401E3992B0F8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D4DA655F-F287-447E-8D7E-2777D0F273D3}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freya.Hopac", "src\Freya.Hopac\Freya.Hopac.fsproj", "{53579D0A-1A08-4C00-A091-C43DED7195A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Freya.Hopac", "src\Freya.Hopac\Freya.Hopac.csproj", "{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C2EAAC0B-4B52-4943-8ED2-D8328F59686C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C2EAAC0B-4B52-4943-8ED2-D8328F59686C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C2EAAC0B-4B52-4943-8ED2-D8328F59686C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C2EAAC0B-4B52-4943-8ED2-D8328F59686C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53579D0A-1A08-4C00-A091-C43DED7195A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53579D0A-1A08-4C00-A091-C43DED7195A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53579D0A-1A08-4C00-A091-C43DED7195A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53579D0A-1A08-4C00-A091-C43DED7195A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|x64.ActiveCfg = Debug|x64
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|x64.Build.0 = Debug|x64
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|x86.ActiveCfg = Debug|x86
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Debug|x86.Build.0 = Debug|x86
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|x64.ActiveCfg = Release|x64
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|x64.Build.0 = Release|x64
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|x86.ActiveCfg = Release|x86
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C}.Release|x86.Build.0 = Release|x86
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|x64.ActiveCfg = Debug|x64
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|x64.Build.0 = Debug|x64
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|x86.ActiveCfg = Debug|x86
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Debug|x86.Build.0 = Debug|x86
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|x64.ActiveCfg = Release|x64
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|x64.Build.0 = Release|x64
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|x86.ActiveCfg = Release|x86
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{80B9DE71-9FC3-48F5-9B9E-66A0D08A7261} = {FFB3924E-0CB4-4FE2-8643-E114445FA168}
-		{FDFA6623-65B8-4569-97E2-23766946A94A} = {FFB3924E-0CB4-4FE2-8643-E114445FA168}
-		{D752DE3C-8740-4C02-BD15-D139D5B171B8} = {46C23DBF-C6CE-45DA-A1DC-7F12301AB638}
-		{C2EAAC0B-4B52-4943-8ED2-D8328F59686C} = {D752DE3C-8740-4C02-BD15-D139D5B171B8}
-		{46C23DBF-C6CE-45DA-A1DC-7F12301AB638} = {E5B7D788-0C6B-4367-B227-ED6273658AC8}
-		{5D3C2E4B-2A7B-4E6D-BB42-401E3992B0F8} = {E5B7D788-0C6B-4367-B227-ED6273658AC8}
-		{D4DA655F-F287-447E-8D7E-2777D0F273D3} = {5D3C2E4B-2A7B-4E6D-BB42-401E3992B0F8}
-		{53579D0A-1A08-4C00-A091-C43DED7195A9} = {D4DA655F-F287-447E-8D7E-2777D0F273D3}
+		{674002A5-5D1A-40B8-A85A-E3CFEC1C4E9C} = {E4D0231C-82FF-4554-B6AD-A193D8679EED}
+		{4D8E3861-CE1E-445C-9C9F-92595C3A6BD6} = {E4D0231C-82FF-4554-B6AD-A193D8679EED}
 	EndGlobalSection
 EndGlobal

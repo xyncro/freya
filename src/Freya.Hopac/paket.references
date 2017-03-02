@@ -1,6 +1,0 @@
-group Hopac
-
-  Freya.Machines.Http.Hopac
-  Freya.Machines.Http.Cors.Hopac
-  Freya.Machines.Http.Patch.Hopac
-  Freya.Routers.Uri.Template.Hopac

@@ -1,0 +1,15 @@
+version: 4.0.0-aci-{build}
+image: Visual Studio 2017 RC
+environment:
+  CLI_VERSION: 1.0.0-rc4-004842
+
+build_script:
+  - ps: dotnet --info
+  - ps: dotnet restore
+  - ps: dotnet pack -c Release --include-symbols --version-suffix "aci-${env:APPVEYOR_BUILD_NUMBER}"
+
+test: off
+
+artifacts:
+  - path: '**\*.nupkg'
+  - path: '**\BenchmarkDotNet.Artifacts\**\*.*'
