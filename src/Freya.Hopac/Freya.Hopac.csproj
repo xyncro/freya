@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Hopac>true</Hopac>
+  </PropertyGroup>
+  <Import Project="..\Freya.Common.targets" />
+  <ItemGroup>
+    <!-- set PrivateAssets=None to ensure that all assets, including Build and Analyzer, are included in the nuspec -->
+    <PackageReference Include="Freya.Machines.Http.Hopac" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Machines.Http.Cors.Hopac" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Machines.Http.Patch.Hopac" Version="4.0.0-alpha-*" PrivateAssets="None" />
+    <PackageReference Include="Freya.Routers.Uri.Template.Hopac" Version="4.0.0-alpha-*" PrivateAssets="None" />
+  </ItemGroup>
+</Project>

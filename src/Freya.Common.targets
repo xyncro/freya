@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <TargetFrameworks>net45;netstandard1.6</TargetFrameworks>
+  </PropertyGroup>
+  <Import Project="..\nuget.props" />
+</Project>
