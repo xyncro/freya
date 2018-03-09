@@ -1,0 +1,30 @@
+language: csharp
+
+mono: 5.2.0
+dotnet: 2.0.0
+
+install:
+  - mozroots --import --sync
+  # workaround for missing .net 4.5 targing pack
+  - export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.5/
+
+matrix:
+  include:
+    - os: linux # Ubuntu 14.04
+      dist: trusty
+      sudo: required
+      dotnet: 2.0.0
+    - os: osx # OSX 10.12
+      osx_image: xcode9.1
+      dotnet: 2.0.0
+      dist: trusty
+      sudo: required
+
+script: 
+  - dotnet --info
+  - dotnet restore
+  - dotnet pack -c Release --include-symbols"
+
+branches:
+  except:
+    - gh-pages
