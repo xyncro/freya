@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VersionPrefix>4.0.0</VersionPrefix>
+    <Authors>Andrew Cherry, Ryan Riley, Marcus Griep</Authors>
+    <Description>Batteries-included Freya Stack</Description>
+    <Description Condition="'$(Hopac)' == 'true'">$(Description), powered by the Hopac concurrency library</Description>
+    <Copyright>Copyright © Xyncro Ltd</Copyright>
+    <PackageLicenseUrl>https://github.com/xyncro/freya/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://freya.io/</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/xyncro/freya</RepositoryUrl>
+    <PackageTags>$(PackageTags);functional;web;freya;f#;fsharp</PackageTags>
+    <PackageTags Condition="'$(Hopac)' == 'true'">$(PackageTags);hopac</PackageTags>
+  </PropertyGroup>
+  <Import Condition="Exists('version.props')" Project="version.props"/>
+</Project>
