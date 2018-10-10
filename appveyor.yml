@@ -1,12 +1,7 @@
-version: 4.0.0-aci-{build}
-
+image: Visual Studio 2017
 build_script:
-  - ps: dotnet --info
-  - ps: dotnet restore
-  - ps: dotnet pack -c Release --include-symbols --version-suffix "aci-${env:APPVEYOR_BUILD_NUMBER}"
-
-test: off
-
+- ps: |
+      .\build.ps1
+      if ($lastexitcode -ne 0){ exit $lastexitcode }
 artifacts:
-  - path: '**\*.nupkg'
-  - path: '**\BenchmarkDotNet.Artifacts\**\*.*'
+- path: bin\*.nupkg
