@@ -12,6 +12,7 @@ paket-files
 *.suo
 *.user
 *.sln.docstates
+#nkt
 
 # Build results
 .fake/
